@@ -7,30 +7,17 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "storybook": "storybook dev --port 6006",
-    "build-storybook": "storybook build"
+    "postinstall": "nuxt prepare"
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",
-    "@nuxtjs/storybook": "7.0.0",
     "@nuxtjs/tailwindcss": "^6.10.1",
-    "@storybook-vue/nuxt": "0.2.0",
-    "@storybook-vue/nuxt-storybook": "^0.0.1-latest.7",
-    "@storybook/addon-essentials": "7.5.3",
-    "@storybook/addon-interactions": "7.5.3",
-    "@storybook/addon-links": "7.5.3",
-    "@storybook/blocks": "7.5.3",
-    "@storybook/builder-vite": "7.5.3",
-    "@storybook/testing-library": "^0.2.0",
-    "@storybook/vue3": "7.5.3",
     "@tailwindcss/typography": "^0.5.10",
     "@types/node": "^18.17.5",
     "nuxt": "^3.8.2",
     "nuxt-icon": "^0.6.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "storybook": "7.5.3",
     "vue": "^3.3.8",
     "vue-router": "^4.2.5"
   },
@@ -38,7 +25,6 @@
     "@nuxt/image": "^1.1.0",
     "@vueuse/nuxt": "^10.6.1",
     "nuxt-directus": "^5.6.0",
-    "nuxt-headlessui": "^1.1.4",
-    "nuxt-icons": "^3.2.1"
+    "nuxt-headlessui": "^1.1.4"
   }
 }
