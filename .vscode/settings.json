@@ -4,5 +4,6 @@
   },
   "editor.quickSuggestions": {
     "strings": true
-  }
+  },
+  "nuxt.isNuxtApp": true
 }

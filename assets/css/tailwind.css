@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    @apply bg-bprimary text-[#d1d5dd];
+    @apply bg-bprimary text-[#d1d5dd] scroll-smooth;
   }
   /* body {
     @apply text-[#d1d5dd];
