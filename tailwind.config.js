@@ -19,12 +19,14 @@ export default {
     colors: {
       black: '#000',
       white: '#fff',
+      transparent: 'transparent',
       primary: '#00FFE8',
       secondary: '#E48632',
       bprimary: '#111',
       bsecondary: '#222',
       danger: '#dc2626',
       agree: '#16a34a',
+      'light-gray': '#c7c7c7'
     },
     extend: {
       fontFamily: {
