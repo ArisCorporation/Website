@@ -14,19 +14,12 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@vueuse/nuxt',
     '@nuxt/image',
-    'nuxt-icons',
     'nuxt-icon',
     'nuxt-headlessui',
-    'nuxt-directus',
-    '@storybook-vue/nuxt-storybook',
+    'nuxt-directus'
   ],
-
-  storybook: {
-    url: 'http://localhost:3001',
-    port: 3001,
-  },
 
   directus: {
     url: 'https://cms.ariscorp.de',
-  },
+  }
 })
