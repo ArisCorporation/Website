@@ -16,9 +16,21 @@ export default defineNuxtConfig({
     '@nuxt/image',
     'nuxt-icon',
     'nuxt-headlessui',
-    'nuxt-directus'
+    'nuxt-directus',
+    '@nuxt/content'
   ],
 
+  runtimeConfig: {
+    environment: '',
+    authSecret: '',
+    cmsToken: '',
+    public: {
+      url: '',
+      apiBase: '',
+      fileBase: '',
+    },
+  },
+  
   directus: {
     url: 'https://cms.ariscorp.de',
   }
