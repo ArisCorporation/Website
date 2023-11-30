@@ -52,6 +52,23 @@
     @apply bg-secondary h-[2px] w-full my-5 border-none
   }
 
+  .bg-image {
+    @apply bg-center bg-no-repeat bg-cover bg-bsecondary
+  }
+
+  .transition{
+    @apply transition-all duration-200 hover:duration-300
+  }
+  .transition-group{
+    @apply transition-all duration-200 group-hover:duration-300
+  }
+  .transition-short{
+    @apply transition-all duration-100 hover:duration-200
+  }
+  .transition-short-group{
+    @apply transition-all duration-100 group-hover:duration-200
+  }
+
   .sidebar-scrollbar {
     overflow-x: hidden;
   }
