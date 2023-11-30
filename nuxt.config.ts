@@ -24,11 +24,26 @@ export default defineNuxtConfig({
     environment: '',
     authSecret: '',
     cmsToken: '',
+    imageProvider: '',
     public: {
       url: '',
       apiBase: '',
       fileBase: '',
     },
+  },
+
+  image: {
+    directus: {
+      // This URL needs to include the final `assets/` directory
+      baseURL: 'https://cms.ariscorp.de/assets/',
+      modifiers: {
+        format: 'webp'
+      }
+    }
+  },
+
+  headlessui: {
+    prefix: 'Headless'
   },
   
   directus: {
