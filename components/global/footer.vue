@@ -18,10 +18,6 @@ const {
           _or: [{ footer_text_titel: 'de' }, { footer_text_titel: 'en' }],
         },
       },
-      alias: {
-        footer_text_titel: 'title',
-        footer_text: 'content',
-      },
     }),
   {
     transform: (data) => {
