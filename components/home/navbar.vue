@@ -77,7 +77,7 @@ function handleBurgerMenu() {
 </script>
 
 <template>
-  <nav class="fixed top-0 z-10 h-fit w-full bg-black/80 md:bg-black/30 print:hidden">
+  <nav class="fixed top-0 z-20 h-fit w-full bg-black/80 md:bg-black/30 print:hidden">
     <div class="w-full max-w-screen-xl flex md:flex-nowrap flex-wrap items-center justify-between mx-auto p-2 md:px-4 h-full">
       <div class="flex h-16 lg:h-20 w-auto aspect-square">
        <Icon name="IconsLogosAriscorp" class="h-full w-full" />
@@ -111,6 +111,9 @@ function handleBurgerMenu() {
 </template>
 
 <style lang="postcss" scoped>
+a {
+  @apply text-white no-underline
+}
 .navigation-logo {
   @apply w-auto h-full
 }
