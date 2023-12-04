@@ -12,7 +12,7 @@ export default defineNuxtConfig({
     head: {
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
-    }
+    },
   },
   css: ['~/assets/css/main.css', '~/assets/css/tailwind.css'],
 
@@ -23,7 +23,8 @@ export default defineNuxtConfig({
     'nuxt-icon',
     'nuxt-headlessui',
     'nuxt-directus',
-    '@nuxt/content'
+    '@nuxt/content',
+    '@pinia/nuxt',
   ],
 
   runtimeConfig: {
@@ -38,21 +39,33 @@ export default defineNuxtConfig({
     },
   },
 
+  components: [
+    {
+      path: '~/components',
+      global: true,
+    },
+    {
+      path: '~/components/global',
+      prefix: '',
+      global: true,
+    },
+  ],
+
   image: {
     directus: {
       // This URL needs to include the final `assets/` directory
       baseURL: 'https://cms.ariscorp.de/assets/',
       modifiers: {
-        format: 'webp'
-      }
-    }
+        format: 'webp',
+      },
+    },
   },
 
   headlessui: {
-    prefix: 'Headless'
+    prefix: 'Headless',
   },
-  
+
   directus: {
     url: 'https://cms.ariscorp.de',
-  }
-})
+  },
+});
