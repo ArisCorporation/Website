@@ -5,7 +5,7 @@ defineProps({
     required: false,
     default: false,
   },
-})
+});
 </script>
 
 <template>
@@ -16,9 +16,9 @@ defineProps({
     xmlns="http://www.w3.org/2000/svg"
   >
     <rect
+      v-if="hoverEffect"
       width="339"
       height="294"
-      v-if="hoverEffect"
       class="group-hover:opacity-100 opacity-0 fill-[url(#radialBackground-squadron42)] transition-all duration-300 group-hover:duration-200"
     />
     <path
@@ -112,13 +112,7 @@ defineProps({
         <path d="M308 4H334V30H308V4Z" fill="white" />
       </mask>
       <g mask="url(#mask1_32_394)">
-        <path
-          opacity="0.01"
-          d="M308 4H334V30H308V4Z"
-          stroke="#979797"
-          stroke-width="2"
-          stroke-miterlimit="10"
-        />
+        <path opacity="0.01" d="M308 4H334V30H308V4Z" stroke="#979797" stroke-width="2" stroke-miterlimit="10" />
       </g>
     </g>
     <mask
@@ -227,23 +221,9 @@ defineProps({
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(169.5 147) rotate(90) scale(147 169.5)"
       >
-        <stop
-          offset="0.0729167"
-          stop-color="#778842"
-          :class="{ 'hover-effect': hoverEffect }"
-        />
-        <stop
-          offset="0.454915"
-          stop-color="#5D6838"
-          stop-opacity="0.5"
-          :class="{ 'hover-effect': hoverEffect }"
-        />
-        <stop
-          offset="1"
-          stop-color="#111111"
-          stop-opacity="0"
-          :class="{ 'hover-effect': hoverEffect }"
-        />
+        <stop offset="0.0729167" stop-color="#778842" :class="{ 'hover-effect': hoverEffect }" />
+        <stop offset="0.454915" stop-color="#5D6838" stop-opacity="0.5" :class="{ 'hover-effect': hoverEffect }" />
+        <stop offset="1" stop-color="#111111" stop-opacity="0" :class="{ 'hover-effect': hoverEffect }" />
       </radialGradient>
       <linearGradient
         id="paint1_linear_32_394"
@@ -254,11 +234,7 @@ defineProps({
         gradientUnits="userSpaceOnUse"
       >
         <stop stop-color="#B17F1B" :class="{ 'hover-effect': hoverEffect }" />
-        <stop
-          offset="1"
-          stop-color="#CCAD75"
-          :class="{ 'hover-effect': hoverEffect }"
-        />
+        <stop offset="1" stop-color="#CCAD75" :class="{ 'hover-effect': hoverEffect }" />
       </linearGradient>
       <linearGradient
         id="paint2_linear_32_394"
@@ -269,11 +245,7 @@ defineProps({
         gradientUnits="userSpaceOnUse"
       >
         <stop stop-color="#CCAD75" :class="{ 'hover-effect': hoverEffect }" />
-        <stop
-          offset="1"
-          stop-color="#B17F1B"
-          :class="{ 'hover-effect': hoverEffect }"
-        />
+        <stop offset="1" stop-color="#B17F1B" :class="{ 'hover-effect': hoverEffect }" />
       </linearGradient>
     </defs>
   </svg>
