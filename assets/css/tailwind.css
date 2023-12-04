@@ -4,7 +4,10 @@
 
 @layer base {
   html {
-    @apply bg-bprimary text-[#d1d5dd] scroll-smooth font-nasa;
+    @apply bg-bprimary text-[#d1d5dd] scroll-smooth font-nasa max-w-full;
+  }
+  ::selection {
+    @apply bg-primary text-bprimary;
   }
   /* body {
     @apply text-[#d1d5dd];
@@ -22,10 +25,10 @@
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   }
   main {
-    @apply min-h-screen flex
+    @apply min-h-screen flex;
   }
   main > div {
-    @apply flex flex-1 flex-col justify-between
+    @apply flex flex-1 flex-col justify-between;
   }
 
   h1 {
@@ -44,29 +47,34 @@
   h6 {
     @apply text-white;
   }
+
   a {
-    @apply text-secondary cursor-pointer hover:underline
+    @apply text-secondary cursor-pointer hover:underline;
   }
 
   hr {
-    @apply bg-secondary h-[2px] w-full my-5 border-none
+    @apply bg-secondary h-[2px] w-full my-5 border-none;
+  }
+
+  li {
+    @apply marker:text-primary;
   }
 
   .bg-image {
-    @apply bg-center bg-no-repeat bg-cover bg-bsecondary
+    @apply bg-center bg-no-repeat bg-cover bg-bsecondary;
   }
 
-  .transition{
-    @apply transition-all duration-200 hover:duration-300
+  .transition {
+    @apply transition-all duration-200 hover:duration-300;
   }
-  .transition-group{
-    @apply transition-all duration-200 group-hover:duration-300
+  .transition-group {
+    @apply transition-all duration-200 group-hover:duration-300;
   }
-  .transition-short{
-    @apply transition-all duration-100 hover:duration-200
+  .transition-short {
+    @apply transition-all duration-100 hover:duration-200;
   }
-  .transition-short-group{
-    @apply transition-all duration-100 group-hover:duration-200
+  .transition-short-group {
+    @apply transition-all duration-100 group-hover:duration-200;
   }
 
   .sidebar-scrollbar {
