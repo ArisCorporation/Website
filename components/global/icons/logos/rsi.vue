@@ -5,7 +5,7 @@ defineProps({
     required: false,
     default: false,
   },
-})
+});
 </script>
 
 <template>
@@ -16,9 +16,9 @@ defineProps({
     xmlns="http://www.w3.org/2000/svg"
   >
     <rect
+      v-if="hoverEffect"
       width="1715.48"
       height="750.46"
-      v-if="hoverEffect"
       class="group-hover:opacity-100 opacity-0 fill-[url(#radialBackground-rsi)] transition-all duration-300 group-hover:duration-200"
     />
     <path

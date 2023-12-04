@@ -1,5 +1,5 @@
 <script setup>
-defineProps({ hover: { type: Boolean, required: false, default: false } })
+defineProps({ hover: { type: Boolean, required: false, default: false } });
 </script>
 
 <template>
