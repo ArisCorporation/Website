@@ -1,25 +1,28 @@
 export default function (obj: any) {
   const getRoles = () => {
-    const roles: Array<String> = []
-    if (obj.roles.includes('recruitment')) roles.push('Rekrutierung')
-    if (obj.roles.includes('marketing')) roles.push('Marketing & Presse')
-    if (obj.roles.includes('content_writer')) roles.push('Inhaltsersteller')
-    if (obj.head_of_department) roles.push('Abteilungsleiter')
+    const roles: Array<String> = [];
+    if (obj.roles?.includes('recruitment')) roles.push('Rekrutierung');
+    if (obj.roles?.includes('marketing')) roles.push('Marketing & Presse');
+    if (obj.roles?.includes('content_writer')) roles.push('Inhaltsersteller');
+    if (obj.head_of_department) roles.push('Abteilungsleiter');
 
-    return roles.sort()
-  }
+    return roles.sort();
+  };
   const getPosition = () => {
-    if (obj.position_level == 'candidate') return 'Anwärter'
-    if (obj.position_level == 'freelancer') return 'Freier Mitarbeiter'
-    if (obj.position_level == 'employee') return 'Mitarbeiter'
-    if (obj.position_level == 'administration') return 'Verwaltung'
-  }
+    if (obj.position_level === 'candidate') return 'Anwärter';
+    if (obj.position_level === 'freelancer') return 'Freier Mitarbeiter';
+    if (obj.position_level === 'employee') return 'Mitarbeiter';
+    if (obj.position_level === 'administration') return 'Verwaltung';
+  };
+  const getFullName = () =>
+    (obj.title ? obj.title + ' ' : '') + obj.firstname + (obj.lastname ? ' ' + obj.lastname : '');
 
   return {
     id: obj.id,
     firstname: obj.firstname,
     lastname: obj.lastname,
     title: obj.title,
+    fullName: getFullName(),
     slug: obj.slug,
     potrait: obj.member_potrait?.id,
     sex: obj.sex,
@@ -65,5 +68,5 @@ export default function (obj: any) {
     medicalinfo: obj.text,
     biography: obj.biography,
     account: obj.account,
-  }
+  };
 }
