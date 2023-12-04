@@ -1,12 +1,4 @@
 <script setup lang="ts">
-interface Tab {
-  id: string
-  header: string
-  content: any
-  component: string
-  componentData: any
-}
-
 defineProps({
   title: {
     type: String,
@@ -26,7 +18,7 @@ defineProps({
     required: false,
     default: false,
   },
-})
+});
 </script>
 
 <template>
@@ -34,41 +26,38 @@ defineProps({
     <h1 v-if="title" class="uppercase">{{ title }}</h1>
     <HeadlessTabList>
       <hr />
-      <div
-        :class="{ 'justify-between': between }"
-        class="w-full flex flex-wrap"
-      >
-        <HeadlessTab
-          v-slot="{ selected }"
-          v-for="tab in tabs"
-          :key="tab.header"
-          class="focus-visible:outline-none p-3 m-1 outline-none"
-        >
-          <h1
-            class="text-base sm:text-lg md:text-xl lg:text-3xl xl:text-4xl uppercase hover:opacity-75 transition-all duration-200 hover:duration-300 ease-in-out"
-            :class="{ 'text-primary': selected, 'opacity-50': !selected }"
+      <slot name="tablist">
+        <div :class="{ 'justify-between': between }" class="flex flex-wrap w-full">
+          <HeadlessTab
+            v-for="tab in tabs"
+            v-slot="{ selected }"
+            :key="tab.header"
+            class="p-3 m-1 outline-none focus-visible:outline-none"
           >
-            {{ tab.header }}
-          </h1>
-        </HeadlessTab>
-      </div>
+            <h1
+              class="text-base uppercase transition-all duration-200 ease-in-out sm:text-lg md:text-xl lg:text-3xl xl:text-4xl hover:opacity-75 hover:duration-300"
+              :class="{ 'text-primary': selected, 'opacity-50': !selected }"
+            >
+              {{ tab.header }}
+            </h1>
+          </HeadlessTab>
+        </div>
+      </slot>
       <hr />
     </HeadlessTabList>
     <HeadlessTabPanels>
-      <HeadlessTabPanel
-        v-for="tab in tabs"
-        :key="tab.header"
-        class="p-4 mx-auto xl:max-w-full w-full"
-        :class="{ 'prose max-w-none prose-invert': !tab.component }"
-      >
-        <ContentRenderer v-if="markdown" :value="tab.content" />
-        <div v-else-if="tab.content" v-html="tab.content" class="text-center" />
-        <component
-          v-else-if="tab.component"
-          :data="tab.componentData"
-          :is="tab.component"
-        />
-      </HeadlessTabPanel>
+      <slot name="tabcontent">
+        <HeadlessTabPanel
+          v-for="tab in tabs"
+          :key="tab.header"
+          class="w-full p-4 mx-auto xl:max-w-full"
+          :class="{ 'prose max-w-none prose-invert': !tab.component }"
+        >
+          <ContentRenderer v-if="markdown" :value="tab.content" />
+          <div v-else-if="tab.content" class="text-center" v-html="tab.content" />
+          <component :is="tab.component" v-else-if="tab.component" :data="tab.componentData" />
+        </HeadlessTabPanel>
+      </slot>
     </HeadlessTabPanels>
   </HeadlessTabGroup>
 </template>
