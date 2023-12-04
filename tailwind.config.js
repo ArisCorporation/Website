@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-const srcDir = '.'
+const srcDir = '.';
 
 export default {
   content: [
@@ -24,9 +24,11 @@ export default {
       secondary: '#E48632',
       bprimary: '#111',
       bsecondary: '#222',
+      btertiary: '#444',
       danger: '#dc2626',
       agree: '#16a34a',
-      'light-gray': '#c7c7c7'
+      'light-gray': '#c7c7c7',
+      'dark-gray': '#6f6f6f',
     },
     extend: {
       fontFamily: {
@@ -35,4 +37,4 @@ export default {
     },
   },
   plugins: [require('@tailwindcss/typography')],
-}
+};
