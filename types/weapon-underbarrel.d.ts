@@ -1,7 +1,7 @@
-export { WeaponUnderbarrel };
+export { IWeaponUnderbarrel };
 
 declare global {
-  interface WeaponUnderbarrel {
+  interface IWeaponUnderbarrel {
     id: String;
     name: String;
     slug: String;
@@ -9,7 +9,7 @@ declare global {
     gallery: Array<String>;
     class: String;
     size: String;
-    manufacturer: Company;
+    manufacturer: ICompany;
     weight: number;
     price: number;
     stats: Array;

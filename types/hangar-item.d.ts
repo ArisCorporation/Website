@@ -1,16 +1,19 @@
-export { Member };
+export { IHangarItem };
 
 declare global {
-  interface Member {
+  interface IHangarItem {
     id: String;
-    name: String;
-    serial: String;
-    group: String;
-    visibility: String;
-    department: Department;
-    planned: Boolean;
-    active_module: ShipModule;
-    member: Member;
-    ship: Ship;
+    ship: IShip;
+    userData: {
+      owner: IMember;
+      name: String;
+      publicName: Boolean;
+      serial: String;
+      group: String;
+      visibility: String;
+      planned: Boolean;
+      department: IDepartment;
+      active_module: IShipModule;
+    };
   }
 }

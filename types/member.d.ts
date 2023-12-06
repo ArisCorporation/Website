@@ -1,24 +1,25 @@
-export { Member };
+export { IMember };
 
 declare global {
-  interface Member {
+  interface IMember {
     id: string;
     firstname: string;
     lastname: string;
     title: string;
+    fullName: String;
     slug: string;
     potrait: string;
     sex: string;
     roles: Array<String>;
     position: String;
     head_of_department: Boolean;
-    department: Department;
+    department: IDepartment;
     birthdate: String;
-    birthsystem: Starsystem;
+    birthsystem: IStarsystem;
     currentplace: String;
-    currentsystem: Starsystem;
+    currentsystem: IStarsystem;
     birthplace: String;
-    currentsystem: Starsystem;
+    currentsystem: IStarsystem;
     currentplace: String;
     ueestate: String;
     citizenreason: String;
@@ -53,8 +54,8 @@ declare global {
     medicalinfo: String;
     biography: String;
     account: Account;
-    weapons: Array<Weapon>;
-    ships: Array<HangarItem>;
-    wishlist: Array<Ship>;
+    weapons: Array<IWeapon>;
+    ships: Array<IHangarItem>;
+    wishlist: Array<IShip>;
   }
 }

@@ -1,7 +1,7 @@
-export { Weapon };
+export { IWeapon };
 
 declare global {
-  interface Weapon {
+  interface IWeapon {
     id: String;
     name: String;
     slug: String;
@@ -18,13 +18,13 @@ declare global {
     firerateFullauto: number;
     firerateLoaded: number;
     mag: String;
-    optic: WeaponOptic;
+    optic: IWeaponOptic;
     weaponMuzzleVelocity: number;
     locktime: number;
     description: String;
     maxRange: number;
     effectiveRange: number;
     table: Array;
-    owner: Member;
+    owner: IMember;
   }
 }

@@ -1,7 +1,7 @@
-export { WeaponOptic };
+export { IWeaponOptic };
 
 declare global {
-  interface WeaponOptic {
+  interface IWeaponOptic {
     id: String;
     name: String;
     slug: String;

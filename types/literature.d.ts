@@ -1,10 +1,10 @@
-export { Literature };
+export { ILiterature };
 
 declare global {
-  interface Literature {
+  interface ILiterature {
     id: String;
     title: String;
-    series: LiteratureSeries;
+    series: ILiteratureSeries;
     chapter: number;
     content: String;
   }

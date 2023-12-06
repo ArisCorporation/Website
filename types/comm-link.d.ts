@@ -1,13 +1,13 @@
-export { CommLink };
+export { ICommLink };
 
 declare global {
-  interface CommLink {
+  interface ICommLink {
     id: String;
     title: String;
     slug: String;
-    author: Member;
+    author: IMember;
     banner: String;
     content: String;
-    channel: CommLinkChannel;
+    channel: ICommLinkChannel;
   }
 }
