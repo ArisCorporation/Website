@@ -1,11 +1,11 @@
 <script setup lang="ts">
-defineProps({
+const { title, tablist, between, markdown } = defineProps({
   title: {
     type: String,
     required: false,
   },
-  tabs: {
-    type: Array<Tab>,
+  tablist: {
+    type: Array as PropType<ITab[]>,
     required: true,
   },
   between: {
@@ -29,7 +29,7 @@ defineProps({
       <slot name="tablist">
         <div :class="{ 'justify-between': between }" class="flex flex-wrap w-full">
           <HeadlessTab
-            v-for="tab in tabs"
+            v-for="tab in tablist"
             v-slot="{ selected }"
             :key="tab.header"
             class="p-3 m-1 outline-none focus-visible:outline-none"
@@ -48,7 +48,7 @@ defineProps({
     <HeadlessTabPanels>
       <slot name="tabcontent">
         <HeadlessTabPanel
-          v-for="tab in tabs"
+          v-for="tab in tablist"
           :key="tab.header"
           class="w-full p-4 mx-auto xl:max-w-full"
           :class="{ 'prose max-w-none prose-invert': !tab.component }"
@@ -61,3 +61,9 @@ defineProps({
     </HeadlessTabPanels>
   </HeadlessTabGroup>
 </template>
+
+<style scoped lang="postcss">
+h1 {
+  @apply mb-0;
+}
+</style>
