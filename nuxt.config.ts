@@ -25,6 +25,7 @@ export default defineNuxtConfig({
     'nuxt-directus',
     '@nuxt/content',
     '@pinia/nuxt',
+    '@vueuse/motion/nuxt',
   ],
 
   runtimeConfig: {
