@@ -1,5 +1,5 @@
 <script setup>
-defineProps({
+const { data } = defineProps({
   data: {
     type: Array,
     required: true,
@@ -7,7 +7,7 @@ defineProps({
 });
 </script>
 <template>
-  <Tabs>
+  <TabGroup>
     <template #tablist>
       <div class="flex flex-wrap justify-center xl:grid xl:grid-flow-col xl:grid-rows-1">
         <HeadlessTab
@@ -15,13 +15,13 @@ defineProps({
           :key="department.id"
           v-slot="{ selected }"
           as="template"
-          class="p-3 m-1"
+          class="p-3 m-1 outline-none"
         >
           <div>
             <NuxtImg
               :src="department.logo"
               height="160"
-              class="relative w-20 h-auto mx-1 my-2 transition-all duration-300 ease-out border-solid cursor-pointer focus-visible:outline-0 border-1 hover:scale-150"
+              class="relative w-20 h-auto mx-1 transition-all duration-300 ease-out border-solid cursor-pointer focus-visible:outline-0 border-1 hover:scale-150"
               :class="{ 'scale-125': selected }"
             />
           </div>
@@ -32,8 +32,16 @@ defineProps({
       <HeadlessTabPanel v-for="department in data" :key="department.name" class="px-4">
         <h2 class="text-center text-primary">{{ department.name }}</h2>
         <div class="flex justify-center max-w-full mx-auto mt-4 space-x-6">
-          <NuxtImg :src="department.pic1" class="w-1/2 max-w-xl" />
-          <NuxtImg :src="department.pic2" class="w-1/2 max-w-xl" />
+          <div class="w-1/2 max-w-xl">
+            <DefaultPanel>
+              <NuxtImg :src="department.pic1" class="w-full" />
+            </DefaultPanel>
+          </div>
+          <div class="w-1/2 max-w-xl">
+            <DefaultPanel>
+              <NuxtImg :src="department.pic2" class="w-full" />
+            </DefaultPanel>
+          </div>
         </div>
         <div class="mt-4 text-center" v-html="department.text" />
         <hr />
@@ -46,7 +54,6 @@ defineProps({
               <NuxtImg
                 :src="department.head_of_department?.potrait || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'"
                 width="200"
-                class="m-0"
               />
             </DefaultPanel>
             <div class="ml-4">
@@ -69,5 +76,5 @@ defineProps({
         </div>
       </HeadlessTabPanel>
     </template>
-  </Tabs>
+  </TabGroup>
 </template>
