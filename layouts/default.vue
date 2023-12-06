@@ -1,6 +1,6 @@
 <template>
   <div>
-    <HomeNavbar />
+    <HomeTheNavbar />
     <div v-if="$route.path == '/'" id="hero" class="relative">
       <div class="absolute top-0 bottom-0 left-0 right-0 z-10 flex items-center justify-center">
         <div class="absolute w-full h-full bg-black opacity-60" />

@@ -97,7 +97,7 @@ function handleBurgerMenu() {
         :class="{ hidden: !mobileMenu, block: mobileMenu }"
       >
         <ul
-          class="flex flex-col w-full p-4 mt-4 font-medium border rounded-lg md:w-fit md:space-x-8 md:p-0 border-secondary bg-bsecondary md:flex-row md:mt-0 md:border-0 md:bg-transparent"
+          class="flex flex-col w-full p-4 mt-4 mb-0 font-medium list-none border rounded-lg md:w-fit md:space-x-8 md:p-0 border-secondary bg-bsecondary md:flex-row md:mt-0 md:border-0 md:bg-transparent"
         >
           <li v-for="item in homeItems" :key="item.name" class="w-full my-auto md:w-fit">
             <!-- TODO: add tab index to active class -->
@@ -115,7 +115,7 @@ function handleBurgerMenu() {
           </li>
         </ul>
         <ul
-          class="flex flex-col w-full p-4 mt-4 font-medium border rounded-lg md:w-fit md:space-x-8 md:p-0 border-secondary bg-bsecondary md:flex-row md:mt-0 md:border-0 md:bg-transparent"
+          class="flex flex-col w-full p-4 mt-4 mb-0 font-medium list-none border rounded-lg md:w-fit md:space-x-8 md:p-0 border-secondary bg-bsecondary md:flex-row md:mt-0 md:border-0 md:bg-transparent"
         >
           <li v-for="item in bannerItems" :key="item.name" class="w-full my-auto md:w-fit">
             <NuxtLink :to="item.link" class="block px-3 py-2 rounded md:p-0 md:border-0 not-active">
