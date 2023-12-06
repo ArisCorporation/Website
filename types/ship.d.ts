@@ -1,7 +1,7 @@
-export { Ship };
+export { IShip };
 
 declare global {
-  interface Ship {
+  interface IShip {
     id: String;
     erkulId: String;
     smId: String;
@@ -18,7 +18,7 @@ declare global {
     p4kMode: String;
     p4kId: String;
     p4kVersion: String;
-    manufacturer: Company;
+    manufacturer: ICompany;
     storePage: String;
     salesPage: String;
     length: number;
@@ -29,7 +29,7 @@ declare global {
     price: number;
     pledgePrice: number;
     onSale: Boolean;
-    productionStatus: String;
+    productionState: String;
     readyPatch: String;
     career: String;
     hydrogenTank: number;
@@ -71,9 +71,9 @@ declare global {
     role: String;
     description: String;
     history: String;
-    rating: ShipRating;
+    rating: IShipRating;
     size: number;
     sortSize: number;
-    modules: Array<ShipModule>;
+    modules: Array<IShipModule>;
   }
 }

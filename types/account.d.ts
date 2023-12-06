@@ -1,10 +1,10 @@
-export { Account };
+export { IAccount };
 
 declare global {
-  interface Account {
-    id: string;
-    first_name: string;
-    last_name: string;
+  interface IAccount {
+    id: String;
+    first_name: String;
+    last_name: String;
     title: String;
     email: String;
     password: String;
@@ -20,6 +20,6 @@ declare global {
     id: String;
     betaAccess: String;
     passwordMustChange: String;
-    character: Member;
+    character: IMember;
   }
 }

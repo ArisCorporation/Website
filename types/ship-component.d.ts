@@ -1,14 +1,14 @@
-export { ShipComponent };
+export { IShipComponent };
 
 declare global {
-  interface ShipComponent {
+  interface IShipComponent {
     id: String;
     name: String;
     slug: String;
     size: number;
     grade: number;
     type: String;
-    manufacturer: Company;
+    manufacturer: ICompany;
     description: String;
     durabilityHealth: number;
     durabilityLifetime: number;

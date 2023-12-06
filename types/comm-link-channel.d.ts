@@ -1,11 +1,11 @@
-export { CommLinkChannel };
+export { ICommLinkChannel };
 
 declare global {
-  interface CommLinkChannel {
+  interface ICommLinkChannel {
     id: String;
     name: String;
     description: String;
-    commLinks: Array<CommLink>;
+    commLinks: Array<ICommLink>;
     unavailable: Boolean;
   }
 }

@@ -1,7 +1,7 @@
-export { Company };
+export { ICompany };
 
 declare global {
-  interface Company {
+  interface ICompany {
     id: String;
     name: String;
     code: String;
@@ -17,17 +17,17 @@ declare global {
     medicalCategory: String;
     handweapon: Boolean;
     headquarter: String;
-    headquarterSystem: Starsystem;
+    headquarterSystem: IStarsystem;
     currentCeo: String;
     founding: String;
     founder: String;
     famousGoods: String;
-    weapons: Array<Weapon>;
-    ships: Array<Ship>;
-    modules: Array<ShipModule>;
-    optics: Array<WeaponOptic>;
-    barrels: Array<WeaponBarrel>;
-    underbarrels: Array<WeaponUnderbarrel>;
-    components: Array<ShipComponent>;
+    weapons: Array<IWeapon>;
+    ships: Array<IShip>;
+    modules: Array<IShipModule>;
+    optics: Array<IWeaponOptic>;
+    barrels: Array<IWeaponBarrel>;
+    underbarrels: Array<IWeaponUnderbarrel>;
+    components: Array<IShipComponent>;
   }
 }

@@ -1,7 +1,7 @@
-export { Starsystem };
+export { IStarsystem };
 
 declare global {
-  interface Starsystem {
+  interface IStarsystem {
     id: String;
     banner: String;
     name: String;
@@ -21,6 +21,6 @@ declare global {
     population: number;
     economy: number;
     dangerLevel: number;
-    companies: Array<Company>;
+    companies: Array<ICompany>;
   }
 }

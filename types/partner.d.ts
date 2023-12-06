@@ -1,7 +1,7 @@
-export { Partner };
+export { IPartner };
 
 declare global {
-  interface Partner {
+  interface IPartner {
     id: String;
     name: String;
     logo: String;

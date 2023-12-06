@@ -1,7 +1,7 @@
-export { Technology };
+export { ITechnology };
 
 declare global {
-  interface Technology {
+  interface ITechnology {
     id: String;
     name: String;
     slug: String;

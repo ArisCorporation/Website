@@ -1,7 +1,7 @@
-export { Alien };
+export { IAlien };
 
 declare global {
-  interface Alien {
+  interface IAlien {
     id: String;
     name: String;
     slug: String;

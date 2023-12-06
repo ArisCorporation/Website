@@ -1,7 +1,7 @@
-export { Tab };
+export { ITab };
 
 declare global {
-  interface Tab {
+  interface ITab {
     id: string;
     header?: string;
     content?: any;

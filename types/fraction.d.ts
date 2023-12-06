@@ -1,7 +1,7 @@
-export { Fraction };
+export { IFraction };
 
 declare global {
-  interface Fraction {
+  interface IFraction {
     id: String;
     name: String;
     slug: String;

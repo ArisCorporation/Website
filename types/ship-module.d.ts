@@ -1,7 +1,7 @@
-export { ShipModule };
+export { IShipModule };
 
 declare global {
-  interface ShipModule {
+  interface IShipModule {
     id: String;
     storeImage: String;
     name: String;
@@ -10,7 +10,7 @@ declare global {
     pledgePrice: number;
     price: number;
     productionState: String;
-    manufacturer: Company;
+    manufacturer: ICompany;
     description: String;
   }
 }
