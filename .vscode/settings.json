@@ -6,5 +6,6 @@
     "strings": true
   },
   "nuxt.isNuxtApp": false,
-  "cSpell.language": "en,de-DE"
+  "cSpell.language": "en,de-DE",
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

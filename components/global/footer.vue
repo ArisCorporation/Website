@@ -55,23 +55,30 @@ const en = await parseMarkdown(footer.value.find((e) => e.title == 'en').content
       </p>
       <div class="flex justify-between w-full">
         <p>
-          <span>C ArisCorp - </span>
+          <span>&copy; ArisCorp - </span>
           <span><NuxtLink to="/credits">Credits</NuxtLink> - </span>
-          <span><NuxtLink to="/bug-report">Bug-Report Tool</NuxtLink> - </span>
-          <span><NuxtLink to="/ams">A.M.S.</NuxtLink></span>
+          <span><NuxtLink to="/bug-report">Bug-Report Tool</NuxtLink></span>
         </p>
         <div class="flex space-x-2 w-fit">
           <div class="w-12 h-12">
-            <Icon name="IconsLogosStarcitizen" class="w-full h-full" hover-effect />
+            <NuxtLink to="https://robertsspaceindustries.com/star-citizen" target="_blank">
+              <Icon name="IconsLogosStarcitizen" class="w-full h-full" hover-effect />
+            </NuxtLink>
           </div>
           <div class="w-12 h-12">
-            <Icon name="IconsLogosSquadron42" class="w-full h-full" hover-effect />
+            <NuxtLink to="https://robertsspaceindustries.com/squadron42" target="_blank">
+              <Icon name="IconsLogosSquadron42" class="w-full h-full" hover-effect />
+            </NuxtLink>
           </div>
           <div class="w-12 h-12">
-            <Icon name="IconsLogosRsi" class="w-full h-full" hover-effect />
+            <NuxtLink to="https://robertsspaceindustries.com/" target="_blank">
+              <Icon name="IconsLogosRsi" class="w-full h-full" hover-effect />
+            </NuxtLink>
           </div>
           <div class="w-12 h-12">
-            <Icon name="IconsLogosCig" class="w-full h-full" hover-effect />
+            <NuxtLink to="https://cloudimperiumgames.com/" target="_blank">
+              <Icon name="IconsLogosCig" class="w-full h-full" hover-effect />
+            </NuxtLink>
           </div>
         </div>
       </div>
