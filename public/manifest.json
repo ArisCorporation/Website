@@ -1,0 +1,74 @@
+{
+  "theme_color": "#00FFE8",
+  "background_color": "#00FFE8",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "name": "Astro Research and Industrial Service Corporation Homepage",
+  "short_name": "ArisCorp",
+  "description": "Das hier, ist die Homepage der Astro Research and Industrial Service Corporation. Die Astro Research and Industrial Service Corporation (oder kurz: ArisCorp) ist eine fiktive Organisation in dem Universum des Spiels 'Star Citizen'.",
+  "shortcuts": [
+    {
+      "name": "VerseExkurs",
+      "description": "Gehe direkt zum VerseExkurs",
+      "url": "/VerseExkurs",
+      "/icons": [
+        {
+          "src": "/icons/shortcuts/ve.svg",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "ShipExkurs",
+      "description": "Gehe direkt zum ShipExkurs",
+      "url": "/ShipExkurs",
+      "/icons": [
+        {
+          "src": "/icons/shortcuts/se.svg",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "ArisCorp Management System",
+      "description": "Gehe direkt zum ArisCorp Management System",
+      "url": "/internal",
+      "/icons": [
+        {
+          "src": "/icons/shortcuts/ams.svg",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        }
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "src": "/icons/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
