@@ -1,0 +1,26 @@
+export default function (obj: any) {
+  return {
+    id: obj.id,
+    name: obj.firmen_name,
+    code: obj.code,
+    slug: obj.slug,
+    logo: obj.firmen_trans_logo,
+    banner: obj.firmen_banner,
+    content: obj.text,
+    // category: getCategory(),
+    handweapon: obj.handweapon,
+    headquarter: obj.headquarter,
+    headquarterSystem: obj.headquarterSystem,
+    currentCeo: obj.current_ceo,
+    founding: obj.founding,
+    founder: obj.founder,
+    famousGoods: obj.famous_goods,
+    // weapons: getWeapons(),
+    // ships: getShips(),
+    // modules: getModules(),
+    // optics: getOptics(),
+    // barrels: getBarrels(),
+    // underbarrels: getUnderbarrels(),
+    // components: getComponents(),
+  };
+}
