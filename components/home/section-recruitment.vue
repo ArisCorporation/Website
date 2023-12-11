@@ -1,0 +1,47 @@
+<script setup lang="ts">
+const { data } = defineProps({
+  data: {
+    type: Object,
+    required: true,
+  },
+});
+const modal = ref();
+const open = () => {
+  modal.value.openModal();
+};
+</script>
+
+<template>
+  <div class="mt-16">
+    <TheModal
+      ref="modal"
+      hide-close-button
+      hide-x-button
+      content="HomeSectionRecruitmentModalContent"
+      :content-data="data.dcLink"
+    />
+    <div>
+      <h1>Wir suchen neue <span class="text-primary">Mitarbeiter</span></h1>
+      <hr />
+      <h2>Rekrutierung:</h2>
+      <hr class="hr-short" />
+    </div>
+    <p>
+      Falls du nun Interesse hast dich bei uns zu bewerben, dann kannst du das ganz einfach über unseren Discord machen.
+    </p>
+    <div class="w-full py-12 mt-8 text-center border-l border-l-secondary bg-black/40 px-9">
+      <h3 class="text-secondary">Mitglied werden</h3>
+      <p>Für weitere Informationen klicke einfach auf:</p>
+      <button
+        v-motion
+        :hovered="{ scale: 1 }"
+        :tapped="{ scale: 0.97 }"
+        type="button"
+        class="p-2 mt-2 rounded-lg bg-secondary"
+        @click="open"
+      >
+        Jetzt bewerben
+      </button>
+    </div>
+  </div>
+</template>
