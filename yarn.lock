@@ -2322,7 +2322,7 @@
     "@vueuse/shared" "10.6.1"
     vue-demi ">=0.14.6"
 
-"@vueuse/core@^10.1.2":
+"@vueuse/core@^10.1.2", "@vueuse/core@^10.7.0":
   version "10.7.0"
   resolved "https://registry.yarnpkg.com/@vueuse/core/-/core-10.7.0.tgz#34f2f02f179dc0dcffc2be70d6b1233e011404b9"
   integrity sha512-4EUDESCHtwu44ZWK3Gc/hZUVhVo/ysvdtwocB5vcauSV4B7NiGY5972WnsojB3vRNdxvAt7kzJWE2h9h7C9d5w==
