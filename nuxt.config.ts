@@ -26,6 +26,8 @@ export default defineNuxtConfig({
     '@nuxt/content',
     '@pinia/nuxt',
     '@vueuse/motion/nuxt',
+    '@pinia-plugin-persistedstate/nuxt',
+    'dayjs-nuxt',
   ],
 
   runtimeConfig: {
@@ -37,6 +39,21 @@ export default defineNuxtConfig({
       url: '',
       apiBase: '',
       fileBase: '',
+      motion: {
+        directives: {
+          'default-button': {
+            initial: {
+              scale: 1,
+            },
+            hovered: {
+              scale: 1.1,
+            },
+            tapped: {
+              scale: 0.97,
+            },
+          },
+        },
+      },
     },
   },
 
@@ -68,5 +85,12 @@ export default defineNuxtConfig({
 
   directus: {
     url: 'https://cms.ariscorp.de',
+  },
+
+  dayjs: {
+    locales: ['en', 'de'],
+    plugins: ['relativeTime', 'utc', 'timezone'],
+    defaultLocale: 'de',
+    defaultTimezone: 'Europe/Berlin',
   },
 });
