@@ -1,8 +1,7 @@
-import transformMember from './transform-member';
-
 export default function (obj: any) {
-  // const getShips = () => obj.ships.map((i) => transformShip(i))
-  const getMembers = () => obj.members?.map((i) => transformMember(i));
+  const getShips = () => obj.ships?.map((i: any) => transformHangarItem(i));
+  const getMembers = () => obj.members?.map((i: any) => transformMember(i));
+  const getHoD = () => (obj.head_of_department ? transformMember(obj.head_of_department) : null);
 
   return {
     id: obj.id,
@@ -11,8 +10,8 @@ export default function (obj: any) {
     pic1: obj.gameplay_bild_links?.id,
     pic2: obj.gameplay_bild_rechts?.id,
     text: obj.text,
-    // ships: getShips(),
+    ships: getShips(),
     employees: getMembers(),
-    head_of_department: obj.head_of_department ? transformMember(obj.head_of_department) : null,
+    head_of_department: getHoD(),
   };
 }
