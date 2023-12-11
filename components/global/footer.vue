@@ -2,12 +2,7 @@
 const footerLang = useState('footerLang', () => 'de');
 const { getItems } = useDirectusItems();
 
-const {
-  data: footer,
-  pending,
-  error,
-  refresh,
-} = await useAsyncData(
+const { data: footer } = await useAsyncData(
   'footer',
   () =>
     getItems({
@@ -29,13 +24,13 @@ const {
   },
 );
 
-const de = await parseMarkdown(footer.value.find((e) => e.title == 'de').content);
-const en = await parseMarkdown(footer.value.find((e) => e.title == 'en').content);
+const de = await parseMarkdown(footer.value.find((e) => e.title === 'de').content);
+const en = await parseMarkdown(footer.value.find((e) => e.title === 'en').content);
 </script>
 
 <template>
   <footer class="w-full bg-black border-t border-t-1 border-secondary print:hidden">
-    <div class="container pt-4 pb-2 mx-auto">
+    <div class="container px-4 pt-4 pb-2 mx-auto sm:px-0">
       <div class="flex">
         <h4>//Disclaimer</h4>
         <div class="flex ml-4 space-x-2">
