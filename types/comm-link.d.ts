@@ -6,7 +6,9 @@ declare global {
     title: String;
     slug: String;
     author: IMember;
-    banner: String;
+    storeImage: String;
+    datePosted: Date;
+    description: String;
     content: String;
     channel: ICommLinkChannel;
   }
