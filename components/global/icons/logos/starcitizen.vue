@@ -12,7 +12,7 @@ defineProps({
   <svg
     fill="none"
     viewBox="0 0 588 717"
-    class="group transition-all duration-300 hover:duration-200 antialiased"
+    class="antialiased transition-all duration-300 group hover:duration-200"
     xmlns="http://www.w3.org/2000/svg"
   >
     <rect
@@ -238,6 +238,9 @@ defineProps({
 </template>
 
 <style lang="postcss" scoped>
+path {
+  @apply transition-group;
+}
 .hover-effect {
   @apply fill-[#6E6E6E] group-hover:fill-white;
 }
