@@ -40,7 +40,11 @@ const { data, size } = defineProps({
       class="relative top-0 right-0 w-full h-3/5"
       :class="{ 'xl:p-3 xl:absolute xl:h-full': size == 2, 'md:p-3 md:absolute md:h-full': size == 3 }"
     >
-      <NuxtImg class="object-fill object-center w-full h-full sm:object-cover" :src="data.storeImage" />
+      <NuxtImg
+        class="object-fill object-center w-full h-full sm:object-cover"
+        :src="data.storeImage"
+        :alt="'Titelbild von dem Comm-Link: ' + data.title"
+      />
     </div>
     <div
       class="relative right-0 w-full px-px h-fit"

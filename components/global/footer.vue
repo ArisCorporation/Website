@@ -34,10 +34,10 @@ const en = await parseMarkdown(footer.value.find((e) => e.title === 'en').conten
       <div class="flex">
         <h4>//Disclaimer</h4>
         <div class="flex ml-4 space-x-2">
-          <button :class="{ grayscale: footerLang != 'de' }" @click="footerLang = 'de'">
+          <button title="Disclaimer Deutsch" :class="{ grayscale: footerLang != 'de' }" @click="footerLang = 'de'">
             <Icon name="flagpack:de" class="rounded" size="1.5rem" />
           </button>
-          <button :class="{ grayscale: footerLang != 'en' }" @click="footerLang = 'en'">
+          <button title="Disclaimer English" :class="{ grayscale: footerLang != 'en' }" @click="footerLang = 'en'">
             <Icon name="flagpack:us" class="rounded" size="1.5rem" />
           </button>
         </div>
@@ -56,22 +56,30 @@ const en = await parseMarkdown(footer.value.find((e) => e.title === 'en').conten
         </p>
         <div class="flex space-x-2 w-fit">
           <div class="w-12 h-12">
-            <NuxtLink to="https://robertsspaceindustries.com/star-citizen" target="_blank">
+            <NuxtLink
+              aria-label="Die Website von dem Spiel Star Citizen"
+              to="https://robertsspaceindustries.com/star-citizen"
+              target="_blank"
+            >
               <Icon name="IconsLogosStarcitizen" class="w-full h-full" hover-effect />
             </NuxtLink>
           </div>
           <div class="w-12 h-12">
-            <NuxtLink to="https://robertsspaceindustries.com/squadron42" target="_blank">
+            <NuxtLink
+              aria-label="Die Website von dem Spiel Squadron42"
+              to="https://robertsspaceindustries.com/squadron42"
+              target="_blank"
+            >
               <Icon name="IconsLogosSquadron42" class="w-full h-full" hover-effect />
             </NuxtLink>
           </div>
           <div class="w-12 h-12">
-            <NuxtLink to="https://robertsspaceindustries.com/" target="_blank">
+            <NuxtLink aria-label="Die Website von RSI" to="https://robertsspaceindustries.com/" target="_blank">
               <Icon name="IconsLogosRsi" class="w-full h-full" hover-effect />
             </NuxtLink>
           </div>
           <div class="w-12 h-12">
-            <NuxtLink to="https://cloudimperiumgames.com/" target="_blank">
+            <NuxtLink aria-label="Die Website von CIG" to="https://cloudimperiumgames.com/" target="_blank">
               <Icon name="IconsLogosCig" class="w-full h-full" hover-effect />
             </NuxtLink>
           </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { title, tablist, between, markdown, hideHr } = defineProps({
+const { title, tablist, between, markdown, hideHr, store, change } = defineProps({
   title: {
     type: String,
     required: false,
@@ -24,11 +24,23 @@ const { title, tablist, between, markdown, hideHr } = defineProps({
     required: false,
     default: false,
   },
+  store: {
+    type: null,
+    required: true,
+  },
+  change: {
+    type: null,
+    required: true,
+  },
 });
+
+const changeTab = (index: number) => {
+  change(index);
+};
 </script>
 
 <template>
-  <HeadlessTabGroup as="div" class="mt-16">
+  <HeadlessTabGroup as="div" class="mt-16" :selected-index="store" @change="changeTab">
     <h1 v-if="title" class="uppercase">{{ title }}</h1>
     <HeadlessTabList>
       <hr v-if="!hideHr" />

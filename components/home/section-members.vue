@@ -8,6 +8,6 @@ const { data } = defineProps({
 </script>
 <template>
   <div class="flex flex-wrap justify-center">
-    <MemberCard v-for="member in data.value" :key="member" :data="member" />
+    <MemberCard v-for="member in data" :key="member" :data="member" />
   </div>
 </template>

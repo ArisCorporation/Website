@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { data } = defineProps({
   data: {
-    type: Array as PropType<IHangarItem[]>,
+    type: null,
     required: true,
   },
 });

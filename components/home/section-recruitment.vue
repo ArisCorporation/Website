@@ -13,13 +13,7 @@ const open = () => {
 
 <template>
   <div class="mt-16">
-    <TheModal
-      ref="modal"
-      hide-close-button
-      hide-x-button
-      content="HomeSectionRecruitmentModalContent"
-      :content-data="data.dcLink"
-    />
+    <TheModal ref="modal" hide-close-button hide-x-button content="HomeSectionRecruitmentModalContent" />
     <div>
       <h1>Wir suchen neue <span class="text-primary">Mitarbeiter</span></h1>
       <hr />
