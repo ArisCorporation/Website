@@ -64,11 +64,11 @@ const bannerItems = [
   },
 ];
 
-function handleHomeButton(item: any) {
-  if (item.action) {
-  } else {
-  }
-}
+// function handleHomeButton(item: any) {
+//   if (item.action) {
+//   } else {
+//   }
+// }
 
 function handleBurgerMenu() {
   mobileMenu.value = !mobileMenu.value;
