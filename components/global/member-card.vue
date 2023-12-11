@@ -39,7 +39,11 @@ defineProps({
         </div>
       </div>
       <div class="absolute z-10 w-full h-full bg-black opacity-0 group-hover:opacity-50 transition-short-group" />
-      <NuxtImg :src="data.potrait || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'" class="z-0 w-full h-full" />
+      <NuxtImg
+        :alt="'Potrait von ' + data.fullName"
+        :src="data.potrait || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'"
+        class="z-0 w-full h-full"
+      />
     </div>
     <h4>{{ data.fullName }}</h4>
     <h6 class="pt-0 text-light-gray">{{ data.position }}</h6>
