@@ -1,8 +1,9 @@
 <script setup lang="ts">
-const { title, tablist, between, markdown } = defineProps({
+const { title, tablist, between, markdown, hideHr } = defineProps({
   title: {
     type: String,
     required: false,
+    default: null,
   },
   tablist: {
     type: Array as PropType<ITab[]>,
@@ -18,6 +19,11 @@ const { title, tablist, between, markdown } = defineProps({
     required: false,
     default: false,
   },
+  hideHr: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
 </script>
 
@@ -25,17 +31,17 @@ const { title, tablist, between, markdown } = defineProps({
   <HeadlessTabGroup as="div" class="mt-16">
     <h1 v-if="title" class="uppercase">{{ title }}</h1>
     <HeadlessTabList>
-      <hr />
+      <hr v-if="!hideHr" />
       <slot name="tablist">
         <div :class="{ 'justify-between': between }" class="flex flex-wrap w-full">
           <HeadlessTab
             v-for="tab in tablist"
             v-slot="{ selected }"
             :key="tab.header"
-            class="p-3 m-1 outline-none focus-visible:outline-none"
+            class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none"
           >
             <h1
-              class="text-base uppercase transition-all duration-200 ease-in-out sm:text-lg md:text-xl lg:text-3xl xl:text-4xl hover:opacity-75 hover:duration-300"
+              class="uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
               :class="{ 'text-primary': selected, 'opacity-50': !selected }"
             >
               {{ tab.header }}
@@ -61,9 +67,3 @@ const { title, tablist, between, markdown } = defineProps({
     </HeadlessTabPanels>
   </HeadlessTabGroup>
 </template>
-
-<style scoped lang="postcss">
-h1 {
-  @apply mb-0;
-}
-</style>
