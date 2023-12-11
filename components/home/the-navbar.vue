@@ -43,7 +43,7 @@ const homeItems = [
   {
     name: 'Partner',
     icon: 'IconsNavigationPartner',
-    hash: 'partner',
+    hash: 'partners',
   },
 ];
 const bannerItems = [
@@ -64,11 +64,17 @@ const bannerItems = [
   },
 ];
 
-// function handleHomeButton(item: any) {
-//   if (item.action) {
-//   } else {
-//   }
-// }
+const homepageTabsStore = useHomepageTabsStore();
+function handleHomeButton(item: any) {
+  if (item.action) {
+    if (item.action.tabGroup === 'our') {
+      homepageTabsStore.setOurTab(item.action.tabIndex);
+    }
+    if (item.action.tabGroup === 'aris') {
+      homepageTabsStore.setArisTab(item.action.tabIndex);
+    }
+  }
+}
 
 function handleBurgerMenu() {
   mobileMenu.value = !mobileMenu.value;
@@ -76,7 +82,7 @@ function handleBurgerMenu() {
 </script>
 
 <template>
-  <nav class="fixed top-0 z-20 w-full h-fit bg-black/80 md:bg-black/80 print:hidden">
+  <nav class="fixed top-0 z-50 w-full h-fit bg-black/80 md:bg-black/80 print:hidden">
     <div
       class="flex flex-wrap items-center justify-between w-full h-full max-w-screen-xl p-2 mx-auto md:flex-nowrap md:px-4"
     >
@@ -108,6 +114,7 @@ function handleBurgerMenu() {
                 active: route.hash == item.hash,
                 'not-active': route.hash != item.hash,
               }"
+              @click="() => handleHomeButton(item)"
             >
               <span class="block md:hidden">{{ item.name }}</span>
               <span class="hidden md:block"><Icon :name="item.icon" hover class="w-12 h-auto md:w-14 lg:w-16" /></span>
