@@ -14,6 +14,6 @@ echo "Creating Production Build..."
 npm run build
 
 echo "PM2 Reload"
-pm2 reload app_name
+pm2 reload myapp
 
 echo "Deployment Finished!"
