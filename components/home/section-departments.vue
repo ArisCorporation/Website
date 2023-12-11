@@ -7,7 +7,7 @@ const { data } = defineProps({
 });
 </script>
 <template>
-  <TabGroup>
+  <TabGroup hide-hr>
     <template #tablist>
       <div class="flex flex-wrap justify-center xl:grid xl:grid-flow-col xl:grid-rows-1">
         <HeadlessTab
@@ -31,13 +31,13 @@ const { data } = defineProps({
     <template #tabcontent>
       <HeadlessTabPanel v-for="department in data" :key="department.name" class="px-4">
         <h2 class="text-center text-primary">{{ department.name }}</h2>
-        <div class="flex justify-center max-w-full mx-auto mt-4 space-x-6">
-          <div class="w-1/2 max-w-xl">
+        <div class="flex flex-wrap justify-center max-w-full mx-auto mt-4">
+          <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
               <NuxtImg :src="department.pic1" class="w-full" />
             </DefaultPanel>
           </div>
-          <div class="w-1/2 max-w-xl">
+          <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
               <NuxtImg :src="department.pic2" class="w-full" />
             </DefaultPanel>

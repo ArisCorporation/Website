@@ -4,8 +4,8 @@
     <div v-if="$route.path == '/'" id="hero" class="relative">
       <div class="absolute top-0 bottom-0 left-0 right-0 z-10 flex items-center justify-center">
         <div class="absolute w-full h-full bg-black opacity-60" />
-        <div class="relative mt-20 text-center sm:mt-10 md:mt-0">
-          <h1 class="text-lg text-white sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl">
+        <div class="relative text-center mt-14 sm:mt-10 md:mt-0">
+          <h1 class="mb-0 text-lg text-white md:mb-6 sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl">
             Willkommen <span class="text-secondary">bei der</span>
           </h1>
           <NuxtImg
