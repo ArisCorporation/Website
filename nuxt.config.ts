@@ -33,9 +33,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     authSecret: process.env.NUXT_AUTH_SECRET,
     cmsToken: process.env.NUXT_CMS_TOKEN,
+    imageProvider: process.env.NUXT_IMAGE_PROVIDER,
     public: {
       environment: process.env.NUXT_PUBLIC_ENVIRONMENT,
       url: process.env.NUXT_PUBLIC_URL,
+      apiBase: process.env.NUXT_PUBLIC_API_BASE,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
       motion: {
         directives: {
@@ -68,21 +70,21 @@ export default defineNuxtConfig({
   ],
 
   image: {
-    provider: 'directus',
     directus: {
-      baseURL: 'https://cms.ariscorp.de/assets/',
+      // This URL needs to include the final `assets/` directory
+      baseURL: process.env.NUXT_PUBLIC_FILE_BASE,
       modifiers: {
         format: 'webp',
       },
     },
   },
 
-  directus: {
-    url: 'https://cms.ariscorp.de',
-  },
-
   headlessui: {
     prefix: 'Headless',
+  },
+
+  directus: {
+    url: process.env.NUXT_PUBLIC_API_BASE,
   },
 
   dayjs: {
