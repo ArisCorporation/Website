@@ -3,6 +3,10 @@ const { getItems, getSingletonItem } = useDirectusItems();
 const { query } = useRoute();
 const homepageTabsStore = useHomepageTabsStore();
 
+definePageMeta({
+  layout: 'default',
+});
+
 const { data } = await useAsyncData('cart-discount', async () => {
   const [theArisCorp, history, manifest, charta, members, departments, fleet, commLink, recruitment, partners] =
     await Promise.all([
@@ -161,9 +165,12 @@ const { data } = await useAsyncData('cart-discount', async () => {
   };
 });
 
-definePageMeta({
-  layout: 'default',
-});
+if (!data) {
+  throw createError({
+    statusCode: 500,
+    statusMessage: 'Es können bestimmte Daten nicht abgerufen werden!',
+  });
+}
 
 const aristabs = [
   {

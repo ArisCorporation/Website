@@ -1,4 +1,4 @@
 @font-face {
   font-family: 'nasalization';
-  src: url('/fonts/nasalization-rg.otf') format('otf');
+  src: url('~/assets/fonts/nasalization-rg.otf') format('opentype');
 }
