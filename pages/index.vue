@@ -3,7 +3,7 @@ const { getItems, getSingletonItem } = useDirectusItems();
 const route = useRoute();
 const homepageTabsStore = useHomepageTabsStore();
 
-const { data, pending } = await useAsyncData('cart-discount', async () => {
+const { data } = await useAsyncData('cart-discount', async () => {
   const [theArisCorp, history, manifest, charta, members, departments, fleet, commLink, recruitment, partners] =
     await Promise.all([
       getSingletonItem({
