@@ -169,6 +169,7 @@ if (!data) {
   throw createError({
     statusCode: 500,
     statusMessage: 'Es können bestimmte Daten nicht abgerufen werden!',
+    fatal: true,
   });
 }
 
