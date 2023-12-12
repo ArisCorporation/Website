@@ -77,6 +77,10 @@ export default defineNuxtConfig({
     },
   },
 
+  piniaPersistedstate: {
+    storage: 'localStorage',
+  },
+
   directus: {
     url: 'https://cms.ariscorp.de',
   },

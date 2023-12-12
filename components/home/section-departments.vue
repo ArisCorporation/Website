@@ -20,7 +20,6 @@ const { data } = defineProps({
         >
           <div>
             <NuxtImg
-              placeholder
               :src="department.logo"
               height="160"
               class="relative w-20 h-auto mx-1 transition-all duration-300 ease-out border-solid cursor-pointer focus-visible:outline-0 border-1 hover:scale-150"
@@ -36,12 +35,12 @@ const { data } = defineProps({
         <div class="flex flex-wrap justify-center max-w-full mx-auto mt-4">
           <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
-              <NuxtImg placeholder :src="department.pic1" class="w-full" />
+              <NuxtImg :src="department.pic1" class="w-full" />
             </DefaultPanel>
           </div>
           <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
-              <NuxtImg placeholder :src="department.pic2" class="w-full" />
+              <NuxtImg :src="department.pic2" class="w-full" />
             </DefaultPanel>
           </div>
         </div>
@@ -54,7 +53,6 @@ const { data } = defineProps({
                 <span class="m-auto text-center">Diese Abteilungen hat noch keinen Abteilungsleiter gefunden</span>
               </div>
               <NuxtImg
-                placeholder
                 :src="department.head_of_department?.potrait || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'"
                 width="200"
               />

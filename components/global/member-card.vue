@@ -40,7 +40,6 @@ defineProps({
       </div>
       <div class="absolute z-10 w-full h-full bg-black opacity-0 group-hover:opacity-50 transition-short-group" />
       <NuxtImg
-        placeholder
         :alt="'Potrait von ' + data.fullName"
         :src="data.potrait || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'"
         class="z-0 w-full h-full"
