@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data } = defineProps({
+defineProps({
   data: {
     type: Object as PropType<IPartner[]>,
     required: true,

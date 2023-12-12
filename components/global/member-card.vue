@@ -33,7 +33,7 @@ defineProps({
           </template>
           <hr />
           <p class="flex justify-center space-x-4">
-            <NuxtLink :to="(ams ? '/ams/' : '/') + 'bigoraphy/' + data.slug">BIOGRAFIE</NuxtLink>
+            <NuxtLink :to="(ams ? '/ams/' : '/') + 'biography/' + data.slug">BIOGRAFIE</NuxtLink>
             <NuxtLink v-if="hangarLink" :to="'/ams/hangar/' + data.slug">HANGAR</NuxtLink>
           </p>
         </div>

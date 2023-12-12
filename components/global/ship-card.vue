@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { shipData, hangarData, displayOwner, displayDepartment, displayName, displayProductionState } = defineProps({
+defineProps({
   shipData: {
     type: Object as PropType<IShip>,
     required: true,
@@ -75,7 +75,7 @@ const { shipData, hangarData, displayOwner, displayDepartment, displayName, disp
             </p>
             <NuxtLink
               class="z-20 block mt-auto text-xs text-white opacity-50 transition-group hover:no-underline hover:opacity-100"
-              :to="'/VerseExkurs/company/' + shipData.manufacturer.slug"
+              :to="'/VerseExkurs/companies/' + shipData.manufacturer.slug"
               >{{ shipData.manufacturer.name }}
             </NuxtLink>
           </div>

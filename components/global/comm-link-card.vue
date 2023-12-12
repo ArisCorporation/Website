@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data, size } = defineProps({
+defineProps({
   data: {
     type: Object as PropType<ICommLink>,
     required: true,

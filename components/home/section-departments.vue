@@ -1,6 +1,6 @@
 <script setup>
 const homepageTabsStore = useHomepageTabsStore();
-const { data } = defineProps({
+defineProps({
   data: {
     type: Array,
     required: true,
