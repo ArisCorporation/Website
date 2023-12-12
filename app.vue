@@ -164,6 +164,14 @@ useHead({
     },
   ],
 });
+
+onMounted(() => {
+  if (config.public.environment !== 'DEVELOPMENT') {
+    window.alert(
+      'ACHTUNG: DIES IST EINE EXTREM FRÜHE TESTVERSION DER 4. VERSION DER ARISCORP WEBSITE!\n\n\nDIESE VERSION IST NUR FÜR DAS INTERNE ENTWICKLUNGSTEAM DER ARISCORP BESTIMMT!',
+    );
+  }
+});
 </script>
 
 <template>
