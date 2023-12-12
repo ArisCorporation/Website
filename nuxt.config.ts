@@ -31,14 +31,14 @@ export default defineNuxtConfig({
   ],
 
   runtimeConfig: {
-    authSecret: '',
-    cmsToken: '',
-    imageProvider: '',
+    authSecret: process.env.NUXT_AUTH_SECRET,
+    cmsToken: process.env.NUXT_CMS_TOKEN,
+    imageProvider: process.env.NUXT_IMAGE_PROVIDER,
     public: {
-      environment: '',
-      url: '',
-      apiBase: '',
-      fileBase: '',
+      environment: process.env.NUXT_PUBLIC_ENVIRONMENT,
+      url: process.env.NUXT_PUBLIC_URL,
+      apiBase: process.env.NUXT_PUBLIC_API_BASE,
+      fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
       motion: {
         directives: {
           'default-button': {
