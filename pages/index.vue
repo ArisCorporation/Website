@@ -200,6 +200,7 @@ const ourtabs = [
     componentData: data.value?.departments,
   },
 ];
+
 if (query) {
   if (query.aris) {
     homepageTabsStore.setArisTab(Number(query.aris));
