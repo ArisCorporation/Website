@@ -55,14 +55,14 @@ const { data, closeAction } = defineProps({
       </button>
       <div class="flex justify-center mx-auto space-x-8">
         <NuxtLink class="my-auto transition rounded hover:bg-white" :to="data" target="_blank">
-          <NuxtImg width="125" src="90d5157b-2d6e-4ce2-af5a-9bf59343ec66" />
+          <NuxtImg placeholder width="125" src="90d5157b-2d6e-4ce2-af5a-9bf59343ec66" />
         </NuxtLink>
         <NuxtLink
           class="my-auto transition rounded hover:bg-white"
           to="https://robertsspaceindustries.com/orgs/ARISCORP"
           target="_blank"
         >
-          <NuxtImg width="125" src="74529b89-cf09-4b2d-bd65-5813097cd65b" />
+          <NuxtImg placeholder width="125" src="74529b89-cf09-4b2d-bd65-5813097cd65b" />
         </NuxtLink>
       </div>
     </div>
