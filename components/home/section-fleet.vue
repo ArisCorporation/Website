@@ -75,7 +75,7 @@ const { data } = defineProps({
             />
             <h3
               v-if="!data.fleetData.filter((e) => e.userData.department?.name === department.name)[0]"
-              class="text-secondary"
+              class="mx-auto"
             >
               Diese Abteilung hat noch keine zugewiesenen Schiffe.
             </h3>
