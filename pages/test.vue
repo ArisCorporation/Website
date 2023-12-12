@@ -1,10 +1,12 @@
-<script setup>
+<script setup lang="ts">
 definePageMeta({
-  layout: '',
-})
+  layout: 'default',
+});
 </script>
 
 <template>
-  <h1>Component Test</h1>
-  <HomeNavbar />
+  <div>
+    <h1>test</h1>
+    <div class="flex flex-wrap">test</div>
+  </div>
 </template>
