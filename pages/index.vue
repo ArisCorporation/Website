@@ -219,7 +219,7 @@ if (route.query.aris) {
       title="über"
       between
     />
-    <TabGroup
+    <!-- <TabGroup
       id="our"
       class="scroll-m-28"
       :store="homepageTabsStore.selectedOurTab"
@@ -230,6 +230,6 @@ if (route.query.aris) {
     />
     <HomeSectionCommLink id="comm-link" class="scroll-m-28" :data="data?.commLink" />
     <HomeSectionRecruitment id="recruitment" class="scroll-m-28" :data="data?.recruitment" />
-    <HomeSectionPartner id="partners" class="scroll-m-28" :data="data?.partners" />
+    <HomeSectionPartner id="partners" class="scroll-m-28" :data="data?.partners" /> -->
   </div>
 </template>
