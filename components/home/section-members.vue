@@ -1,5 +1,5 @@
 <script setup>
-const { data } = defineProps({
+defineProps({
   data: {
     type: Array,
     required: true,

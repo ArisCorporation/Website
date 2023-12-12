@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { title, content, contentData, agreeAction, closeAction } = defineProps({
+defineProps({
   title: {
     type: String,
     required: false,

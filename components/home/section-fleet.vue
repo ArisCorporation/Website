@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const homepageTabsStore = useHomepageTabsStore();
-const { data } = defineProps({
+defineProps({
   data: {
     type: null,
     required: true,
@@ -66,7 +66,7 @@ const { data } = defineProps({
           <hr />
           <div class="flex flex-wrap">
             <ShipCard
-              v-for="ship in data.fleetData.filter((e) => e.userData.department?.name === department.name)"
+              v-for="ship in data.fleetData.filter((e: IHangarItem) => e.userData.department?.name === department.name)"
               :key="ship.id"
               :ship-data="ship.ship"
               :hangar-data="ship"
@@ -74,7 +74,7 @@ const { data } = defineProps({
               display-department
             />
             <h3
-              v-if="!data.fleetData.filter((e) => e.userData.department?.name === department.name)[0]"
+              v-if="!data.fleetData.filter((e: IHangarItem) => e.userData.department?.name === department.name)[0]"
               class="mx-auto"
             >
               Diese Abteilung hat noch keine zugewiesenen Schiffe.
