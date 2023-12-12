@@ -1,5 +1,5 @@
 <script setup>
-const footerLang = useState('footerLang', () => 'de');
+const { setFooterLang, userSettings } = useUserSettingsStore();
 const { getItems } = useDirectusItems();
 
 const { data: footer } = await useAsyncData(
@@ -34,19 +34,27 @@ const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').conte
       <div class="flex">
         <h4>//Disclaimer</h4>
         <div class="flex ml-4 space-x-2">
-          <button title="Disclaimer Deutsch" :class="{ grayscale: footerLang != 'de' }" @click="footerLang = 'de'">
+          <button
+            title="Disclaimer Deutsch"
+            :class="{ grayscale: userSettings.footerLang != 'de' }"
+            @click="setFooterLang('de')"
+          >
             <Icon name="flagpack:de" class="rounded" size="1.5rem" />
           </button>
-          <button title="Disclaimer English" :class="{ grayscale: footerLang != 'en' }" @click="footerLang = 'en'">
+          <button
+            title="Disclaimer English"
+            :class="{ grayscale: userSettings.footerLang != 'en' }"
+            @click="setFooterLang('en')"
+          >
             <Icon name="flagpack:us" class="rounded" size="1.5rem" />
           </button>
         </div>
       </div>
       <template v-if="footer">
-        <p v-if="footerLang == 'de'">
+        <p v-if="userSettings.footerLang == 'de'">
           <ContentRenderer :value="de" />
         </p>
-        <p v-if="footerLang == 'en'">
+        <p v-if="userSettings.footerLang == 'en'">
           <ContentRenderer :value="en" />
         </p>
       </template>
