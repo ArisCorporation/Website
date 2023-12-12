@@ -24,8 +24,8 @@ const { data: footer } = await useAsyncData(
   },
 );
 
-const de = await parseMarkdown(footer.value.find((e) => e.title === 'de').content);
-const en = await parseMarkdown(footer.value.find((e) => e.title === 'en').content);
+const de = await parseMarkdown(footer.value?.find((e) => e.title === 'de').content);
+const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').content);
 </script>
 
 <template>

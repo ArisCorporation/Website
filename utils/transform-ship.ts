@@ -12,12 +12,12 @@ interface ILoaner {
 export default function (obj: any, shipList?: any) {
   const getVariants = () => {
     const variants: Array<IVariant> = [];
-    obj.variants?.map((i: IVariant) => variants.push(transformShip(shipList.find((e: IVariant) => e.id === i.id))));
+    obj.variants?.map((i: IVariant) => variants.push(transformShip(shipList?.find((e: IVariant) => e.id === i.id))));
     return variants;
   };
   const getLoaners = () => {
     const loaners: Array<ILoaner> = [];
-    obj.loaners?.map((i: ILoaner) => loaners.push(transformShip(shipList.find((e: ILoaner) => e.id === i.id))));
+    obj.loaners?.map((i: ILoaner) => loaners.push(transformShip(shipList?.find((e: ILoaner) => e.id === i.id))));
     return loaners;
   };
   const getManufacturer = () => (obj.manufacturer ? transformCompany(obj.manufacturer) : null);
