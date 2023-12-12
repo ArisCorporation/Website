@@ -42,12 +42,15 @@ const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').conte
           </button>
         </div>
       </div>
-      <p v-if="footerLang == 'de'">
-        <ContentRenderer :value="de" />
-      </p>
-      <p v-if="footerLang == 'en'">
-        <ContentRenderer :value="en" />
-      </p>
+      <template v-if="footer">
+        <p v-if="footerLang == 'de'">
+          <ContentRenderer :value="de" />
+        </p>
+        <p v-if="footerLang == 'en'">
+          <ContentRenderer :value="en" />
+        </p>
+      </template>
+      <p v-else>FEHLER: DISCLAIMER KONNTE NICHT GELADEN WERDEN...</p>
       <div class="flex justify-between w-full">
         <p>
           <span>&copy; ArisCorp - </span>
