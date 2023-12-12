@@ -118,6 +118,10 @@
       1px 1px 0 black;
   }
 
+  .tooltip {
+    @apply absolute z-10 w-32 px-2 py-1 mt-3 -ml-16 text-center rounded opacity-0 group-hover:opacity-100 transition-group bg-bsecondary left-1/2 before:absolute before:bottom-full before:left-1/2 before:-ml-[8px] before:border-8 before:border-transparent before:border-b-bsecondary;
+  }
+
   .comm-link-grid {
     @apply grid gap-6 md:grid-cols-2 lg:grid-cols-3;
   }
