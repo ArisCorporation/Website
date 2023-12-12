@@ -117,7 +117,7 @@ function handleBurgerMenu() {
               @click="() => handleHomeButton(item)"
             >
               <span class="block md:hidden">{{ item.name }}</span>
-              <span class="hidden md:block"><Icon :name="item.icon" hover class="w-12 h-auto md:w-14 lg:w-16" /></span>
+              <span class="hidden md:block"><Icon :name="item.icon" hover class="w-12 h-auto lg:w-16" /></span>
             </NuxtLink>
           </li>
         </ul>
@@ -127,7 +127,7 @@ function handleBurgerMenu() {
           <li v-for="item in bannerItems" :key="item.name" class="w-full my-auto md:w-fit">
             <NuxtLink :to="item.link" class="block px-3 py-2 rounded md:p-0 md:border-0 not-active">
               <span class="block md:hidden">{{ item.name }}</span>
-              <span class="hidden md:block"><Icon :name="item.icon" hover class="h-auto w-14 md:w-16 lg:w-20" /></span>
+              <span class="hidden md:block"><Icon :name="item.icon" hover class="h-auto w-14 lg:w-20" /></span>
             </NuxtLink>
           </li>
         </ul>

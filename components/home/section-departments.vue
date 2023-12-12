@@ -46,7 +46,7 @@ const { data } = defineProps({
         </div>
         <div class="mt-4 text-center" v-html="department.text" />
         <hr />
-        <div class="justify-between w-full md:flex">
+        <div class="justify-between w-full lg:flex">
           <div class="flex mb-4 lg:mb-0">
             <DefaultPanel>
               <div v-if="!department.head_of_department" class="absolute flex w-full h-full text-secondary">
@@ -62,7 +62,7 @@ const { data } = defineProps({
               <h3 class="text-primary">{{ department.head_of_department?.fullName || 'N/A' }}</h3>
             </div>
           </div>
-          <div class="w-full text-center md:w-1/3 lg:w-1/2 2xl:w-1/3">
+          <div class="w-full text-center lg:w-1/2 2xl:w-1/3">
             <h2 class="text-left lg:text-center">Abteilungsmitarbeiter:</h2>
             <ul class="flex flex-wrap justify-between list-disc list-inside">
               <li
