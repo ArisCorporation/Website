@@ -1,4 +1,5 @@
 <script setup>
+const homepageTabsStore = useHomepageTabsStore();
 const { data } = defineProps({
   data: {
     type: Array,
@@ -7,7 +8,7 @@ const { data } = defineProps({
 });
 </script>
 <template>
-  <TabGroup hide-hr>
+  <TabGroup :store="homepageTabsStore.selectedOurDepartmentTab" :change="homepageTabsStore.setOurDepartmentTab" hide-hr>
     <template #tablist>
       <div class="flex flex-wrap justify-center xl:grid xl:grid-flow-col xl:grid-rows-1">
         <HeadlessTab
