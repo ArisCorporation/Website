@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const homepageTabsStore = useHomepageTabsStore();
 const { data } = defineProps({
   data: {
     type: null,
@@ -15,7 +16,7 @@ const { data } = defineProps({
         gestellt werden.
       </p>
     </div>
-    <TabGroup hide-hr>
+    <TabGroup :store="homepageTabsStore.selectedOurFleetTab" :change="homepageTabsStore.setOurFleetTab" hide-hr>
       <template #tablist>
         <HeadlessTab v-slot="{ selected }" as="template" class="flex justify-center w-full p-3 my-1 outline-none">
           <div>
@@ -72,6 +73,12 @@ const { data } = defineProps({
               display-owner
               display-department
             />
+            <h3
+              v-if="!data.fleetData.filter((e) => e.userData.department?.name === department.name)[0]"
+              class="text-secondary"
+            >
+              Diese Abteilung hat noch keine zugewiesenen Schiffe.
+            </h3>
           </div>
         </HeadlessTabPanel>
         <hr />

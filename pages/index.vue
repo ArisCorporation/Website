@@ -200,11 +200,17 @@ const ourtabs = [
     componentData: data.value?.departments,
   },
 ];
+if (route.query.aris) {
+  homepageTabsStore.setArisTab(Number(route.query.aris));
+}
 if (route.query.our) {
   homepageTabsStore.setOurTab(Number(route.query.our));
 }
-if (route.query.aris) {
-  homepageTabsStore.setArisTab(Number(route.query.aris));
+if (route.query.fleet) {
+  homepageTabsStore.setOurFleetTab(Number(route.query.fleet));
+}
+if (route.query.department) {
+  homepageTabsStore.setOurDepartmentTab(Number(route.query.department));
 }
 </script>
 
@@ -219,7 +225,7 @@ if (route.query.aris) {
       title="über"
       between
     />
-    <!-- <TabGroup
+    <TabGroup
       id="our"
       class="scroll-m-28"
       :store="homepageTabsStore.selectedOurTab"
@@ -230,6 +236,6 @@ if (route.query.aris) {
     />
     <HomeSectionCommLink id="comm-link" class="scroll-m-28" :data="data?.commLink" />
     <HomeSectionRecruitment id="recruitment" class="scroll-m-28" :data="data?.recruitment" />
-    <HomeSectionPartner id="partners" class="scroll-m-28" :data="data?.partners" /> -->
+    <HomeSectionPartner id="partners" class="scroll-m-28" :data="data?.partners" />
   </div>
 </template>
