@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const mobileMenu = useState('mobileMenu', () => false);
+// const mobileMenu = useState('mobileMenu', () => false);
+const mobileMenu = ref(false);
 const route = useRoute();
 
 const homeItems = [
@@ -65,6 +66,11 @@ const bannerItems = [
 ];
 
 const homepageTabsStore = useHomepageTabsStore();
+
+function toggleMenu() {
+  mobileMenu.value = !mobileMenu.value;
+}
+
 function handleHomeButton(item: any) {
   if (item.action) {
     if (item.action.tabGroup === 'our') {
@@ -74,10 +80,7 @@ function handleHomeButton(item: any) {
       homepageTabsStore.setArisTab(item.action.tabIndex);
     }
   }
-}
-
-function handleBurgerMenu() {
-  mobileMenu.value = !mobileMenu.value;
+  toggleMenu();
 }
 </script>
 
@@ -92,7 +95,7 @@ function handleBurgerMenu() {
       </div>
       <button
         class="inline-flex items-center justify-center w-10 h-10 p-2 text-sm rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-0"
-        @click="handleBurgerMenu"
+        @click="toggleMenu"
       >
         <span class="sr-only">Open main menu</span>
         <Icon name="ci:hamburger-lg" class="m-auto" size="1.5rem" />
@@ -105,7 +108,7 @@ function handleBurgerMenu() {
         <ul
           class="flex flex-col w-full p-4 mt-4 mb-0 font-medium list-none border rounded-lg md:w-fit md:space-x-8 md:p-0 border-secondary bg-bsecondary md:flex-row md:mt-0 md:border-0 md:bg-transparent"
         >
-          <li v-for="item in homeItems" :key="item.name" class="w-full my-auto md:w-fit">
+          <li v-for="item in homeItems" :key="item.name" class="relative w-full my-auto group md:w-fit">
             <!-- TODO: add tab index to active class -->
             <NuxtLink
               :to="'/#' + item.hash"
@@ -119,16 +122,22 @@ function handleBurgerMenu() {
               <span class="block md:hidden">{{ item.name }}</span>
               <span class="hidden md:block"><Icon :name="item.icon" hover class="w-12 h-auto lg:w-16" /></span>
             </NuxtLink>
+            <div class="tooltip">
+              {{ item.name }}
+            </div>
           </li>
         </ul>
         <ul
           class="flex flex-col w-full p-4 mt-4 mb-0 font-medium list-none border rounded-lg md:w-fit md:space-x-8 md:p-0 border-secondary bg-bsecondary md:flex-row md:mt-0 md:border-0 md:bg-transparent"
         >
-          <li v-for="item in bannerItems" :key="item.name" class="w-full my-auto md:w-fit">
+          <li v-for="item in bannerItems" :key="item.name" class="relative w-full my-auto group md:w-fit">
             <NuxtLink :to="item.link" class="block px-3 py-2 rounded md:p-0 md:border-0 not-active">
               <span class="block md:hidden">{{ item.name }}</span>
               <span class="hidden md:block"><Icon :name="item.icon" hover class="h-auto w-14 lg:w-20" /></span>
             </NuxtLink>
+            <div class="tooltip">
+              {{ item.name }}
+            </div>
           </li>
         </ul>
       </div>
@@ -137,6 +146,9 @@ function handleBurgerMenu() {
 </template>
 
 <style lang="postcss" scoped>
+li {
+  @apply p-0;
+}
 a {
   @apply text-white no-underline;
 }
@@ -155,5 +167,8 @@ a {
 }
 .not-active {
   @apply hover:bg-bprimary md:hover:bg-transparent;
+}
+.tooltip {
+  @apply hidden md:block;
 }
 </style>
