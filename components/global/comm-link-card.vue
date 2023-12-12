@@ -41,7 +41,6 @@ const { data, size } = defineProps({
       :class="{ 'xl:p-3 xl:absolute xl:h-full': size == 2, 'md:p-3 md:absolute md:h-full': size == 3 }"
     >
       <NuxtImg
-        placeholder
         class="object-fill object-center w-full h-full sm:object-cover"
         :src="data.storeImage"
         :alt="'Titelbild von dem Comm-Link: ' + data.title"
