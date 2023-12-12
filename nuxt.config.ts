@@ -31,11 +31,11 @@ export default defineNuxtConfig({
   ],
 
   runtimeConfig: {
-    environment: '',
     authSecret: '',
     cmsToken: '',
     imageProvider: '',
     public: {
+      environment: '',
       url: '',
       apiBase: '',
       fileBase: '',
@@ -72,7 +72,7 @@ export default defineNuxtConfig({
   image: {
     directus: {
       // This URL needs to include the final `assets/` directory
-      baseURL: 'https://cms.ariscorp.de/assets/',
+      baseURL: process.env.NUXT_PUBLIC_FILE_BASE,
       modifiers: {
         format: 'webp',
       },
@@ -84,7 +84,7 @@ export default defineNuxtConfig({
   },
 
   directus: {
-    url: 'https://cms.ariscorp.de',
+    url: process.env.NUXT_PUBLIC_API_BASE,
   },
 
   dayjs: {
