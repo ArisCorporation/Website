@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { getItems, getSingletonItem } = useDirectusItems();
-const route = useRoute();
+const { query } = useRoute();
 const homepageTabsStore = useHomepageTabsStore();
 
 const { data } = await useAsyncData('cart-discount', async () => {
@@ -200,17 +200,19 @@ const ourtabs = [
     componentData: data.value?.departments,
   },
 ];
-if (route.query.aris) {
-  homepageTabsStore.setArisTab(Number(route.query.aris));
-}
-if (route.query.our) {
-  homepageTabsStore.setOurTab(Number(route.query.our));
-}
-if (route.query.fleet) {
-  homepageTabsStore.setOurFleetTab(Number(route.query.fleet));
-}
-if (route.query.department) {
-  homepageTabsStore.setOurDepartmentTab(Number(route.query.department));
+if (query) {
+  if (query.aris) {
+    homepageTabsStore.setArisTab(Number(query.aris));
+  }
+  if (query.our) {
+    homepageTabsStore.setOurTab(Number(query.our));
+  }
+  if (query.fleet) {
+    homepageTabsStore.setOurFleetTab(Number(query.fleet));
+  }
+  if (query.department) {
+    homepageTabsStore.setOurDepartmentTab(Number(query.department));
+  }
 }
 </script>
 
