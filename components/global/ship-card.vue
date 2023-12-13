@@ -29,6 +29,11 @@ defineProps({
     required: false,
     default: false,
   },
+  preloadImages: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
 </script>
 <template>
@@ -38,12 +43,12 @@ defineProps({
         :to="'/ShipExkurs/' + shipData.slug"
         class="block relative transition-all duration-500 ease h-[200px] bg-image group"
       >
-        <NuxtImg class="absolute object-cover w-full h-full" :src="shipData.storeImage" />
+        <NuxtImg :preload="preloadImages" class="absolute object-cover w-full h-full" :src="shipData.storeImage" />
         <div
           v-if="displayProductionState"
           class="absolute top-1 left-2 text-stroke"
           :class="{
-            'text-primary': shipData.productionState == 'Flugfertig',
+            'text-primary-400': shipData.productionState == 'Flugfertig',
             'text-secondary': shipData.productionState == 'In Produktion',
             'text-white': shipData.productionState == 'Im Konzept',
           }"
@@ -55,6 +60,7 @@ defineProps({
           class="absolute z-10 flex flex-row-reverse h-16 right-2 top-1"
         >
           <NuxtImg
+            :preload="preloadImages"
             class="relative w-16 h-16 peer/departmentLogo text-secondary"
             :src="hangarData.userData.department.logo"
           />
