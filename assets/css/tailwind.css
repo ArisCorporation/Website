@@ -81,6 +81,9 @@
     @apply bg-center bg-no-repeat bg-cover bg-bsecondary;
   }
 
+  .transition-default {
+    @apply transition-all duration-300;
+  }
   .transition {
     @apply transition-all duration-200 hover:duration-300;
   }
