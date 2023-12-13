@@ -55,6 +55,7 @@ defineProps({
               <NuxtImg
                 :src="department.head_of_department?.potrait || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'"
                 width="200"
+                class="aspect-potrait"
               />
             </DefaultPanel>
             <div class="ml-4">
