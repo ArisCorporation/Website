@@ -64,24 +64,22 @@ defineProps({
           >
         </div>
         <div
-          class="absolute z-10 bottom-0 left-0 flex flex-wrap w-full min-h-[48px] px-4 py-1 bg-bsecondary/80 justify-between space-x-4"
+          class="absolute z-10 bottom-0 left-0 flex flex-wrap w-full min-h-[48px] px-4 py-1 bg-bsecondary/80 justify-between gap-x-4"
         >
-          <div>
-            <p class="m-0 transition opacity-80 text-secondary group-hover:opacity-100">
-              {{ shipData.name }}
-              <span v-if="displayName && hangarData.userData.publicName && hangarData.userData.name">
-                - &quot;{{ hangarData.userData.name }}&quot;</span
-              >
-            </p>
-            <NuxtLink
-              class="z-20 block mt-auto text-xs text-white opacity-50 transition-group hover:no-underline hover:opacity-100"
-              :to="'/VerseExkurs/companies/' + shipData.manufacturer.slug"
-              >{{ shipData.manufacturer.name }}
-            </NuxtLink>
-          </div>
+          <p class="m-0 transition basis-full opacity-80 text-secondary group-hover:opacity-100">
+            {{ shipData.name }}
+            <span v-if="displayName && hangarData.userData.publicName && hangarData.userData.name">
+              - &quot;{{ hangarData.userData.name }}&quot;</span
+            >
+          </p>
+          <NuxtLink
+            class="z-20 block mt-auto text-xs text-white opacity-50 transition-group hover:no-underline hover:opacity-100"
+            :to="'/VerseExkurs/companies/' + shipData.manufacturer.slug"
+            >{{ shipData.manufacturer.name }}
+          </NuxtLink>
           <NuxtLink
             v-if="displayOwner"
-            class="z-20 block mt-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100"
+            class="z-20 block mt-auto ml-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100"
             :to="'/biography/' + hangarData.userData.owner.slug"
           >
             <span>Bereitgestell von: {{ hangarData.userData.owner.fullName }}</span>
