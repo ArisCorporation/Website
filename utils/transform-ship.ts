@@ -11,11 +11,13 @@ interface ILoaner {
 
 export default function (obj: any, shipList?: any) {
   const getVariants = () => {
+    if (!shipList) return;
     const variants: Array<IVariant> = [];
     obj.variants?.map((i: IVariant) => variants.push(transformShip(shipList?.find((e: IVariant) => e.id === i.id))));
     return variants;
   };
   const getLoaners = () => {
+    if (!shipList) return;
     const loaners: Array<ILoaner> = [];
     obj.loaners?.map((i: ILoaner) => loaners.push(transformShip(shipList?.find((e: ILoaner) => e.id === i.id))));
     return loaners;
