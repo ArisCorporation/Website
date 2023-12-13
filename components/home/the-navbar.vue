@@ -85,7 +85,7 @@ function handleHomeButton(item: any) {
 </script>
 
 <template>
-  <nav class="fixed top-0 z-50 w-full h-fit bg-black/80 md:bg-black/80 print:hidden">
+  <nav class="fixed top-0 z-50 w-full h-auto bg-black/80 md:bg-black/80 print:hidden">
     <div
       class="flex flex-wrap items-center justify-between w-full h-full max-w-screen-xl p-2 mx-auto md:flex-nowrap md:px-4"
     >
