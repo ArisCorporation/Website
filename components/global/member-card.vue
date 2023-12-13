@@ -20,7 +20,7 @@ defineProps({
 <template>
   <div class="relative w-full px-4 mb-4 text-center basis-1/2 lg:basis-1/3 xl:basis-1/4">
     <div class="aspect-potrait mx-auto relative max-w-[270px] w-full group rounded-sm border-secondary border-b-2">
-      <div class="absolute flex w-full h-full">
+      <div class="absolute flex w-full h-full text-xs sm:text-base">
         <div class="z-20 m-auto opacity-0 group-hover:opacity-100 transition-short-group">
           <hr />
           <p>
