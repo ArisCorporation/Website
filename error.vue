@@ -12,7 +12,7 @@ const handleError = () => clearError({ redirect: '/' });
 <template>
   <div>
     <div class="pt-16 text-center">
-      <h1 class="uppercase text-primary">Status Code: {{ error.statusCode }}</h1>
+      <h1 class="uppercase text-primary-400">Status Code: {{ error.statusCode }}</h1>
       <h2 class="uppercase text-secondary">{{ error.statusMessage }}</h2>
     </div>
     <div class="pt-12 mx-auto text-center">
