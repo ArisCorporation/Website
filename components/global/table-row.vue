@@ -31,7 +31,7 @@ defineProps({
 });
 </script>
 <template>
-  <div :class="{ 'basis-full': fullWidth, 'basis-1/3': third, 'basis-1/2': !fullWidth && !third }">
+  <div :class="{ 'col-span-6': fullWidth, 'col-span-2': third, 'col-span-3': !fullWidth && !third }">
     <p class="pt-1 text-sm">{{ title }}:</p>
     <ul v-if="isList" className="p-0 text-primary pl-6">
       <li v-for="(item, index) in content.split(', ')" :key="index" class="marker:text-secondary">{{ item }}</li>
