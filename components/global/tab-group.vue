@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { title, tablist, between, markdown, hideHr, store, change } = defineProps({
+const props = defineProps({
   title: {
     type: String,
     required: false,
@@ -35,7 +35,7 @@ const { title, tablist, between, markdown, hideHr, store, change } = defineProps
 });
 
 const changeTab = (index: number) => {
-  change(index);
+  props.change(index);
 };
 </script>
 

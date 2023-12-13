@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { data, closeAction } = defineProps({
+defineProps({
   data: {
     type: String,
     required: true,

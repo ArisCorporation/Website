@@ -49,7 +49,7 @@ const { data } = await useAsyncData('cart-discount', async () => {
             'position_level',
           ],
           filter: {
-            status: 'published',
+            status: { _eq: 'published' },
           },
           limit: -1,
           sort: ['firstname'],
@@ -79,7 +79,7 @@ const { data } = await useAsyncData('cart-discount', async () => {
             'head_of_department.member_potrait.id',
           ],
           filter: {
-            status: 'published',
+            status: { _eq: 'published' },
           },
           limit: -1,
           sort: ['gameplay_name'],

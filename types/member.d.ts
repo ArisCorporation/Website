@@ -10,6 +10,7 @@ declare global {
     slug: string;
     potrait: string;
     sex: string;
+    pronom: string;
     roles: Array<String>;
     position: String;
     head_of_department: Boolean;

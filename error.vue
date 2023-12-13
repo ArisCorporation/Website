@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { error } = defineProps({
+defineProps({
   error: {
     type: Object,
     default: null,
