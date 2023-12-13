@@ -1,11 +1,8 @@
 <script setup lang="ts">
 const { getItems } = useDirectusItems();
 const { params } = useRoute();
-const { share, isSupported } = useShare({
-  title: 'Hello',
-  text: 'Hello my friend',
-  url: 'http://10.1.40.13:3000/biography/thomas-blakeney',
-});
+const { copy, isSupported: clipboardIsSupported } = useClipboard();
+const toast = useToast();
 
 const { data } = await useAsyncData(
   'member',
@@ -65,7 +62,7 @@ const { data } = await useAsyncData(
           'biography',
           'ships.id',
           'ships.department.gameplay_name',
-          'ships.department.gameplay_logo',
+          'ships.department.gameplay_logo.id',
           'ships.ships_id.name',
           'ships.ships_id.slug',
           'ships.ships_id.storeImage.id',
@@ -91,16 +88,16 @@ if (!data.value) {
     fatal: true,
   });
 }
-const test = ref(false);
+
 const handleShare = () => {
-  // window.alert('test');
-  test.value = true;
-  // if (isSupported) {
-  //   share();
-  // } else {
-  //   window.alert('Not supported');
-  // }
+  if (clipboardIsSupported && location?.href) {
+    copy(location.href);
+    toast.add({ title: 'URL in Zwischenablage kopiert!' });
+  } else {
+    toast.add({ title: 'Es konnte leider nichts in die Zwischenablage kopiert werden.' });
+  }
 };
+console.log(data.value);
 </script>
 
 <template>
@@ -122,7 +119,6 @@ const handleShare = () => {
         <DefaultPanel>
           <NuxtImg class="max-h-96 aspect-potrait object-cover w-full xl:h-[498px] xl:max-h-fit" :src="data?.potrait" />
         </DefaultPanel>
-        {{ test }}
         <ButtonDefault class="mt-2" @click="handleShare">
           <Icon name="material-symbols:ios-share-rounded" />
         </ButtonDefault>
@@ -202,14 +198,14 @@ const handleShare = () => {
     <hr />
     <DefaultPanel>
       <div class="bg-bprimary">
-        <h1 class="p-4 pt-6 m-0 text-primary">Bigorafie:</h1>
+        <h1 class="p-4 pt-6 m-0 text-primary-400">Bigorafie:</h1>
         <div class="mx-auto max-w-[95%]" v-html="data?.biography" />
       </div>
     </DefaultPanel>
     <hr />
-    <Disclosure>
+    <Disclosure v-if="data?.hangar">
       <template #title>
-        Schiffe von <span class="text-primary">{{ data?.fullName }}</span>
+        Schiffe von <span class="text-primary-400">{{ data?.fullName }}</span>
       </template>
       <div class="flex flex-wrap">
         <ShipCard
@@ -218,6 +214,7 @@ const handleShare = () => {
           :ship-data="ship.ship"
           :hangar-data="ship"
           display-department
+          preload-images
         />
       </div>
     </Disclosure>
