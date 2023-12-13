@@ -35,7 +35,19 @@ export default {
       fontFamily: {
         nasa: ['nasalization', 'sans-serif'],
       },
+      aspectRatio: {
+        potrait: '270 / 320',
+      },
+      height: {
+        '2px': '.125rem',
+      },
+      inset: {
+        '2px': '.125rem',
+      },
+      padding: {
+        '2px': '.125rem',
+      },
     },
   },
-  plugins: [require('@tailwindcss/typography')],
+  plugins: [require('@tailwindcss/typography'), require('@headlessui/tailwindcss')({ prefix: 'ui' })],
 };
