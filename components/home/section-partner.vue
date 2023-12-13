@@ -9,7 +9,7 @@ defineProps({
 <template>
   <div class="mt-16">
     <div>
-      <h1>Partner der <span class="text-primary">ArisCorp</span></h1>
+      <h1>Partner der <span class="text-primary-400">ArisCorp</span></h1>
       <hr />
       <p class="text-center">
         Die ArisCorp unterhält auch Partnerschaften mit anderen Star Citizen Organisationen. Für nähere Informationen

@@ -17,7 +17,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css', '~/assets/css/tailwind.css'],
 
   modules: [
-    '@nuxtjs/tailwindcss',
+    // '@nuxtjs/tailwindcss',
     '@vueuse/nuxt',
     '@nuxt/image',
     'nuxt-icon',
@@ -28,6 +28,7 @@ export default defineNuxtConfig({
     '@vueuse/motion/nuxt',
     '@pinia-plugin-persistedstate/nuxt',
     'dayjs-nuxt',
+    '@nuxt/ui',
   ],
 
   runtimeConfig: {

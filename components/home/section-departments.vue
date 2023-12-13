@@ -31,7 +31,7 @@ defineProps({
     </template>
     <template #tabcontent>
       <HeadlessTabPanel v-for="department in data" :key="department.name" class="px-4">
-        <h2 class="text-center text-primary">{{ department.name }}</h2>
+        <h2 class="text-center text-primary-400">{{ department.name }}</h2>
         <div class="flex flex-wrap justify-center max-w-full mx-auto mt-4">
           <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
@@ -60,7 +60,7 @@ defineProps({
             </DefaultPanel>
             <div class="ml-4">
               <h2>Abteilungsleiter:</h2>
-              <h3 class="text-primary">{{ department.head_of_department?.fullName || 'N/A' }}</h3>
+              <h3 class="text-primary-400">{{ department.head_of_department?.fullName || 'N/A' }}</h3>
             </div>
           </div>
           <div class="w-full text-center lg:w-1/2 2xl:w-1/3">

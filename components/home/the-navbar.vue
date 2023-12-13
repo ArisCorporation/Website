@@ -89,7 +89,7 @@ function handleHomeButton(item: any) {
     <div
       class="flex flex-wrap items-center justify-between w-full h-full max-w-screen-xl p-2 mx-auto md:flex-nowrap md:px-4"
     >
-      <div class="flex w-auto h-16 lg:h-20 aspect-square">
+      <div class="flex w-auto h-16 lg:h-20 aspect-[1/1]">
         <Icon name="IconsLogosAriscorp" class="w-full h-full" />
         <span class="sr-only">ArisCorp</span>
       </div>
@@ -163,7 +163,7 @@ a {
 }
 
 .active {
-  @apply md:text-primary text-bprimary bg-primary hover:bg-primary/75 hover:md:bg-transparent md:bg-transparent;
+  @apply md:text-primary-400 text-bprimary bg-primary-400 hover:bg-primary-400/75 hover:md:bg-transparent md:bg-transparent;
 }
 .not-active {
   @apply hover:bg-bprimary md:hover:bg-transparent;
