@@ -4,7 +4,7 @@ const { query } = useRoute();
 const homepageTabsStore = useHomepageTabsStore();
 const ourSectionScrollMargin = ref('scroll-m-14');
 
-const { data } = await useAsyncData('cart-discount', async () => {
+const { data } = await useAsyncData('homepage-data', async () => {
   const [theArisCorp, history, manifest, charta, members, departments, fleet, commLink, recruitment, partners] =
     await Promise.all([
       getSingletonItem({
@@ -117,6 +117,7 @@ const { data } = await useAsyncData('cart-discount', async () => {
             'comm_link_banner.id',
             'comm_link_beschreibung',
             'comm_link_channel.channel',
+            'comm_link_channel.description',
             'date_created',
           ],
           filter: {
