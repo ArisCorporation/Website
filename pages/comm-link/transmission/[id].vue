@@ -27,6 +27,14 @@ const { data } = await useAsyncData(
   },
 );
 
+if (!data.value) {
+  throw createError({
+    statusCode: 500,
+    statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
+    fatal: true,
+  });
+}
+
 definePageMeta({
   layout: 'default',
 });

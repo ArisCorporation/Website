@@ -163,7 +163,7 @@ const { data } = await useAsyncData('homepage-data', async () => {
   };
 });
 
-if (!data) {
+if (!data.value) {
   throw createError({
     statusCode: 500,
     statusMessage: 'Es können bestimmte Daten nicht abgerufen werden!',

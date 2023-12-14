@@ -38,6 +38,15 @@ const { data } = await useAsyncData('comm-link-data', async () => {
     channels: channels.map((obj) => obj.channel),
   };
 });
+
+if (!data.value) {
+  throw createError({
+    statusCode: 500,
+    statusMessage: 'Es konnten nicht alle Daten vollständig empfangen werden!',
+    fatal: true,
+  });
+}
+
 const filterData = computed(
   () =>
     data.value?.commLinks.filter((e) =>
