@@ -35,16 +35,16 @@ defineProps({
     <p class="pt-1 text-sm">{{ title }}:</p>
     <template v-if="content">
       <ul v-if="isList" className="p-0 pl-6">
-        <li v-for="(item, index) in content.split(', ')" :key="index" class="marker:text-secondary text-primary">
+        <li v-for="(item, index) in content.split(', ')" :key="index" class="marker:text-secondary text-primary-400">
           {{ item }}
         </li>
       </ul>
       <NuxtLink v-else-if="link" :to="link">
         <p>{{ content }}</p>
       </NuxtLink>
-      <p v-else class="text-primary">{{ content }}</p>
+      <p v-else class="text-primary-400">{{ content }}</p>
     </template>
-    <p v-else class="text-primary">N/A</p>
+    <p v-else class="text-primary-400">N/A</p>
   </div>
 </template>
 

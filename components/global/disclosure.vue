@@ -9,7 +9,7 @@ defineProps({
 </script>
 
 <template>
-  <HeadlessDisclosure v-slot="{ open }">
+  <HeadlessDisclosure>
     <HeadlessDisclosureButton class="block py-2">
       <h1>
         <span v-if="title" className="text-white">{{ title }}</span>
@@ -21,7 +21,6 @@ defineProps({
       </h1>
     </HeadlessDisclosureButton>
     <HeadlessTransitionRoot
-      :show="open"
       enter="transition ease duration-500 transform"
       enter-from="opacity-0 -translate-y-2"
       enter-to="opacity-100 translate-y-0"

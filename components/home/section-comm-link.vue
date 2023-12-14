@@ -10,7 +10,7 @@ defineProps({
 <template>
   <div class="mt-16">
     <div class="flex w-full">
-      <h1><span class="text-primary">ArisCorp</span> Comm-Link</h1>
+      <h1><span class="text-primary-400">ArisCorp</span> Comm-Link</h1>
       <NuxtLink to="/comm-link" class="mt-auto ml-auto text-tbase hover:text-secondary a-text"
         >Alle Comm-Links</NuxtLink
       >

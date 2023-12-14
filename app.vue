@@ -177,6 +177,7 @@ onMounted(() => {
 <template>
   <div>
     <NuxtLoadingIndicator />
+    <UNotifications />
     <main>
       <div>
         <div>

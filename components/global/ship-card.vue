@@ -29,6 +29,11 @@ defineProps({
     required: false,
     default: false,
   },
+  preloadImages: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
 </script>
 <template>
@@ -38,12 +43,12 @@ defineProps({
         :to="'/ShipExkurs/' + shipData.slug"
         class="block relative transition-all duration-500 ease h-[200px] bg-image group"
       >
-        <NuxtImg class="absolute object-cover w-full h-full" :src="shipData.storeImage" />
+        <NuxtImg :preload="preloadImages" class="absolute object-cover w-full h-full" :src="shipData.storeImage" />
         <div
           v-if="displayProductionState"
           class="absolute top-1 left-2 text-stroke"
           :class="{
-            'text-primary': shipData.productionState == 'Flugfertig',
+            'text-primary-400': shipData.productionState == 'Flugfertig',
             'text-secondary': shipData.productionState == 'In Produktion',
             'text-white': shipData.productionState == 'Im Konzept',
           }"
@@ -55,6 +60,7 @@ defineProps({
           class="absolute z-10 flex flex-row-reverse h-16 right-2 top-1"
         >
           <NuxtImg
+            :preload="preloadImages"
             class="relative w-16 h-16 peer/departmentLogo text-secondary"
             :src="hangarData.userData.department.logo"
           />
@@ -64,24 +70,22 @@ defineProps({
           >
         </div>
         <div
-          class="absolute z-10 bottom-0 left-0 flex flex-wrap w-full min-h-[48px] px-4 py-1 bg-bsecondary/80 justify-between space-x-4"
+          class="absolute z-10 bottom-0 left-0 flex flex-wrap w-full min-h-[48px] px-4 py-1 bg-bsecondary/80 justify-between gap-x-4"
         >
-          <div>
-            <p class="m-0 transition opacity-80 text-secondary group-hover:opacity-100">
-              {{ shipData.name }}
-              <span v-if="displayName && hangarData.userData.publicName && hangarData.userData.name">
-                - &quot;{{ hangarData.userData.name }}&quot;</span
-              >
-            </p>
-            <NuxtLink
-              class="z-20 block mt-auto text-xs text-white opacity-50 transition-group hover:no-underline hover:opacity-100"
-              :to="'/VerseExkurs/companies/' + shipData.manufacturer.slug"
-              >{{ shipData.manufacturer.name }}
-            </NuxtLink>
-          </div>
+          <p class="m-0 transition basis-full opacity-80 text-secondary group-hover:opacity-100">
+            {{ shipData.name }}
+            <span v-if="displayName && hangarData.userData.publicName && hangarData.userData.name">
+              - &quot;{{ hangarData.userData.name }}&quot;</span
+            >
+          </p>
+          <NuxtLink
+            class="z-20 block mt-auto text-xs text-white opacity-50 transition-group hover:no-underline hover:opacity-100"
+            :to="'/VerseExkurs/companies/' + shipData.manufacturer.slug"
+            >{{ shipData.manufacturer.name }}
+          </NuxtLink>
           <NuxtLink
             v-if="displayOwner"
-            class="z-20 block mt-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100"
+            class="z-20 block mt-auto ml-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100"
             :to="'/biography/' + hangarData.userData.owner.slug"
           >
             <span>Bereitgestell von: {{ hangarData.userData.owner.fullName }}</span>

@@ -10,7 +10,7 @@ defineProps({
 <template>
   <div>
     <div class="text-center">
-      <h1 class="text-primary">Flotte der ArisCorp</h1>
+      <h1 class="text-primary-400">Flotte der ArisCorp</h1>
       <p>
         Die Flotte der ArisCorp stellt sich aus den Schiffen zusammen, die von Mitarbeiter der ArisCorp zur verfügung
         gestellt werden.
@@ -49,7 +49,7 @@ defineProps({
       </template>
       <template #tabcontent>
         <HeadlessTabPanel class="px-4">
-          <h2 class="my-4 text-center text-primary">Alle</h2>
+          <h2 class="my-4 text-center text-primary-400">Alle</h2>
           <div class="flex flex-wrap">
             <ShipCard
               v-for="ship in data.fleetData"
@@ -62,7 +62,7 @@ defineProps({
           </div>
         </HeadlessTabPanel>
         <HeadlessTabPanel v-for="department in data.departmentData" :key="department.id" class="px-4">
-          <h2 class="my-4 text-center text-primary">{{ department.name }}</h2>
+          <h2 class="my-4 text-center text-primary-400">{{ department.name }}</h2>
           <hr />
           <div class="flex flex-wrap">
             <ShipCard

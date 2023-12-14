@@ -1,11 +1,9 @@
 <script setup lang="ts">
 const { getItems } = useDirectusItems();
 const { params } = useRoute();
-const { share, isSupported } = useShare({
-  title: 'Hello',
-  text: 'Hello my friend',
-  url: 'http://10.1.40.13:3000/biography/thomas-blakeney',
-});
+const { copy, isSupported: clipboardIsSupported } = useClipboard();
+const toast = useToast();
+const homepageTabsStore = useHomepageTabsStore();
 
 const { data } = await useAsyncData(
   'member',
@@ -63,9 +61,11 @@ const { data } = await useAsyncData(
           'hates',
           'text',
           'biography',
+          'department.gameplay_name',
+          'head_department.gameplay_name',
           'ships.id',
           'ships.department.gameplay_name',
-          'ships.department.gameplay_logo',
+          'ships.department.gameplay_logo.id',
           'ships.ships_id.name',
           'ships.ships_id.slug',
           'ships.ships_id.storeImage.id',
@@ -91,15 +91,18 @@ if (!data.value) {
     fatal: true,
   });
 }
-const test = ref(false);
+
 const handleShare = () => {
-  // window.alert('test');
-  test.value = true;
-  // if (isSupported) {
-  //   share();
-  // } else {
-  //   window.alert('Not supported');
-  // }
+  if (clipboardIsSupported && location?.href) {
+    copy(location.href);
+    toast.add({ title: 'URL in Zwischenablage kopiert!' });
+  } else {
+    toast.add({ title: 'Es konnte leider nichts in die Zwischenablage kopiert werden.' });
+  }
+};
+const handleDepartmentLink = () => {
+  homepageTabsStore.setOurTab(2);
+  homepageTabsStore.setOurDepartmentTab(data.value?.department.tabId);
 };
 </script>
 
@@ -108,7 +111,7 @@ const handleShare = () => {
     <div class="flex justify-between">
       <div>
         <h1 class="mb-auto italic text-white">{{ data?.fullName }}</h1>
-        <p v-if="data?.roles" class="text-white uppercase">
+        <p v-if="data?.roles[0]" class="text-white uppercase">
           <span class="text-btertiary">Rollen:</span> {{ data?.roles.join(', ') }}
         </p>
       </div>
@@ -118,14 +121,33 @@ const handleShare = () => {
     </div>
     <hr class="mt-0" />
     <div class="grid xl:grid-cols-3 gap-y-4 gap-x-2">
-      <div class="xl:col-span-1">
+      <div class="space-y-4 uppercase xl:col-span-1">
         <DefaultPanel>
           <NuxtImg class="max-h-96 aspect-potrait object-cover w-full xl:h-[498px] xl:max-h-fit" :src="data?.potrait" />
         </DefaultPanel>
-        {{ test }}
-        <ButtonDefault class="mt-2" @click="handleShare">
+        <ButtonDefault @click="handleShare">
           <Icon name="material-symbols:ios-share-rounded" />
         </ButtonDefault>
+        <TableParent title="ArisCorp">
+          <TableRow
+            v-if="data?.head_of_department"
+            title="Abteilungsleiter in folgender Abteilung"
+            :content="data?.department.name"
+            full-width
+            link="/#our"
+            @click="handleDepartmentLink"
+          />
+          <TableRow
+            v-else-if="data?.department"
+            title="Arbeitet in folgender Abteilung"
+            :content="data?.department.name"
+            full-width
+            link="/#our"
+            @click="handleDepartmentLink"
+          />
+          <TableRow title="Position" :content="data?.position" full-width />
+          <TableRow title="Rollen innerhalb der ArisCorp" :content="data?.roles.join(', ')" full-width />
+        </TableParent>
       </div>
       <div class="space-y-4 uppercase xl:col-span-2">
         <TableParent title="Basis">
@@ -202,14 +224,17 @@ const handleShare = () => {
     <hr />
     <DefaultPanel>
       <div class="bg-bprimary">
-        <h1 class="p-4 pt-6 m-0 text-primary">Bigorafie:</h1>
-        <div class="mx-auto max-w-[95%]" v-html="data?.biography" />
+        <template v-if="data?.biography">
+          <h1 class="p-4 pt-6 m-0 text-primary-400">Bigorafie:</h1>
+          <div class="mx-auto max-w-[95%]" v-html="data?.biography" />
+        </template>
+        <h1 v-else class="py-4 m-0 text-center text-danger">PLACEHOLDER</h1>
       </div>
     </DefaultPanel>
     <hr />
-    <Disclosure>
+    <Disclosure v-if="data?.hangar[0]">
       <template #title>
-        Schiffe von <span class="text-primary">{{ data?.fullName }}</span>
+        Schiffe von <span class="text-primary-400">{{ data?.fullName }}</span>
       </template>
       <div class="flex flex-wrap">
         <ShipCard
@@ -218,6 +243,7 @@ const handleShare = () => {
           :ship-data="ship.ship"
           :hangar-data="ship"
           display-department
+          preload-images
         />
       </div>
     </Disclosure>

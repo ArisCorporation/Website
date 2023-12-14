@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// const mobileMenu = useState('mobileMenu', () => false);
 const mobileMenu = ref(false);
 const route = useRoute();
 
@@ -85,14 +84,14 @@ function handleHomeButton(item: any) {
 </script>
 
 <template>
-  <nav class="fixed top-0 z-50 w-full h-fit bg-black/80 md:bg-black/80 print:hidden">
+  <nav class="fixed top-0 z-50 w-full h-auto bg-black/80 md:bg-black/80 print:hidden">
     <div
       class="flex flex-wrap items-center justify-between w-full h-full max-w-screen-xl p-2 mx-auto md:flex-nowrap md:px-4"
     >
-      <div class="flex w-auto h-16 lg:h-20 aspect-square">
+      <NuxtLink to="/" class="flex w-auto h-16 lg:h-20 aspect-[1/1]">
         <Icon name="IconsLogosAriscorp" class="w-full h-full" />
         <span class="sr-only">ArisCorp</span>
-      </div>
+      </NuxtLink>
       <button
         class="inline-flex items-center justify-center w-10 h-10 p-2 text-sm rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-0"
         @click="toggleMenu"
@@ -163,7 +162,7 @@ a {
 }
 
 .active {
-  @apply md:text-primary text-bprimary bg-primary hover:bg-primary/75 hover:md:bg-transparent md:bg-transparent;
+  @apply md:text-primary-400 text-bprimary bg-primary-400 hover:bg-primary-400/75 hover:md:bg-transparent md:bg-transparent;
 }
 .not-active {
   @apply hover:bg-bprimary md:hover:bg-transparent;
