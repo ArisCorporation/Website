@@ -34,6 +34,15 @@ const open = () => {
       <p>Für weitere Informationen klicke einfach auf:</p>
       <button
         v-motion
+        :variants="$config.public.mbutton"
+        type="button"
+        class="p-2 mt-2 rounded-lg bg-secondary"
+        @click="open"
+      >
+        Jetzt bewerben
+      </button>
+      <!-- <button
+        v-motion
         :hovered="{ scale: 1 }"
         :tapped="{ scale: 0.97 }"
         type="button"
@@ -41,7 +50,7 @@ const open = () => {
         @click="open"
       >
         Jetzt bewerben
-      </button>
+      </button> -->
     </div>
   </div>
 </template>

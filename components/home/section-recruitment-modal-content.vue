@@ -47,7 +47,8 @@ defineProps({
     <hr />
     <div class="relative flex flex-wrap-reverse sm:flex-nowrap">
       <button
-        v-motion-default-button
+        v-motion
+        :variants="$config.public.mbutton"
         class="w-full p-2 mt-4 transition rounded-md opacity-50 sm:my-auto sm:w-fit left-6 h-fit bg-bprimary hover:opacity-100"
         @click="closeAction()"
       >

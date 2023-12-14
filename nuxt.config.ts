@@ -38,17 +38,30 @@ export default defineNuxtConfig({
       environment: process.env.NUXT_PUBLIC_ENVIRONMENT,
       url: process.env.NUXT_PUBLIC_URL,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
+      mbutton: { initial: { scale: 1 }, hovered: { scale: 1 }, tapped: { scale: 0.97 } },
       motion: {
         directives: {
-          'default-button': {
+          button: {
             initial: {
               scale: 1,
             },
             hovered: {
-              scale: 1.1,
+              scale: 1,
             },
             tapped: {
               scale: 0.97,
+            },
+          },
+          'pop-bottom': {
+            initial: {
+              scale: 0,
+              opacity: 0,
+              y: 100,
+            },
+            visible: {
+              scale: 1,
+              opacity: 1,
+              y: 0,
             },
           },
         },

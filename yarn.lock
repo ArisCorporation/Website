@@ -2489,10 +2489,10 @@
   resolved "https://registry.yarnpkg.com/@vueuse/metadata/-/metadata-10.7.0.tgz#7b05e6cfd376aa9bb339a81e16a89c12f3e88c03"
   integrity sha512-GlaH7tKP2iBCZ3bHNZ6b0cl9g0CJK8lttkBNUX156gWvNYhTKEtbweWLm9rxCPIiwzYcr/5xML6T8ZUEt+DkvA==
 
-"@vueuse/motion@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@vueuse/motion/-/motion-2.0.0.tgz#5c4fdb2857d179c899607ac9b6853ccc5c541901"
-  integrity sha512-V3TAlbt1OPmb9DZFoFCz9WC3Oue54t9VHlavSWm+VU1JNimYcd+pc6aGR/hgaHUAU9tOPRHoDTleSrv2zrdIsw==
+"@vueuse/motion@2.0.0-beta.29":
+  version "2.0.0-beta.29"
+  resolved "https://registry.yarnpkg.com/@vueuse/motion/-/motion-2.0.0-beta.29.tgz#04c01b67372ef64d73e0b1135298ac5efe7179aa"
+  integrity sha512-OQJ6RhzPqsEwonO42v1zsi3xv+2ZEasHgKbLmqnSq/Zr/XUW3UWeKKQdvaLSjjm2RDM8t0J3XZT6zDviTEiLaA==
   dependencies:
     "@vueuse/core" "^10.1.2"
     "@vueuse/shared" "^10.1.2"
