@@ -38,6 +38,15 @@ const { data } = await useAsyncData('comm-link-data', async () => {
     channels: channels.map((obj) => obj.channel),
   };
 });
+
+if (!data.value) {
+  throw createError({
+    statusCode: 500,
+    statusMessage: 'Es konnten nicht alle Daten vollständig empfangen werden!',
+    fatal: true,
+  });
+}
+
 const filterData = computed(
   () =>
     data.value?.commLinks.filter((e) =>
@@ -48,6 +57,13 @@ const filteredCommLinks = computed(() => {
   return filterData.value
     ?.filter((e) => (search.value ? e.comm_link_titel.toLowerCase().includes(search.value.toLowerCase()) : e))
     .map((obj) => transformCommLink(obj, filterData.value));
+});
+
+definePageMeta({
+  layout: 'default',
+});
+useHead({
+  title: 'Comm-Link',
 });
 </script>
 <template>

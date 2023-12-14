@@ -85,7 +85,7 @@ const { data } = await useAsyncData(
 if (!data.value) {
   throw createError({
     statusCode: 404,
-    statusMessage: 'Member does not exist!',
+    statusMessage: 'Daten konnten nicht von der UEE empfangen werden, eventuell sind sie unter Verschluss!',
     fatal: true,
   });
 }
@@ -102,7 +102,13 @@ const handleDepartmentLink = () => {
   homepageTabsStore.setOurTab(2);
   homepageTabsStore.setOurDepartmentTab(data.value?.department.tabId);
 };
-console.log(data.value);
+
+definePageMeta({
+  layout: 'default',
+});
+useHead({
+  title: data.value?.fullName,
+});
 </script>
 
 <template>

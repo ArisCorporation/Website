@@ -55,7 +55,8 @@ const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').conte
         <p>
           <span>&copy; ArisCorp - </span>
           <span><NuxtLink to="/credits">Credits</NuxtLink> - </span>
-          <span><NuxtLink to="/bug-report">Bug-Report Tool</NuxtLink></span>
+          <span><NuxtLink to="/bug-report">Bug-Report Tool</NuxtLink> - </span>
+          <span><NuxtLink to="/ams">A.M.S.</NuxtLink></span>
         </p>
         <div class="flex space-x-2 w-fit">
           <div class="w-12 h-12">
