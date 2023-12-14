@@ -52,7 +52,7 @@ defineExpose({
 <template>
   <HeadlessTransitionRoot appear :show="isOpen" as="template">
     <HeadlessDialog as="div" class="relative z-10" @close="() => (closeAction ? closeAction() : closeModal())">
-      <TransitionChild
+      <HeadlessTransitionChild
         as="template"
         enter="duration-300 ease-out"
         enter-from="opacity-0"
@@ -62,7 +62,7 @@ defineExpose({
         leave-to="opacity-0"
       >
         <div class="fixed inset-0 bg-black/25" />
-      </TransitionChild>
+      </HeadlessTransitionChild>
       <div class="fixed inset-0 overflow-y-auto">
         <div class="flex items-center justify-center min-h-full p-4 text-center">
           <HeadlessTransitionChild

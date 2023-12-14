@@ -24,12 +24,16 @@ declare global {
     currentplace: String;
     ueestate: String;
     citizenreason: String;
-    dutyperiod: String;
-    dutyreason: String;
-    dutyinfo: String;
-    eduname: String;
-    eduinfo: String;
-    eduplace: String;
+    duty: {
+      dutyperiod: String;
+      dutyreason: String;
+      dutyinfo: String;
+    };
+    education: {
+      eduname: String;
+      eduinfo: String;
+      eduplace: String;
+    };
     haircolor: String;
     eyecolor: String;
     height: number;
