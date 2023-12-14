@@ -3,6 +3,7 @@ const { getItems } = useDirectusItems();
 const { params } = useRoute();
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
 const toast = useToast();
+const homepageTabsStore = useHomepageTabsStore();
 
 const { data } = await useAsyncData(
   'member',
@@ -60,6 +61,8 @@ const { data } = await useAsyncData(
           'hates',
           'text',
           'biography',
+          'department.gameplay_name',
+          'head_department.gameplay_name',
           'ships.id',
           'ships.department.gameplay_name',
           'ships.department.gameplay_logo.id',
@@ -97,7 +100,10 @@ const handleShare = () => {
     toast.add({ title: 'Es konnte leider nichts in die Zwischenablage kopiert werden.' });
   }
 };
-console.log(data.value);
+const handleDepartmentLink = () => {
+  homepageTabsStore.setOurTab(2);
+  homepageTabsStore.setOurDepartmentTab(data.value?.department.tabId);
+};
 </script>
 
 <template>
@@ -105,7 +111,7 @@ console.log(data.value);
     <div class="flex justify-between">
       <div>
         <h1 class="mb-auto italic text-white">{{ data?.fullName }}</h1>
-        <p v-if="data?.roles" class="text-white uppercase">
+        <p v-if="data?.roles[0]" class="text-white uppercase">
           <span class="text-btertiary">Rollen:</span> {{ data?.roles.join(', ') }}
         </p>
       </div>
@@ -115,13 +121,33 @@ console.log(data.value);
     </div>
     <hr class="mt-0" />
     <div class="grid xl:grid-cols-3 gap-y-4 gap-x-2">
-      <div class="xl:col-span-1">
+      <div class="space-y-4 uppercase xl:col-span-1">
         <DefaultPanel>
           <NuxtImg class="max-h-96 aspect-potrait object-cover w-full xl:h-[498px] xl:max-h-fit" :src="data?.potrait" />
         </DefaultPanel>
-        <ButtonDefault class="mt-2" @click="handleShare">
+        <ButtonDefault @click="handleShare">
           <Icon name="material-symbols:ios-share-rounded" />
         </ButtonDefault>
+        <TableParent title="ArisCorp">
+          <TableRow
+            v-if="data?.head_of_department"
+            title="Abteilungsleiter in folgender Abteilung"
+            :content="data?.department.name"
+            full-width
+            link="/#our"
+            @click="handleDepartmentLink"
+          />
+          <TableRow
+            v-else
+            title="Arbeitet in folgender Abteilung"
+            :content="data?.department.name"
+            full-width
+            link="/#our"
+            @click="handleDepartmentLink"
+          />
+          <TableRow title="Position" :content="data?.position" full-width />
+          <TableRow title="Rollen innerhalb der ArisCorp" :content="data?.roles.join(', ')" full-width />
+        </TableParent>
       </div>
       <div class="space-y-4 uppercase xl:col-span-2">
         <TableParent title="Basis">

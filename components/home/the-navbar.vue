@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// const mobileMenu = useState('mobileMenu', () => false);
 const mobileMenu = ref(false);
 const route = useRoute();
 
@@ -89,10 +88,10 @@ function handleHomeButton(item: any) {
     <div
       class="flex flex-wrap items-center justify-between w-full h-full max-w-screen-xl p-2 mx-auto md:flex-nowrap md:px-4"
     >
-      <div class="flex w-auto h-16 lg:h-20 aspect-[1/1]">
+      <NuxtLink to="/" class="flex w-auto h-16 lg:h-20 aspect-[1/1]">
         <Icon name="IconsLogosAriscorp" class="w-full h-full" />
         <span class="sr-only">ArisCorp</span>
-      </div>
+      </NuxtLink>
       <button
         class="inline-flex items-center justify-center w-10 h-10 p-2 text-sm rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-0"
         @click="toggleMenu"
