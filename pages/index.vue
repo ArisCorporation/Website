@@ -117,7 +117,7 @@ const { data } = await useAsyncData('homepage-data', async () => {
             'comm_link_banner.id',
             'comm_link_beschreibung',
             'comm_link_channel.channel',
-            'comm_link_channel.description',
+            'comm_link_channel.beschreibung',
             'date_created',
           ],
           filter: {
