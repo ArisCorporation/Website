@@ -28,7 +28,7 @@ export default function (obj: any) {
     if (obj.head_of_department) {
       return obj.head_department ? transformDepartment(obj.head_department[0]) : null;
     } else {
-      return obj.head_department ? transformDepartment(obj.department) : null;
+      return obj.department ? transformDepartment(obj.department) : null;
     }
   };
   const getBirthSystem = () => (obj.birthSystem ? transformStarsystem(obj.birthSystem) : null);

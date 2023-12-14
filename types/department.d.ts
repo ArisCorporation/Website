@@ -11,5 +11,6 @@ declare global {
     ships: Array<IShip>;
     members: Array<IMember>;
     head_of_department: IMember;
+    tabdId: Number;
   }
 }
