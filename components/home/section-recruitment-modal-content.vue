@@ -46,14 +46,7 @@ defineProps({
     </div>
     <hr />
     <div class="relative flex flex-wrap-reverse sm:flex-nowrap">
-      <button
-        v-motion
-        :variants="$config.public.mbutton"
-        class="w-full p-2 mt-4 transition rounded-md opacity-50 sm:my-auto sm:w-fit left-6 h-fit bg-bprimary hover:opacity-100"
-        @click="closeAction()"
-      >
-        Schließen
-      </button>
+      <ButtonDefault class="w-full mt-4 sm:my-auto sm:w-fit h-fit" @click="closeAction()"> Schließen </ButtonDefault>
       <div class="flex justify-center mx-auto space-x-8">
         <NuxtLink class="my-auto transition rounded hover:bg-white" :to="data" target="_blank">
           <NuxtImg width="125" src="90d5157b-2d6e-4ce2-af5a-9bf59343ec66" />
