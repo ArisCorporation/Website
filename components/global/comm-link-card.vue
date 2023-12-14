@@ -28,7 +28,7 @@ defineProps({
         <p
           class="pt-8 m-auto delay-300 opacity-0 text-primary-400 group-hover:opacity-50 group-hover:pt-0 transition-group"
         >
-          {{ data.description }}
+          {{ data.description || data.channel.description }}
         </p>
       </div>
     </div>
@@ -65,7 +65,7 @@ defineProps({
             <span class="opacity-50">Geposted: </span><span>{{ $dayjs().add(930, 'years').to(data.datePosted) }}</span>
           </div>
           <div>
-            <span class="opacity-50">Channel: </span><span>{{ data.channel }}</span>
+            <span class="opacity-50">Channel: </span><span>{{ data.channel.name }}</span>
           </div>
         </div>
       </div>
@@ -78,8 +78,8 @@ defineProps({
       }"
     >
       <h1
-        class="text-base uppercase"
-        :class="{ 'xl:m-auto xl:text-5xl': size == 2, 'md:m-auto md:text-5xl': size == 3 }"
+        class="absolute bottom-0 text-base uppercase"
+        :class="{ 'xl:m-auto xl:text-5xl xl:static': size == 2, 'md:m-auto md:text-5xl md:static': size == 3 }"
       >
         {{ data.title }}
       </h1>
