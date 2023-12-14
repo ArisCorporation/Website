@@ -107,23 +107,21 @@ function handleHomeButton(item: any) {
         <ul
           class="flex flex-col w-full p-4 mt-4 mb-0 font-medium list-none border rounded-lg md:w-fit md:space-x-8 md:p-0 border-secondary bg-bsecondary md:flex-row md:mt-0 md:border-0 md:bg-transparent"
         >
-          <li v-for="item in homeItems" :key="item.name" class="relative w-full my-auto group md:w-fit">
-            <!-- TODO: add tab index to active class -->
-            <NuxtLink
-              :to="'/#' + item.hash"
-              class="block px-3 py-2 rounded md:p-0 md:border-0 not-active"
-              :class="{
-                active: route.hash == item.hash,
-                'not-active': route.hash != item.hash,
-              }"
-              @click="() => handleHomeButton(item)"
-            >
-              <span class="block md:hidden">{{ item.name }}</span>
-              <span class="hidden md:block"><Icon :name="item.icon" hover class="w-12 h-auto lg:w-16" /></span>
-            </NuxtLink>
-            <div class="tooltip">
-              {{ item.name }}
-            </div>
+          <li v-for="item in homeItems" :key="item.name" class="relative w-full my-auto md:w-fit">
+            <UTooltip :text="item.name" :popper="{ arrow: true, offsetDistance: 12 }">
+              <NuxtLink
+                :to="'/#' + item.hash"
+                class="block px-3 py-2 rounded md:p-0 md:border-0 not-active"
+                :class="{
+                  active: route.hash == item.hash,
+                  'not-active': route.hash != item.hash,
+                }"
+                @click="() => handleHomeButton(item)"
+              >
+                <span class="block md:hidden">{{ item.name }}</span>
+                <span class="hidden md:block"><Icon :name="item.icon" hover class="w-12 h-auto lg:w-16" /></span>
+              </NuxtLink>
+            </UTooltip>
           </li>
         </ul>
         <ul
