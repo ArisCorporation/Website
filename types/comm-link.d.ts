@@ -11,5 +11,6 @@ declare global {
     description: String;
     content: String;
     channel: ICommLinkChannel;
+    size: Number;
   }
 }
