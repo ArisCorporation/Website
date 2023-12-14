@@ -49,6 +49,13 @@ const filteredCommLinks = computed(() => {
     ?.filter((e) => (search.value ? e.comm_link_titel.toLowerCase().includes(search.value.toLowerCase()) : e))
     .map((obj) => transformCommLink(obj, filterData.value));
 });
+
+definePageMeta({
+  layout: 'default',
+});
+useHead({
+  title: 'Comm-Link',
+});
 </script>
 <template>
   <div>

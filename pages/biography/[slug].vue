@@ -102,7 +102,13 @@ const handleDepartmentLink = () => {
   homepageTabsStore.setOurTab(2);
   homepageTabsStore.setOurDepartmentTab(data.value?.department.tabId);
 };
-console.log(data.value);
+
+definePageMeta({
+  layout: 'default',
+});
+useHead({
+  title: data.value?.fullName,
+});
 </script>
 
 <template>

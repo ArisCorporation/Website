@@ -27,7 +27,12 @@ const { data } = await useAsyncData(
   },
 );
 
-console.log(data.value);
+definePageMeta({
+  layout: 'default',
+});
+useHead({
+  title: 'Comm-Link Übertragung: ' + data.value?.title,
+});
 </script>
 
 <template>
@@ -40,7 +45,7 @@ console.log(data.value);
       <DefaultPanel>
         <NuxtImg class="object-cover w-full mx-auto max-h-96" :src="data?.storeImage" />
       </DefaultPanel>
-      <hr class="hr-short" />
+      <hr class="mb-2 hr-short" />
       <div class="flex justify-between">
         <div
           class="relative flex max-w-full pr-4 w-fit sm:max-w-1/2 after:w-full after:h-2px after:bg-secondary after:absolute after:-bottom-2"
