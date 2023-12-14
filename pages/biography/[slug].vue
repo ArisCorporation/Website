@@ -85,7 +85,7 @@ const { data } = await useAsyncData(
 if (!data.value) {
   throw createError({
     statusCode: 404,
-    statusMessage: 'Member does not exist!',
+    statusMessage: 'Daten konnten nicht von der UEE empfangen werden, eventuell sind sie unter Verschluss!',
     fatal: true,
   });
 }
