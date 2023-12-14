@@ -54,7 +54,7 @@ useHead({
         <NuxtImg class="object-cover w-full mx-auto max-h-96" :src="data?.storeImage" />
       </DefaultPanel>
       <hr class="mb-2 hr-short" />
-      <div class="flex justify-between">
+      <div class="flex flex-wrap justify-between space-y-4">
         <div
           class="relative flex max-w-full pr-4 w-fit sm:max-w-1/2 after:w-full after:h-2px after:bg-secondary after:absolute after:-bottom-2"
         >
@@ -67,7 +67,7 @@ useHead({
           </p>
         </div>
         <div
-          class="relative flex max-w-full pl-2 w-fit sm:max-w-1/4 after:w-full after:h-2px after:bg-secondary after:absolute after:-bottom-2"
+          class="relative flex max-w-full pl-2 mt-4 ml-auto w-fit sm:max-w-1/4 after:w-full after:h-2px after:bg-secondary after:absolute after:-bottom-2"
         >
           <p class="mt-auto ml-2 italic uppercase">
             <span class="text-secondary">Gepostet: </span>{{ $dayjs(data?.datePosted).format('DD. MMMM YYYY') }}
@@ -75,6 +75,6 @@ useHead({
         </div>
       </div>
     </div>
-    <div v-html="data?.content" />
+    <div class="mt-8" v-html="data?.content" />
   </div>
 </template>
