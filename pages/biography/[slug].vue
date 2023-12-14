@@ -138,7 +138,7 @@ const handleDepartmentLink = () => {
             @click="handleDepartmentLink"
           />
           <TableRow
-            v-else
+            v-else-if="data?.department"
             title="Arbeitet in folgender Abteilung"
             :content="data?.department.name"
             full-width
@@ -224,12 +224,15 @@ const handleDepartmentLink = () => {
     <hr />
     <DefaultPanel>
       <div class="bg-bprimary">
-        <h1 class="p-4 pt-6 m-0 text-primary-400">Bigorafie:</h1>
-        <div class="mx-auto max-w-[95%]" v-html="data?.biography" />
+        <template v-if="data?.biography">
+          <h1 class="p-4 pt-6 m-0 text-primary-400">Bigorafie:</h1>
+          <div class="mx-auto max-w-[95%]" v-html="data?.biography" />
+        </template>
+        <h1 v-else class="py-4 m-0 text-center text-danger">PLACEHOLDER</h1>
       </div>
     </DefaultPanel>
     <hr />
-    <Disclosure v-if="data?.hangar">
+    <Disclosure v-if="data?.hangar[0]">
       <template #title>
         Schiffe von <span class="text-primary-400">{{ data?.fullName }}</span>
       </template>
