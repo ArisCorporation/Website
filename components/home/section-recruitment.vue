@@ -32,15 +32,16 @@ const open = () => {
     <div class="w-full py-12 mt-8 text-center border-l border-l-secondary bg-black/40 px-9">
       <h3 class="text-secondary">Mitglied werden</h3>
       <p>Für weitere Informationen klicke einfach auf:</p>
-      <button
+      <ButtonDefault
         v-motion
+        color="secondary"
         :variants="$config.public.mbutton"
         type="button"
-        class="p-2 mt-2 rounded-lg bg-secondary"
+        class="p-2 mt-2"
         @click="open"
       >
         Jetzt bewerben
-      </button>
+      </ButtonDefault>
       <!-- <button
         v-motion
         :hovered="{ scale: 1 }"
