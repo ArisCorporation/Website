@@ -78,9 +78,7 @@ const { data } = await useAsyncData(
       },
     }),
   {
-    transform: (data) => {
-      return transformMember(data[0]);
-    },
+    transform: (data) => transformMember(data[0]),
   },
 );
 
@@ -104,6 +102,7 @@ const handleDepartmentLink = () => {
   homepageTabsStore.setOurTab(2);
   homepageTabsStore.setOurDepartmentTab(data.value?.department.tabId);
 };
+console.log(data.value);
 </script>
 
 <template>
@@ -125,7 +124,7 @@ const handleDepartmentLink = () => {
         <DefaultPanel>
           <NuxtImg class="max-h-96 aspect-potrait object-cover w-full xl:h-[498px] xl:max-h-fit" :src="data?.potrait" />
         </DefaultPanel>
-        <ButtonDefault @click="handleShare">
+        <ButtonDefault class="w-full" @click="handleShare">
           <Icon name="material-symbols:ios-share-rounded" />
         </ButtonDefault>
         <TableParent title="ArisCorp">
@@ -154,7 +153,10 @@ const handleDepartmentLink = () => {
           <TableRow title="Bürgerlicher Name" :content="data?.fullName" full-width />
           <TableHr />
           <TableRow title="Geburtsdatum" :content="data?.birthdate" />
-          <TableRow title="Alter" :content="$dayjs().add(930, 'years').to(data?.birthdate, true)" />
+          <TableRow
+            title="Alter"
+            :content="data?.birthdate ? $dayjs().add(930, 'years').to(data?.birthdate, true) : null"
+          />
           <TableRow title="Geburtsort" :content="data?.birthplace" />
           <TableRow
             title="Geburtssystem"
@@ -168,8 +170,8 @@ const handleDepartmentLink = () => {
             :link="'/VerseExkurs/systems/' + data?.currentsystem?.slug"
           />
           <TableHr />
-          <TableRow title="Körpergrösse" :content="data?.height + ' cm'" />
-          <TableRow title="Körpergewicht" :content="data?.weight + ' kg'" />
+          <TableRow title="Körpergrösse" :content="data?.height ? data?.height + ' cm' : null" />
+          <TableRow title="Körpergewicht" :content="data?.weight ? data?.weight + ' kg' : null" />
           <TableRow title="Haarfarbe" :content="data?.haircolor" />
           <TableRow title="Augenfarbe" :content="data?.eyecolor" />
           <TableHr />
@@ -222,14 +224,12 @@ const handleDepartmentLink = () => {
       </div>
     </div>
     <hr />
-    <DefaultPanel>
-      <div class="bg-bprimary">
-        <template v-if="data?.biography">
-          <h1 class="p-4 pt-6 m-0 text-primary-400">Bigorafie:</h1>
-          <div class="mx-auto max-w-[95%]" v-html="data?.biography" />
-        </template>
-        <h1 v-else class="py-4 m-0 text-center text-danger">PLACEHOLDER</h1>
-      </div>
+    <DefaultPanel bg="bprimary">
+      <template v-if="data?.biography">
+        <h1 class="p-4 pt-6 m-0 text-primary-400">Bigorafie:</h1>
+        <div class="mx-auto max-w-[95%]" v-html="data?.biography" />
+      </template>
+      <h1 v-else class="py-4 m-0 text-center text-danger">PLACEHOLDER</h1>
     </DefaultPanel>
     <hr />
     <Disclosure v-if="data?.hangar[0]">
