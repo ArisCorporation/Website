@@ -97,8 +97,7 @@ defineExpose({
                     <button
                       v-if="!hideCloseButton"
                       v-motion
-                      :hovered="{ scale: 1 }"
-                      :tapped="{ scale: 0.97 }"
+                      :variants="$config.public.mbutton"
                       type="button"
                       class="inline-flex justify-center px-4 py-2 text-sm font-medium text-black transition-all duration-100 border border-transparent rounded-md opacity-75 hover:duration-200 bg-danger hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       @click="() => (closeAction ? closeAction() : closeModal())"
@@ -108,8 +107,7 @@ defineExpose({
                     <button
                       v-if="agreeAction"
                       v-motion
-                      :hovered="{ scale: 1 }"
-                      :tapped="{ scale: 0.97 }"
+                      :variants="$config.public.mbutton"
                       type="button"
                       class="inline-flex justify-center px-4 py-2 text-sm font-medium text-black transition-all duration-100 border border-transparent rounded-md opacity-75 hover:duration-200 bg-success hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       @click="() => agreeAction()"
