@@ -2,10 +2,7 @@
 const { getItems, getSingletonItem } = useDirectusItems();
 const { query } = useRoute();
 const homepageTabsStore = useHomepageTabsStore();
-
-definePageMeta({
-  layout: 'default',
-});
+const ourSectionScrollMargin = ref('scroll-m-14');
 
 const { data } = await useAsyncData('cart-discount', async () => {
   const [theArisCorp, history, manifest, charta, members, departments, fleet, commLink, recruitment, partners] =
@@ -223,6 +220,10 @@ if (query) {
     homepageTabsStore.setOurDepartmentTab(Number(query.department));
   }
 }
+
+onMounted(() => {
+  setTimeout(() => (ourSectionScrollMargin.value = 'scroll-m-28'));
+});
 </script>
 
 <template>
@@ -238,7 +239,7 @@ if (query) {
     />
     <TabGroup
       id="our"
-      class="scroll-m-28"
+      :class="ourSectionScrollMargin"
       :store="homepageTabsStore.selectedOurTab"
       :change="homepageTabsStore.setOurTab"
       :tablist="ourtabs"
