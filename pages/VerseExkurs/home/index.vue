@@ -24,7 +24,7 @@ definePageMeta({
 
 <template>
   <div>
-    <div class="max-w-full prose prose-invert" v-html="data" />
+    <div class="prose prose-invert" v-html="data" />
     <div class="flex flex-wrap justify-between gap-4 px-4 mx-auto mt-12 mb-8">
       <NuxtLink to="https://robertsspaceindustries.com/starmap" target="_blank">
         <IconHover name="IconsLogosArk" size="48" />
