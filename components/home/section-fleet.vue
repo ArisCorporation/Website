@@ -1,11 +1,23 @@
 <script setup lang="ts">
+const { copy, isSupported: clipboardIsSupported } = useClipboard();
 const homepageTabsStore = useHomepageTabsStore();
+const config = useRuntimeConfig();
+const toast = useToast();
 defineProps({
   data: {
     type: null,
     required: true,
   },
 });
+
+const handleCopy = () => {
+  if (clipboardIsSupported && location?.href) {
+    copy(config.public.url + '/?our=1&fleet=' + homepageTabsStore.selectedOurFleetTab + '#fleet');
+    toast.add({ title: 'URL in Zwischenablage kopiert!' });
+  } else {
+    toast.add({ title: 'Es konnte leider nichts in die Zwischenablage kopiert werden.' });
+  }
+};
 </script>
 <template>
   <div>
@@ -49,7 +61,14 @@ defineProps({
       </template>
       <template #tabcontent>
         <HeadlessTabPanel class="px-4">
-          <h2 class="my-4 text-center text-primary-400">Alle</h2>
+          <h2 class="relative mx-auto my-4 text-center w-fit text-primary-400 group">
+            Alle
+            <Icon
+              name="ion:ios-copy-outline"
+              class="absolute top-0 w-4 h-4 opacity-0 cursor-pointer -right-4 group-hover:opacity-100"
+              @click="handleCopy"
+            />
+          </h2>
           <div class="flex flex-wrap">
             <ShipCard
               v-for="ship in data.fleetData"
@@ -62,7 +81,14 @@ defineProps({
           </div>
         </HeadlessTabPanel>
         <HeadlessTabPanel v-for="department in data.departmentData" :key="department.id" class="px-4">
-          <h2 class="my-4 text-center text-primary-400">{{ department.name }}</h2>
+          <h2 class="relative mx-auto my-4 text-center w-fit text-primary-400 group">
+            {{ department.name }}
+            <Icon
+              name="ion:ios-copy-outline"
+              class="absolute top-0 w-4 h-4 opacity-0 cursor-pointer -right-4 group-hover:opacity-100"
+              @click="handleCopy"
+            />
+          </h2>
           <hr />
           <div class="flex flex-wrap">
             <ShipCard
