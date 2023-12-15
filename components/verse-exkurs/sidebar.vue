@@ -8,9 +8,49 @@ const sidebarItems = [
     link: '',
   },
   {
+    name: 'Geschichte',
+    icon: 'IconsNavigationTimeline',
+    link: '/timeline',
+  },
+  {
     name: 'UEE',
-    icon: 'heroicons:home-solid',
+    icon: 'IconsNavigationUee',
     link: '/uee',
+  },
+  {
+    name: 'ARK Starmap',
+    icon: 'IconsNavigationStarmap',
+    link: '/starmap',
+  },
+  {
+    name: 'Alienrassen',
+    icon: 'IconsNavigationAliens',
+    link: '/aliens',
+  },
+  {
+    name: 'Firmen',
+    icon: 'IconsNavigationCompanies',
+    link: '/companies',
+  },
+  {
+    name: 'Fraktionen',
+    icon: 'heroicons:user-group-solid',
+    link: '/fractions',
+  },
+  {
+    name: 'Technologie',
+    icon: 'IconsNavigationTechnology',
+    link: '/technology',
+  },
+  {
+    name: 'Spectrum',
+    icon: 'IconsNavigationSpectrum',
+    link: '/spectrum',
+  },
+  {
+    name: 'Literatur',
+    icon: 'material-symbols:book-4-outline',
+    link: '/literature',
   },
 ];
 </script>
@@ -41,8 +81,8 @@ const sidebarItems = [
       <div class="flex w-full px-4">
         <Icon name="IconsLogosVeBanner" class="w-1/2 mx-auto h-fit" />
       </div>
-      <ul class="p-0 space-y-2 font-medium list-none basis-full">
-        <li v-for="(item, i) in sidebarItems" :key="i">
+      <ul class="p-0 font-medium list-none basis-full">
+        <li v-for="(item, i) in sidebarItems" :key="i" class="pb-0">
           <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
           <NuxtLink
             :to="'/VerseExkurs' + item.link"
