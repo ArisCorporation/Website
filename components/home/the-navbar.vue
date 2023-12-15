@@ -93,7 +93,7 @@ function handleHomeButton(item: any) {
         <span class="sr-only">ArisCorp</span>
       </NuxtLink>
       <button
-        class="inline-flex items-center justify-center w-10 h-10 p-2 text-sm rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-0"
+        class="inline-flex items-center justify-center w-10 h-10 p-2 text-sm rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-0 hover:bg-transparent"
         @click="toggleMenu"
       >
         <span class="sr-only">Open main menu</span>
