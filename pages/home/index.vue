@@ -225,6 +225,10 @@ if (query) {
 onMounted(() => {
   setTimeout(() => (ourSectionScrollMargin.value = 'scroll-m-28'));
 });
+
+definePageMeta({
+  path: '/',
+});
 </script>
 
 <template>
