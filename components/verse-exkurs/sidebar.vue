@@ -1,6 +1,5 @@
 <script setup lang="ts">
-const mobileMenu = ref(false);
-const sidebarCollapsed = ref(false);
+const VeStore = useVeStore();
 
 const sidebarItems = [
   {
@@ -9,46 +8,33 @@ const sidebarItems = [
     link: '',
   },
   {
-    name: 'Home',
+    name: 'UEE',
     icon: 'heroicons:home-solid',
-    link: '/',
-  },
-  {
-    name: 'Home',
-    icon: 'heroicons:home-solid',
-    link: '/',
+    link: '/uee',
   },
 ];
 </script>
 
 <template>
-  <!-- <div class="relative top-0 left-0 z-40 w-64 h-screen transition-transform lg:translate-x-0"> -->
-  <!-- <button
-      aria-controls="default-sidebar"
-      type="button"
-      class="inline-flex items-center p-2 mt-2 text-sm text-gray-500 rounded-lg ms-3 lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-      @click="mobileMenu = !mobileMenu"
-    >
-      <span class="sr-only">Open sidebar</span>
-      <svg
-        class="w-6 h-6"
-        aria-hidden="true"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          clip-rule="evenodd"
-          fill-rule="evenodd"
-          d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
-        ></path>
-      </svg>
-    </button> -->
-
+  <button
+    aria-controls="default-sidebar"
+    type="button"
+    class="inline-flex items-center p-2 mt-2 text-sm text-gray-500 rounded-lg ms-3 lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+    @click="VeStore.ToggleMobileSidebar()"
+  >
+    <span class="sr-only">Open sidebar</span>
+    <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <path
+        clip-rule="evenodd"
+        fill-rule="evenodd"
+        d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
+      ></path>
+    </svg>
+  </button>
   <aside
     id="default-sidebar"
     class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform lg:translate-x-0"
-    :class="{ '-translate-x-full': !mobileMenu }"
+    :class="{ '-translate-x-full': !VeStore.MobileSidebar }"
     aria-label="Sidebar"
   >
     <div class="relative h-full pb-4 overflow-y-auto bg-bsecondary">
@@ -57,13 +43,14 @@ const sidebarItems = [
       </div>
       <ul class="p-0 space-y-2 font-medium list-none basis-full">
         <li v-for="(item, i) in sidebarItems" :key="i">
+          <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
           <NuxtLink
             :to="'/VerseExkurs' + item.link"
-            class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default"
+            class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
             :class="[
               (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
                 ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
-                : 'text-tbase hover:text-white',
+                : 'text-tbase/75 hover:text-white',
             ]"
           >
             <Icon
@@ -72,7 +59,7 @@ const sidebarItems = [
               :class="[
                 (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
                   ? 'text-white'
-                  : 'text-tbase group-hover:text-white',
+                  : 'text-tbase/75 group-hover:text-white',
               ]"
             />
             <span class="ms-3">{{ item.name }}</span>
