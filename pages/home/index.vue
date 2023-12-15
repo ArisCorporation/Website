@@ -117,7 +117,7 @@ const { data } = await useAsyncData('homepage-data', async () => {
             'comm_link_banner.id',
             'comm_link_beschreibung',
             'comm_link_channel.channel',
-            'comm_link_channel.description',
+            'comm_link_channel.beschreibung',
             'date_created',
           ],
           filter: {
@@ -225,6 +225,10 @@ if (query) {
 onMounted(() => {
   setTimeout(() => (ourSectionScrollMargin.value = 'scroll-m-28'));
 });
+
+definePageMeta({
+  path: '/',
+});
 </script>
 
 <template>
@@ -238,6 +242,7 @@ onMounted(() => {
       title="über"
       between
     />
+    <div id="fleet" class="scroll-m-[-840px] md:scroll-m-[-990px] lg:scroll-m-[-750px] xl:scroll-m-[-600px]" />
     <TabGroup
       id="our"
       :class="ourSectionScrollMargin"

@@ -179,14 +179,9 @@ onMounted(() => {
     <NuxtLoadingIndicator />
     <UNotifications />
     <main>
-      <div>
-        <div>
-          <NuxtLayout>
-            <NuxtPage />
-          </NuxtLayout>
-        </div>
-        <Footer />
-      </div>
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
     </main>
   </div>
 </template>
