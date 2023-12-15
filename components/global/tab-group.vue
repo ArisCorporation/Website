@@ -53,7 +53,7 @@ const changeTab = (index: number) => {
             class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none"
           >
             <h1
-              class="uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
+              class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
               :class="{ 'text-primary-400': selected, 'opacity-50': !selected }"
             >
               {{ tab.header }}

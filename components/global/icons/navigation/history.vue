@@ -1,7 +1,6 @@
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0.00 0.00 640.00 640.00">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" version="1.1" viewBox="0.00 0.00 640.00 640.00">
     <path
-      fill="#ffffff"
       d="
   M 243.61 53.54
   L 293.92 53.57
@@ -15,7 +14,6 @@
   Z"
     />
     <path
-      fill="#ffffff"
       d="
   M 347.00 160.07
   L 347.00 54.37
@@ -29,7 +27,6 @@
   Z"
     />
     <path
-      fill="#ffffff"
       d="
   M 534.75 214.09
   A 0.52 0.52 0.0 0 0 535.27 213.56
@@ -83,7 +80,6 @@
   Z"
     />
     <path
-      fill="#ffffff"
       d="
   M 303.11 434.27
   A 0.66 0.66 0.0 0 0 304.05 434.26

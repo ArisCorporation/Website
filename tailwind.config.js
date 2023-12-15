@@ -73,6 +73,11 @@ export default {
       padding: {
         '2px': '.125rem',
       },
+      extend: {
+        backgroundImage: {
+          'aris-hover': 'radial-gradient(50% 50% at 50% 50%, rgba(0, 255, 232, 0.60) 0%, rgba(17, 17, 17, 0.00) 100%)',
+        },
+      },
     },
   },
   plugins: [require('@tailwindcss/typography'), require('@headlessui/tailwindcss')({ prefix: 'ui' })],
