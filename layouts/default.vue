@@ -28,5 +28,6 @@
     <div class="container px-4 mx-auto" :class="{ 'mt-24': $route.path != '/' }">
       <slot />
     </div>
+    <Footer />
   </div>
 </template>
