@@ -1,7 +1,12 @@
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" viewBox="0.00 0.00 640.00 640.00">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="currentColor"
+    version="1.2"
+    baseProfile="tiny"
+    viewBox="0.00 0.00 640.00 640.00"
+  >
     <path
-      fill="#ffffff"
       d="
   M 640.00 49.87
   L 640.00 495.16
@@ -194,17 +199,8 @@
   A 23.22 23.22 0.0 0 0 199.74 414.83
   Z"
     />
+    <rect x="-9.76" y="-9.66" transform="translate(412.49,104.55) rotate(0.1)" width="19.52" height="19.32" rx="0.87" />
     <rect
-      fill="#ffffff"
-      x="-9.76"
-      y="-9.66"
-      transform="translate(412.49,104.55) rotate(0.1)"
-      width="19.52"
-      height="19.32"
-      rx="0.87"
-    />
-    <rect
-      fill="#ffffff"
       x="-9.79"
       y="-9.66"
       transform="translate(573.66,132.06) rotate(-0.1)"
@@ -213,7 +209,6 @@
       rx="1.20"
     />
     <path
-      fill="#ffffff"
       d="
   M 449.18 284.62
   A 93.31 93.31 0.0 0 1 355.87 377.93
@@ -299,23 +294,7 @@
   Q 303.96 338.10 304.41 338.52
   Z"
     />
-    <rect
-      fill="#ffffff"
-      x="-9.41"
-      y="-9.40"
-      transform="translate(160.77,244.61) rotate(0.2)"
-      width="18.82"
-      height="18.80"
-      rx="0.50"
-    />
-    <rect
-      fill="#ffffff"
-      x="-9.77"
-      y="-9.73"
-      transform="translate(292.29,451.05) rotate(0.2)"
-      width="19.54"
-      height="19.46"
-      rx="1.16"
-    />
+    <rect x="-9.41" y="-9.40" transform="translate(160.77,244.61) rotate(0.2)" width="18.82" height="18.80" rx="0.50" />
+    <rect x="-9.77" y="-9.73" transform="translate(292.29,451.05) rotate(0.2)" width="19.54" height="19.46" rx="1.16" />
   </svg>
 </template>
