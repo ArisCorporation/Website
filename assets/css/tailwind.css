@@ -68,7 +68,9 @@
   }
 
   .prose {
-    @apply mx-auto max-w-full;
+    max-width: 100% !important;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .hr-short {
