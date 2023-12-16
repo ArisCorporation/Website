@@ -35,6 +35,7 @@ export default defineNuxtConfig({
     authSecret: process.env.NUXT_AUTH_SECRET,
     cmsToken: process.env.NUXT_CMS_TOKEN,
     public: {
+      test: process.env.SOURCE_COMMIT,
       environment: process.env.NUXT_PUBLIC_ENVIRONMENT,
       url: process.env.NUXT_PUBLIC_URL,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
