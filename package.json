@@ -1,5 +1,6 @@
 {
-  "name": "nuxt-app",
+  "name": "ariscorp-homepage",
+  "version": "4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -48,6 +49,7 @@
     "@vueuse/nuxt": "^10.6.1",
     "nuxt-directus": "^5.6.0",
     "nuxt-headlessui": "^1.1.4",
-    "pinia-plugin-persistedstate": "^3.2.0"
+    "pinia-plugin-persistedstate": "^3.2.0",
+    "yup": "^1.3.3"
   }
 }
