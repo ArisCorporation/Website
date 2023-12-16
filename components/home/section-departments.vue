@@ -8,7 +8,12 @@ defineProps({
 });
 </script>
 <template>
-  <TabGroup :store="homepageTabsStore.selectedOurDepartmentTab" :change="homepageTabsStore.setOurDepartmentTab" hide-hr>
+  <TabGroup
+    no-margin
+    :store="homepageTabsStore.selectedOurDepartmentTab"
+    :change="homepageTabsStore.setOurDepartmentTab"
+    hide-hr
+  >
     <template #tablist>
       <div class="flex flex-wrap justify-center xl:grid xl:grid-flow-col xl:grid-rows-1">
         <HeadlessTab

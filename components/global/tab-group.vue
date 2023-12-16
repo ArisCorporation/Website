@@ -32,6 +32,16 @@ const props = defineProps({
     type: null,
     required: true,
   },
+  smallHeader: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  noMargin: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
 
 const changeTab = (index: number) => {
@@ -40,7 +50,7 @@ const changeTab = (index: number) => {
 </script>
 
 <template>
-  <HeadlessTabGroup as="div" class="mt-16" :selected-index="store" @change="changeTab">
+  <HeadlessTabGroup as="div" :class="{ 'mt-16': !noMargin }" :selected-index="store" @change="changeTab">
     <h1 v-if="title" class="uppercase">{{ title }}</h1>
     <HeadlessTabList>
       <hr v-if="!hideHr" />
@@ -54,7 +64,7 @@ const changeTab = (index: number) => {
           >
             <h1
               class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
-              :class="{ 'text-primary-400': selected, 'opacity-50': !selected }"
+              :class="{ 'text-primary-400': selected, 'opacity-50': !selected, 'text-xl': smallHeader }"
             >
               {{ tab.header }}
             </h1>
