@@ -35,8 +35,8 @@ export default defineNuxtConfig({
     authSecret: process.env.NUXT_AUTH_SECRET,
     cmsToken: process.env.NUXT_CMS_TOKEN,
     public: {
-      test: process.env.SOURCE_COMMIT,
-      environment: process.env.NUXT_PUBLIC_ENVIRONMENT,
+      test: process.env.COMMIT_REF,
+      environment: process.env.NODE_ENV,
       url: process.env.NUXT_PUBLIC_URL,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
       mbutton: { initial: { scale: 1 }, visible: { scale: 1 }, hovered: { scale: 1 }, tapped: { scale: 0.97 } },
