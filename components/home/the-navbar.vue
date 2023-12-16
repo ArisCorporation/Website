@@ -58,7 +58,7 @@ const bannerItems = [
     link: '/VerseExkurs',
   },
   {
-    name: 'A.M.S.',
+    name: 'ArisCorp Management System',
     icon: 'IconsLogosAmsBanner',
     link: '/ams',
   },
@@ -130,7 +130,13 @@ function handleHomeButton(item: any) {
           <li v-for="item in bannerItems" :key="item.name" class="relative w-full my-auto group md:w-fit">
             <NuxtLink :to="item.link" class="block px-3 py-2 rounded md:p-0 md:border-0 not-active">
               <span class="block md:hidden">{{ item.name }}</span>
-              <span class="hidden md:block"><Icon :name="item.icon" hover class="h-auto w-14 lg:w-20" /></span>
+              <span class="hidden md:block"
+                ><Icon
+                  :name="item.icon"
+                  hover
+                  class="h-auto"
+                  :class="[item.icon === 'IconsLogosAmsBanner' ? '-my-6 w-20 lg:w-24' : 'w-14 lg:w-20']"
+              /></span>
             </NuxtLink>
             <div class="tooltip">
               {{ item.name }}
