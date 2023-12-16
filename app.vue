@@ -172,6 +172,8 @@ onMounted(() => {
     );
   }
 });
+
+console.log(config.public.test);
 </script>
 
 <template>
