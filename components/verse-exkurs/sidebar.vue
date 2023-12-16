@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const VeStore = useVeStore();
+const SidebarStore = useSidebarStore();
 
 const sidebarItems = [
   {
@@ -60,7 +60,7 @@ const sidebarItems = [
     aria-controls="default-sidebar"
     type="button"
     class="fixed inline-flex items-center p-2 mt-2 text-sm text-gray-500 rounded-lg w-fit ms-3 lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-    @click="VeStore.ToggleMobileSidebar()"
+    @click="SidebarStore.ToggleMobileSidebar()"
   >
     <span class="sr-only">Open sidebar</span>
     <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -74,7 +74,7 @@ const sidebarItems = [
   <aside
     id="default-sidebar"
     class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform lg:translate-x-0"
-    :class="{ '-translate-x-full': !VeStore.MobileSidebar }"
+    :class="{ '-translate-x-full': !SidebarStore.MobileSidebar }"
     aria-label="Sidebar"
   >
     <div class="relative h-full pb-4 overflow-y-auto bg-bsecondary">
