@@ -95,3 +95,9 @@ defineProps({
     </DefaultPanel>
   </div>
 </template>
+
+<style scoped lang="postcss">
+p {
+  @apply p-0;
+}
+</style>
