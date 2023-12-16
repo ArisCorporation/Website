@@ -64,7 +64,10 @@ const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').conte
           </p>
         </div>
         <div class="flex flex-col justify-between w-full md:w-1/3">
-          <NuxtImg class="w-1/3 mx-auto my-4 md:w-1/2 md:m-auto" src="2983446c-d4a8-4df4-b63d-aa46f0f8eabe" />
+          <NuxtImg
+            class="w-1/3 max-w-[125px] mx-auto my-4 md:w-1/2 md:m-auto"
+            src="2983446c-d4a8-4df4-b63d-aa46f0f8eabe"
+          />
           <div class="flex mx-auto mt-auto space-x-2 md:mt-4 w-fit">
             <div class="footer-icon">
               <NuxtLink
