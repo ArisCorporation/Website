@@ -100,15 +100,16 @@ definePageMeta({
         src="3090187e-6348-4290-a878-af1b2b48c114"
       />
       <div
-        class="relative flex w-full max-w-md px-4 py-10 mx-auto mt-12 sm:my-auto rounded-xl backdrop-blur-sm glass-bg"
+        class="relative flex w-full max-w-md px-4 pt-8 pb-10 mx-auto mt-12 sm:my-auto rounded-xl backdrop-blur-sm glass-bg"
       >
         <UForm
           ref="form"
           :schema="schema"
           :state="state"
-          class="w-full max-w-[540px] py-4 mx-auto space-y-8"
+          class="w-full max-w-[540px] pb-4 mx-auto space-y-8"
           @submit="onSubmit"
         >
+          <h2 class="mt-0 text-center">Log In</h2>
           <UFormGroup label="Benutzername" name="username">
             <UInput
               v-model="state.username"
