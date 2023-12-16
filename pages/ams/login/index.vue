@@ -79,7 +79,7 @@ useHead({
 });
 
 definePageMeta({
-  layout: null,
+  layout: '',
 });
 </script>
 
