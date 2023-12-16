@@ -2,7 +2,7 @@
 const { getItems, getSingletonItem } = useDirectusItems();
 const { query } = useRoute();
 const homepageTabsStore = useHomepageTabsStore();
-const ourSectionScrollMargin = ref('scroll-m-14');
+const scrollMargin = ref('scroll-m-14');
 
 const { data } = await useAsyncData('homepage-data', async () => {
   const [theArisCorp, history, manifest, charta, members, departments, fleet, commLink, recruitment, partners] =
@@ -223,7 +223,7 @@ if (query) {
 }
 
 onMounted(() => {
-  setTimeout(() => (ourSectionScrollMargin.value = 'scroll-m-28'));
+  setTimeout(() => (scrollMargin.value = 'scroll-m-28'));
 });
 
 definePageMeta({
@@ -235,7 +235,7 @@ definePageMeta({
   <div>
     <TabGroup
       id="ariscorp"
-      class="scroll-m-28"
+      :class="scrollMargin"
       :store="homepageTabsStore.selectedArisTab"
       :change="homepageTabsStore.setArisTab"
       :tablist="aristabs"
@@ -245,15 +245,15 @@ definePageMeta({
     <div id="fleet" class="scroll-m-[-840px] md:scroll-m-[-990px] lg:scroll-m-[-750px] xl:scroll-m-[-600px]" />
     <TabGroup
       id="our"
-      :class="ourSectionScrollMargin"
+      :class="scrollMargin"
       :store="homepageTabsStore.selectedOurTab"
       :change="homepageTabsStore.setOurTab"
       :tablist="ourtabs"
       title="unsere"
       between
     />
-    <HomeSectionCommLink id="comm-link" class="scroll-m-28" :data="data?.commLink" />
-    <HomeSectionRecruitment id="recruitment" class="scroll-m-28" :data="data?.recruitment" />
-    <HomeSectionPartner id="partners" class="scroll-m-28" :data="data?.partners" />
+    <HomeSectionCommLink id="comm-link" :class="scrollMargin" :data="data?.commLink" />
+    <HomeSectionRecruitment id="recruitment" :class="scrollMargin" :data="data?.recruitment" />
+    <HomeSectionPartner id="partners" :class="scrollMargin" :data="data?.partners" />
   </div>
 </template>
