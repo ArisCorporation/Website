@@ -1,5 +1,13 @@
 <script setup lang="ts">
+const { logout } = useDirectusAuth();
+const { push } = useRouter();
+
 const SidebarStore = useSidebarStore();
+
+const handleLogout = () => {
+  logout();
+  push('/');
+};
 
 const sidebarItems = [
   {
@@ -8,49 +16,37 @@ const sidebarItems = [
     link: '',
   },
   {
-    name: 'Geschichte',
-    icon: 'IconsNavigationTimeline',
-    link: '/timeline',
+    name: 'Flotte',
+    icon: 'IconsNavigationFleet',
+    link: '/fleet',
   },
   {
-    name: 'UEE',
-    icon: 'IconsNavigationUee',
+    name: 'Mitarbeiter',
+    icon: 'IconsNavigationMembers',
     link: '/uee',
   },
   {
-    name: 'ARK Starmap',
-    icon: 'IconsNavigationStarmap',
-    link: '/starmap',
+    name: 'Admin',
+    icon: 'ri:admin-line',
+    link: '/admin',
+  },
+];
+
+const userSidebarItems = [
+  {
+    name: 'Mein Hangar',
+    icon: 'IconsNavigationHangar',
+    link: '',
   },
   {
-    name: 'Alienrassen',
-    icon: 'IconsNavigationAliens',
-    link: '/aliens',
+    name: 'Mein Profil',
+    icon: 'heroicons:user-20-solid',
+    link: '/fleet',
   },
   {
-    name: 'Firmen',
-    icon: 'IconsNavigationCompanies',
-    link: '/companies',
-  },
-  {
-    name: 'Fraktionen',
-    icon: 'heroicons:user-group-solid',
-    link: '/fractions',
-  },
-  {
-    name: 'Technologie',
-    icon: 'IconsNavigationTechnology',
-    link: '/technology',
-  },
-  {
-    name: 'Spectrum',
-    icon: 'IconsNavigationSpectrum',
-    link: '/spectrum',
-  },
-  {
-    name: 'Literatur',
-    icon: 'material-symbols:book-4-outline',
-    link: '/literature',
+    name: 'Logout',
+    icon: 'material-symbols:logout',
+    action: handleLogout,
   },
 ];
 </script>
@@ -79,7 +75,7 @@ const sidebarItems = [
   >
     <div class="relative h-full pb-4 overflow-y-auto bg-bsecondary">
       <div class="flex w-full px-4">
-        <Icon name="IconsLogosVeBanner" class="w-1/2 mx-auto h-fit" />
+        <Icon name="IconsLogosAmsBanner" class="w-3/4 mx-auto -mt-4 -mb-8 h-fit" />
       </div>
       <ul class="p-0 font-medium list-none basis-full">
         <li v-for="(item, i) in sidebarItems" :key="i" class="pb-0">
@@ -95,7 +91,7 @@ const sidebarItems = [
           >
             <Icon
               :name="item.icon"
-              class="w-5 h-5 transition-group"
+              class="w-6 h-6 transition-group"
               :class="[
                 (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
                   ? 'text-white'
@@ -115,17 +111,48 @@ const sidebarItems = [
         </li>
       </ul>
       <ul class="absolute bottom-0 p-0 mt-auto space-y-2 font-medium list-none basis-full">
+        <li v-for="(item, i) in userSidebarItems" :key="i" class="pb-0">
+          <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
+          <NuxtLink
+            v-if="item.link"
+            :to="'/VerseExkurs' + item.link"
+            class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
+            :class="[
+              (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
+                ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
+                : 'text-tbase/75 hover:text-white',
+            ]"
+          >
+            <Icon
+              :name="item.icon"
+              class="w-6 h-6 transition-group"
+              :class="[
+                (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
+                  ? 'text-white'
+                  : 'text-tbase/75 group-hover:text-white',
+              ]"
+            />
+            <span class="ms-3">{{ item.name }}</span>
+          </NuxtLink>
+          <button
+            v-else
+            class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group"
+            @click="item.action"
+          >
+            <Icon :name="item.icon" class="w-6 h-6 transition-group text-tbase/75 group-hover:text-white" />
+            <span class="ms-3">{{ item.name }}</span>
+          </button>
+        </li>
         <li>
           <NuxtLink
             to="/"
             class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline text-tbase hover:text-white group"
           >
-            <Icon name="IconsLogosAriscorp" class="w-5 h-5 transition duration-75 text-tbase group-hover:text-white" />
+            <Icon name="IconsLogosAriscorp" class="w-6 h-6 transition duration-75 text-tbase group-hover:text-white" />
             <span class="ms-3">ArisCorp Homepage</span>
           </NuxtLink>
         </li>
       </ul>
     </div>
   </aside>
-  <!-- </div> -->
 </template>

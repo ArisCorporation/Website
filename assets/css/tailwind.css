@@ -141,6 +141,6 @@
   }
 
   .comm-link-grid {
-    @apply grid gap-6 md:grid-cols-2 lg:grid-cols-3;
+    @apply max-w-5xl mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-3;
   }
 }
