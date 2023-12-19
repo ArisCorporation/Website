@@ -86,6 +86,7 @@ const sidebarItems = [
           <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
           <NuxtLink
             :to="'/VerseExkurs' + item.link"
+            @click="SidebarStore.ToggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
             :class="[
               (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
@@ -118,6 +119,7 @@ const sidebarItems = [
         <li>
           <NuxtLink
             to="/"
+            @click="SidebarStore.ToggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline text-tbase hover:text-white group"
           >
             <Icon name="IconsLogosAriscorp" class="w-5 h-5 transition duration-75 text-tbase group-hover:text-white" />
