@@ -235,7 +235,7 @@ useHead({
         <h1 class="p-4 pt-6 m-0 text-primary-400">Bigorafie:</h1>
         <div class="mx-auto max-w-[95%]" v-html="data?.biography" />
       </template>
-      <h1 v-else class="py-4 m-0 text-center text-danger">PLACEHOLDER</h1>
+      <h1 v-else class="py-4 m-0 text-center redacted" data-text="[ REDACTED ]">[ REDACTED ]</h1>
     </DefaultPanel>
     <hr />
     <Disclosure v-if="data?.hangar[0]">
