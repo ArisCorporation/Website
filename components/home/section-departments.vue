@@ -40,12 +40,12 @@ defineProps({
         <div class="flex flex-wrap justify-center max-w-full mx-auto mt-4">
           <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
-              <NuxtImg :src="department.pic1" class="w-full" />
+              <NuxtImg :src="department.pic1" class="w-full aspect-[21/9] object-cover" />
             </DefaultPanel>
           </div>
           <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
-              <NuxtImg :src="department.pic2" class="w-full" />
+              <NuxtImg :src="department.pic2" class="object-cover w-full aspect-[21/9]" />
             </DefaultPanel>
           </div>
         </div>
