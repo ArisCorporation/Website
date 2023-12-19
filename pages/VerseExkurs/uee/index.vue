@@ -31,31 +31,6 @@ const { data } = await useAsyncData(
   },
 );
 
-// const tablist = data.value?.sections.map((obj) => ({
-//   header: obj.title,
-//   content: obj.content,
-// }));
-
-// const holidayTablist = data.value?.holidays.map((obj) => ({
-//   header: obj.title,
-//   content: obj.content,
-// }));
-
-console.log(data.value);
-
-const holidayTabList = [
-  {
-    header: 'test',
-    date: '',
-    content: 'test',
-  },
-  {
-    header: 'second',
-    date: '',
-    content: 'test',
-  },
-];
-
 definePageMeta({
   layout: 'verse-exkurs',
 });
@@ -72,7 +47,7 @@ definePageMeta({
       <h2>VersExkurs: United Empire of Earth</h2>
       <hr class="hr-short" />
       <div v-html="data?.content" />
-      <TabGroup :tablist="data.tablist" small-header :store="VeTabs.selectedUeeTab" :change="VeTabs.setUeeTab">
+      <TabGroup :tablist="data?.tablist" small-header :store="VeTabs.selectedUeeTab" :change="VeTabs.setUeeTab">
         <template #tabcontent>
           <div>
             <div
