@@ -13,7 +13,10 @@ export default defineAppConfig({
       container: 'z-30 group',
       background: 'bg-bprimary',
       ring: 'ring-1 ring-bsecondary',
-      option: { active: 'bg-bsecondary' },
+      option: {
+        base: 'cursor-pointer select-none relative flex items-center justify-between gap-1',
+        active: 'bg-bsecondary',
+      },
       input:
         'block w-[calc(100%+0.5rem)] focus:ring-transparent text-sm px-3 py-1.5 bg-bsecondary border-0 border-b border-b-primary border-gray-200 focus:border-inherit sticky -top-1 -mt-1 mb-1 -mx-1 z-10 placeholder-gray-400 focus:outline-none',
     },
