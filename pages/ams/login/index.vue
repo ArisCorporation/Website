@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { FormError, FormSubmitEvent } from '#ui/types';
+import type { FormSubmitEvent } from '#ui/types';
 import { object, string, type InferType } from 'yup';
 const { login } = useDirectusAuth();
 const { getFiles } = useDirectusFiles();
 const error = ref();
 const router = useRouter();
+const route = useRoute();
 const config = useRuntimeConfig();
+const redirectUri = ref(route.query.redirect ? decodeURIComponent(route.query.redirect) : '/ams');
 
 const state = reactive({
   username: undefined,
@@ -36,16 +38,22 @@ const { data: wallpaperList } = await useAsyncData(
     transform: (data) => data.map((obj) => obj.id),
   },
 );
-const wallpaper = computed(() => wallpaperList.value[Math.floor(Math.random() * wallpaperList.value.length)]);
+const selectedWallpaper = ref();
+const wallpaper = computed(
+  () => selectedWallpaper.value || wallpaperList.value[Math.floor(Math.random() * wallpaperList.value.length)],
+);
 
-const onSubmit = async (event: FormSubmitEvent<any>) => {
-  form.value.clear();
+const onSubmit = async (event: FormSubmitEvent<Schema>) => {
   error.value = null;
   try {
-    console.log({ email: state.username + '@ariscorp.de', password: state.password });
-    await login({ email: state.username + '@ariscorp.de', password: state.password });
-    router.push('/ams');
+    await login({
+      email: event.data.username + (!event.data.username.includes('@') ? '@ariscorp.de' : ''),
+      password: event.data.password,
+    });
+    router.push(redirectUri.value);
   } catch (e) {
+    event.data.username = '';
+    event.data.password = '';
     console.error('There was an error:', e.message);
     error.value = e.message.match('\: (.*)')[1];
     if (error.value.startsWith('401') || error.value.startsWith('400')) {
@@ -74,21 +82,75 @@ const inputConfig = {
   },
 };
 
+useSeoMeta({
+  description:
+    'Das hier, ist dass ArisCorp Management System der Astro Research and Industrial Service Corporation. Hier können die Mitglieder der ArisCorp auf viele verschiedene Tools und Programme zugreifen. Es ist der Zentrale Knotenpunkt für Mitglieder der ArisCorp.',
+  ogTitle: 'Astro Research and Industrial Service Corporation',
+  ogDescription:
+    'Das hier, ist dass ArisCorp Management System der Astro Research and Industrial Service Corporation. Hier können die Mitglieder der ArisCorp auf viele verschiedene Tools und Programme zugreifen. Es ist der Zentrale Knotenpunkt für Mitglieder der ArisCorp.',
+  ogImage: config.public.fileBase + '5021a418-1134-4fbe-ba4f-a243468d2d72',
+  twitterDescription:
+    'Das hier, ist dass ArisCorp Management System der Astro Research and Industrial Service Corporation. Hier können die Mitglieder der ArisCorp auf viele verschiedene Tools und Programme zugreifen. Es ist der Zentrale Knotenpunkt für Mitglieder der ArisCorp.',
+  twitterImage: config.public.fileBase + '5021a418-1134-4fbe-ba4f-a243468d2d72',
+  twitterCard: 'summary_large_image',
+});
+
 useHead({
   link: [{ rel: 'preload', href: config.public.fileBase + wallpaper.value }],
+  title: 'Log In - A.M.S. - Astro Research and Industrial Service Corporation',
 });
 
 definePageMeta({
-  layout: '',
+  layout: false,
+  middleware: async function (to, _from) {
+    const { fetchUser, setUser } = useDirectusAuth();
+    const user = useDirectusUser();
+    if (!user.value) {
+      const user = await fetchUser();
+      setUser(user.value);
+    }
+    if (user.value) {
+      return navigateTo(to.query.redirect ? decodeURIComponent(to.query.redirect) : '/ams');
+    }
+  },
 });
 </script>
 
 <template>
   <div>
     <DevOnly>
-      <div class="bg-black">
-        <code class="block pb-2">Form: {{ form }}</code>
+      <div class="bg-black z-[99] pb-4 px-8 relative">
+        <h6>DEV TOOLS:</h6>
+        <code class="block pb-1">Form: {{ form }}</code>
         <code class="block">State: {{ state }}</code>
+        <code class="block">
+          <button
+            @click="
+              async () =>
+                (await login({
+                  email: 'dev@ariscorp.de',
+                  password: 'dev',
+                })) + router.push(redirectUri)
+            "
+          >
+            Fast-Login
+          </button>
+        </code>
+        <code class="block">Background: {{ wallpaper }}</code>
+        <code class="block">Redirect: {{ route.query.redirect }}</code>
+        <code class="block"
+          >Select Background:
+          <div class="flex justify-between space-x-6">
+            <NuxtImg
+              v-for="item in wallpaperList"
+              :key="item"
+              :src="item"
+              class="aspect[16/9] min-w-0 flex-1 cursor-pointer object-cover"
+              :class="{ 'border-primary border-2': wallpaper === item }"
+              @click="() => (selectedWallpaper = item)"
+            />
+          </div>
+        </code>
       </div>
     </DevOnly>
     <div
@@ -110,7 +172,12 @@ definePageMeta({
           @submit="onSubmit"
         >
           <h2 class="mt-0 text-center">Log In</h2>
-          <UFormGroup label="Benutzername" name="username">
+          <UFormGroup
+            :ui="{ error: '-mb-8 pt-1 text-red-500 dark:text-red-400' }"
+            required
+            label="Benutzername"
+            name="username"
+          >
             <UInput
               v-model="state.username"
               icon="i-heroicons-user"
@@ -121,7 +188,12 @@ definePageMeta({
             />
           </UFormGroup>
 
-          <UFormGroup label="Passwort" name="password">
+          <UFormGroup
+            :ui="{ error: 'mt-0 -mb-9 text-red-500 dark:text-red-400' }"
+            required
+            label="Passwort"
+            name="password"
+          >
             <UInput
               v-model="state.password"
               icon="i-heroicons-lock-closed"
