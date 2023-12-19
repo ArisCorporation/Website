@@ -1,3 +1,4 @@
+const { version } = require('./package.json');
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: {
@@ -35,8 +36,9 @@ export default defineNuxtConfig({
     authSecret: process.env.NUXT_AUTH_SECRET,
     cmsToken: process.env.NUXT_CMS_TOKEN,
     public: {
-      test: process.env.COMMIT_REF,
-      test2: process.env.NUXT_PUBLIC_TEST,
+      appVersion: version,
+      buildNumber: process.env.SOURCE_COMMIT,
+      buildNumber2: process.env.NUXT_PUBLIC_BUILD,
       environment: process.env.NODE_ENV,
       url: process.env.NUXT_PUBLIC_URL,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,

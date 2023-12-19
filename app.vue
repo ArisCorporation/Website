@@ -172,6 +172,9 @@ onMounted(() => {
     );
   }
 });
+
+console.log(config.public.buildNumber);
+console.log(config.public.buildNumber2);
 </script>
 
 <template>
