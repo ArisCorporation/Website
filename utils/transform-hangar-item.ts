@@ -2,6 +2,7 @@ export default function (obj: any) {
   const getShip = () => (obj.ships_id ? transformShip(obj.ships_id) : null);
   const getDepartment = () => (obj.department ? transformDepartment(obj.department) : null);
   const getOwner = () => (obj.member_id ? transformMember(obj.member_id) : null);
+  const getModule = () => (obj.active_module ? transformShipModule(obj.active_module) : null);
 
   return {
     id: obj.id,
@@ -14,7 +15,7 @@ export default function (obj: any) {
       visibility: obj.visibility,
       planned: obj.planned,
       department: getDepartment(),
-      // active_module: transformShipModule(obj.active_module),
+      module: getModule(),
     },
   };
 }
