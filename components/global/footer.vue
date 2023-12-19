@@ -56,7 +56,7 @@ const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').conte
             <p v-else>FEHLER: DISCLAIMER KONNTE NICHT GELADEN WERDEN...</p>
           </div>
           <p>
-            <span>&copy; ArisCorp - V - </span>
+            <span>&copy; ArisCorp - V{{ $config.public.appVersion }} - </span>
             <span><NuxtLink to="/credits">Credits</NuxtLink> - </span>
             <span><NuxtLink to="/bug-report">Bug-Report Tool</NuxtLink> - </span>
             <span><NuxtLink to="/ams">A.M.S.</NuxtLink> - </span>
