@@ -42,8 +42,8 @@ const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').conte
           </button>
         </div>
       </div>
-      <div class="flex flex-wrap justify-center md:justify-between md:flex-nowrap">
-        <div class="flex flex-col justify-between w-full md:w-2/3">
+      <div class="flex flex-wrap justify-center lg:justify-between lg:flex-nowrap">
+        <div class="flex flex-col justify-between w-full lg:w-2/3">
           <div class="">
             <template v-if="footer">
               <p v-if="footerLang == 'de'">
@@ -63,12 +63,12 @@ const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').conte
             <span><NuxtLink target="_blank" to="https://releases.ariscorp.de">Release-Notes</NuxtLink></span>
           </p>
         </div>
-        <div class="flex flex-col justify-between w-full md:w-1/3">
+        <div class="flex flex-col justify-between w-full lg:w-1/3">
           <NuxtImg
-            class="w-1/3 max-w-[125px] mx-auto my-4 md:w-1/2 md:m-auto"
+            class="w-1/3 max-w-[125px] mx-auto my-4 lg:w-1/2 lg:m-auto"
             src="2983446c-d4a8-4df4-b63d-aa46f0f8eabe"
           />
-          <div class="flex mx-auto mt-auto space-x-2 md:mt-4 w-fit">
+          <div class="flex mx-auto mt-auto space-x-2 lg:mt-4 w-fit">
             <div class="footer-icon">
               <NuxtLink
                 aria-label="Die Website von dem Spiel Star Citizen"
