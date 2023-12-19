@@ -133,7 +133,7 @@ function handleHomeButton(item: any) {
           class="flex flex-col w-full p-4 mt-4 mb-0 font-medium list-none border rounded-lg md:w-fit md:space-x-8 md:p-0 border-secondary bg-bsecondary md:flex-row md:mt-0 md:border-0 md:bg-transparent"
         >
           <li v-for="item in bannerItems" :key="item.name" class="relative w-full my-auto group md:w-fit">
-            <NuxtLink :to="item.link" class="block px-3 py-2 rounded md:p-0 md:border-0 not-active">
+            <NuxtLink @click="toggleMenu" :to="item.link" class="block px-3 py-2 rounded md:p-0 md:border-0 not-active">
               <span class="block md:hidden">{{ item.name }}</span>
               <span class="hidden md:block"
                 ><Icon
