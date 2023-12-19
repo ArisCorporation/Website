@@ -208,8 +208,8 @@ useHead({
   <div>
     <div class="flex flex-wrap justify-between px-6 my-4 gap-x-4">
       <div class="flex flex-wrap justify-center w-full mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
-        <div class="flex pr-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <UFormGroup class="w-full lg:w-72" label="Abteilung">
+        <div class="flex mx-auto sm:mx-0 sm:pr-4 basis-full sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
+          <UFormGroup class="w-full lg:w-80" label="Abteilung">
             <USelectMenu
               id="departmentSelect"
               v-model="selectedDepartment"
@@ -225,7 +225,9 @@ useHead({
               <template #label>
                 <UAvatar
                   img-class="object-cover object-top"
-                  :src="$config.public.fileBase + selectedDepartment.logo + '?format=webp'"
+                  :src="
+                    selectedDepartment.logo ? $config.public.fileBase + selectedDepartment.logo + '?format=webp' : null
+                  "
                   :alt="selectedDepartment.name || 'Alle'"
                 />
                 <span>{{ selectedDepartment.name }}</span>
@@ -233,7 +235,7 @@ useHead({
               <template #option="{ option: department }">
                 <UAvatar
                   img-class="object-cover object-top"
-                  :src="$config.public.fileBase + department?.logo + '?format=webp'"
+                  :src="department.logo ? $config.public.fileBase + department.logo + '?format=webp' : null"
                   :alt="department.name"
                 />
                 <span>{{ department.name }}</span>
@@ -241,7 +243,7 @@ useHead({
             </USelectMenu>
           </UFormGroup>
         </div>
-        <div class="flex pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
+        <div class="flex mx-auto mt-2 sm:mx-0 sm:pl-4 basis-full sm:mt-0 sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
           <UFormGroup class="w-full lg:w-80" label="Mitglied">
             <USelectMenu
               id="memberSelect"
@@ -258,7 +260,9 @@ useHead({
               <template #label>
                 <UAvatar
                   img-class="object-cover object-top"
-                  :src="$config.public.fileBase + selectedMember.potrait + '?format=webp'"
+                  :src="
+                    selectedMember.potrait ? $config.public.fileBase + selectedMember.potrait + '?format=webp' : null
+                  "
                   :alt="selectedMember.fullName || 'Alle'"
                 />
                 <span>{{ selectedMember.fullName }}</span>
@@ -266,7 +270,7 @@ useHead({
               <template #option="{ option: member }">
                 <UAvatar
                   img-class="object-cover object-top"
-                  :src="$config.public.fileBase + member.potrait + '?format=webp'"
+                  :src="member.potrait ? $config.public.fileBase + member.potrait + '?format=webp' : null"
                   :alt="member.fullName"
                 />
                 <span>{{ member.fullName }}</span>
@@ -278,13 +282,13 @@ useHead({
       <div
         class="flex flex-wrap justify-center w-full mx-auto my-auto lg:w-fit h-fit lg:mr-0 lg:gap-4 lg:justify-normal"
       >
-        <div class="flex pr-4 mt-6 basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <ButtonDefault class="ml-auto" @click="userSettingsStore.AMSToggleFleetDetailView">
+        <div class="flex mt-6 sm:pr-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
+          <ButtonDefault class="mx-auto sm:mr-0 sm:ml-auto" @click="userSettingsStore.AMSToggleFleetDetailView">
             Detail Ansicht: {{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
-        <div class="flex pl-4 mt-6 basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <ButtonDefault class="mr-auto" @click="handleLoanerButton">
+        <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
+          <ButtonDefault class="mx-auto sm:ml-0 sm:mr-auto" @click="handleLoanerButton">
             Leihschiff-Ansicht: {{ userSettings.ams.fleetLoanerView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
@@ -307,11 +311,20 @@ useHead({
           display-name
           display-production-state
         />
-        <Motion :initial="{ opacity: 0 }" :animate="{ opacity: 1 }" :exit="{ opacity: 0 }" v-else class="mx-auto">
-          <h2 class="text-center text-secondary">
-            Es gibt keine Schiffe in der ArisCorp-Flotte die deinen Kriterien entsprechen.
-          </h2>
-        </Motion>
+        <Presence>
+          <Motion
+            v-if="!filteredFleet[0]"
+            :initial="{ opacity: 0 }"
+            :animate="{ opacity: 1 }"
+            :exit="{ opacity: 0 }"
+            key="errorMsg"
+            class="mx-auto"
+          >
+            <h2 class="text-center text-secondary">
+              Es gibt keine Schiffe in der ArisCorp-Flotte die deinen Kriterien entsprechen.
+            </h2>
+          </Motion>
+        </Presence>
       </ClientOnly>
     </div>
   </div>

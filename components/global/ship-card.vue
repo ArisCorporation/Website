@@ -54,8 +54,8 @@ defineProps({
 <template>
   <Presence exit-before-enter>
     <Motion
-      :key="shipData.id"
       v-if="!hidden"
+      :key="shipData.id"
       :initial="{ opacity: 0, y: -15 }"
       :animate="{ opacity: 1, y: 0 }"
       :exit="{ opacity: 0, y: -15 }"
