@@ -80,9 +80,10 @@ useHead({
             name="Channel"
             placeholder="Channel filtern"
             :options="['Alle', ...data.channels]"
+            size="md"
           />
         </div>
-        <UInput v-model="search" placeholder="Suche..." class="w-full mt-4 sm:mt-auto" />
+        <UInput v-model="search" size="md" placeholder="Suche..." class="w-full mt-4 sm:mt-auto" />
       </div>
       <div class="my-6">
         <TableHr />
