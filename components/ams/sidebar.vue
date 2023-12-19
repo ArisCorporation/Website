@@ -82,6 +82,7 @@ const userSidebarItems = [
           <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
           <NuxtLink
             :to="'/ams' + item.link"
+            @click="SidebarStore.ToggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
             :class="[
               (item.link ? $route.path.startsWith('/ams' + item.link) : $route.path === '/ams')
@@ -116,6 +117,7 @@ const userSidebarItems = [
           <NuxtLink
             v-if="item.link"
             :to="'/ams' + item.link"
+            @click="SidebarStore.ToggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
             :class="[
               (item.link ? $route.path.startsWith('/ams' + item.link) : $route.path === '/ams')
@@ -146,6 +148,7 @@ const userSidebarItems = [
         <li>
           <NuxtLink
             to="/"
+            @click="SidebarStore.ToggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline text-tbase hover:text-white group"
           >
             <Icon name="IconsLogosAriscorp" class="w-6 h-6 transition duration-75 text-tbase group-hover:text-white" />

@@ -87,43 +87,41 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="">
-    <div class="flex flex-wrap justify-center max-w-5xl mx-auto gap-y-8 gap-x-6">
+  <div>
+    <div class="grid grid-cols-2 mb-12 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-y-8 gap-x-6">
       <NuxtLink
         v-for="item in indexItems"
         :key="item.name"
         :to="'/ams' + item.link"
-        class="relative block w-full mb-4 ease-in-out cursor-pointer lg:mb-6 group aspect-[1/1] basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 h-fit"
+        class="w-full h-fit aspect-[1/1] relative flex transition hover:scale-105 active:scale-95 group cursor-pointer text-center text-tbase hover:no-underline"
       >
         <div
-          class="absolute z-10 flex justify-center w-full h-full z-5 translate-y-[60%] group-hover:translate-y-0 transition-group"
-        >
-          <div className="hidden group-hover:contents">
-            <div className="my-auto">
-              <p v-if="item.level !== 'administration' && item.released" className="p-0 text-[.9rem] text-white/75">
+          class="block w-full h-full bg-image rounded-xl peer group-hover:opacity-40 transition-group"
+          :class="{ 'opacity-40': item.level === 'administration' || !item.released }"
+          :style="{ backgroundImage: `url(${$config.public.fileBase + item.icon})` }"
+        />
+        <div class="absolute bottom-0 z-10 flex w-full h-full mt-1 transition-group">
+          <div class="mx-auto mt-[100%] transition-group group-hover:mt-[45%]">
+            <div class="group-hover:hidden contents">
+              <p class="p-0 text-sm">
                 {{ item.name }}
               </p>
-              <p v-else-if="!item.released" className="p-0 text-white/75">Bald verfügbar...</p>
+            </div>
+            <div class="hidden group-hover:contents">
+              <p v-if="item.level !== 'administration' && item.released" class="p-0 text-sm text-white">
+                {{ item.name }}
+              </p>
+              <p v-else-if="!item.released" class="p-0 text-white/80">Bald verfügbar...</p>
               <p
                 v-else-if="item.level === 'administration'"
-                className="p-0 text-md redacted-small"
+                class="p-0 text-md redacted-small"
                 data-text="[ KEIN ZUGRIFF ]"
               >
                 [ KEIN ZUGRIFF ]
               </p>
             </div>
           </div>
-          <div className="contents group-hover:hidden transition-group">
-            <div className="my-auto">
-              <p className="p-0 text-[.9rem] text-white/75">{{ item.name }}</p>
-            </div>
-          </div>
         </div>
-        <div
-          class="h-full w-full bg-center bg-no-repeat bg-cover focus:outline-none bg-[#292929] rounded-xl group-hover:opacity-40 transition-group"
-          :class="{ 'opacity-40': item.level === 'administration' || !item.released }"
-          :style="{ backgroundImage: `url(${$config.public.fileBase + item.icon})` }"
-        />
       </NuxtLink>
     </div>
   </div>
