@@ -90,7 +90,9 @@ defineExpose({
                   </button>
                   <HeadlessDialogTitle v-if="title" as="h3" class="text-white">{{ title }}</HeadlessDialogTitle>
                   <div class="mt-2">
-                    <component :is="content" :data="contentData" :close-action="closeAction || closeModal" />
+                    <slot name="content" :closeAction="closeModal">
+                      <component :is="content" :data="contentData" :close-action="closeAction || closeModal" />
+                    </slot>
                   </div>
 
                   <div class="mt-4">
