@@ -1,22 +1,130 @@
 <script setup lang="ts">
-const { logout } = useDirectusAuth();
-const { push } = useRouter();
-
-const handleLogout = () => {
-  logout();
-  push('/');
-};
+const indexItems = [
+  {
+    name: 'Mein Profil',
+    link: '/profile',
+    icon: '1bc449a2-c0ea-422f-9da5-7d83e5e083b1',
+    released: true,
+    level: 'all',
+  },
+  {
+    name: 'Mein Hangar',
+    link: '/hangar',
+    icon: 'cb114fb9-3af3-48ba-a435-3d74b0b8b254',
+    released: true,
+    level: 'all',
+  },
+  {
+    name: 'Nachrichten',
+    link: '/messages',
+    icon: 'e4398951-ffdf-4fd8-a538-d6f4df38d417',
+    released: false,
+    level: 'all',
+  },
+  {
+    name: 'Ereignis Planer',
+    link: '/calendar',
+    icon: 'bd281169-dbcf-4a8b-ad52-7d1184874ea6',
+    released: false,
+    level: 'all',
+  },
+  {
+    name: 'Beitrags-Editor',
+    link: '/posts',
+    icon: '01fe30b0-f90f-4cb9-b215-350f3ca8089a',
+    released: false,
+    level: 'all',
+  },
+  {
+    name: 'ArisCorp Mitarbeiter',
+    link: '/employees',
+    icon: '60a50490-aba3-444e-8244-8fc425c7ceba',
+    released: true,
+    level: 'all',
+  },
+  {
+    name: 'ArisCorp Flotte',
+    link: '/fleet',
+    icon: 'cfa2c2ab-0559-47f3-9067-d25ee8955f5d',
+    released: true,
+    level: 'employee',
+  },
+  {
+    name: 'Abteilungsboards',
+    link: '/departments',
+    icon: '8cf91577-c8ae-438a-9556-fafab8008752',
+    released: false,
+    level: 'all',
+  },
+  {
+    name: 'Missionsplaner',
+    link: '/planer',
+    icon: 'aeded9e1-6c2c-4f78-a4d1-251ac26a7bc3',
+    released: false,
+    level: 'employee',
+  },
+  {
+    name: 'Missionsboard',
+    link: '/missions',
+    icon: '1351ed99-17b2-4979-b6bc-af26a7433255',
+    released: false,
+    level: 'all',
+  },
+  {
+    name: 'Administration',
+    link: '/admin',
+    icon: '096e2ade-9486-4103-8317-e9f463fe84b0',
+    released: true,
+    level: 'administration',
+  },
+];
 
 definePageMeta({
+  middleware: 'auth',
   path: '/ams',
   layout: 'ams',
-  middleware: 'auth',
 });
 </script>
 
 <template>
-  <div>
-    <span>ams index</span>
-    <button @click="handleLogout">logout</button>
+  <div class="">
+    <div class="flex flex-wrap justify-center max-w-5xl mx-auto gap-y-8 gap-x-6">
+      <NuxtLink
+        v-for="item in indexItems"
+        :key="item.name"
+        :to="'/ams' + item.link"
+        class="relative block w-full mb-4 ease-in-out cursor-pointer lg:mb-6 group aspect-[1/1] basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 h-fit"
+      >
+        <div
+          class="absolute z-10 flex justify-center w-full h-full z-5 translate-y-[60%] group-hover:translate-y-0 transition-group"
+        >
+          <div className="hidden group-hover:contents">
+            <div className="my-auto">
+              <p v-if="item.level !== 'administration' && item.released" className="p-0 text-[.9rem] text-white/75">
+                {{ item.name }}
+              </p>
+              <p v-else-if="!item.released" className="p-0 text-white/75">Bald verfügbar...</p>
+              <p
+                v-else-if="item.level === 'administration'"
+                className="p-0 text-md redacted-small"
+                data-text="[ KEIN ZUGRIFF ]"
+              >
+                [ KEIN ZUGRIFF ]
+              </p>
+            </div>
+          </div>
+          <div className="contents group-hover:hidden transition-group">
+            <div className="my-auto">
+              <p className="p-0 text-[.9rem] text-white/75">{{ item.name }}</p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="h-full w-full bg-center bg-no-repeat bg-cover focus:outline-none bg-[#292929] rounded-xl group-hover:opacity-40 transition-group"
+          :class="{ 'opacity-40': item.level === 'administration' || !item.released }"
+          :style="{ backgroundImage: `url(${$config.public.fileBase + item.icon})` }"
+        />
+      </NuxtLink>
+    </div>
   </div>
 </template>

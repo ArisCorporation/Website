@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const config = useRuntimeConfig();
 const SidebarStore = useSidebarStore();
+const user = useDirectusUser();
+
 useSeoMeta({
   description:
     'Das hier, ist dass ArisCorp Management System der Astro Research and Industrial Service Corporation. Hier können die Mitglieder der ArisCorp auf viele verschiedene Tools und Programme zugreifen. Es ist der Zentrale Knotenpunkt für Mitglieder der ArisCorp.',
@@ -27,9 +29,24 @@ useHead({
   <div>
     <AmsSidebar />
     <div class="flex flex-col justify-between flex-1 min-h-screen lg:ml-64">
+      <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.ToggleMobileSidebar()" />
+      <DevOnly>
+        <div class="bg-black z-[99] pb-4 px-8">
+          <h6>DEV TOOLS:</h6>
+          <code class="block pb-2">User: {{ user }}</code>
+        </div>
+      </DevOnly>
+      <div class="flex flex-wrap w-full px-4 mt-4">
+        <Icon name="IconsLogosAmsBanner" class="w-1/4 aspect-[33/11] -mb-2 h-auto" />
+        <div class="relative mt-auto ml-auto group">
+          <div class="absolute right-0 justify-center hidden mt-2 text-center w-14 group-hover:flex">Hilfe</div>
+        </div>
+      </div>
+      <hr class="my-2" />
       <div class="container min-h-screen px-4 mx-auto">
-        <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.ToggleMobileSidebar()" />
-        <slot />
+        <div class="mt-4">
+          <slot />
+        </div>
       </div>
       <Footer />
     </div>
