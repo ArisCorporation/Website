@@ -4,8 +4,8 @@ const { push } = useRouter();
 
 const SidebarStore = useSidebarStore();
 
-const handleLogout = () => {
-  logout();
+const handleLogout = async () => {
+  await logout();
   push('/');
 };
 
@@ -41,7 +41,7 @@ const userSidebarItems = [
   {
     name: 'Mein Profil',
     icon: 'heroicons:user-20-solid',
-    link: '/fleet',
+    link: '/profile',
   },
   {
     name: 'Logout',
@@ -81,10 +81,10 @@ const userSidebarItems = [
         <li v-for="(item, i) in sidebarItems" :key="i" class="pb-0">
           <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
           <NuxtLink
-            :to="'/VerseExkurs' + item.link"
+            :to="'/ams' + item.link"
             class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
             :class="[
-              (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
+              (item.link ? $route.path.startsWith('/ams' + item.link) : $route.path === '/ams')
                 ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
                 : 'text-tbase/75 hover:text-white',
             ]"
@@ -93,7 +93,7 @@ const userSidebarItems = [
               :name="item.icon"
               class="w-6 h-6 transition-group"
               :class="[
-                (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
+                (item.link ? $route.path.startsWith('/ams' + item.link) : $route.path === '/ams')
                   ? 'text-white'
                   : 'text-tbase/75 group-hover:text-white',
               ]"
@@ -115,10 +115,10 @@ const userSidebarItems = [
           <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
           <NuxtLink
             v-if="item.link"
-            :to="'/VerseExkurs' + item.link"
+            :to="'/ams' + item.link"
             class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
             :class="[
-              (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
+              (item.link ? $route.path.startsWith('/ams' + item.link) : $route.path === '/ams')
                 ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
                 : 'text-tbase/75 hover:text-white',
             ]"
@@ -127,7 +127,7 @@ const userSidebarItems = [
               :name="item.icon"
               class="w-6 h-6 transition-group"
               :class="[
-                (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
+                (item.link ? $route.path.startsWith('/ams' + item.link) : $route.path === '/ams')
                   ? 'text-white'
                   : 'text-tbase/75 group-hover:text-white',
               ]"
