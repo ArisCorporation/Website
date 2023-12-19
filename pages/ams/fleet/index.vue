@@ -207,76 +207,84 @@ useHead({
 <template>
   <div>
     <div class="flex flex-wrap justify-between px-6 my-4 gap-x-4">
-      <div class="flex flex-wrap gap-4 mx-auto md:ml-0 md:mr-auto w-fit">
-        <UFormGroup class="w-72" label="Abteilung">
-          <USelectMenu
-            id="departmentSelect"
-            v-model="selectedDepartment"
-            searchable
-            clear-search-on-close
-            searchable-placeholder="Suche..."
-            :search-attributes="['name']"
-            name="Channel"
-            placeholder="Channel filtern"
-            :options="[{ name: 'Alle' }, ...data.departments]"
-            size="xl"
-          >
-            <template #label>
-              <UAvatar
-                img-class="object-cover object-top"
-                :src="$config.public.fileBase + selectedDepartment.logo + '?format=webp'"
-                :alt="selectedDepartment.name || 'Alle'"
-              />
-              <span>{{ selectedDepartment.name }}</span>
-            </template>
-            <template #option="{ option: department }">
-              <UAvatar
-                img-class="object-cover object-top"
-                :src="$config.public.fileBase + department?.logo + '?format=webp'"
-                :alt="department.name"
-              />
-              <span>{{ department.name }}</span>
-            </template>
-          </USelectMenu>
-        </UFormGroup>
-        <UFormGroup class="w-80" label="Mitglied">
-          <USelectMenu
-            id="memberSelect"
-            v-model="selectedMember"
-            searchable
-            clear-search-on-close
-            searchable-placeholder="Suche..."
-            :search-attributes="['firstname', 'lastname', 'title']"
-            name="Member"
-            placeholder="Member filtern"
-            :options="[{ fullName: 'Alle' }, ...data.members]"
-            size="xl"
-          >
-            <template #label>
-              <UAvatar
-                img-class="object-cover object-top"
-                :src="$config.public.fileBase + selectedMember.potrait + '?format=webp'"
-                :alt="selectedMember.fullName || 'Alle'"
-              />
-              <span>{{ selectedMember.fullName }}</span>
-            </template>
-            <template #option="{ option: member }">
-              <UAvatar
-                img-class="object-cover object-top"
-                :src="$config.public.fileBase + member.potrait + '?format=webp'"
-                :alt="member.fullName"
-              />
-              <span>{{ member.fullName }}</span>
-            </template>
-          </USelectMenu>
-        </UFormGroup>
+      <div class="flex flex-wrap justify-center w-full mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
+        <div class="flex pr-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
+          <UFormGroup class="w-full lg:w-72" label="Abteilung">
+            <USelectMenu
+              id="departmentSelect"
+              v-model="selectedDepartment"
+              searchable
+              clear-search-on-close
+              searchable-placeholder="Suche..."
+              :search-attributes="['name']"
+              name="Channel"
+              placeholder="Channel filtern"
+              :options="[{ name: 'Alle' }, ...data.departments]"
+              size="xl"
+            >
+              <template #label>
+                <UAvatar
+                  img-class="object-cover object-top"
+                  :src="$config.public.fileBase + selectedDepartment.logo + '?format=webp'"
+                  :alt="selectedDepartment.name || 'Alle'"
+                />
+                <span>{{ selectedDepartment.name }}</span>
+              </template>
+              <template #option="{ option: department }">
+                <UAvatar
+                  img-class="object-cover object-top"
+                  :src="$config.public.fileBase + department?.logo + '?format=webp'"
+                  :alt="department.name"
+                />
+                <span>{{ department.name }}</span>
+              </template>
+            </USelectMenu>
+          </UFormGroup>
+        </div>
+        <div class="flex pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
+          <UFormGroup class="w-full lg:w-80" label="Mitglied">
+            <USelectMenu
+              id="memberSelect"
+              v-model="selectedMember"
+              searchable
+              clear-search-on-close
+              searchable-placeholder="Suche..."
+              :search-attributes="['firstname', 'lastname', 'title']"
+              name="Member"
+              placeholder="Member filtern"
+              :options="[{ fullName: 'Alle' }, ...data.members]"
+              size="xl"
+            >
+              <template #label>
+                <UAvatar
+                  img-class="object-cover object-top"
+                  :src="$config.public.fileBase + selectedMember.potrait + '?format=webp'"
+                  :alt="selectedMember.fullName || 'Alle'"
+                />
+                <span>{{ selectedMember.fullName }}</span>
+              </template>
+              <template #option="{ option: member }">
+                <UAvatar
+                  img-class="object-cover object-top"
+                  :src="$config.public.fileBase + member.potrait + '?format=webp'"
+                  :alt="member.fullName"
+                />
+                <span>{{ member.fullName }}</span>
+              </template>
+            </USelectMenu>
+          </UFormGroup>
+        </div>
       </div>
-      <div class="my-auto w-fit h-fit">
-        <div class="flex flex-wrap gap-4 mx-auto mt-6 md:mr-0 md:ml-auto">
-          <ButtonDefault @click="userSettingsStore.AMSToggleFleetDetailView">
+      <div
+        class="flex flex-wrap justify-center w-full mx-auto my-auto lg:w-fit h-fit lg:mr-0 lg:gap-4 lg:justify-normal"
+      >
+        <div class="flex pr-4 mt-6 basis-1/2 lg:basis-auto lg:block lg:p-0">
+          <ButtonDefault class="ml-auto" @click="userSettingsStore.AMSToggleFleetDetailView">
             Detail Ansicht: {{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
-          <ButtonDefault @click="handleLoanerButton">
+        </div>
+        <div class="flex pl-4 mt-6 basis-1/2 lg:basis-auto lg:block lg:p-0">
+          <ButtonDefault class="mr-auto" @click="handleLoanerButton">
             Leihschiff-Ansicht: {{ userSettings.ams.fleetLoanerView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
