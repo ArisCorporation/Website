@@ -88,7 +88,7 @@ definePageMeta({
 
 <template>
   <div class="">
-    <div class="flex flex-wrap justify-center max-w-full gap-y-8 gap-x-6">
+    <div class="flex flex-wrap justify-center max-w-5xl mx-auto gap-y-8 gap-x-6">
       <NuxtLink
         v-for="item in indexItems"
         :key="item.name"
