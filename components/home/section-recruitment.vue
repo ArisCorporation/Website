@@ -6,7 +6,7 @@ defineProps({
   },
 });
 const modalStore = useModalStore();
-const { openModalTest } = modalStore;
+const { openModal } = modalStore;
 </script>
 
 <template>
@@ -27,7 +27,7 @@ const { openModalTest } = modalStore;
         color="secondary"
         type="button"
         class="p-2 mt-2"
-        @click="() => modalStore.openModalTest('', { hideCloseButton: true, hideXButton: true })"
+        @click="() => modalStore.openModal('', { hideCloseButton: true, hideXButton: true })"
       >
         Jetzt bewerben
       </ButtonDefault>

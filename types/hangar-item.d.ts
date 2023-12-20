@@ -4,6 +4,8 @@ declare global {
   interface IHangarItem {
     id: String;
     ship: IShip;
+    loaner?: boolean;
+    sourceShip?: IShip;
     userData: {
       owner: IMember;
       name: String;
