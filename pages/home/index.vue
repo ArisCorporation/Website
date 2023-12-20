@@ -146,6 +146,21 @@ const { data } = await useAsyncData('homepage-data', async () => {
       }),
     ]);
 
+  if (
+    !theArisCorp ||
+    !history ||
+    !manifest ||
+    !charta ||
+    !members ||
+    !departments ||
+    !fleet ||
+    !commLink ||
+    !recruitment ||
+    !partners
+  ) {
+    return null;
+  }
+
   return {
     theArisCorp: theArisCorp.text,
     history: history.text,
