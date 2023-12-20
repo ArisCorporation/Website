@@ -8,5 +8,5 @@ defineProps({
 </script>
 
 <template>
-  <div v-if="state" class="fixed inset-0 z-30 bg-bprimary/50" />
+  <div v-if="state" class="fixed inset-0 z-30 bg-bprimary/50 lg:hidden" />
 </template>
