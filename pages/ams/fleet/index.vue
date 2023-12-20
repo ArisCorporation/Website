@@ -2,6 +2,7 @@
 const { getItems } = useDirectusItems();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
+const loanerView = computed(() => userSettings.value.ams.fleetLoanerView);
 const selectedDepartment = ref({ name: 'Alle' });
 const selectedMember = ref({ fullName: 'Alle' });
 const hideFleet = ref(false);
@@ -99,7 +100,7 @@ const { data } = await useAsyncData('getFleetData', async () => {
   const loanerIds: string[] = [];
   fleet
     .filter((e) => e.ships_id.productionStatus !== 'flight-ready')
-    .forEach((obj) => obj.ships_id.loaners?.forEach((i) => (!loanerIds.includes(i.id) ? loanerIds.push(i.id) : null)));
+    .forEach((obj) => obj.ships_id.loaners?.forEach((i) => !loanerIds.includes(i.id) && loanerIds.push(i.id)));
 
   const [loanerData] = await Promise.all([
     getItems({
@@ -135,23 +136,12 @@ const { data } = await useAsyncData('getFleetData', async () => {
     return null;
   }
 
-  const loaners = [];
-  fleet
-    .filter((e) => e.ships_id.productionStatus !== 'flight-ready')
-    .forEach(
-      (obj) =>
-        obj.ships_id?.loaners.forEach((i) => loaners.push({ ...obj, ships_id: loanerData.find((e) => e.id === i.id) })),
-    );
-
-  const liveList = [...loaners, ...fleet.filter((e) => e.ships_id.productionStatus === 'flight-ready')].sort((a, b) =>
-    a.ships_id.name.localeCompare(b.ships_id.name),
-  );
-
   return {
     members: members.map((obj) => transformMember(obj)),
     departments: departments.map((obj) => transformDepartment(obj)),
-    fleet: fleet.map((obj) => transformHangarItem(obj)),
-    loanerFleet: liveList.map((obj) => transformHangarItem(obj)),
+    test: transformShip(fleet.filter((e) => e.ships_id.productionStatus !== 'flight-ready')[3].ships_id, loanerData),
+    test2: loanerData.map((obj) => transformShip(obj)),
+    fleet: fleet.map((obj) => transformHangarItem(obj, loanerData)),
   };
 });
 
@@ -163,18 +153,30 @@ if (!data.value) {
   });
 }
 
-watch([selectedMember, selectedDepartment], async () => {
-  hideFleet.value = true;
-  await setTimeout(() => {
-    updateFleet();
-    hideFleet.value = false;
-  }, 500);
-});
-
 const filteredFleet = ref();
+const filteredLiveFleet = ref();
+const currentFleet = ref();
+
+// const setCurrentFleet = () => {
+//   currentFleet.value = userSettingsStore.userSettings.ams.fleetLoanerView
+//     ? filteredFleet.value.filter(
+//         (e) =>
+//           (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
+//           e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
+//           e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
+//       )
+//     : filteredLiveFleet.value.filter(
+//         (e) =>
+//           (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
+//           e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
+//           e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
+//       );
+// };
 
 const updateFleet = () => {
   let fleet = data.value.fleet;
+  let liveFleet = [];
+
   if (selectedDepartment.value.id) {
     fleet = fleet.filter((e) => e.userData.department?.id === selectedDepartment.value.id);
   }
@@ -182,29 +184,120 @@ const updateFleet = () => {
     fleet = fleet.filter((e) => e.userData.owner.id === selectedMember.value.id);
   }
   filteredFleet.value = fleet;
+
+  liveFleet = [...fleet.filter((e) => e.ship.productionState === 'Flugfertig')];
+
+  fleet
+    .filter((e) => e.ship.productionState !== 'Flugfertig')
+    .forEach((hangarItem) => {
+      hangarItem.ship.loaners?.map((loaner, index) => {
+        liveFleet.push({
+          ...hangarItem,
+          id: hangarItem.id + '#loaner-' + index,
+          ship: loaner,
+          sourceShip: hangarItem.ship,
+          loaner: true,
+        });
+      });
+    });
+  filteredLiveFleet.value = liveFleet;
+
+  if (!loanerView.value) {
+    currentFleet.value = fleet;
+  } else {
+    // console.log('filteredlivef', filteredLiveFleet.value);
+    currentFleet.value = liveFleet;
+  }
+  // setCurrentFleet();
+
+  // currentFleet.value = loanerView.value ? liveFleet : filteredFleet;
+
+  // if (!userSettingsStore.userSettings.ams.fleetLoanerView) {
+  //   currentFleet.value = filteredFleet.value;
+  // } else {
+  //   currentFleet.value = filteredLiveFleet.value;
+  // }
+  console.log(currentFleet.value);
 };
 
-updateFleet();
+// updateFleet();
+watch(
+  [selectedMember, selectedDepartment, loanerView],
+  async () => {
+    hideFleet.value = true;
+    await setTimeout(async () => {
+      await updateFleet();
+      // console.log('loanerview', userSettingsStore.userSettings.ams.fleetLoanerView);
 
-const filteredLoanerFleet = computed(() => {
-  let fleet = data.value.loanerFleet;
-  if (selectedDepartment.value.id) {
-    fleet = fleet.filter((e) => e.userData.department?.id === selectedDepartment.value.id);
-  }
-  if (selectedMember.value.id) {
-    fleet = fleet.filter((e) => e.userData.owner.id === selectedMember.value.id);
-  }
+      // currentFleet.value = loanerView.value ? filteredLiveFleet.value : filteredFleet.value;
 
-  return fleet;
-});
+      // if (userSettingsStore.userSettings.ams.fleetLoanerView) {
+      //   currentFleet.value = filteredFleet.value.filter(
+      //     (e) =>
+      //       (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
+      //       e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
+      //       e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
+      //   );
+      // } else {
+      //   currentFleet.value = filteredLiveFleet.value.filter(
+      //     (e) =>
+      //       (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
+      //       e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
+      //       e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
+      //   );
+      // }
 
-const handleLoanerButton = async () => {
-  hideFleet.value = true;
-  await setTimeout(() => {
-    userSettingsStore.AMSToggleFleetLoanerView();
-    hideFleet.value = false;
-  }, 100);
-};
+      // currentFleet.value = userSettingsStore.userSettings.ams.fleetLoanerView
+      // ? liveFleet.filter(
+      //     (e) =>
+      //       (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
+      //       e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
+      //       e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
+      //   )
+      // : fleet.filter(
+      //     (e) =>
+      //       (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
+      //       e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
+      //       e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
+      //   );
+
+      hideFleet.value = false;
+    }, 500);
+  },
+  {
+    immediate: true,
+  },
+);
+
+// const filteredLiveFleet = computed(() => {
+//   const fleet = [...filteredFleet.value.filter((e) => e.ship.productionState === 'Flugfertig')];
+//   filteredFleet.value
+//     .filter((e) => e.ship.productionState !== 'Flugfertig')
+//     .forEach((hangarItem) => {
+//       hangarItem.ship.loaners?.map((loaner, index) => {
+//         fleet.push({
+//           ...hangarItem,
+//           id: hangarItem.id + '#loaner-' + index,
+//           ship: loaner,
+//           sourceShip: hangarItem.ship,
+//           loaner: true,
+//         });
+//       });
+//     });
+//   return fleet;
+// });
+
+// const handleLoanerButton = async () => {
+//   hideFleet.value = true;
+//   await setTimeout(() => {
+//     userSettingsStore.AMSToggleFleetLoanerView();
+//     hideFleet.value = false;
+//   }, 500);
+// };
+
+// const currentFleet = computed(() => {
+
+// });
 
 definePageMeta({
   middleware: 'auth',
@@ -311,9 +404,9 @@ useHead({
           </ButtonDefault>
         </div>
         <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <ButtonDefault class="mx-auto sm:ml-0 sm:mr-auto" @click="handleLoanerButton">
-            (PLACEHOLDER)
-            <!-- Leihschiff-Ansicht: {{ userSettings.ams.fleetLoanerView ? 'Ausschalten' : 'Anschalten' }} -->
+          <ButtonDefault class="mx-auto sm:ml-0 sm:mr-auto" @click="userSettingsStore.AMSToggleFleetLoanerView">
+            <!-- (PLACEHOLDER) -->
+            Leihschiff-Ansicht: {{ loanerView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
       </div>
@@ -322,12 +415,7 @@ useHead({
       <ClientOnly>
         <ShipCard
           v-if="filteredFleet[0]"
-          v-for="item in filteredFleet.filter(
-            (e: IHangarItem) =>
-              (e.userData.name ? e.userData.name.toLowerCase().includes(search.toLowerCase()) : false) ||
-              e.ship.name.toLowerCase().includes(search.toLowerCase()) ||
-              e.ship.manufacturer.name.toLowerCase().includes(search.toLowerCase()),
-          )"
+          v-for="item in currentFleet"
           :key="item.id"
           :ship-data="item.ship"
           :hangar-data="item"

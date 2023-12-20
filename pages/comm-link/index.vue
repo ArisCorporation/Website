@@ -33,6 +33,10 @@ const { data } = await useAsyncData('comm-link-data', async () => {
     }),
   ]);
 
+  if (!commLinks || !channels) {
+    return null;
+  }
+
   return {
     commLinks,
     channels: channels.map((obj) => obj.channel),
