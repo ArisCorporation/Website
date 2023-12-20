@@ -312,7 +312,8 @@ useHead({
         </div>
         <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
           <ButtonDefault class="mx-auto sm:ml-0 sm:mr-auto" @click="handleLoanerButton">
-            Leihschiff-Ansicht: {{ userSettings.ams.fleetLoanerView ? 'Ausschalten' : 'Anschalten' }}
+            (PLACEHOLDER)
+            <!-- Leihschiff-Ansicht: {{ userSettings.ams.fleetLoanerView ? 'Ausschalten' : 'Anschalten' }} -->
           </ButtonDefault>
         </div>
       </div>
