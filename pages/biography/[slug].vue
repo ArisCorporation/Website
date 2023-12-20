@@ -4,6 +4,7 @@ const { params } = useRoute();
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
 const toast = useToast();
 const homepageTabsStore = useHomepageTabsStore();
+const route = useRoute();
 
 const { data } = await useAsyncData(
   'member',
@@ -104,7 +105,8 @@ const handleDepartmentLink = () => {
 };
 
 definePageMeta({
-  layout: 'default',
+  alias: '/ams/employees/biography/:slug()',
+  middleware: 'biography',
 });
 useHead({
   title: data.value?.fullName,
@@ -114,7 +116,7 @@ useHead({
 <template>
   <div>
     <div class="flex justify-between">
-      <div>
+      <div class="mt-auto">
         <h1 class="mb-auto italic text-white">{{ data?.fullName }}</h1>
         <p v-if="data?.roles[0]" class="text-white uppercase">
           <span class="text-btertiary">Rollen:</span> {{ data?.roles.join(', ') }}
