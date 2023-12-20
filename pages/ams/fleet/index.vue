@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { mountedStates } from 'motion';
+
 const { getItems } = useDirectusItems();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
@@ -57,6 +59,7 @@ const { data } = await useAsyncData('getFleetData', async () => {
         fields: [
           'id',
           'name',
+          'planned',
           'member_id.id',
           'member_id.firstname',
           'member_id.lastname',
@@ -139,8 +142,6 @@ const { data } = await useAsyncData('getFleetData', async () => {
   return {
     members: members.map((obj) => transformMember(obj)),
     departments: departments.map((obj) => transformDepartment(obj)),
-    test: transformShip(fleet.filter((e) => e.ships_id.productionStatus !== 'flight-ready')[3].ships_id, loanerData),
-    test2: loanerData.map((obj) => transformShip(obj)),
     fleet: fleet.map((obj) => transformHangarItem(obj, loanerData)),
   };
 });
@@ -156,22 +157,6 @@ if (!data.value) {
 const filteredFleet = ref();
 const filteredLiveFleet = ref();
 const currentFleet = ref();
-
-// const setCurrentFleet = () => {
-//   currentFleet.value = userSettingsStore.userSettings.ams.fleetLoanerView
-//     ? filteredFleet.value.filter(
-//         (e) =>
-//           (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
-//           e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
-//           e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
-//       )
-//     : filteredLiveFleet.value.filter(
-//         (e) =>
-//           (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
-//           e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
-//           e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
-//       );
-// };
 
 const updateFleet = () => {
   let fleet = data.value.fleet;
@@ -205,103 +190,22 @@ const updateFleet = () => {
   if (!loanerView.value) {
     currentFleet.value = fleet;
   } else {
-    // console.log('filteredlivef', filteredLiveFleet.value);
     currentFleet.value = liveFleet;
   }
-  // setCurrentFleet();
-
-  // currentFleet.value = loanerView.value ? liveFleet : filteredFleet;
-
-  // if (!userSettingsStore.userSettings.ams.fleetLoanerView) {
-  //   currentFleet.value = filteredFleet.value;
-  // } else {
-  //   currentFleet.value = filteredLiveFleet.value;
-  // }
-  console.log(currentFleet.value);
 };
+updateFleet();
+watch([selectedMember, selectedDepartment, loanerView], async () => {
+  hideFleet.value = true;
+  await setTimeout(async () => {
+    await updateFleet();
 
-// updateFleet();
-watch(
-  [selectedMember, selectedDepartment, loanerView],
-  async () => {
-    hideFleet.value = true;
-    await setTimeout(async () => {
-      await updateFleet();
-      // console.log('loanerview', userSettingsStore.userSettings.ams.fleetLoanerView);
-
-      // currentFleet.value = loanerView.value ? filteredLiveFleet.value : filteredFleet.value;
-
-      // if (userSettingsStore.userSettings.ams.fleetLoanerView) {
-      //   currentFleet.value = filteredFleet.value.filter(
-      //     (e) =>
-      //       (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
-      //       e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
-      //       e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
-      //   );
-      // } else {
-      //   currentFleet.value = filteredLiveFleet.value.filter(
-      //     (e) =>
-      //       (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
-      //       e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
-      //       e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
-      //   );
-      // }
-
-      // currentFleet.value = userSettingsStore.userSettings.ams.fleetLoanerView
-      // ? liveFleet.filter(
-      //     (e) =>
-      //       (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
-      //       e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
-      //       e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
-      //   )
-      // : fleet.filter(
-      //     (e) =>
-      //       (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
-      //       e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
-      //       e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()),
-      //   );
-
-      hideFleet.value = false;
-    }, 500);
-  },
-  {
-    immediate: true,
-  },
-);
-
-// const filteredLiveFleet = computed(() => {
-//   const fleet = [...filteredFleet.value.filter((e) => e.ship.productionState === 'Flugfertig')];
-//   filteredFleet.value
-//     .filter((e) => e.ship.productionState !== 'Flugfertig')
-//     .forEach((hangarItem) => {
-//       hangarItem.ship.loaners?.map((loaner, index) => {
-//         fleet.push({
-//           ...hangarItem,
-//           id: hangarItem.id + '#loaner-' + index,
-//           ship: loaner,
-//           sourceShip: hangarItem.ship,
-//           loaner: true,
-//         });
-//       });
-//     });
-//   return fleet;
-// });
-
-// const handleLoanerButton = async () => {
-//   hideFleet.value = true;
-//   await setTimeout(() => {
-//     userSettingsStore.AMSToggleFleetLoanerView();
-//     hideFleet.value = false;
-//   }, 500);
-// };
-
-// const currentFleet = computed(() => {
-
-// });
+    hideFleet.value = false;
+  }, 500);
+});
 
 definePageMeta({
-  middleware: 'auth',
   layout: 'ams',
+  middleware: 'auth',
 });
 
 useHead({
@@ -405,44 +309,42 @@ useHead({
         </div>
         <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
           <ButtonDefault class="mx-auto sm:ml-0 sm:mr-auto" @click="userSettingsStore.AMSToggleFleetLoanerView">
-            <!-- (PLACEHOLDER) -->
             Leihschiff-Ansicht: {{ loanerView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
       </div>
     </div>
     <div class="flex flex-wrap">
-      <ClientOnly>
-        <ShipCard
-          v-if="filteredFleet[0]"
-          v-for="item in currentFleet"
-          :key="item.id"
-          :ship-data="item.ship"
-          :hangar-data="item"
-          :detail-view="userSettings.ams.fleetDetailView"
-          :hidden="hideFleet"
-          preload-images
-          display-owner
-          internal-bio
-          display-department
-          display-name
-          display-production-state
-        />
-        <Presence>
-          <Motion
-            v-if="!filteredFleet[0]"
-            :initial="{ opacity: 0 }"
-            :animate="{ opacity: 1 }"
-            :exit="{ opacity: 0 }"
-            key="errorMsg"
-            class="mx-auto"
-          >
-            <h2 class="text-center text-secondary">
-              Es gibt keine Schiffe in der ArisCorp-Flotte die deinen Kriterien entsprechen.
-            </h2>
-          </Motion>
-        </Presence>
-      </ClientOnly>
+      <!-- <ClientOnly> -->
+      <ShipCard
+        v-if="currentFleet"
+        v-for="item in currentFleet"
+        :key="item.id"
+        :ship-data="item.ship"
+        :hangar-data="item"
+        :detail-view="userSettings.ams.fleetDetailView"
+        :hidden="hideFleet"
+        preload-images
+        display-owner
+        internal-bio
+        display-department
+        display-name
+        display-production-state
+      />
+      <Presence>
+        <Motion
+          v-if="!currentFleet"
+          :initial="{ opacity: 0 }"
+          :animate="{ opacity: 1 }"
+          :exit="{ opacity: 0 }"
+          key="errorMsg"
+          class="mx-auto"
+        >
+          <h2 class="text-center text-secondary">
+            Es gibt keine Schiffe in der ArisCorp-Flotte die deinen Kriterien entsprechen.
+          </h2>
+        </Motion>
+      </Presence>
     </div>
   </div>
 </template>
