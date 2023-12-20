@@ -1,5 +1,6 @@
 <script setup lang="ts">
-defineProps({
+const modalStore = useModalStore();
+const props = defineProps({
   shipData: {
     type: Object as PropType<IShip>,
     required: true,
@@ -10,6 +11,11 @@ defineProps({
     default: null,
   },
   displayOwner: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  displayCrud: {
     type: Boolean,
     required: false,
     default: false,
@@ -34,6 +40,11 @@ defineProps({
     required: false,
     default: false,
   },
+  displayLoanerState: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
   preloadImages: {
     type: Boolean,
     required: false,
@@ -50,6 +61,25 @@ defineProps({
     default: false,
   },
 });
+
+const handleEdit = () => {
+  modalStore.openModal(
+    `Bearbeiten: ${props.hangarData.userData.name && `"${props.hangarData.userData.name}"`} ${
+      props.hangarData.ship.manufacturer.code
+    } ${props.hangarData.ship.name}`,
+    { type: 'editShip' },
+  );
+  modalStore.setData(props.hangarData);
+};
+const handleRemove = () => {
+  modalStore.openModal(
+    `Entfernen: ${props.hangarData.userData.name && `"${props.hangarData.userData.name}"`} ${
+      props.hangarData.ship.manufacturer.code
+    } ${props.hangarData.ship.name}`,
+    { type: 'removeShip' },
+  );
+  modalStore.setData(props.hangarData);
+};
 </script>
 <template>
   <Presence exit-before-enter>
@@ -70,7 +100,7 @@ defineProps({
           >
             <NuxtImg :preload="preloadImages" class="absolute object-cover w-full h-full" :src="shipData.storeImage" />
             <div
-              v-if="displayProductionState"
+              v-if="displayProductionState || displayLoanerState"
               class="absolute top-1 left-2 text-stroke"
               :class="{
                 'text-primary-400': shipData.productionState == 'Flugfertig',
@@ -78,7 +108,8 @@ defineProps({
                 'text-white': shipData.productionState == 'Im Konzept',
               }"
             >
-              {{ shipData.productionState }}
+              <span v-if="displayProductionState" class="block">{{ shipData.productionState }}</span>
+              <span v-if="displayLoanerState && hangarData.loaner" class="block text-secondary">Loaner</span>
             </div>
             <div
               v-if="displayDepartment && hangarData.userData.department"
@@ -128,6 +159,20 @@ defineProps({
                 von: {{ hangarData.userData.owner.fullName }}</span
               >
             </NuxtLink>
+            <div v-if="displayCrud" class="absolute z-20 block h-full mt-auto ml-auto right-4">
+              <div class="flex h-full pb-1 space-x-4 text-white/50">
+                <Icon
+                  @click="handleEdit"
+                  name="heroicons:pencil"
+                  class="w-5 h-5 my-auto transition cursor-pointer hover:text-primary"
+                />
+                <Icon
+                  @click="handleRemove"
+                  name="heroicons:trash"
+                  class="w-5 h-5 my-auto transition cursor-pointer hover:text-danger"
+                />
+              </div>
+            </div>
           </div>
         </div>
         <Presence :initial="!detailView" exit-before-enter>

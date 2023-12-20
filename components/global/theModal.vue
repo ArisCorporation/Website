@@ -3,7 +3,7 @@ const modalStore = useModalStore();
 const { isOpen, title, settings } = storeToRefs(modalStore);
 
 const closeModal = () => {
-  modalStore.closeModalTest();
+  modalStore.closeModal();
 };
 </script>
 

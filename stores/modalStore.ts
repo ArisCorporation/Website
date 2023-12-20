@@ -1,6 +1,7 @@
 export const useModalStore = defineStore('modalStore', () => {
   const isOpen = ref(false);
   const title = ref(null);
+  const data = ref(null);
   const settings: { type: string; hideXButton: boolean; hideCloseButton: boolean; agreeAction: Function } = ref({
     type: null,
     hideXButton: false,
@@ -8,7 +9,11 @@ export const useModalStore = defineStore('modalStore', () => {
     agreeAction: null,
   });
 
-  function openModalTest(
+  function setData(data: any) {
+    data.value = data;
+  }
+
+  function openModal(
     title: string,
     {
       type,
@@ -29,7 +34,7 @@ export const useModalStore = defineStore('modalStore', () => {
     };
   }
 
-  function closeModalTest() {
+  function closeModal() {
     isOpen.value = false;
     setTimeout(() => {
       title.value = null;
@@ -45,7 +50,9 @@ export const useModalStore = defineStore('modalStore', () => {
     isOpen,
     title,
     settings,
-    openModalTest,
-    closeModalTest,
+    data,
+    setData,
+    openModal,
+    closeModal,
   };
 });
