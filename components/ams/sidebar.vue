@@ -23,7 +23,7 @@ const sidebarItems = [
   {
     name: 'Mitarbeiter',
     icon: 'IconsNavigationMembers',
-    link: '/uee',
+    link: '/employees',
   },
   {
     name: 'Admin',
@@ -36,7 +36,7 @@ const userSidebarItems = [
   {
     name: 'Mein Hangar',
     icon: 'IconsNavigationHangar',
-    link: '',
+    link: '/hangar',
   },
   {
     name: 'Mein Profil',

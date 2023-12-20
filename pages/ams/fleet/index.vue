@@ -5,6 +5,7 @@ const { userSettings } = storeToRefs(userSettingsStore);
 const selectedDepartment = ref({ name: 'Alle' });
 const selectedMember = ref({ fullName: 'Alle' });
 const hideFleet = ref(false);
+const search = ref('');
 
 const { data } = await useAsyncData('getFleetData', async () => {
   const [members, departments, fleet] = await Promise.all([
@@ -91,6 +92,10 @@ const { data } = await useAsyncData('getFleetData', async () => {
     }),
   ]);
 
+  if (!members || !departments || !fleet) {
+    return null;
+  }
+
   const loanerIds: string[] = [];
   fleet
     .filter((e) => e.ships_id.productionStatus !== 'flight-ready')
@@ -126,6 +131,10 @@ const { data } = await useAsyncData('getFleetData', async () => {
     }),
   ]);
 
+  if (!loanerData) {
+    return null;
+  }
+
   const loaners = [];
   fleet
     .filter((e) => e.ships_id.productionStatus !== 'flight-ready')
@@ -146,10 +155,13 @@ const { data } = await useAsyncData('getFleetData', async () => {
   };
 });
 
-const handleDataChange = async () => {
-  hideFleet.value = true;
-  await setTimeout(() => (hideFleet.value = false), 500);
-};
+if (!data.value) {
+  throw createError({
+    statusCode: 500,
+    statusMessage: 'Die Übertragung des Personalverzeichnisses konnte nicht vollständig empfangen werden!',
+    fatal: true,
+  });
+}
 
 watch([selectedMember, selectedDepartment], async () => {
   hideFleet.value = true;
@@ -206,7 +218,18 @@ useHead({
 
 <template>
   <div>
-    <div class="flex flex-wrap justify-between px-6 my-4 gap-x-4">
+    <div class="flex w-full px-6">
+      <UFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-80" label="Suchen">
+        <UInput
+          size="2xl"
+          v-model="search"
+          class="my-auto"
+          icon="i-heroicons-magnifying-glass-20-solid"
+          placeholder="Schiffsname, Modell, Hersteller..."
+        />
+      </UFormGroup>
+    </div>
+    <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
       <div class="flex flex-wrap justify-center w-full mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
         <div class="flex mx-auto sm:mx-0 sm:pr-4 basis-full sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
           <UFormGroup class="w-full lg:w-80" label="Abteilung">
@@ -217,8 +240,8 @@ useHead({
               clear-search-on-close
               searchable-placeholder="Suche..."
               :search-attributes="['name']"
-              name="Channel"
-              placeholder="Channel filtern"
+              name="Abteilung"
+              placeholder="Abteilung filtern"
               :options="[{ name: 'Alle' }, ...data.departments]"
               size="xl"
             >
@@ -252,8 +275,8 @@ useHead({
               clear-search-on-close
               searchable-placeholder="Suche..."
               :search-attributes="['firstname', 'lastname', 'title']"
-              name="Member"
-              placeholder="Member filtern"
+              name="Mitarbeiter"
+              placeholder="Mitarbeiter filtern"
               :options="[{ fullName: 'Alle' }, ...data.members]"
               size="xl"
             >
@@ -298,7 +321,12 @@ useHead({
       <ClientOnly>
         <ShipCard
           v-if="filteredFleet[0]"
-          v-for="item in filteredFleet"
+          v-for="item in filteredFleet.filter(
+            (e: IHangarItem) =>
+              (e.userData.name ? e.userData.name.toLowerCase().includes(search.toLowerCase()) : false) ||
+              e.ship.name.toLowerCase().includes(search.toLowerCase()) ||
+              e.ship.manufacturer.name.toLowerCase().includes(search.toLowerCase()),
+          )"
           :key="item.id"
           :ship-data="item.ship"
           :hangar-data="item"
