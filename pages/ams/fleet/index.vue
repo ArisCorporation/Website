@@ -70,6 +70,7 @@ const { data } = await useAsyncData('getFleetData', async () => {
           'ships_id.slug',
           'ships_id.storeImage.id',
           'ships_id.manufacturer.firmen_name',
+          'ships_id.manufacturer.code',
           'ships_id.manufacturer.slug',
           'ships_id.productionStatus',
           'ships_id.length',
@@ -115,6 +116,7 @@ const { data } = await useAsyncData('getFleetData', async () => {
           'slug',
           'storeImage.id',
           'manufacturer.firmen_name',
+          'manufacturer.code',
           'manufacturer.slug',
           'productionStatus',
           'length',
@@ -194,6 +196,7 @@ const updateFleet = () => {
   }
 };
 updateFleet();
+
 watch([selectedMember, selectedDepartment, loanerView], async () => {
   hideFleet.value = true;
   await setTimeout(async () => {
@@ -315,10 +318,15 @@ useHead({
       </div>
     </div>
     <div class="flex flex-wrap">
-      <!-- <ClientOnly> -->
       <ShipCard
         v-if="currentFleet"
-        v-for="item in currentFleet"
+        v-for="item in currentFleet.filter(
+          (e) =>
+            (e.userData.name ? e.userData.name.toLowerCase().includes(search.toLowerCase()) : false) ||
+            e.ship.name.toLowerCase().includes(search.toLowerCase()) ||
+            e.ship.manufacturer.name.toLowerCase().includes(search.toLowerCase()) ||
+            e.ship.manufacturer.code.toLowerCase().includes(search.toLowerCase()),
+        )"
         :key="item.id"
         :ship-data="item.ship"
         :hangar-data="item"
