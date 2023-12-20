@@ -55,7 +55,7 @@ defineProps({
   <Presence exit-before-enter>
     <Motion
       v-if="!hidden"
-      :key="shipData.id"
+      :key="hangarData.id ? hangarData.id : shipData.id"
       :initial="{ opacity: 0, y: -15 }"
       :animate="{ opacity: 1, y: 0 }"
       :exit="{ opacity: 0, y: -15 }"
@@ -98,6 +98,12 @@ defineProps({
           <div
             class="peer-hover:[&>a:nth-child(1)]:opacity-100 peer-hover:[&>p:nth-child(1)]:duration-300 absolute z-10 bottom-0 left-0 flex flex-wrap w-full min-h-[48px] px-4 py-1 bg-bsecondary/80 justify-between gap-x-4"
           >
+            <div
+              v-if="displayOwner && hangarData.userData.planned"
+              class="absolute -top-6 right-2 text-stroke text-secondary"
+            >
+              Geplant
+            </div>
             <NuxtLink
               :to="'/ShipExkurs/' + shipData.slug"
               class="m-0 transition hover:no-underline basis-full opacity-80 text-secondary hover:opacity-100"
@@ -116,8 +122,10 @@ defineProps({
               class="z-20 block mt-auto ml-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100"
             >
               <span>
-                {{ hangarData.userData.planned ? 'Geplant' : 'Bereitgestell' }} von:
-                {{ hangarData.userData.owner.fullName }}</span
+                <span :class="{ 'text-secondary': hangarData.userData.planned }">{{
+                  hangarData.userData.planned ? 'Geplant' : 'Bereitgestell'
+                }}</span>
+                von: {{ hangarData.userData.owner.fullName }}</span
               >
             </NuxtLink>
           </div>
