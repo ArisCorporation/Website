@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { mountedStates } from 'motion';
+
 const { getItems } = useDirectusItems();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
+const loanerView = computed(() => userSettings.value.ams.fleetLoanerView);
 const selectedDepartment = ref({ name: 'Alle' });
 const selectedMember = ref({ fullName: 'Alle' });
 const hideFleet = ref(false);
+const search = ref('');
 
 const { data } = await useAsyncData('getFleetData', async () => {
   const [members, departments, fleet] = await Promise.all([
@@ -55,6 +59,7 @@ const { data } = await useAsyncData('getFleetData', async () => {
         fields: [
           'id',
           'name',
+          'planned',
           'member_id.id',
           'member_id.firstname',
           'member_id.lastname',
@@ -65,6 +70,7 @@ const { data } = await useAsyncData('getFleetData', async () => {
           'ships_id.slug',
           'ships_id.storeImage.id',
           'ships_id.manufacturer.firmen_name',
+          'ships_id.manufacturer.code',
           'ships_id.manufacturer.slug',
           'ships_id.productionStatus',
           'ships_id.length',
@@ -91,10 +97,14 @@ const { data } = await useAsyncData('getFleetData', async () => {
     }),
   ]);
 
+  if (!members || !departments || !fleet) {
+    return null;
+  }
+
   const loanerIds: string[] = [];
   fleet
     .filter((e) => e.ships_id.productionStatus !== 'flight-ready')
-    .forEach((obj) => obj.ships_id.loaners?.forEach((i) => (!loanerIds.includes(i.id) ? loanerIds.push(i.id) : null)));
+    .forEach((obj) => obj.ships_id.loaners?.forEach((i) => !loanerIds.includes(i.id) && loanerIds.push(i.id)));
 
   const [loanerData] = await Promise.all([
     getItems({
@@ -106,6 +116,7 @@ const { data } = await useAsyncData('getFleetData', async () => {
           'slug',
           'storeImage.id',
           'manufacturer.firmen_name',
+          'manufacturer.code',
           'manufacturer.slug',
           'productionStatus',
           'length',
@@ -126,43 +137,33 @@ const { data } = await useAsyncData('getFleetData', async () => {
     }),
   ]);
 
-  const loaners = [];
-  fleet
-    .filter((e) => e.ships_id.productionStatus !== 'flight-ready')
-    .forEach(
-      (obj) =>
-        obj.ships_id?.loaners.forEach((i) => loaners.push({ ...obj, ships_id: loanerData.find((e) => e.id === i.id) })),
-    );
-
-  const liveList = [...loaners, ...fleet.filter((e) => e.ships_id.productionStatus === 'flight-ready')].sort((a, b) =>
-    a.ships_id.name.localeCompare(b.ships_id.name),
-  );
+  if (!loanerData) {
+    return null;
+  }
 
   return {
     members: members.map((obj) => transformMember(obj)),
     departments: departments.map((obj) => transformDepartment(obj)),
-    fleet: fleet.map((obj) => transformHangarItem(obj)),
-    loanerFleet: liveList.map((obj) => transformHangarItem(obj)),
+    fleet: fleet.map((obj) => transformHangarItem(obj, loanerData)),
   };
 });
 
-const handleDataChange = async () => {
-  hideFleet.value = true;
-  await setTimeout(() => (hideFleet.value = false), 500);
-};
-
-watch([selectedMember, selectedDepartment], async () => {
-  hideFleet.value = true;
-  await setTimeout(() => {
-    updateFleet();
-    hideFleet.value = false;
-  }, 500);
-});
+if (!data.value) {
+  throw createError({
+    statusCode: 500,
+    statusMessage: 'Die Übertragung des Personalverzeichnisses konnte nicht vollständig empfangen werden!',
+    fatal: true,
+  });
+}
 
 const filteredFleet = ref();
+const filteredLiveFleet = ref();
+const currentFleet = ref();
 
 const updateFleet = () => {
   let fleet = data.value.fleet;
+  let liveFleet = [];
+
   if (selectedDepartment.value.id) {
     fleet = fleet.filter((e) => e.userData.department?.id === selectedDepartment.value.id);
   }
@@ -170,33 +171,59 @@ const updateFleet = () => {
     fleet = fleet.filter((e) => e.userData.owner.id === selectedMember.value.id);
   }
   filteredFleet.value = fleet;
-};
 
+  liveFleet = [...fleet.filter((e) => e.ship.productionState === 'Flugfertig')];
+
+  fleet
+    .filter((e) => e.ship.productionState !== 'Flugfertig')
+    .forEach((hangarItem) => {
+      hangarItem.ship.loaners?.map((loaner, index) => {
+        liveFleet.push({
+          ...hangarItem,
+          id: hangarItem.id + '#loaner-' + index,
+          ship: loaner,
+          sourceShip: hangarItem.ship,
+          loaner: true,
+        });
+      });
+    });
+  filteredLiveFleet.value = liveFleet;
+
+  if (!loanerView.value) {
+    currentFleet.value = fleet;
+  } else {
+    currentFleet.value = liveFleet;
+  }
+};
 updateFleet();
 
-const filteredLoanerFleet = computed(() => {
-  let fleet = data.value.loanerFleet;
-  if (selectedDepartment.value.id) {
-    fleet = fleet.filter((e) => e.userData.department?.id === selectedDepartment.value.id);
-  }
-  if (selectedMember.value.id) {
-    fleet = fleet.filter((e) => e.userData.owner.id === selectedMember.value.id);
-  }
+watch([selectedMember, selectedDepartment, loanerView], async () => {
+  hideFleet.value = true;
+  await setTimeout(async () => {
+    await updateFleet();
 
-  return fleet;
+    hideFleet.value = false;
+  }, 500);
 });
 
-const handleLoanerButton = async () => {
-  hideFleet.value = true;
-  await setTimeout(() => {
-    userSettingsStore.AMSToggleFleetLoanerView();
-    hideFleet.value = false;
-  }, 100);
-};
-
 definePageMeta({
-  middleware: 'auth',
   layout: 'ams',
+  middleware: [
+    'auth',
+    async function (to, from) {
+      const { fetchUser, setUser } = useDirectusAuth();
+      const user = transformUser(useDirectusUser().value);
+      if (!user) {
+        const user = await fetchUser();
+        setUser(user.value);
+      }
+      if (user.permissionLevel < 3) {
+        return navigateTo({
+          path: '/ams',
+        });
+      }
+    },
+  ],
 });
 
 useHead({
@@ -206,7 +233,18 @@ useHead({
 
 <template>
   <div>
-    <div class="flex flex-wrap justify-between px-6 my-4 gap-x-4">
+    <div class="flex w-full px-6">
+      <UFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-96" label="Suchen">
+        <UInput
+          size="2xl"
+          v-model="search"
+          class="my-auto"
+          icon="i-heroicons-magnifying-glass-20-solid"
+          placeholder="Schiffsname, Modell, Hersteller..."
+        />
+      </UFormGroup>
+    </div>
+    <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
       <div class="flex flex-wrap justify-center w-full mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
         <div class="flex mx-auto sm:mx-0 sm:pr-4 basis-full sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
           <UFormGroup class="w-full lg:w-80" label="Abteilung">
@@ -217,8 +255,8 @@ useHead({
               clear-search-on-close
               searchable-placeholder="Suche..."
               :search-attributes="['name']"
-              name="Channel"
-              placeholder="Channel filtern"
+              name="Abteilung"
+              placeholder="Abteilung filtern"
               :options="[{ name: 'Alle' }, ...data.departments]"
               size="xl"
             >
@@ -252,8 +290,8 @@ useHead({
               clear-search-on-close
               searchable-placeholder="Suche..."
               :search-attributes="['firstname', 'lastname', 'title']"
-              name="Member"
-              placeholder="Member filtern"
+              name="Mitarbeiter"
+              placeholder="Mitarbeiter filtern"
               :options="[{ fullName: 'Alle' }, ...data.members]"
               size="xl"
             >
@@ -288,44 +326,48 @@ useHead({
           </ButtonDefault>
         </div>
         <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <ButtonDefault class="mx-auto sm:ml-0 sm:mr-auto" @click="handleLoanerButton">
-            Leihschiff-Ansicht: {{ userSettings.ams.fleetLoanerView ? 'Ausschalten' : 'Anschalten' }}
+          <ButtonDefault class="mx-auto sm:ml-0 sm:mr-auto" @click="userSettingsStore.AMSToggleFleetLoanerView">
+            Leihschiff-Ansicht: {{ loanerView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
       </div>
     </div>
     <div class="flex flex-wrap">
-      <ClientOnly>
-        <ShipCard
-          v-if="filteredFleet[0]"
-          v-for="item in filteredFleet"
-          :key="item.id"
-          :ship-data="item.ship"
-          :hangar-data="item"
-          :detail-view="userSettings.ams.fleetDetailView"
-          :hidden="hideFleet"
-          preload-images
-          display-owner
-          internal-bio
-          display-department
-          display-name
-          display-production-state
-        />
-        <Presence>
-          <Motion
-            v-if="!filteredFleet[0]"
-            :initial="{ opacity: 0 }"
-            :animate="{ opacity: 1 }"
-            :exit="{ opacity: 0 }"
-            key="errorMsg"
-            class="mx-auto"
-          >
-            <h2 class="text-center text-secondary">
-              Es gibt keine Schiffe in der ArisCorp-Flotte die deinen Kriterien entsprechen.
-            </h2>
-          </Motion>
-        </Presence>
-      </ClientOnly>
+      <ShipCard
+        v-if="currentFleet"
+        v-for="item in currentFleet.filter(
+          (e) =>
+            (e.userData.name ? e.userData.name.toLowerCase().includes(search.toLowerCase()) : false) ||
+            e.ship.name.toLowerCase().includes(search.toLowerCase()) ||
+            e.ship.manufacturer.name.toLowerCase().includes(search.toLowerCase()) ||
+            e.ship.manufacturer.code.toLowerCase().includes(search.toLowerCase()),
+        )"
+        :key="item.id"
+        :ship-data="item.ship"
+        :hangar-data="item"
+        :detail-view="userSettings.ams.fleetDetailView"
+        :hidden="hideFleet"
+        preload-images
+        display-owner
+        internal-bio
+        display-department
+        display-name
+        display-production-state
+      />
+      <Presence>
+        <Motion
+          v-if="!currentFleet"
+          :initial="{ opacity: 0 }"
+          :animate="{ opacity: 1 }"
+          :exit="{ opacity: 0 }"
+          key="errorMsg"
+          class="mx-auto"
+        >
+          <h2 class="text-center text-secondary">
+            Es gibt keine Schiffe in der ArisCorp-Flotte die deinen Kriterien entsprechen.
+          </h2>
+        </Motion>
+      </Presence>
     </div>
   </div>
 </template>

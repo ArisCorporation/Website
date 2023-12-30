@@ -9,7 +9,7 @@ interface ILoaner {
   slug: String;
 }
 
-export default function (obj: any, shipList?: any) {
+export default function transformShip(obj: any, shipList?: any) {
   const getVariants = () => {
     if (!shipList) return;
     const variants: Array<IVariant> = [];
@@ -17,10 +17,16 @@ export default function (obj: any, shipList?: any) {
     return variants;
   };
   const getLoaners = () => {
-    if (!shipList) return;
-    const loaners: Array<ILoaner> = [];
-    obj.loaners?.map((i: ILoaner) => loaners.push(transformShip(shipList?.find((e: ILoaner) => e.id === i.id))));
-    return loaners;
+    if (!shipList || !obj.loaners || obj.productionStatus === 'flight-ready') return;
+    const loaners = [];
+    const loanerData = [];
+    obj.loaners.forEach((rawLoaner) => {
+      if (!loaners.includes(rawLoaner.id)) {
+        loaners.push(rawLoaner.id);
+        loanerData.push(transformShip(shipList.find((e) => e.id === rawLoaner.id)));
+      }
+    });
+    return loanerData;
   };
   const getManufacturer = () => (obj.manufacturer ? transformCompany(obj.manufacturer) : null);
   const getProductionState = () => {
@@ -82,8 +88,9 @@ export default function (obj: any, shipList?: any) {
     holoColored: obj.holoColored,
     hardpoints: obj.hardoints,
     weaponHardpoints: obj.weaponHardpoints,
-    variants: getVariants(),
+    // variants: getVariants(),
     loaners: getLoaners(),
+    // loaners: shipList,
     paints: obj.paints,
     classification: obj.classification,
     focus: obj.focus,

@@ -33,6 +33,42 @@ export default defineAppConfig({
           outline: 'bg-bprimary shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary-400',
         },
       },
+      size: {
+        '2xl': 'text-base',
+      },
+      gap: {
+        '2xl': 'gap-x-2.5',
+      },
+      padding: {
+        '2xl': 'px-3.5 py-3.5',
+      },
+      leading: {
+        padding: {
+          '2xl': 'ps-12',
+        },
+      },
+      trailing: {
+        padding: {
+          '2xl': 'pe-12',
+        },
+      },
+      icon: {
+        size: {
+          '2xl': 'h-6 w-6',
+        },
+        leading: {
+          padding: {
+            '2xl': 'px-3.5',
+          },
+        },
+      },
+    },
+    textarea: {
+      color: {
+        white: {
+          outline: 'bg-bprimary shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary-400',
+        },
+      },
     },
   },
 });

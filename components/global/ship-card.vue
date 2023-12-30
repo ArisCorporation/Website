@@ -1,5 +1,6 @@
 <script setup lang="ts">
-defineProps({
+const modalStore = useModalStore();
+const props = defineProps({
   shipData: {
     type: Object as PropType<IShip>,
     required: true,
@@ -10,6 +11,11 @@ defineProps({
     default: null,
   },
   displayOwner: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  displayCrud: {
     type: Boolean,
     required: false,
     default: false,
@@ -34,6 +40,11 @@ defineProps({
     required: false,
     default: false,
   },
+  displayLoanerState: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
   preloadImages: {
     type: Boolean,
     required: false,
@@ -50,12 +61,31 @@ defineProps({
     default: false,
   },
 });
+
+const handleEdit = () => {
+  modalStore.openModal(
+    `Bearbeiten: ${props.hangarData.userData.name && `"${props.hangarData.userData.name}"`} ${
+      props.hangarData.ship.manufacturer.code
+    } ${props.hangarData.ship.name}`,
+    { type: 'editShip' },
+  );
+  modalStore.setData(props.hangarData);
+};
+const handleRemove = () => {
+  modalStore.openModal(
+    `Entfernen: ${props.hangarData.userData.name && `"${props.hangarData.userData.name}"`} ${
+      props.hangarData.ship.manufacturer.code
+    } ${props.hangarData.ship.name}`,
+    { type: 'removeShip' },
+  );
+  modalStore.setData(props.hangarData);
+};
 </script>
 <template>
   <Presence exit-before-enter>
     <Motion
       v-if="!hidden"
-      :key="shipData.id"
+      :key="hangarData.id ? hangarData.id : shipData.id"
       :initial="{ opacity: 0, y: -15 }"
       :animate="{ opacity: 1, y: 0 }"
       :exit="{ opacity: 0, y: -15 }"
@@ -70,7 +100,7 @@ defineProps({
           >
             <NuxtImg :preload="preloadImages" class="absolute object-cover w-full h-full" :src="shipData.storeImage" />
             <div
-              v-if="displayProductionState"
+              v-if="displayProductionState || displayLoanerState"
               class="absolute top-1 left-2 text-stroke"
               :class="{
                 'text-primary-400': shipData.productionState == 'Flugfertig',
@@ -78,7 +108,8 @@ defineProps({
                 'text-white': shipData.productionState == 'Im Konzept',
               }"
             >
-              {{ shipData.productionState }}
+              <span v-if="displayProductionState" class="block">{{ shipData.productionState }}</span>
+              <span v-if="displayLoanerState && hangarData.loaner" class="block text-secondary">Loaner</span>
             </div>
             <div
               v-if="displayDepartment && hangarData.userData.department"
@@ -98,6 +129,12 @@ defineProps({
           <div
             class="peer-hover:[&>a:nth-child(1)]:opacity-100 peer-hover:[&>p:nth-child(1)]:duration-300 absolute z-10 bottom-0 left-0 flex flex-wrap w-full min-h-[48px] px-4 py-1 bg-bsecondary/80 justify-between gap-x-4"
           >
+            <div
+              v-if="displayOwner && hangarData.userData.planned"
+              class="absolute -top-6 right-2 text-stroke text-secondary"
+            >
+              Geplant
+            </div>
             <NuxtLink
               :to="'/ShipExkurs/' + shipData.slug"
               class="m-0 transition hover:no-underline basis-full opacity-80 text-secondary hover:opacity-100"
@@ -116,10 +153,26 @@ defineProps({
               class="z-20 block mt-auto ml-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100"
             >
               <span>
-                {{ hangarData.userData.planned ? 'Geplant' : 'Bereitgestell' }} von:
-                {{ hangarData.userData.owner.fullName }}</span
+                <span :class="{ 'text-secondary': hangarData.userData.planned }">{{
+                  hangarData.userData.planned ? 'Geplant' : 'Bereitgestell'
+                }}</span>
+                von: {{ hangarData.userData.owner.fullName }}</span
               >
             </NuxtLink>
+            <div v-if="displayCrud" class="absolute z-20 block h-full mt-auto ml-auto right-4">
+              <div class="flex h-full pb-1 space-x-4 text-white/50">
+                <Icon
+                  @click="handleEdit"
+                  name="heroicons:pencil"
+                  class="w-5 h-5 my-auto transition cursor-pointer hover:text-primary"
+                />
+                <Icon
+                  @click="handleRemove"
+                  name="heroicons:trash"
+                  class="w-5 h-5 my-auto transition cursor-pointer hover:text-danger"
+                />
+              </div>
+            </div>
           </div>
         </div>
         <Presence :initial="!detailView" exit-before-enter>

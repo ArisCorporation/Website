@@ -1,51 +1,60 @@
 export const useModalStore = defineStore('modalStore', () => {
   const isOpen = ref(false);
-  const title = ref(null);
-  const settings: { type: string; hideXButton: boolean; hideCloseButton: boolean; agreeAction: Function } = ref({
-    type: null,
-    hideXButton: false,
-    hideCloseButton: false,
-    agreeAction: null,
-  });
+  const title = ref('');
+  const data = ref(null);
+  const type = ref('');
+  const hideXButton = ref(false);
+  const hideCloseButton = ref(false);
+  const agreeAction = ref(null);
 
-  function openModalTest(
-    title: string,
-    {
-      type,
-      hideXButton,
-      hideCloseButton,
-      agreeAction,
-    }: { type?: string; hideXButton?: boolean; hideCloseButton?: boolean; agreeAction?: Function },
-  ) {
-    const modalStore = useModalStore();
-
-    modalStore.isOpen = true;
-    modalStore.title = title;
-    modalStore.settings = {
-      type: type || null,
-      hideXButton: hideXButton || false,
-      hideCloseButton: hideCloseButton || false,
-      agreeAction: agreeAction || null,
-    };
+  function setData(data: any) {
+    data.value = data;
   }
 
-  function closeModalTest() {
+  function openModal(
+    modalTitle: string,
+    options: {
+      type?: string;
+      hideXButton?: boolean;
+      hideCloseButton?: boolean;
+      agreeAction?: any;
+    },
+  ) {
+    const {
+      type: propType,
+      hideXButton: propHideXButton,
+      hideCloseButton: propHideCloseButton,
+      agreeAction: propAgreeAction,
+    } = options;
+
+    isOpen.value = true;
+    title.value = modalTitle;
+    type.value = propType || '';
+    hideXButton.value = propHideXButton || false;
+    hideCloseButton.value = propHideCloseButton || false;
+    agreeAction.value = propAgreeAction || null;
+  }
+
+  function closeModal() {
     isOpen.value = false;
     setTimeout(() => {
-      title.value = null;
-      settings.value = {
-        type: null,
-        hideXButton: false,
-        hideCloseButton: false,
-        agreeAction: null,
-      };
-    }, 100);
+      title.value = '';
+      type.value = '';
+      hideXButton.value = false;
+      hideCloseButton.value = true;
+      agreeAction.value = null;
+    }, 500);
   }
   return {
     isOpen,
     title,
-    settings,
-    openModalTest,
-    closeModalTest,
+    type,
+    hideXButton,
+    hideCloseButton,
+    agreeAction,
+    data,
+    setData,
+    openModal,
+    closeModal,
   };
 });

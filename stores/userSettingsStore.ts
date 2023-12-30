@@ -7,6 +7,7 @@ export const useUserSettingsStore = defineStore(
         hangarLoanerView: false,
         fleetDetailView: false,
         fleetLoanerView: false,
+        avatarConsent: false,
       },
       se: {
         shipDetailView: false,
@@ -24,6 +25,9 @@ export const useUserSettingsStore = defineStore(
     const AMSToggleFleetLoanerView = () => {
       userSettings.value.ams.fleetLoanerView = !userSettings.value.ams.fleetLoanerView;
     };
+    const AMSAcceptAvatarConsent = () => {
+      userSettings.value.ams.avatarConsent = true;
+    };
     const SEToggleShipDetailView = () => {
       userSettings.value.se.shipDetailView = !userSettings.value.se.shipDetailView;
     };
@@ -33,6 +37,7 @@ export const useUserSettingsStore = defineStore(
       AMSToggleHangarLoanerView,
       AMSToggleFleetDetailView,
       AMSToggleFleetLoanerView,
+      AMSAcceptAvatarConsent,
       SEToggleShipDetailView,
     };
   },
