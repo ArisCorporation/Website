@@ -6,7 +6,6 @@ defineProps({
   },
 });
 const modalStore = useModalStore();
-const { openModal } = modalStore;
 </script>
 
 <template>
@@ -27,12 +26,12 @@ const { openModal } = modalStore;
         color="secondary"
         type="button"
         class="p-2 mt-2"
-        @click="() => modalStore.openModal('', { hideCloseButton: true, hideXButton: true })"
+        @click="modalStore.openModal('', { hideCloseButton: true, hideXButton: true })"
       >
         Jetzt bewerben
       </ButtonDefault>
     </div>
-    <TheModal>
+    <TheModal padding>
       <template #content="{ close }">
         <div class="text-left">
           <div>
@@ -70,7 +69,7 @@ const { openModal } = modalStore;
           <hr />
           <div class="relative flex flex-wrap-reverse sm:flex-nowrap">
             <ButtonDefault class="w-full mt-4 sm:my-auto sm:w-fit h-fit" @click="close"> Schließen </ButtonDefault>
-            <div class="flex justify-center mx-auto space-x-8">
+            <div class="flex justify-center mx-auto space-x-12">
               <NuxtLink class="my-auto transition rounded hover:bg-white" :to="data.dcLink" target="_blank">
                 <NuxtImg width="125" src="90d5157b-2d6e-4ce2-af5a-9bf59343ec66" />
               </NuxtLink>
