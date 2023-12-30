@@ -27,6 +27,11 @@ useHead({
 
 <template>
   <div>
+    <TheModal>
+      <template #content>
+        <slot name="modalContent" />
+      </template>
+    </TheModal>
     <AmsSidebar />
     <div class="flex flex-col justify-between flex-1 min-h-screen lg:ml-64">
       <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.ToggleMobileSidebar()" />

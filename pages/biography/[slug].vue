@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { getItems } = useDirectusItems();
+const { getUsers } = useDirectusUsers();
 const { params } = useRoute();
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
 const toast = useToast();
@@ -9,28 +10,28 @@ const route = useRoute();
 const { data } = await useAsyncData(
   'member',
   () =>
-    getItems({
-      collection: 'member',
+    getUsers({
       params: {
         fields: [
-          'firstname',
-          'lastname',
+          'first_name',
+          'last_name',
+          'slug',
           'title',
-          'member_potrait.id',
+          'avatar',
           'roles',
-          'position_level',
-          'head_of_department',
-          'head_department',
+          'role',
+          // 'head_of_department',
+          // 'head_department',
           'department',
           'sex',
           'birthdate',
-          'birthPlace',
-          'birthSystem.name',
-          'birthSystem.slug',
-          'currentResidence',
-          'currentResidenceSystem.name',
-          'currentResidenceSystem.slug',
-          'ueeState',
+          // 'birthPlace',
+          // 'birthSystem.name',
+          // 'birthSystem.slug',
+          // 'currentResidence',
+          // 'currentResidenceSystem.name',
+          // 'currentResidenceSystem.slug',
+          'citizen',
           'citizenReason',
           'dutyPeriod',
           'dutyReason',
@@ -38,8 +39,8 @@ const { data } = await useAsyncData(
           'educationName',
           'educationPeriod',
           'educationPlace',
-          'hairColor',
-          'eyeColor',
+          'haircolor',
+          'eyecolor',
           'height',
           'weight',
           'hobbys',
@@ -60,18 +61,18 @@ const { data } = await useAsyncData(
           'alcohol',
           'loves',
           'hates',
-          'text',
+          'medicalInformations',
           'biography',
-          'department.gameplay_name',
-          'head_department.gameplay_name',
-          'ships.id',
-          'ships.department.gameplay_name',
-          'ships.department.gameplay_logo.id',
-          'ships.ships_id.name',
-          'ships.ships_id.slug',
-          'ships.ships_id.storeImage.id',
-          'ships.ships_id.manufacturer.firmen_name',
-          'ships.ships_id.manufacturer.slug',
+          // 'department.gameplay_name',
+          // 'head_department.gameplay_name',
+          // 'ships.id',
+          // 'ships.department.gameplay_name',
+          // 'ships.department.gameplay_logo.id',
+          // 'ships.ships_id.name',
+          // 'ships.ships_id.slug',
+          // 'ships.ships_id.storeImage.id',
+          // 'ships.ships_id.manufacturer.firmen_name',
+          // 'ships.ships_id.manufacturer.slug',
         ],
         filter: {
           slug: { _eq: params.slug },
@@ -79,11 +80,11 @@ const { data } = await useAsyncData(
       },
     }),
   {
-    transform: (data) => transformMember(data[0]),
+    transform: (data) => transformUser(data[0]),
   },
 );
 
-if (!data.value) {
+if (!data.value?.firstname) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Daten konnten nicht von der UEE empfangen werden, eventuell sind sie unter Verschluss!',
@@ -240,7 +241,7 @@ useHead({
       <h1 v-else class="py-4 m-0 text-center redacted" data-text="[ REDACTED ]">[ REDACTED ]</h1>
     </DefaultPanel>
     <hr />
-    <Disclosure v-if="data?.hangar[0]">
+    <!-- <Disclosure v-if="data?.hangar[0]">
       <template #title>
         Schiffe von <span class="text-primary-400">{{ data?.fullName }}</span>
       </template>
@@ -254,6 +255,6 @@ useHead({
           preload-images
         />
       </div>
-    </Disclosure>
+    </Disclosure> -->
   </div>
 </template>
