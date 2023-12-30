@@ -103,6 +103,10 @@ export default defineNuxtConfig({
     prefix: 'Headless',
   },
 
+  ui: {
+    icons: ['heroicons', 'ic', 'mdi'],
+  },
+
   dayjs: {
     locales: ['en', 'de'],
     plugins: ['relativeTime', 'utc', 'timezone'],
