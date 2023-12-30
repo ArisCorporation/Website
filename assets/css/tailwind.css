@@ -131,11 +131,7 @@
   }
 
   .text-stroke {
-    text-shadow:
-      -1px -1px 0 black,
-      1px -1px 0 black,
-      -1px 1px 0 black,
-      1px 1px 0 black;
+    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
   }
 
   .tooltip {
@@ -144,6 +140,19 @@
 
   .comm-link-grid {
     @apply max-w-5xl mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+  input[type='number']:hover,
+  input[type='number']:focus {
+    -moz-appearance: number-input;
   }
 
   .redacted {
