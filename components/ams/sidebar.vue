@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const user = transformUser(useDirectusUser().value);
 const { logout } = useDirectusAuth();
 const { push } = useRouter();
 
@@ -14,21 +15,25 @@ const sidebarItems = [
     name: 'Home',
     icon: 'heroicons:home-solid',
     link: '',
+    level: 0,
   },
   {
     name: 'Flotte',
     icon: 'IconsNavigationFleet',
     link: '/fleet',
+    level: 3,
   },
   {
     name: 'Mitarbeiter',
     icon: 'IconsNavigationMembers',
     link: '/employees',
+    level: 0,
   },
   {
     name: 'Admin',
     icon: 'ri:admin-line',
     link: '/admin',
+    level: 4,
   },
 ];
 
@@ -55,7 +60,7 @@ const userSidebarItems = [
   <button
     aria-controls="default-sidebar"
     type="button"
-    class="fixed inline-flex items-center p-2 mt-2 text-sm text-gray-500 rounded-lg w-fit ms-3 lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+    class="fixed z-40 inline-flex items-center p-2 mt-2 text-sm rounded-lg text-tbase hover:text-bprimary w-fit ms-3 lg:hidden focus:outline-none focus:ring-0 hover:bg-tbase"
     @click="SidebarStore.ToggleMobileSidebar()"
   >
     <span class="sr-only">Open sidebar</span>
@@ -69,7 +74,7 @@ const userSidebarItems = [
   </button>
   <aside
     id="default-sidebar"
-    class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform lg:translate-x-0"
+    class="fixed top-0 left-0 z-50 w-64 h-screen transition-transform lg:translate-x-0"
     :class="{ '-translate-x-full': !SidebarStore.MobileSidebar }"
     aria-label="Sidebar"
   >
@@ -81,6 +86,7 @@ const userSidebarItems = [
         <li v-for="(item, i) in sidebarItems" :key="i" class="pb-0">
           <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
           <NuxtLink
+            v-if="user.permissionLevel >= item.level"
             :to="'/ams' + item.link"
             @click="SidebarStore.ToggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
@@ -138,7 +144,7 @@ const userSidebarItems = [
           </NuxtLink>
           <button
             v-else
-            class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group"
+            class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group text-tbase/75 hover:text-white"
             @click="item.action"
           >
             <Icon :name="item.icon" class="w-6 h-6 transition-group text-tbase/75 group-hover:text-white" />
