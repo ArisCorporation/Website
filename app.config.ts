@@ -63,5 +63,12 @@ export default defineAppConfig({
         },
       },
     },
+    textarea: {
+      color: {
+        white: {
+          outline: 'bg-bprimary shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary-400',
+        },
+      },
+    },
   },
 });
