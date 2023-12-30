@@ -6,12 +6,13 @@ const { getFiles } = useDirectusFiles();
 const error = ref();
 const router = useRouter();
 const route = useRoute();
+const { query } = route;
 const config = useRuntimeConfig();
 const redirectUri = ref(route.query.redirect ? decodeURIComponent(route.query.redirect) : '/ams');
 
 const state = reactive({
-  username: undefined,
-  password: undefined,
+  username: '',
+  password: '',
 });
 const form = ref();
 
@@ -82,6 +83,15 @@ const inputConfig = {
   },
 };
 
+if (query) {
+  if (query.username) {
+    state.username = query.username.toString();
+  }
+  if (query.password) {
+    state.password = query.password.toString();
+  }
+}
+
 useSeoMeta({
   description:
     'Das hier, ist dass ArisCorp Management System der Astro Research and Industrial Service Corporation. Hier können die Mitglieder der ArisCorp auf viele verschiedene Tools und Programme zugreifen. Es ist der Zentrale Knotenpunkt für Mitglieder der ArisCorp.',
@@ -126,11 +136,13 @@ definePageMeta({
         <code class="block">
           <button
             @click="
-              async () =>
-                (await login({
+              async () => {
+                await login({
                   email: 'dev@ariscorp.de',
                   password: 'dev',
-                })) + router.push(redirectUri)
+                });
+                router.push(redirectUri);
+              }
             "
           >
             Fast-Login
