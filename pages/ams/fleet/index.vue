@@ -208,7 +208,22 @@ watch([selectedMember, selectedDepartment, loanerView], async () => {
 
 definePageMeta({
   layout: 'ams',
-  middleware: 'auth',
+  middleware: [
+    'auth',
+    async function (to, from) {
+      const { fetchUser, setUser } = useDirectusAuth();
+      const user = transformUser(useDirectusUser().value);
+      if (!user) {
+        const user = await fetchUser();
+        setUser(user.value);
+      }
+      if (user.permissionLevel < 3) {
+        return navigateTo({
+          path: '/ams',
+        });
+      }
+    },
+  ],
 });
 
 useHead({
@@ -219,7 +234,7 @@ useHead({
 <template>
   <div>
     <div class="flex w-full px-6">
-      <UFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-80" label="Suchen">
+      <UFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-96" label="Suchen">
         <UInput
           size="2xl"
           v-model="search"
