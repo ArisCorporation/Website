@@ -1,6 +1,13 @@
 <script setup lang="ts">
+defineProps({
+  padding: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+});
 const modalStore = useModalStore();
-const { isOpen, title, settings } = storeToRefs(modalStore);
+const { isOpen, title, hideCloseButton, hideXButton, agreeAction } = storeToRefs(modalStore);
 
 const closeModal = () => {
   modalStore.closeModal();
@@ -21,7 +28,7 @@ const closeModal = () => {
       >
         <div class="fixed inset-0 bg-black/25" />
       </HeadlessTransitionChild>
-      <div class="fixed inset-0 overflow-y-auto">
+      <div class="fixed inset-0 overflow-y-auto" :class="{ 'pt-20': padding }">
         <div class="flex items-center justify-center min-h-full p-4 text-center">
           <HeadlessTransitionChild
             as="template"
@@ -35,7 +42,7 @@ const closeModal = () => {
             <HeadlessDialogPanel class="w-full max-w-2xl">
               <DefaultPanel>
                 <div class="bg-[#222] px-4 pb-4">
-                  <button v-if="!settings.hideXButton" type="button" class="absolute top-1 left-1" @click="closeAction">
+                  <button v-if="!hideXButton" type="button" class="absolute top-1 left-1" @click="closeAction">
                     <Icon
                       name="heroicons:x-circle"
                       class="w-6 h-6 text-white transition opacity-50 hover:opacity-100"
@@ -48,22 +55,22 @@ const closeModal = () => {
 
                   <div class="mt-4">
                     <button
-                      v-if="!settings.hideCloseButton"
+                      v-if="!hideCloseButton"
                       v-motion
                       :variants="$config.public.mbutton"
                       type="button"
                       class="inline-flex justify-center px-4 py-2 text-sm font-medium text-black transition-all duration-100 border border-transparent rounded-md opacity-75 hover:duration-200 bg-danger hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      @click="closeAction"
+                      @click="closeModal"
                     >
                       Schließen!
                     </button>
                     <button
-                      v-if="settings.agreeAction"
+                      v-if="agreeAction"
                       v-motion
                       :variants="$config.public.mbutton"
                       type="button"
                       class="inline-flex justify-center px-4 py-2 text-sm font-medium text-black transition-all duration-100 border border-transparent rounded-md opacity-75 hover:duration-200 bg-success hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      @click="settings.agreeAction"
+                      @click="agreeAction"
                     >
                       Schließen!
                     </button>
