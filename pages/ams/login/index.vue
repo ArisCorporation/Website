@@ -8,7 +8,7 @@ const router = useRouter();
 const route = useRoute();
 const { query } = route;
 const config = useRuntimeConfig();
-const redirectUri = ref(route.query.redirect ? decodeURIComponent(route.query.redirect) : '/ams');
+const redirectUri = ref(route.query.redirect ? decodeURIComponent(route.query.redirect.toString()) : '/ams');
 
 const state = reactive({
   username: '',
