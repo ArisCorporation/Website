@@ -6,6 +6,7 @@ const { getItems } = useDirectusItems();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
 const modalStore = useModalStore();
+const dataChanged = ref(false);
 
 const { data: user } = await useAsyncData(
   'get-profile',
@@ -79,9 +80,15 @@ const { data } = await useAsyncData('selectionData', async () => {
     landingZones: landingZones.map((data) => transformLandingZone(data)),
   };
 });
-console.log(data.value?.landingZones);
-console.log(user.value);
-// const titleOptions = ['Dr.', 'Dr. Med.', 'Prof. Med.', 'Dipl. Ing.', 'Dr. Ph. D.'];
+
+if (!data.value) {
+  throw createError({
+    statusCode: 500,
+    statusMessage: 'Es gab in Fehler beim abfragen deiner Personalakte!',
+    fatal: true,
+  });
+}
+
 const titleOptions = [
   {
     name: 'Kein Titel',
@@ -90,6 +97,18 @@ const titleOptions = [
   {
     name: 'Dr.',
     value: 'Dr.',
+  },
+  {
+    name: 'Dr. Med.',
+    value: 'Dr. Med.',
+  },
+  {
+    name: 'Prof. Med.',
+    value: 'Prof. Med.',
+  },
+  {
+    name: 'Dipl. Ing.',
+    value: 'Dipl. Ing.',
   },
 ];
 const formgroupUi = {
@@ -108,81 +127,84 @@ const checkboxRecruitment = ref(user.value?.roles.includes('Rekrutierung'));
 const checkboxMarketing = ref(user.value?.roles.includes('Marketing & Presse'));
 const checkboxCW = ref(user.value?.roles.includes('Inhaltsersteller'));
 
-// const citizenReasonRadio = ref(user.value?.citizenreason);
-
-const selectedDepartment = ref(data.value?.departments.find((e) => e.id === user.value?.department.id));
-
-const birthdateDay = ref(user.value?.birthdate ? user.value?.birthdate.split('.')[0] : null);
-const birthdateMonth = ref(user.value?.birthdate ? user.value?.birthdate.split('.')[1] : null);
-const birthdateYear = ref(user.value?.birthdate ? user.value?.birthdate.split('.')[2] : null);
-
-const rolesArray = computed(() => {
-  const roles = [];
-  if (checkboxRecruitment.value) roles.push('recruitment');
-  if (checkboxMarketing.value) roles.push('marketing');
-  if (checkboxCW.value) roles.push('contentWriter');
-
-  return roles;
-});
+const birthdateDay = ref(user.value?.birthdate ? user.value?.birthdate.split('.')[0] : '');
+const birthdateMonth = ref(user.value?.birthdate ? user.value?.birthdate.split('.')[1] : '');
+const birthdateYear = ref(user.value?.birthdate ? user.value?.birthdate.split('.')[2] : '');
 
 const formData = reactive({
-  firstname: user.value?.firstname,
-  lastname: user.value?.lastname,
+  firstname: user.value?.firstname || '',
+  lastname: user.value?.lastname || '',
   title: user.value?.title || titleOptions[0],
   password: '',
-  roles: rolesArray.value,
-  head_of_department: user.value?.head_of_department,
-  department: selectedDepartment.value,
-  currentplace: user.value?.currentplace,
-  sex: user.value?.sex,
-  birthdate: computed(() => `${birthdateDay.value}.${birthdateMonth.value}.${birthdateYear.value}`),
-  birthplace: user.value?.birthplace,
-  haircolor: user.value?.haircolor,
-  eyecolor: user.value?.eyecolor,
-  weight: user.value?.weight,
-  height: user.value?.height,
-  citizen: user.value?.ueestate === 'citizen',
-  citizenReason: user.value?.citizenreason,
-  dutyState: user.value?.citizenreason === 'Militärischer Dienst' ? true : user.value?.dutyState,
-  educationState: user.value?.citizenreason === 'Besondere Bildung' ? true : user.value?.educationState,
-  dutyPeriod: user.value?.duty.period,
-  dutyEnd: user.value?.duty.end,
-  educationName: user.value?.education.name,
-  educationPeriod: user.value?.education.period,
-  educationPlace: user.value?.education.place,
-  hobbys: user.value?.hobbys,
-  activities: user.value?.activities,
-  talents: user.value?.talents,
-  habits: user.value?.habits,
-  tics: user.value?.tics,
-  fears: user.value?.fears,
-  character: user.value?.character,
-  mysterious: user.value?.mysterious,
-  music: user.value?.music,
-  movies: user.value?.movies,
-  books: user.value?.books,
-  clothing: user.value?.clothing,
-  food: user.value?.food,
-  drinks: user.value?.drink,
-  alcohol: user.value?.alcohol,
-  colors: user.value?.colors,
-  loves: user.value?.loves,
-  hates: user.value?.hates,
-  medicalinfo: user.value?.medicalinfo,
-  biography: user.value?.biography,
+  roles:
+    computed(() => {
+      const roles = [];
+      if (checkboxRecruitment.value) roles.push('recruitment');
+      if (checkboxMarketing.value) roles.push('marketing');
+      if (checkboxCW.value) roles.push('contentWriter');
+
+      return roles;
+    }) || [],
+  head_of_department: user.value?.head_of_department || false,
+  department: data.value?.departments.find((e) => e.id === user.value?.department.id) || null,
+  currentplace: user.value?.currentplace || null,
+  sex: user.value?.sex || '',
+  birthdate: computed(() => `${birthdateDay.value}.${birthdateMonth.value}.${birthdateYear.value}`) || '',
+  birthplace: user.value?.birthplace || null,
+  haircolor: user.value?.haircolor || '',
+  eyecolor: user.value?.eyecolor || '',
+  weight: user.value?.weight || '',
+  height: user.value?.height || '',
+  citizen: user.value?.ueestate === 'citizen' || false,
+  citizenReason: user.value?.citizenreason || '',
+  dutyState: user.value?.citizenreason === 'Militärischer Dienst' ? true : user.value?.dutyState || false,
+  educationState: user.value?.citizenreason === 'Besondere Bildung' ? true : user.value?.educationState || false,
+  dutyPeriod: user.value?.duty.period || '',
+  dutyEnd: user.value?.duty.end || '',
+  educationName: user.value?.education.name || '',
+  educationPeriod: user.value?.education.period || '',
+  educationPlace: user.value?.education.place || '',
+  hobbys: user.value?.hobbys || '',
+  activities: user.value?.activities || '',
+  talents: user.value?.talents || '',
+  habits: user.value?.habits || '',
+  tics: user.value?.tics || '',
+  fears: user.value?.fears || '',
+  character: user.value?.character || '',
+  mysterious: user.value?.mysterious || '',
+  music: user.value?.music || '',
+  movies: user.value?.movies || '',
+  books: user.value?.books || '',
+  clothing: user.value?.clothing || '',
+  food: user.value?.food || '',
+  drinks: user.value?.drink || '',
+  alcohol: user.value?.alcohol || '',
+  colors: user.value?.colors || '',
+  loves: user.value?.loves || '',
+  hates: user.value?.hates || '',
+  medicalinfo: user.value?.medicalinfo || '',
+  biography: user.value?.biography || '',
 });
 
-watch(formData, (newFormData) => {
-  if (newFormData.citizen === false) {
-    formData.citizenReason = '';
-  }
+const initialFormdata = { ...formData }; // copy of initial formdata
 
-  if (newFormData.citizenReason === 'Militärischer Dienst') {
-    formData.dutyState = true;
-  } else if (newFormData.citizenReason === 'Besondere Bildung') {
-    formData.educationState = true;
-  }
-});
+watch(
+  formData,
+  () => {
+    if (formData.citizen === false) {
+      formData.citizenReason = '';
+    }
+
+    if (formData.citizenReason === 'Militärischer Dienst') {
+      formData.dutyState = true;
+    } else if (formData.citizenReason === 'Besondere Bildung') {
+      formData.educationState = true;
+    }
+
+    dataChanged.value = !isEqual(formData, initialFormdata);
+  },
+  { deep: true },
+);
 
 definePageMeta({
   layout: false,
@@ -193,9 +215,9 @@ definePageMeta({
 <template>
   <NuxtLayout name="ams">
     <template #modalContent>
-      <span>test</span>
+      <span>PLACEHOLDER</span>
     </template>
-    {{ formData }}
+    {{ dataChanged }}
     <div class="relative flex items-center p-5 mb-5 rounded-lg bg-bsecondary">
       <!-- TODO: ADD LOADING STATE TO AVATAR -->
       <div
@@ -269,43 +291,132 @@ definePageMeta({
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup required size="xl" label="Vorname" :ui="formgroupUi">
               <UInput v-model="formData.firstname" placeholder="Chris" icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p class="text-danger">Jedes Mitglied braucht einen Vornamen.</p>
+                      <p class="text-primary">
+                        WICHTIG: Das ändern deines Vor- und Nachnamen ändert auch deinen Login-Benutzername.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic">
+                        Falls du dir schon Gedanken über einen richtigen Vornamen gemacht hast.
+                        <span class="text-secondary">Decon</span>
+                      </p>
+                      <p class="italic">
+                        Natürlich kannst du auch mehrere Vornamen haben.
+                        <span class="text-secondary">Decon Malcom</span>
+                      </p>
+                      <p class="italic">
+                        Falls du noch keinen Vornamen hast, <br class="md:hidden" />
+                        kannst du einfach solange deinen Benutzernamen eingeben.
+                        <span class="text-secondary">Blizii</span>
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Nachname" :ui="formgroupUi">
               <UInput v-model="formData.lastname" placeholder="Roberts" icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Wenn du ein Vorname hast, brauchst du natürlich auch einen Nachnamen.</p>
+                      <p class="text-primary">
+                        WICHTIG: Das ändern deines Vor- und Nachnamen ändert auch deinen Login-Benutzername.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic">
+                        Ein passender Nachname wäre zum Beispiel:
+                        <span class="text-secondary">Vorn</span>
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup required size="xl" label="Titel" :ui="formgroupUi">
               <USelectMenu v-model="formData.title" :options="titleOptions" option-attribute="name" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>
+                        Falls du eine besondere Hochschulausbildung hast, kannst du hier den passenden Titel auswählen.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic">
+                        Falls du einen Doktortitel hat:
+                        <span class="text-secondary">Dr.</span>
+                        oder
+                        <span class="text-secondary">Dr. Med.</span>
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Passwort" :ui="formgroupUi">
               <UInput v-model="formData.password" placeholder="******" type="password" icon="i-heroicons-lock-closed" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du dein Passwort ganz einfach ändern.</p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <TableHr />
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Rollen" :ui="formgroupUi">
               <ArisCheckbox
-                :disabled="user?.permissionLevel < 4"
+                :disabled="(user?.permissionLevel || 0) < 4"
                 v-model="checkboxRecruitment"
                 name="recruitment"
                 label="Rekrutierung"
                 color="primary"
               />
               <ArisCheckbox
-                :disabled="user?.permissionLevel < 4"
+                :disabled="(user?.permissionLevel || 0) < 4"
                 v-model="checkboxMarketing"
                 name="marketing"
                 label="Marketing & Presse"
                 color="primary"
               />
               <ArisCheckbox
-                :disabled="user?.permissionLevel < 4"
+                :disabled="(user?.permissionLevel || 0) < 4"
                 v-model="checkboxCW"
                 name="content_writer"
                 label="Inhaltsersteller"
                 color="primary"
               />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du deine Rollen sehen.</p>
+                      <p>Du kannst mit der Verwaltung sprechen, falls du eine der Rollen annehmen möchtest.</p>
+                      <p>Falls du in der Verwaltung bist, kannst du auch deine Rollen anpassen.</p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <div class="w-full xl:w-1/2">
               <UFormGroup
@@ -320,7 +431,30 @@ definePageMeta({
                   },
                 }"
               >
-                <USelectMenu v-model="selectedDepartment" :options="data?.departments" option-attribute="name" />
+                <USelectMenu v-model="formData.department" :options="data?.departments" option-attribute="name" />
+                <template #label>
+                  <div class="flex">
+                    Abteilung
+                    <UPopover mode="hover">
+                      <UButton icon="i-heroicons-information-circle" class="" variant="inputInfo" />
+                      <template #panel>
+                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                          <p>Hier kannst du auswählen in welcher Abteilung der ArisCorp du tätig sein möchtest.</p>
+                          <p>
+                            Außerdem kannst du sehen ob du Abteilungsleiter bist. Dies kann ein Mitglied der Verwaltung
+                            ändern.
+                          </p>
+                          <p>
+                            Falls du Mitglied der Verwaltung bist, kannst du dir außerdem den Abteilungsleiter Status
+                            entfernen.
+                            <br />
+                            Bitte tu dies niemals ohne Rücksprache mit der Verwaltung!
+                          </p>
+                        </div>
+                      </template>
+                    </UPopover>
+                  </div>
+                </template>
                 <template #hint>
                   <ArisCheckbox
                     v-model="formData.head_of_department"
@@ -328,7 +462,7 @@ definePageMeta({
                     label="Abteilungsleiter"
                     color="primary"
                     class="mr-4"
-                    :disabled="user?.permissionLevel < 4"
+                    :disabled="(user?.permissionLevel || 0) < 4"
                   />
                 </template>
               </UFormGroup>
@@ -344,9 +478,26 @@ definePageMeta({
                 <!-- TODO: ADD MODAL CONTENT -->
                 <!-- TODO: ADD IMAGE CONVERSION LOGIC -->
                 <UInput v-if="userSettings.ams.avatarConsent" type="file" icon="i-heroicons-user" />
-                <ButtonDefault v-else class="w-full" @click="modalStore.openModal('test', { hideXButton: true })">
+                <ButtonDefault
+                  v-else
+                  class="w-full"
+                  @click="modalStore.openModal('PLACEHOLDER', { hideXButton: true })"
+                >
                   Avatar ändern
                 </ButtonDefault>
+                <template #hint>
+                  <UPopover mode="hover">
+                    <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                    <template #panel>
+                      <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                        <p>
+                          Hier kannst du deinen Avatar anpassen. Weitere Instruktionen siehst du, wenn du auf den Button
+                          drückst.
+                        </p>
+                      </div>
+                    </template>
+                  </UPopover>
+                </template>
               </UFormGroup>
             </div>
           </div>
@@ -401,6 +552,26 @@ definePageMeta({
                   </span>
                 </template>
               </USelectMenu>
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du deinen Aktuellen Wohnsitz auswählen.</p>
+                      <p>Du kannst sowohl nach System, Planet (o. Mond) oder Landezone suchen.</p>
+                      <p>
+                        Falls du die Anzeige nicht verstehst hier eine Erläuterung:
+                        <br />
+                        <span
+                          ><span class="text-secondary">System</span> /
+                          <span class="text-secondary">Planet o. Mond</span> /
+                          <span class="text-secondary">Landezone</span></span
+                        >
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <h4 class="mt-2 mb-1">Grundlegende Informationen:</h4>
@@ -452,10 +623,57 @@ definePageMeta({
                   </svg>
                 </div>
               </div> -->
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du dein (also deines Charakter) Geschlecht auswählen.</p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
-            <UFormGroup size="xl" label="Geburtsdatum" :ui="formgroupUi">
+            <UFormGroup size="lg" label="Geburtsdatum" :ui="formgroupUi">
               <!-- TODO: ADD FORMAT HINT -->
               <!-- TODO: MAX LENGTH -->
+              <div class="flex gap-x-4">
+                <USelectMenu
+                  class="w-1/3"
+                  placeholder="Tag"
+                  v-model="birthdateDay"
+                  :options="Array.from({ length: 32 }, (value, index) => index).slice(1)"
+                />
+                <USelectMenu
+                  class="w-1/3"
+                  placeholder="Monat"
+                  v-model="birthdateMonth"
+                  :options="[
+                    { name: 'Januar', value: 1 },
+                    { name: 'Februar', value: 2 },
+                    { name: 'März', value: 3 },
+                    { name: 'April', value: 4 },
+                    { name: 'Mai', value: 5 },
+                    { name: 'Juni', value: 6 },
+                    { name: 'Juli', value: 7 },
+                    { name: 'August', value: 8 },
+                    { name: 'September', value: 9 },
+                    { name: 'Oktober', value: 10 },
+                    { name: 'November', value: 11 },
+                    { name: 'Dezember', value: 12 },
+                  ]"
+                  option-attribute="name"
+                  value-attribute="value"
+                />
+                <UInput
+                  v-model="birthdateYear"
+                  class="w-1/3"
+                  placeholder="Jahr"
+                  type="text"
+                  inputmode="numeric"
+                  :ui="{ placeholder: 'text-center' }"
+                />
+              </div>
               <div
                 class="relative inline-flex w-full p-0 text-base placeholder-gray-500 border-0 rounded-md shadow-sm disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none form-input bg-bprimary bg-opacity-60 ring-1 ring-inset ring-bsecondary focus:ring-2 focus-within:ring-primary"
               >
@@ -492,6 +710,20 @@ definePageMeta({
                   />
                 </div>
               </div>
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du dein Geburtsdatum eingeben.</p>
+                      <p>
+                        Allerdings kannst du auch den Modus umstellen und einfach für das Jahr dein aktuelles Alter
+                        angeben.
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:pr-4 xl:flex-nowrap gap-x-4">
@@ -544,32 +776,109 @@ definePageMeta({
                   </span>
                 </template>
               </USelectMenu>
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du dein Geburtsort auswählen.</p>
+                      <p>Du kannst sowohl nach System, Planet (o. Mond) oder Landezone suchen.</p>
+                      <p>
+                        Falls du die Anzeige nicht verstehst hier eine Erläuterung:
+                        <br />
+                        <span
+                          ><span class="text-secondary">System</span> /
+                          <span class="text-secondary">Planet o. Mond</span> /
+                          <span class="text-secondary">Landezone</span></span
+                        >
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Haarfarbe" :ui="formgroupUi">
-              <UInput placeholder="Schwarz" icon="i-ic-round-color-lens" />
+              <UInput v-model="formData.haircolor" placeholder="Schwarz" icon="i-ic-round-color-lens" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du ganz einfach deine Haarfarbe eingeben.</p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic">
+                        <span class="text-secondary">Schwarz</span>
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Augenfarbe" :ui="formgroupUi">
-              <UInput placeholder="Blau/Grün" icon="i-ic-round-color-lens" />
+              <UInput v-model="formData.eyecolor" placeholder="Blau/Grün" icon="i-ic-round-color-lens" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du ganz einfach deine Augenfarbe eingeben.</p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic">
+                        <span class="text-secondary">Blau/Grün</span>
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Gewicht" :ui="formgroupUi">
               <!-- TODO: MAX LENGTH -->
-              <UInput placeholder="85" icon="i-mdi-scale-balance">
+              <!-- TODO: TYPE -->
+              <UInput v-model="formData.weight" placeholder="85" icon="i-mdi-scale-balance">
                 <template #trailing>
                   <span class="text-xs text-gray-400">KG</span>
                 </template>
               </UInput>
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du dein Gewicht (in der Einheit Kilo) eingeben.</p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Größe" :ui="formgroupUi">
               <!-- TODO: MAX LENGTH -->
-              <UInput placeholder="192" icon="i-mdi-ruler">
+              <!-- TODO: TYPE -->
+              <UInput v-model="formData.height" placeholder="192" icon="i-mdi-ruler">
                 <template #trailing>
                   <span class="text-xs text-gray-400">CM</span>
                 </template>
               </UInput>
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du deine Größe (in der Einheit CM) eingeben.</p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic">
+                        <span class="text-secondary">182</span>
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <h5 class="mt-2 mb-1">Bürgerstatus:</h5>
@@ -591,6 +900,17 @@ definePageMeta({
                   },
                 ]"
               />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier geht es darum wie dein UEE-Status ist.</p>
+                      <p>Du kannst entweder Bürger oder Zivilist sein.</p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <Presence exit-before-enter>
@@ -624,6 +944,17 @@ definePageMeta({
                     },
                   ]"
                 />
+                <template #hint>
+                  <UPopover mode="hover">
+                    <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                    <template #panel>
+                      <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                        <p>Jeder wird aus einem bestimmten Grund ein UEE-Bürger.</p>
+                        <p>Welcher Grund trifft bei dir zu?</p>
+                      </div>
+                    </template>
+                  </UPopover>
+                </template>
               </UFormGroup>
             </Motion>
           </Presence>
@@ -643,6 +974,22 @@ definePageMeta({
                 label="Ich besitze eine Hochschulausbildung."
                 color="primary"
               />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>
+                        Hier kannst du auswählen ob du im Militär gedient hast oder/und eine Hochschulausbildung hast.
+                      </p>
+                      <p>
+                        <span class="text-primary">Information</span>: Es könnte eine Option gesperrt sein, da du ihn
+                        als Grund deines Bürgerstatus angegeben hast.
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <!-- TODO: SHOW WHEN MILITARY -->
@@ -658,6 +1005,21 @@ definePageMeta({
               <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
                 <UFormGroup size="xl" label="Dienstzeit" :ui="formgroupUi">
                   <UInput v-model="formData.dutyPeriod" placeholder="2940 - 2950" icon="i-heroicons-user" />
+                  <template #hint>
+                    <UPopover mode="hover">
+                      <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                      <template #panel>
+                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                          <p>Hier geht es um den Zeitraum, in dem du gedient hast.</p>
+                          <br />
+                          <p class="pb-0 font-bold text-white">Beispiele:</p>
+                          <p class="italic">
+                            <span class="text-secondary">2940 - 2950</span>
+                          </p>
+                        </div>
+                      </template>
+                    </UPopover>
+                  </template>
                 </UFormGroup>
                 <UFormGroup size="xl" label="Dienstende" :ui="formgroupUi">
                   <ArisRadioGroup
@@ -675,6 +1037,16 @@ definePageMeta({
                       },
                     ]"
                   />
+                  <template #hint>
+                    <UPopover mode="hover">
+                      <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                      <template #panel>
+                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                          <p>Hier geht es darum, wie du dein Dienst quittiert hast.</p>
+                        </div>
+                      </template>
+                    </UPopover>
+                  </template>
                 </UFormGroup>
               </div>
             </Motion>
@@ -692,9 +1064,39 @@ definePageMeta({
               <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
                 <UFormGroup size="xl" label="Ausbildung" :ui="formgroupUi">
                   <UInput v-model="formData.educationName" placeholder="Medizinstudium" icon="i-heroicons-user" />
+                  <template #hint>
+                    <UPopover mode="hover">
+                      <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                      <template #panel>
+                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                          <p>Hier kannst du deine Hochschulausbildung eingeben.</p>
+                          <br />
+                          <p class="pb-0 font-bold text-white">Beispiele:</p>
+                          <p class="italic">
+                            <span class="text-secondary">Medizinstudium</span>
+                          </p>
+                        </div>
+                      </template>
+                    </UPopover>
+                  </template>
                 </UFormGroup>
                 <UFormGroup size="xl" label="Ausbildung" :ui="formgroupUi">
                   <UInput v-model="formData.educationPeriod" placeholder="2945 - 2948" icon="i-heroicons-user" />
+                  <template #hint>
+                    <UPopover mode="hover">
+                      <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                      <template #panel>
+                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                          <p>Hier kannst du den Zeitraum deiner Hochschulausbildung eingeben.</p>
+                          <br />
+                          <p class="pb-0 font-bold text-white">Beispiele:</p>
+                          <p class="italic">
+                            <span class="text-secondary">2945 - 2948</span>
+                          </p>
+                        </div>
+                      </template>
+                    </UPopover>
+                  </template>
                 </UFormGroup>
               </div>
               <UFormGroup v-model="formData.educationPlace" size="xl" label="Ort" :ui="formgroupUi">
@@ -704,106 +1106,531 @@ definePageMeta({
             </Motion>
           </Presence>
           <h4 class="mt-2 mb-1">Detaillierte Informationen:</h4>
-          <!-- TODO: ANWEISUNG, DASS EIN "," EINEN NEUEM LISTEN-ITEM ENTSPRICHT -->
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Hobbys" :ui="formgroupUi">
-              <UInput v-model="formData.hobbys" placeholder="Sport, Fliegen, Schrauben" icon="i-heroicons-user" />
+            <UFormGroup size="xl" label="Hobbies" :ui="formgroupUi">
+              <UInput v-model="formData.hobbys" placeholder="Sport, Fliegen, Schrauben, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du deine Hobbies eingeben.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Sport, Fliegen, Schrauben</span>:</p>
+                      <ul class="ml-2">
+                        <li>Sport</li>
+                        <li>Fligen</li>
+                        <li>Schrauben</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Freizeitgestaltung" :ui="formgroupUi">
-              <UInput v-model="formData.activities" placeholder="Fischen, Kochen" icon="i-heroicons-user" />
+              <UInput v-model="formData.activities" placeholder="Fischen, Kochen, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du eingeben was du in deiner Frezeit machst.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Fischen, Kochen</span>:</p>
+                      <ul class="ml-2">
+                        <li>Fischen</li>
+                        <li>Kochen</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Talente" :ui="formgroupUi">
               <UInput
                 v-model="formData.talents"
-                placeholder="Spricht Sprache X, Handwerklich begabt"
+                placeholder="Spricht Sprache X, Handwerklich begabt, ..."
                 icon="i-heroicons-user"
               />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du deine Talente eingeben.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Spricht Sprache X, Handwerklich begabt</span>:</p>
+                      <ul class="ml-2">
+                        <li>Spricht Sprache X</li>
+                        <li>Handwerklich begabt</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Angewohnheiten" :ui="formgroupUi">
               <UInput
                 v-model="formData.habits"
-                placeholder="Überspielt Unsicherheit mit Humor"
+                placeholder="Überspielt Unsicherheit mit Humor, ..."
                 icon="i-heroicons-user"
               />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du deine typischen Angewohnheiten eingeben.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Überspielt Unsicherheit mit Humor</span>:</p>
+                      <ul class="ml-2">
+                        <li>Überspielt Unsicherheit mit Humor</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Tics & Marotten" :ui="formgroupUi">
-              <UInput v-model="formData.tics" placeholder="Hat fragwürdigen Humor" icon="i-heroicons-user" />
+              <UInput v-model="formData.tics" placeholder="Hat fragwürdigen Humor, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du deine Tics & Marotten eingeben.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Hat fragwürdigen Humor</span>:</p>
+                      <ul class="ml-2">
+                        <li>Hat fragwürdigen Humor</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Ängste" :ui="formgroupUi">
-              <UInput v-model="formData.fears" placeholder="Hat Angst im Dunkeln" icon="i-heroicons-user" />
+              <UInput v-model="formData.fears" placeholder="Hat Angst im Dunkeln, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du deine Ängste eingeben.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Hat Angst im Dunkeln</span>:</p>
+                      <ul class="ml-2">
+                        <li>Hat Angst im Dunkeln</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Hervorstechender Charakterzug" :ui="formgroupUi">
-              <UInput v-model="formData.character" placeholder="Ist sehr loyal" icon="i-heroicons-user" />
+              <UInput v-model="formData.character" placeholder="Ist sehr loyal, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du deinen hervorstechenden Charakterzug eingeben.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Ist sehr loyal</span>:</p>
+                      <ul class="ml-2">
+                        <li>Ist sehr loyal</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Rästelhafte Züge" :ui="formgroupUi">
               <UInput
                 v-model="formData.mysterious"
-                placeholder="Spricht ungern über Ereignis X"
+                placeholder="Spricht ungern über Ereignis X, ..."
                 icon="i-heroicons-user"
               />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>
+                        Hier kannst du deine rätselhaften Züge eingeben. Also Dinge, die du nicht gerne über dich
+                        preisgibst.
+                      </p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Spricht ungern über Ereignis X</span>:</p>
+                      <ul class="ml-2">
+                        <li>Spricht ungern über Ereignis X</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <h5 class="mt-2 mb-1">Geschmäcker:</h5>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Musik" :ui="formgroupUi">
               <UInput v-model="formData.music" placeholder="Rock Musik, EDM, Metal, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>
+                        Hier kannst du Musik eingeben die du gerne hörst. Das können Genres, Künstler oder auch einzelne
+                        Lieder sein.
+                      </p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Rock Musik, EDM, Metal</span>:</p>
+                      <ul class="ml-2">
+                        <li>Rock Musik</li>
+                        <li>EDM</li>
+                        <li>Metal</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Filme" :ui="formgroupUi">
               <UInput v-model="formData.movies" placeholder="Star Trek, Star Wars, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>
+                        Hier kannst du Filme eingeben die du gerne schaust. Das können Genres oder auch einzelne Filme
+                        sein.
+                      </p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Star Trek, Star Wars</span>:</p>
+                      <ul class="ml-2">
+                        <li>Star Trek</li>
+                        <li>Star Wars</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <!-- TODO: Tipps, verseexkurs - literatur -->
             <UFormGroup size="xl" label="Bücher" :ui="formgroupUi">
-              <UInput v-model="formData.books" placeholder="Brochuren von Hersteller X, ..." icon="i-heroicons-user" />
+              <UInput v-model="formData.books" placeholder="Broschüren von Hersteller X, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>
+                        Hier kannst du Bücher eingeben die du gerne liest. Das können Genres oder auch einzelne Bücher
+                        sein.
+                      </p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Brochuren von Hersteller X</span>:</p>
+                      <ul class="ml-2">
+                        <li>Broschüren von Hersteller X</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Kleidung" :ui="formgroupUi">
               <UInput v-model="formData.clothing" placeholder="Lederjacken, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>
+                        Hier kannst du Kleidung eingeben die du gerne trägst. Das können Kleidungsstücke oder auch ganze
+                        Outfits sein.
+                      </p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Lederjacken</span>:</p>
+                      <ul class="ml-2">
+                        <li>Lederjacken</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Speisen" :ui="formgroupUi">
               <UInput v-model="formData.food" placeholder="Big Bennys Nudeln, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du Gerichte oder Dinge eingeben die du gerne isst.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Big Bennys Nudeln</span>:</p>
+                      <ul class="ml-2">
+                        <li>Big Bennys Nudeln</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Getränke" :ui="formgroupUi">
               <UInput v-model="formData.drinks" placeholder="Vestal Wasser, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du (alkoholfreie) Getränke eingeben die du gerne trinkst.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Vestal Wasser</span>:</p>
+                      <ul class="ml-2">
+                        <li>Vestal Wasser</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Alkohol" :ui="formgroupUi">
               <UInput v-model="formData.alcohol" placeholder="Schmolz Bier, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du alkoholische Getränke eingeben die du gerne trinkst.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Schmolz Bier</span>:</p>
+                      <ul class="ml-2">
+                        <li>Schmolz Bier</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Farben" :ui="formgroupUi">
               <UInput v-model="formData.colors" placeholder="Schwarz, Blau, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du Farben eingeben die du gerne magst.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Schwarz, Blau</span>:</p>
+                      <ul class="ml-2">
+                        <li>Schwarz</li>
+                        <li>Blau</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" :label="user?.pronom + ' liebt...'" :ui="formgroupUi">
               <UInput v-model="formData.loves" placeholder="Hochwertige Schiffe, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du Dinge eingeben die du Liebst.</p>
+                      <p>Das können Schiffe, Marken, Produkte oder egal was sein.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Hochwertige Schiffe</span>:</p>
+                      <ul class="ml-2">
+                        <li>Hochwertige Schiffe</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
             <UFormGroup size="xl" :label="user?.pronom + ' hasst...'" :ui="formgroupUi">
               <UInput v-model="formData.hates" placeholder="Drake, ..." icon="i-heroicons-user" />
+              <template #hint>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du Dinge eingeben die du hasst.</p>
+                      <p>Das können Schiffe, Marken, Produkte oder egal was sein.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
+                        jedem Komma ein neues Item in der Liste kommt.
+                      </p>
+                      <br />
+                      <p class="pb-0 font-bold text-white">Beispiele:</p>
+                      <p class="italic"><span class="text-secondary">Drake</span>:</p>
+                      <ul class="ml-2">
+                        <li>Drake</li>
+                      </ul>
+                    </div>
+                  </template>
+                </UPopover>
+              </template>
             </UFormGroup>
           </div>
-          <h5 class="mt-2 mb-1">Medizinisch Relevantes:</h5>
-          <UFormGroup size="xl" :ui="formgroupUi">
+          <UFormGroup size="xl">
             <UTextarea
               v-model="formData.medicalinfo"
               resize
               :rows="8"
               :placeholder="'- Rechte Hand große Narbe verursacht durch eine Piratenklinge \n- Linke Ohrmuschel nicht vorhanden durch einen schlimmen Rennsport-Unfall'"
             />
+            <template #label>
+              <div class="flex mt-4">
+                <h5 class="text-white">Medizinisch Relevantes:</h5>
+                <UPopover mode="hover">
+                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                  <template #panel>
+                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                      <p>Hier kannst du Medizinisch relevante Details eingeben.</p>
+                      <p>
+                        <span class="text-primary">Information</span>: Das ist nicht deine Medizinische Akte sondern nur
+                        vielleicht spannende Details.
+                      </p>
+                      <p>
+                        <span class="text-primary">Information</span>: Dies ist ein Textfeld. Es wäre schön wenn du es
+                        wie im Platzhalter gezeigt formatierst.
+                      </p>
+                    </div>
+                  </template>
+                </UPopover>
+              </div>
+            </template>
           </UFormGroup>
-          <TableHr> Biografie </TableHr>
+          <TableHr>
+            <span class="flex">
+              Biografie
+              <UPopover mode="hover">
+                <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                <template #panel>
+                  <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
+                    <p>
+                      Hier kannst du deine Biografie schreiben. Diese kann sehr ausführlich oder auch kurz und knapp
+                      sein.
+                    </p>
+                    <p>
+                      Falls du Hilfe zur Lore brauchst kannst du dich ja im Verse-Exkurs umschauen.
+                      <br />
+                      Alternativ kannst du auch gerne im Discord nachfragen. Oder dir die Biografien anderer Mitglieder
+                      anschauen.
+                    </p>
+                  </div>
+                </template>
+              </UPopover>
+            </span>
+          </TableHr>
           <!-- TODO: ADD EDITOR -->
           <UFormGroup size="xl" label="Biografie">
-            <ClientOnly>
+            <LazyClientOnly>
               <Editor
                 api-key="30ijnjychriexb76qdn1j9nrlsz8qu89urtbqt9jd7gjo5dq"
                 v-model="formData.biography"
@@ -958,7 +1785,7 @@ definePageMeta({
                   verify_html: false,
                 }"
               />
-            </ClientOnly>
+            </LazyClientOnly>
           </UFormGroup>
         </UForm>
       </div>
@@ -970,46 +1797,4 @@ definePageMeta({
 .tox-statusbar__right-container {
   display: none;
 }
-/* .tox-editor-container {
-  display: inline-flex;
-  position: relative;
-  width: 100%;
-  padding: 0;
-  font-size: 1rem;
-  line-height: 1.5rem;
-  border-width: 0px;
-  border-radius: 0.375rem;
-  --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-  --tw-bg-opacity: 1;
-  background-color: rgb(17 17 17 / var(--tw-bg-opacity));
-  --tw-bg-opacity: 0.6;
-  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-  --tw-ring-inset: inset;
-  --tw-ring-opacity: 1;
-  --tw-ring-color: rgb(34 34 34 / var(--tw-ring-opacity));
-  appearance: none;
-  border-color: rgb(109 109 109 / var(--tw-border-opacity, 1)); */
-/* @apply placeholder-gray-500 form-input; */
-/* } */
-/* .tox-editor-container:disabled {
-  cursor: not-allowed;
-  opacity: 0.75;
-}
-.tox-editor-container:focus-within {
-  --tw-ring-opacity: 1;
-  --tw-ring-color: rgb(0 255 232 / var(--tw-ring-opacity));
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-}
-.tox-editor-container::placeholder {
-  --tw-placeholder-opacity: 1;
-  color: rgb(111 111 111 / var(--tw-placeholder-opacity));
-} */
 </style>
