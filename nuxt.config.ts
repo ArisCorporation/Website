@@ -30,6 +30,7 @@ export default defineNuxtConfig({
     '@pinia-plugin-persistedstate/nuxt',
     'dayjs-nuxt',
     '@nuxt/ui',
+    'nuxt-lodash',
   ],
 
   runtimeConfig: {
