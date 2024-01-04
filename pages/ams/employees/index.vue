@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { getItems } = useDirectusItems();
+const { getUsers } = useDirectusUsers();
 const selectedDepartment = ref({ name: 'Alle' });
 const search = ref('');
 const hideMembers = ref(false);
@@ -37,29 +38,15 @@ const { data } = await useAsyncData('ams-employee-board', async () => {
         sort: ['gameplay_name'],
       },
     }),
-    getItems({
-      collection: 'member',
+    getUsers({
       params: {
-        fields: [
-          'id',
-          'title',
-          'firstname',
-          'lastname',
-          'slug',
-          'member_potrait.id',
-          'roles',
-          'head_of_department',
-          'position_level',
-          'department.id',
-          'department.gameplay_name',
-          'head_department.id',
-          'head_department.gameplay_name',
-        ],
+        // TODO: ADD DEPARTMENT
+        fields: ['id', 'title', 'first_name', 'last_name', 'slug', 'avatar', 'roles', 'head_of_department', 'role'],
         filter: {
-          status: { _eq: 'published' },
+          status: { _eq: 'active' },
         },
         limit: -1,
-        sort: ['firstname'],
+        sort: ['first_name'],
       },
     }),
   ]);
@@ -69,7 +56,7 @@ const { data } = await useAsyncData('ams-employee-board', async () => {
   }
 
   return {
-    members: members.map((obj) => transformMember(obj)),
+    members: members.map((obj) => transformUser(obj)),
     departments: departments.map((obj) => transformDepartment(obj)),
   };
 });
