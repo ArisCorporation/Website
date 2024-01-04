@@ -1,6 +1,8 @@
 export default function (obj: any) {
   const getShips = () => obj.ships?.map((i: any) => transformHangarItem(i));
+  // TODO: MEMBER FROM MEMBER TO USER
   const getMembers = () => obj.members?.map((i: any) => transformMember(i));
+  // TODO: HoD FROM MEMBER TO USER
   const getHoD = () => (obj.head_of_department ? transformMember(obj.head_of_department) : null);
   const getTabId = () => {
     if (obj.gameplay_name) {
