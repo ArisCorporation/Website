@@ -1,60 +1,65 @@
-export const useModalStore = defineStore('modalStore', () => {
-  const isOpen = ref(false);
-  const title = ref('');
-  const data = ref(null);
-  const type = ref('');
-  const hideXButton = ref(false);
-  const hideCloseButton = ref(false);
-  const agreeAction = ref(null);
-
-  function setData(data: any) {
-    data.value = data;
-  }
-
-  function openModal(
-    modalTitle: string,
-    options: {
-      type?: string;
-      hideXButton?: boolean;
-      hideCloseButton?: boolean;
-      agreeAction?: any;
+export const useModalStore = defineStore({
+  id: 'modalStore',
+  state: () => ({
+    isModalOpen: false,
+    isSlideOpen: false,
+    title: '',
+    data: null,
+    type: '',
+    hideXButton: false,
+    hideCloseButton: false,
+    agreeAction: null,
+  }),
+  actions: {
+    setData(newData: any) {
+      this.data = newData;
     },
-  ) {
-    const {
-      type: propType,
-      hideXButton: propHideXButton,
-      hideCloseButton: propHideCloseButton,
-      agreeAction: propAgreeAction,
-    } = options;
+    openModal(
+      modalTitle: string,
+      options: {
+        type?: string;
+        hideXButton?: boolean;
+        hideCloseButton?: boolean;
+        agreeAction?: any;
+      },
+    ) {
+      const {
+        type: propType = '',
+        hideXButton: propHideXButton = false,
+        hideCloseButton: propHideCloseButton = false,
+        agreeAction: propAgreeAction = null,
+      } = options;
 
-    isOpen.value = true;
-    title.value = modalTitle;
-    type.value = propType || '';
-    hideXButton.value = propHideXButton || false;
-    hideCloseButton.value = propHideCloseButton || false;
-    agreeAction.value = propAgreeAction || null;
-  }
+      this.isModalOpen = true;
+      this.title = modalTitle;
+      this.type = propType;
+      this.hideXButton = propHideXButton;
+      this.hideCloseButton = propHideCloseButton;
+      this.agreeAction = propAgreeAction;
+    },
+    openSlide(options: { type?: string; hideXButton?: boolean; hideCloseButton?: boolean; agreeAction?: any }) {
+      const { type: propType = '' } = options;
 
-  function closeModal() {
-    isOpen.value = false;
-    setTimeout(() => {
-      title.value = '';
-      type.value = '';
-      hideXButton.value = false;
-      hideCloseButton.value = true;
-      agreeAction.value = null;
-    }, 500);
-  }
-  return {
-    isOpen,
-    title,
-    type,
-    hideXButton,
-    hideCloseButton,
-    agreeAction,
-    data,
-    setData,
-    openModal,
-    closeModal,
-  };
+      this.isSlideOpen = true;
+      this.type = propType;
+    },
+    closeModal() {
+      this.isModalOpen = false;
+      setTimeout(() => {
+        this.title = '';
+        this.data = null;
+        this.type = '';
+        this.hideXButton = false;
+        this.hideCloseButton = false;
+        this.agreeAction = null;
+      }, 600);
+    },
+    closeSlide() {
+      this.isSlideOpen = false;
+      setTimeout(() => {
+        this.data = null;
+        this.type = '';
+      }, 600);
+    },
+  },
 });

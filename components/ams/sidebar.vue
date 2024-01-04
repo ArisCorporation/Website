@@ -61,7 +61,7 @@ const userSidebarItems = [
     aria-controls="default-sidebar"
     type="button"
     class="fixed z-40 inline-flex items-center p-2 mt-2 text-sm rounded-lg text-tbase hover:text-bprimary w-fit ms-3 lg:hidden focus:outline-none focus:ring-0 hover:bg-tbase"
-    @click="SidebarStore.ToggleMobileSidebar()"
+    @click="SidebarStore.toggleMobileSidebar"
   >
     <span class="sr-only">Open sidebar</span>
     <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -86,9 +86,9 @@ const userSidebarItems = [
         <li v-for="(item, i) in sidebarItems" :key="i" class="pb-0">
           <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
           <NuxtLink
-            v-if="user.permissionLevel >= item.level"
+            v-if="user.position.permissionLevel >= item.level"
             :to="'/ams' + item.link"
-            @click="SidebarStore.ToggleMobileSidebar"
+            @click="SidebarStore.toggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
             :class="[
               (item.link ? $route.path.startsWith('/ams' + item.link) : $route.path === '/ams')
@@ -123,7 +123,7 @@ const userSidebarItems = [
           <NuxtLink
             v-if="item.link"
             :to="'/ams' + item.link"
-            @click="SidebarStore.ToggleMobileSidebar"
+            @click="SidebarStore.toggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
             :class="[
               (item.link ? $route.path.startsWith('/ams' + item.link) : $route.path === '/ams')
@@ -154,7 +154,7 @@ const userSidebarItems = [
         <li>
           <NuxtLink
             to="/"
-            @click="SidebarStore.ToggleMobileSidebar"
+            @click="SidebarStore.toggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline text-tbase hover:text-white group"
           >
             <Icon name="IconsLogosAriscorp" class="w-6 h-6 transition duration-75 text-tbase group-hover:text-white" />

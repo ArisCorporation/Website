@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    @apply bg-bprimary text-tbase scroll-smooth font-nasa max-w-full text-base;
+    @apply bg-bprimary text-tbase scroll-smooth font-nasa max-w-full text-base scrollbar;
   }
   ::selection {
     @apply bg-primary-400 text-bprimary;
@@ -12,17 +12,41 @@
   /* body {
     @apply text-[#d1d5dd];
   } */
-  html::-webkit-scrollbar-track {
+  .scrollbar::-webkit-scrollbar-track {
     @apply rounded bg-bsecondary;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     /*border-radius: 10px; */
   }
-  html::-webkit-scrollbar {
+  .scrollbar::-webkit-scrollbar {
     @apply w-[7px] h-[7px] bg-bsecondary;
   }
-  html::-webkit-scrollbar-thumb {
+  .scrollbar::-webkit-scrollbar-thumb {
     @apply rounded-md bg-primary-400;
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply rounded bg-bsecondary;
+    -webkit-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+    /*border-radius: 10px; */
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    @apply w-[5px] h-[5px] bg-bsecondary;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply rounded-md bg-primary-400;
+    -webkit-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+  }
+  .scrollbar-gray-thin::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+    /*border-radius: 10px; */
+  }
+  .scrollbar-gray-thin::-webkit-scrollbar {
+    @apply w-[5px] h-[5px];
+  }
+  .scrollbar-gray-thin::-webkit-scrollbar-thumb {
+    @apply rounded-md bg-dark-gray;
+    -webkit-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
   }
   main {
     @apply min-h-screen flex;
@@ -131,7 +155,11 @@
   }
 
   .text-stroke {
-    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
+    text-shadow:
+      -1px -1px 0 black,
+      1px -1px 0 black,
+      -1px 1px 0 black,
+      1px 1px 0 black;
   }
 
   .tooltip {

@@ -39,7 +39,7 @@ defineProps({
             <hr />
             <p>
               Position:
-              <span class="text-secondary">{{ data.position }}</span>
+              <span class="text-secondary">{{ data.position?.position }}</span>
             </p>
             <template v-if="data.roles[0]">
               <hr />
@@ -47,16 +47,16 @@ defineProps({
             </template>
             <hr />
             <p class="flex justify-center space-x-4">
-              <NuxtLink :to="ams ? data.biographyLink : data.biographyAmsLink">BIOGRAFIE</NuxtLink>
+              <NuxtLink :to="ams ? data.biographyAmsLink : data.biographyLink">BIOGRAFIE</NuxtLink>
               <NuxtLink v-if="hangarLink" :to="data.hangarLink">HANGAR</NuxtLink>
             </p>
           </div>
         </div>
         <div class="absolute z-10 w-full h-full bg-black opacity-0 group-hover:opacity-50 transition-short-group" />
-        <NuxtImg :alt="'Potrait von ' + data.fullName" :src="data.potrait" class="z-0 w-full h-full" />
+        <NuxtImg :alt="'Potrait von ' + data.fullName" :src="data.potrait" class="z-0 object-cover w-full h-full" />
       </div>
       <h4>{{ data.fullName }}</h4>
-      <h6 class="pt-0 text-light-gray">{{ data.position }}</h6>
+      <h6 class="pt-0 text-light-gray">{{ data.position?.position }}</h6>
     </Motion>
   </Presence>
 </template>

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const modalStore = useModalStore();
+const removePopover = ref(false);
+const emit = defineEmits(['edit', 'removeOpen', 'removeConfirm']);
 const props = defineProps({
   shipData: {
     type: Object as PropType<IShip>,
@@ -16,6 +18,11 @@ const props = defineProps({
     default: false,
   },
   displayCrud: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  hideEdit: {
     type: Boolean,
     required: false,
     default: false,
@@ -60,26 +67,22 @@ const props = defineProps({
     required: false,
     default: false,
   },
+  color: {
+    type: String,
+    required: false,
+    default: 'primary',
+  },
 });
 
 const handleEdit = () => {
-  modalStore.openModal(
-    `Bearbeiten: ${props.hangarData.userData.name && `"${props.hangarData.userData.name}"`} ${
-      props.hangarData.ship.manufacturer.code
-    } ${props.hangarData.ship.name}`,
-    { type: 'editShip' },
-  );
-  modalStore.setData(props.hangarData);
+  const title = `Bearbeiten: ${props.hangarData.userData.name ? props.hangarData.userData.name + ' - ' : ''}${
+    props.hangarData.ship.manufacturer.code
+  } ${props.hangarData.ship.name}`;
+
+  emit('edit', title, props.hangarData);
 };
-const handleRemove = () => {
-  modalStore.openModal(
-    `Entfernen: ${props.hangarData.userData.name && `"${props.hangarData.userData.name}"`} ${
-      props.hangarData.ship.manufacturer.code
-    } ${props.hangarData.ship.name}`,
-    { type: 'removeShip' },
-  );
-  modalStore.setData(props.hangarData);
-};
+
+// border-danger text-danger border-success text-success
 </script>
 <template>
   <Presence exit-before-enter>
@@ -92,7 +95,7 @@ const handleRemove = () => {
       :transition="{ duration: 0.5 }"
       class="static block px-2 pb-3 basis-full md:basis-1/2 xl:basis-1/3 3xl:basis-1/4"
     >
-      <DefaultPanel>
+      <DefaultPanel :color="color">
         <div class="relative h-fit">
           <NuxtLink
             :to="'/ShipExkurs/' + shipData.slug"
@@ -162,15 +165,45 @@ const handleRemove = () => {
             <div v-if="displayCrud" class="absolute z-20 block h-full mt-auto ml-auto right-4">
               <div class="flex h-full pb-1 space-x-4 text-white/50">
                 <Icon
+                  v-if="!hideEdit"
                   @click="handleEdit"
                   name="heroicons:pencil"
                   class="w-5 h-5 my-auto transition cursor-pointer hover:text-primary"
                 />
-                <Icon
-                  @click="handleRemove"
-                  name="heroicons:trash"
-                  class="w-5 h-5 my-auto transition cursor-pointer hover:text-danger"
-                />
+                <UPopover :popper="{ placement: 'top-end' }" :open="removePopover" class="w-5 h-5 my-auto">
+                  <Icon
+                    @click="
+                      removePopover = !removePopover;
+                      $emit('removeOpen');
+                    "
+                    name="heroicons:trash"
+                    class="w-full h-full transition cursor-pointer hover:text-danger"
+                  />
+                  <template #panel>
+                    <div class="p-4 text-xs">
+                      <p>Wollen sie das Schiff wirklich entfernen?</p>
+                      <div class="flex mx-auto mt-2 gap-x-4 w-fit">
+                        <ButtonDefault
+                          color="danger"
+                          @click="
+                            removePopover = false;
+                            $emit('removeConfirm', hangarData);
+                          "
+                        >
+                          <div class="flex gap-x-1">
+                            <Icon name="heroicons:trash" class="w-4 h-4 my-auto" />
+                            <span class="my-auto">Ja</span>
+                          </div>
+                        </ButtonDefault>
+                        <ButtonDefault @click="removePopover = false" color="success">
+                          <div class="flex">
+                            <span class="my-auto">Nein</span>
+                          </div>
+                        </ButtonDefault>
+                      </div>
+                    </div>
+                  </template>
+                </UPopover>
               </div>
             </div>
           </div>
@@ -180,10 +213,10 @@ const handleRemove = () => {
             v-if="detailView"
             :key="shipData.id + '-table'"
             :initial="{ height: 0 }"
-            :animate="{ height: '182px' }"
+            :animate="{ height: '260px' }"
             :exit="{ height: 0 }"
             :transition="{ duration: 0.5 }"
-            class="w-full px-1 overflow-hidden ease-in-out transition-default bg-bprimary"
+            class="w-full px-1 ease-in-out overflow-clip transition-default bg-bprimary"
           >
             <div class="grid grid-cols-6 px-4 py-2 uppercase">
               <TableRow title="Klassifizierung" :content="shipData.classification" />
@@ -194,6 +227,8 @@ const handleRemove = () => {
               <TableRow title="Länge" :content="shipData.length && shipData.length + ' M'" third />
               <TableRow title="Breite" :content="shipData.length && shipData.beam + ' M'" third />
               <TableRow title="Höhe" :content="shipData.length && shipData.height + ' M'" third />
+              <TableHr />
+              <TableRow title="Aktives Modul" :content="hangarData.userData.module?.name" full-width />
             </div>
           </Motion>
         </Presence>

@@ -7,7 +7,7 @@ defineProps({
   },
 });
 const modalStore = useModalStore();
-const { isOpen, title, hideCloseButton, hideXButton, agreeAction } = storeToRefs(modalStore);
+const { isModalOpen, title, hideCloseButton, hideXButton, agreeAction } = storeToRefs(modalStore);
 
 const closeModal = () => {
   modalStore.closeModal();
@@ -15,8 +15,8 @@ const closeModal = () => {
 </script>
 
 <template>
-  <HeadlessTransitionRoot appear :show="isOpen" as="template">
-    <HeadlessDialog as="div" class="relative z-10" @close="closeModal">
+  <HeadlessTransitionRoot appear :show="isModalOpen" as="template">
+    <HeadlessDialog as="div" class="relative z-50" @close="closeModal">
       <HeadlessTransitionChild
         as="template"
         enter="duration-300 ease-out"
@@ -40,8 +40,8 @@ const closeModal = () => {
             leave-to="opacity-0 scale-95"
           >
             <HeadlessDialogPanel class="w-full max-w-2xl">
-              <DefaultPanel>
-                <div class="bg-[#222] px-4 pb-4">
+              <DefaultPanel overflow>
+                <div class="px-4 pt-2 pb-6">
                   <button v-if="!hideXButton" type="button" class="absolute top-1 left-1" @click="closeAction">
                     <Icon
                       name="heroicons:x-circle"
@@ -53,7 +53,7 @@ const closeModal = () => {
                     <slot name="content" :close="closeModal" />
                   </div>
 
-                  <div class="mt-4">
+                  <div v-if="!hideCloseButton || agreeAction" class="mt-4">
                     <button
                       v-if="!hideCloseButton"
                       v-motion
