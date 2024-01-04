@@ -39,7 +39,6 @@ export default defineNuxtConfig({
     public: {
       appVersion: version,
       buildNumber: process.env.SOURCE_COMMIT,
-      buildNumber2: process.env.NUXT_PUBLIC_BUILD,
       environment: process.env.NODE_ENV,
       url: process.env.NUXT_PUBLIC_URL,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
