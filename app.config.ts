@@ -81,12 +81,20 @@ export default defineAppConfig({
           'text-{color}-500 dark:text-{color}-400 hover:bg-{color}-50 disabled:bg-transparent dark:hover:bg-{color}-950 dark:disabled:bg-transparent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-{color}-500 dark:focus-visible:ring-{color}-400',
         link: 'text-{color}-500 hover:text-{color}-600 disabled:text-{color}-500 dark:text-{color}-400 dark:hover:text-{color}-500 dark:disabled:text-{color}-400 underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-{color}-500 dark:focus-visible:ring-{color}-400',
         inputInfo:
-          'text-btertiary hover:text-btertiary disabled:cursor-not-allowed disabled:text-bsecondary underline-offset-4 hover:underline focus-visible:ring-0 focus-visible:text-[#555] p-0 ml-2',
+          'text-dark-gray hover:text-light-gray disabled:cursor-not-allowed disabled:text-bsecondary underline-offset-4 hover:underline focus-visible:ring-0 focus-visible:text-[#555] p-0 ml-2 transition',
       },
     },
     popover: {
       background: 'bg-bsecondary',
       ring: 'ring-1 ring-btertiary',
+    },
+    slideover: {
+      base: 'relative flex-1 flex flex-col w-full focus:outline-none border-l-2 border-l-btertiary',
+      background: 'bg-bprimary',
+      width: 'w-screen max-w-[532px] xl:max-w-xl',
+      overlay: {
+        background: 'bg-black/50',
+      },
     },
   },
 });
