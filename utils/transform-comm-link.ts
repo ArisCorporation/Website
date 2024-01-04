@@ -1,4 +1,5 @@
 export default function (obj: any, array?: ICommLink[]) {
+  // TODO: AUTHOR FROM MEMBER TO USER
   const getAuthor = () => (obj.comm_link_author ? transformMember(obj.comm_link_author) : null);
   const getChannel = () => (obj.comm_link_channel ? transformCommLinkChannel(obj.comm_link_channel) : null);
   const getSize = () => {

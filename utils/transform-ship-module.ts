@@ -1,6 +1,6 @@
 export default function (obj: any) {
   const getShip = () => (obj.ship ? transformShip(obj.ship) : null);
-  const getManufacturer = () => (obj.manufacturer ? transformMember(obj.manufacturer) : null);
+  const getManufacturer = () => (obj.manufacturer ? transformCompany(obj.manufacturer) : null);
 
   return {
     id: obj.id,

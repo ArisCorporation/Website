@@ -109,6 +109,6 @@ export default function transformShip(obj: any, shipList?: any) {
     // rating: getRating,
     size: obj.size,
     sortSize: obj.sortSize,
-    // modules: getModules(),
+    modules: obj.modules ? obj.modules.map((module) => transformShipModule(module)) : null,
   };
 }
