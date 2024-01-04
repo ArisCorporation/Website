@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { getItems, getSingletonItem } = useDirectusItems();
+const { getUsers } = useDirectusUsers();
 const { query } = useRoute();
 const homepageTabsStore = useHomepageTabsStore();
 const scrollMargin = ref('scroll-m-14');
@@ -31,25 +32,14 @@ const { data } = await useAsyncData('homepage-data', async () => {
           fields: ['text'],
         },
       }),
-      getItems({
-        collection: 'member',
+      getUsers({
         params: {
-          fields: [
-            'id',
-            'title',
-            'firstname',
-            'lastname',
-            'slug',
-            'member_potrait.id',
-            'roles',
-            'head_of_department',
-            'position_level',
-          ],
+          fields: ['id', 'title', 'first_name', 'last_name', 'slug', 'avatar', 'roles', 'head_of_department', 'role'],
           filter: {
-            status: { _eq: 'published' },
+            status: { _eq: 'active' },
           },
           limit: -1,
-          sort: ['firstname'],
+          sort: ['first_name'],
         },
       }),
       getItems({
@@ -166,7 +156,7 @@ const { data } = await useAsyncData('homepage-data', async () => {
     history: history.text,
     manifest: manifest.text,
     charta: charta.text,
-    members: members.map((obj) => transformMember(obj)),
+    members: members.map((obj) => transformUser(obj)),
     departments: departments.map((obj) => transformDepartment(obj)),
     fleetData: {
       fleetData: fleet.map((obj) => transformHangarItem(obj)),
@@ -236,7 +226,7 @@ if (query) {
     homepageTabsStore.setOurDepartmentTab(Number(query.department));
   }
 }
-
+console.log(data.value.members);
 onMounted(() => {
   setTimeout(() => (scrollMargin.value = 'scroll-m-28'));
 });
