@@ -1,5 +1,4 @@
 <script setup lang="ts">
-const { getItems } = useDirectusItems();
 const { getUsers } = useDirectusUsers();
 const { params } = useRoute();
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
@@ -20,14 +19,14 @@ const { data } = await useAsyncData(
           'avatar',
           'roles',
           'role',
+          // TODO: ADD BIRTHPLACE AND CURRENTPLACE
+          // TODO: ADD DEPARTMENTS AND SHIPS
           // 'head_of_department',
           // 'head_department',
           'department',
           'sex',
           'birthdate',
           // 'birthPlace',
-          // 'birthSystem.name',
-          // 'birthSystem.slug',
           // 'currentResidence',
           // 'currentResidenceSystem.name',
           // 'currentResidenceSystem.slug',
@@ -137,23 +136,23 @@ useHead({
           <Icon name="material-symbols:ios-share-rounded" />
         </ButtonDefault>
         <TableParent title="ArisCorp">
-          <TableRow
+          <!-- <TableRow
             v-if="data?.head_of_department"
             title="Abteilungsleiter in folgender Abteilung"
             :content="data?.department.name"
             full-width
             link="/#our"
             @click="handleDepartmentLink"
-          />
-          <TableRow
+          /> -->
+          <!-- <TableRow
             v-else-if="data?.department"
             title="Arbeitet in folgender Abteilung"
             :content="data?.department.name"
             full-width
             link="/#our"
             @click="handleDepartmentLink"
-          />
-          <TableRow title="Position" :content="data?.position" full-width />
+          /> -->
+          <TableRow title="Position" :content="data?.position.position" full-width />
           <TableRow title="Rollen innerhalb der ArisCorp" :content="data?.roles.join(', ')" full-width />
         </TableParent>
       </div>
@@ -167,17 +166,17 @@ useHead({
             :content="data?.birthdate ? $dayjs().add(930, 'years').to(data?.birthdate, true) : null"
           />
           <TableRow title="Geburtsort" :content="data?.birthplace" />
-          <TableRow
+          <!-- <TableRow
             title="Geburtssystem"
             :content="data?.birthsystem?.name"
             :link="'/VerseExkurs/systems/' + data?.birthsystem?.slug"
-          />
+          /> -->
           <TableRow title="Aktueller Wohnort" :content="data?.currentplace" />
-          <TableRow
+          <!-- <TableRow
             title="Geburtssystem"
             :content="data?.currentsystem?.name"
             :link="'/VerseExkurs/systems/' + data?.currentsystem?.slug"
-          />
+          /> -->
           <TableHr />
           <TableRow title="Körpergrösse" :content="data?.height ? data?.height + ' cm' : null" />
           <TableRow title="Körpergewicht" :content="data?.weight ? data?.weight + ' kg' : null" />
@@ -192,17 +191,17 @@ useHead({
           <template
             v-if="data?.ueestate?.toLowerCase() === 'citizen' && data?.citizenreason?.toLowerCase() === 'militärdienst'"
           >
-            <TableRow title="Dienstzeit" :content="data?.duty.dutyperiod" />
-            <TableRow title="Dienstende" :content="data?.duty.dutyreason" />
+            <TableRow title="Dienstzeit" :content="data?.duty.period" />
+            <TableRow title="Dienstende" :content="data?.duty.end" />
           </template>
           <template
             v-if="
               data?.ueestate?.toLowerCase() === 'citizen' && data?.citizenreason?.toLowerCase() === 'besondere bildung'
             "
           >
-            <TableRow title="Studiengang" :content="data?.education.eduname" />
-            <TableRow title="Studiumszeitraum" :content="data?.education.eduperiod" />
-            <TableRow title="Studiumsort" :content="data?.education.eduplace" full-width />
+            <TableRow title="Studiengang" :content="data?.education.name" />
+            <TableRow title="Studiumszeitraum" :content="data?.education.period" />
+            <TableRow title="Studiumsort" :content="data?.education.place" full-width />
           </template>
         </TableParent>
         <TableParent title="Spezifisch">
