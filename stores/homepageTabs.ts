@@ -1,29 +1,23 @@
-export const useHomepageTabsStore = defineStore('homepageTabs', () => {
-  const selectedArisTab = ref(0);
-  const selectedOurTab = ref(0);
-  const selectedOurFleetTab = ref(0);
-  const selectedOurDepartmentTab = ref(0);
-  const setArisTab = (index: number) => {
-    selectedArisTab.value = index;
-  };
-  const setOurTab = (index: number) => {
-    selectedOurTab.value = index;
-  };
-  const setOurFleetTab = (index: number) => {
-    selectedOurFleetTab.value = index;
-  };
-  const setOurDepartmentTab = (index: number) => {
-    selectedOurDepartmentTab.value = index;
-  };
-
-  return {
-    selectedArisTab,
-    setArisTab,
-    selectedOurTab,
-    setOurTab,
-    selectedOurFleetTab,
-    setOurFleetTab,
-    selectedOurDepartmentTab,
-    setOurDepartmentTab,
-  };
+export const useHomepageTabsStore = defineStore({
+  id: 'homepageTabs',
+  state: () => ({
+    selectedArisTab: 0,
+    selectedOurTab: 0,
+    selectedOurFleetTab: 0,
+    selectedOurDepartmentTab: 0,
+  }),
+  actions: {
+    setArisTab(index: number) {
+      this.selectedArisTab = index;
+    },
+    setOurTab(index: number) {
+      this.selectedOurTab = index;
+    },
+    setOurFleetTab(index: number) {
+      this.selectedOurFleetTab = index;
+    },
+    setOurDepartmentTab(index: number) {
+      this.selectedOurDepartmentTab = index;
+    },
+  },
 });
