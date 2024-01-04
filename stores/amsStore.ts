@@ -1,7 +1,12 @@
-export const useVeStore = defineStore('amsStore', () => {
-  const MobileSidebar = ref(false);
-  const ToggleMobileSidebar = () => {
-    MobileSidebar.value = !MobileSidebar.value;
-  };
-  return { MobileSidebar, ToggleMobileSidebar };
+export const useVeStore = defineStore({
+  id: 'amsStore',
+  state: () => ({
+    MobileSidebar: false,
+  }),
+  getters: {},
+  actions: {
+    ToggleMobileSidebar() {
+      this.MobileSidebar = !this.MobileSidebar;
+    },
+  },
 });
