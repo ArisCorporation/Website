@@ -32,9 +32,31 @@ useHead({
         <slot name="modalContent" />
       </template>
     </TheModal>
+    <USlideover v-model="useModalStore().isSlideOpen">
+      <!-- <div class="flex-1 p-4 scrollbar-gray-thin"> -->
+      <div class="flex-1 overflow-y-scroll">
+        <UCard
+          class="flex flex-col flex-1 h-full overflow-y-scroll scrollbar-gray-thin"
+          :ui="{
+            body: { base: 'flex-1' },
+            background: 'bg-bprimary',
+            ring: '',
+            divide: 'divide-y divide-gray-100 dark:divide-gray-800',
+          }"
+        >
+          <template #header>
+            <slot name="slideHeader" />
+          </template>
+          <slot name="slideContent" />
+          <template #footer>
+            <slot name="slideFooter" />
+          </template>
+        </UCard>
+      </div>
+    </USlideover>
     <AmsSidebar />
     <div class="flex flex-col justify-between flex-1 min-h-screen lg:ml-64">
-      <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.ToggleMobileSidebar()" />
+      <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
       <DevOnly>
         <div class="bg-black z-[99] pb-4 px-8">
           <h6>DEV TOOLS:</h6>
@@ -53,6 +75,7 @@ useHead({
           <slot />
         </div>
       </div>
+      <div v-if="$route.path === '/ams/profile'" id="profile_actions" class="sticky z-10 w-full h-12 bottom-6" />
       <Footer />
     </div>
   </div>
