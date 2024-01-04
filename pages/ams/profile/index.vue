@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { object, string, type InferType } from 'yup';
 import Editor from '@tinymce/tinymce-vue';
 const userData = useDirectusUser();
 const { getUserById } = useDirectusUsers();
@@ -16,11 +17,24 @@ const { data: user } = await useAsyncData(
       params: {
         fields: [
           '*',
+          'currentResidence.id',
+          'currentResidence.name',
+          'currentResidence.slug',
+          'currentResidence.planet.id',
+          'currentResidence.planet.name',
+          'currentResidence.planet.astronomicalDesignation',
+          'currentResidence.planet.slug',
+          'currentResidence.planet.starSystem.id',
+          'currentResidence.planet.starSystem.name',
+          'currentResidence.planet.starSystem.slug',
+          'birthplace.id',
           'birthplace.name',
           'birthplace.slug',
+          'birthplace.planet.id',
           'birthplace.planet.name',
           'birthplace.planet.astronomicalDesignation',
           'birthplace.planet.slug',
+          'birthplace.planet.starSystem.id',
           'birthplace.planet.starSystem.name',
           'birthplace.planet.starSystem.slug',
         ],
@@ -89,28 +103,8 @@ if (!data.value) {
   });
 }
 
-const titleOptions = [
-  {
-    name: 'Kein Titel',
-    value: null,
-  },
-  {
-    name: 'Dr.',
-    value: 'Dr.',
-  },
-  {
-    name: 'Dr. Med.',
-    value: 'Dr. Med.',
-  },
-  {
-    name: 'Prof. Med.',
-    value: 'Prof. Med.',
-  },
-  {
-    name: 'Dipl. Ing.',
-    value: 'Dipl. Ing.',
-  },
-];
+const titleOptions = ['', 'Dr.', 'Dr. Med.', 'Prof. Med.', 'Dipl. Ing.'];
+
 const formgroupUi = {
   strategy: 'override',
   container: 'relative mt-1 w-full max-w-[303px]',
@@ -134,7 +128,7 @@ const birthdateYear = ref(user.value?.birthdate ? user.value?.birthdate.split('.
 const formData = reactive({
   firstname: user.value?.firstname || '',
   lastname: user.value?.lastname || '',
-  title: user.value?.title || titleOptions[0],
+  title: user.value?.title || '',
   password: '',
   roles:
     computed(() => {
@@ -145,8 +139,9 @@ const formData = reactive({
 
       return roles;
     }) || [],
-  head_of_department: user.value?.head_of_department || false,
-  department: data.value?.departments.find((e) => e.id === user.value?.department.id) || null,
+  head_of_department: user.value?.headOfDepartment || false,
+  department: null,
+  // department: data.value?.departments.find((e) => e.id === user.value?.department.id) || null,
   currentplace: user.value?.currentplace || null,
   sex: user.value?.sex || '',
   birthdate: computed(() => `${birthdateDay.value}.${birthdateMonth.value}.${birthdateYear.value}`) || '',
@@ -155,16 +150,16 @@ const formData = reactive({
   eyecolor: user.value?.eyecolor || '',
   weight: user.value?.weight || '',
   height: user.value?.height || '',
-  citizen: user.value?.ueestate === 'citizen' || false,
-  citizenReason: user.value?.citizenreason || '',
-  dutyState: user.value?.citizenreason === 'Militärischer Dienst' ? true : user.value?.dutyState || false,
-  educationState: user.value?.citizenreason === 'Besondere Bildung' ? true : user.value?.educationState || false,
+  citizen: user.value?.ueeState === 'citizen' || false,
+  citizenReason: user.value?.citizenReason || '',
+  dutyState: user.value?.citizenReason === 'Militärischer Dienst' ? true : user.value?.dutyState || false,
+  educationState: user.value?.citizenReason === 'Besondere Bildung' ? true : user.value?.educationState || false,
   dutyPeriod: user.value?.duty.period || '',
   dutyEnd: user.value?.duty.end || '',
   educationName: user.value?.education.name || '',
   educationPeriod: user.value?.education.period || '',
   educationPlace: user.value?.education.place || '',
-  hobbys: user.value?.hobbys || '',
+  hobbies: user.value?.hobbies || '',
   activities: user.value?.activities || '',
   talents: user.value?.talents || '',
   habits: user.value?.habits || '',
@@ -206,6 +201,40 @@ watch(
   { deep: true },
 );
 
+const schema = object({
+  username: string().required('Erforderlich!'),
+  password: string().required('Erforderlich!'),
+});
+
+type Schema = InferType<typeof schema>;
+
+const onSubmit = async (event: FormSubmitEvent<Schema>) => {
+  error.value = null;
+  try {
+    await login({
+      email: event.data.username + (!event.data.username.includes('@') ? '@ariscorp.de' : ''),
+      password: event.data.password,
+    });
+    router.push(redirectUri.value);
+  } catch (e) {
+    event.data.username = '';
+    event.data.password = '';
+    console.error('There was an error:', e.message);
+    error.value = e.message.match('\: (.*)')[1];
+    if (error.value.startsWith('401') || error.value.startsWith('400')) {
+      form.value.setErrors([
+        { path: 'username', message: 'Benutzername oder Passwort falsch!' },
+        { path: 'password', message: 'Benutzername oder Passwort falsch!' },
+      ]);
+    } else {
+      form.value.setErrors([
+        { path: 'username', message: 'Error: ' + e.message },
+        { path: 'password', message: 'Error: ' + e.message },
+      ]);
+    }
+  }
+};
+
 definePageMeta({
   layout: false,
   middleware: 'auth',
@@ -217,13 +246,16 @@ definePageMeta({
     <template #modalContent>
       <span>PLACEHOLDER</span>
     </template>
-    {{ dataChanged }}
     <div class="relative flex items-center p-5 mb-5 rounded-lg bg-bsecondary">
       <!-- TODO: ADD LOADING STATE TO AVATAR -->
       <div
-        class="flex mr-6 overflow-hidden border-[6px] border-primary rounded-full h-36 w-36 bg-image focus:outline-none group bg-white/5"
-        :style="{ backgroundImage: `url(${$config.public.fileBase + user?.potrait})` }"
-      />
+        class="flex mr-6 relative overflow-hidden border-[6px] border-primary rounded-full h-36 w-36 focus:outline-none group bg-white/5"
+      >
+        <NuxtImg :src="user?.potrait" class="z-10 object-cover w-full h-full" />
+        <div class="absolute top-0 bottom-0 left-0 right-0 m-auto w-fit h-fit">
+          <LoadingBasic class="w-10 h-10 text-white" />
+        </div>
+      </div>
       <div class="flex-1 overflow-hidden outline-none">
         <p class="p-0 text-base font-bold text-white whitespace-nowrap">
           {{ user?.fullName }}
@@ -287,7 +319,7 @@ definePageMeta({
     </div>
     <div>
       <div class="flex px-6">
-        <UForm class="w-full" ref="form" :state="formData">
+        <UForm class="w-full" ref="form" :state="formData" :schema="schema">
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup required size="xl" label="Vorname" :ui="formgroupUi">
               <UInput v-model="formData.firstname" placeholder="Chris" icon="i-heroicons-user" />
@@ -345,7 +377,37 @@ definePageMeta({
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup required size="xl" label="Titel" :ui="formgroupUi">
-              <USelectMenu v-model="formData.title" :options="titleOptions" option-attribute="name" />
+              <div class="relative">
+                <USelectMenu
+                  v-model="formData.title"
+                  :options="titleOptions"
+                  :ui="{ trailing: { padding: { xl: 'pr-12 pl-10' } } }"
+                >
+                  <template #leading />
+                  <template #label>
+                    <span v-if="formData.title">{{ formData.title }}</span>
+                    <span v-else>Kein Titel ausgewählt</span>
+                  </template>
+                  <template #option="{ option }">
+                    <span v-if="option">{{ option }}</span>
+                    <span v-else>Kein Titel</span>
+                  </template>
+                </USelectMenu>
+                <button
+                  v-if="formData.title === initialFormdata.title"
+                  @click="formData.title = ''"
+                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                >
+                  <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+                </button>
+                <button
+                  v-else
+                  @click="formData.title = initialFormdata.title"
+                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                >
+                  <UIcon name="i-heroicons-arrow-uturn-left" class="my-auto transition opacity-75 hover:opacity-100" />
+                </button>
+              </div>
               <template #hint>
                 <UPopover mode="hover">
                   <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
@@ -357,7 +419,7 @@ definePageMeta({
                       <br />
                       <p class="pb-0 font-bold text-white">Beispiele:</p>
                       <p class="italic">
-                        Falls du einen Doktortitel hat:
+                        Falls du einen Doktortitel hast:
                         <span class="text-secondary">Dr.</span>
                         oder
                         <span class="text-secondary">Dr. Med.</span>
@@ -385,21 +447,21 @@ definePageMeta({
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Rollen" :ui="formgroupUi">
               <ArisCheckbox
-                :disabled="(user?.permissionLevel || 0) < 4"
+                :disabled="(user?.position.permissionLevel || 0) < 4"
                 v-model="checkboxRecruitment"
                 name="recruitment"
                 label="Rekrutierung"
                 color="primary"
               />
               <ArisCheckbox
-                :disabled="(user?.permissionLevel || 0) < 4"
+                :disabled="(user?.position.permissionLevel || 0) < 4"
                 v-model="checkboxMarketing"
                 name="marketing"
                 label="Marketing & Presse"
                 color="primary"
               />
               <ArisCheckbox
-                :disabled="(user?.permissionLevel || 0) < 4"
+                :disabled="(user?.position.permissionLevel || 0) < 4"
                 v-model="checkboxCW"
                 name="content_writer"
                 label="Inhaltsersteller"
@@ -431,7 +493,41 @@ definePageMeta({
                   },
                 }"
               >
-                <USelectMenu v-model="formData.department" :options="data?.departments" option-attribute="name" />
+                <div class="relative">
+                  <USelectMenu
+                    v-model="formData.department"
+                    :options="['', ...data?.departments]"
+                    option-attribute="name"
+                    :ui="{ trailing: { padding: { xl: 'pr-12 pl-10' } } }"
+                  >
+                    <template #leading />
+                    <template #label>
+                      <span v-if="formData.department">{{ formData.department.name }}</span>
+                      <span class="text-[13.9px]" v-else>Keine Abteilung ausgewählt</span>
+                    </template>
+                    <template #option="{ option }">
+                      <span v-if="option">{{ option.name }}</span>
+                      <span v-else>Keine Abteilung</span>
+                    </template>
+                  </USelectMenu>
+                  <button
+                    v-if="formData.department === initialFormdata.department"
+                    @click="formData.department = null"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                  >
+                    <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+                  </button>
+                  <button
+                    v-else
+                    @click="formData.department = initialFormdata.department"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                  >
+                    <UIcon
+                      name="i-heroicons-arrow-uturn-left"
+                      class="my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                </div>
                 <template #label>
                   <div class="flex">
                     Abteilung
@@ -462,7 +558,7 @@ definePageMeta({
                     label="Abteilungsleiter"
                     color="primary"
                     class="mr-4"
-                    :disabled="(user?.permissionLevel || 0) < 4"
+                    :disabled="(user?.position.permissionLevel || 0) < 4"
                   />
                 </template>
               </UFormGroup>
@@ -504,54 +600,76 @@ definePageMeta({
           <TableHr> Steckbrief </TableHr>
           <div class="flex flex-wrap items-center justify-between xl:pr-4 xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Aktueller Wohnsitz" :ui="formgroupUi">
-              <USelectMenu
-                v-model="formData.currentplace"
-                searchable
-                clear-search-on-close
-                searchable-placeholder="Suche..."
-                :search-attributes="['name', 'planet.name', 'planet.system.name']"
-                :options="data?.landingZones"
-              >
-                <template #label>
-                  <span aria-hidden="true" />
-                  <span class="truncate">
-                    <template v-if="!formData.currentplace">
-                      <span>Kein Ort ausgewählt</span>
-                    </template>
-                    <template v-else>
-                      <span>
+              <div class="relative">
+                <USelectMenu
+                  v-model="formData.currentplace"
+                  searchable
+                  clear-search-on-close
+                  searchable-placeholder="Suche..."
+                  :search-attributes="['name', 'planet.name', 'planet.system.name']"
+                  :options="['', ...data?.landingZones]"
+                  :ui="{ trailing: { padding: { xl: 'pr-12 pl-[30px]' } } }"
+                >
+                  <template #label>
+                    <span aria-hidden="true" />
+                    <span class="truncate">
+                      <template v-if="!formData.currentplace">
+                        <span>Kein Ort ausgewählt</span>
+                      </template>
+                      <template v-else>
                         <span>
-                          {{ formData.currentplace.planet?.system?.name }}
+                          <span>
+                            {{ formData.currentplace.planet?.system?.name }}
+                          </span>
+                          /
+                          <span>
+                            {{ formData.currentplace.planet?.name }}
+                          </span>
+                          /
+                          <span>
+                            {{ formData.currentplace.name }}
+                          </span>
+                        </span>
+                      </template>
+                    </span>
+                  </template>
+                  <template #option="{ option: landingZone }">
+                    <span aria-hidden="true" />
+                    <span class="truncate">
+                      <template v-if="!landingZone">
+                        <span>Kein Ort</span>
+                      </template>
+                      <template v-else>
+                        <span>
+                          {{ landingZone.planet?.system?.name }}
                         </span>
                         /
                         <span>
-                          {{ formData.currentplace.planet?.name }}
+                          {{ landingZone.planet?.name }}
                         </span>
                         /
                         <span>
-                          {{ formData.currentplace.name }}
+                          {{ landingZone.name }}
                         </span>
-                      </span>
-                    </template>
-                  </span>
-                </template>
-                <template #option="{ option: landingZone }">
-                  <span aria-hidden="true" />
-                  <span class="truncate">
-                    <span>
-                      {{ landingZone.planet?.system?.name }}
+                      </template>
                     </span>
-                    /
-                    <span>
-                      {{ landingZone.planet?.name }}
-                    </span>
-                    /
-                    <span>
-                      {{ landingZone.name }}
-                    </span>
-                  </span>
-                </template>
-              </USelectMenu>
+                  </template>
+                </USelectMenu>
+                <button
+                  v-if="formData.currentplace === initialFormdata.currentplace"
+                  @click="formData.currentplace = null"
+                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                >
+                  <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+                </button>
+                <button
+                  v-else
+                  @click="formData.currentplace = initialFormdata.currentplace"
+                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                >
+                  <UIcon name="i-heroicons-arrow-uturn-left" class="my-auto transition opacity-75 hover:opacity-100" />
+                </button>
+              </div>
               <template #hint>
                 <UPopover mode="hover">
                   <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
@@ -728,54 +846,77 @@ definePageMeta({
           </div>
           <div class="flex flex-wrap items-center justify-between xl:pr-4 xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Geburtsort" :ui="formgroupUi">
-              <USelectMenu
-                searchable
-                clear-search-on-close
-                searchable-placeholder="Suche..."
-                :search-attributes="['name', 'planet.name', 'planet.system.name']"
-                v-model="formData.birthplace"
-                :options="data?.landingZones"
-              >
-                <template #label>
-                  <span aria-hidden="true" />
-                  <span class="truncate">
-                    <template v-if="!formData.birthplace">
-                      <span>Kein Ort ausgewählt</span>
-                    </template>
-                    <template v-else>
-                      <span>
+              <div class="relative">
+                <USelectMenu
+                  searchable
+                  clear-search-on-close
+                  searchable-placeholder="Suche..."
+                  :search-attributes="['name', 'planet.name', 'planet.system.name']"
+                  v-model="formData.birthplace"
+                  :options="['', ...data?.landingZones]"
+                  :ui="{ trailing: { padding: { xl: 'pr-12 pl-[30px]' } } }"
+                >
+                  <template #leading />
+                  <template #label>
+                    <span aria-hidden="true" />
+                    <span class="truncate">
+                      <template v-if="!formData.birthplace">
+                        <span>Kein Ort ausgewählt</span>
+                      </template>
+                      <template v-else>
                         <span>
-                          {{ formData.birthplace.planet?.system?.name }}
+                          <span>
+                            {{ formData.birthplace.planet?.system?.name }}
+                          </span>
+                          /
+                          <span>
+                            {{ formData.birthplace.planet?.name }}
+                          </span>
+                          /
+                          <span>
+                            {{ formData.birthplace.name }}
+                          </span>
+                        </span>
+                      </template>
+                    </span>
+                  </template>
+                  <template #option="{ option: landingZone }">
+                    <span aria-hidden="true" />
+                    <span class="truncate">
+                      <template v-if="!landingZone">
+                        <span>Kein Ort</span>
+                      </template>
+                      <template v-else>
+                        <span>
+                          {{ landingZone.planet?.system?.name }}
                         </span>
                         /
                         <span>
-                          {{ formData.birthplace.planet?.name }}
+                          {{ landingZone.planet?.name }}
                         </span>
                         /
                         <span>
-                          {{ formData.birthplace.name }}
+                          {{ landingZone.name }}
                         </span>
-                      </span>
-                    </template>
-                  </span>
-                </template>
-                <template #option="{ option: landingZone }">
-                  <span aria-hidden="true" />
-                  <span class="truncate">
-                    <span>
-                      {{ landingZone.planet?.system?.name }}
+                      </template>
                     </span>
-                    /
-                    <span>
-                      {{ landingZone.planet?.name }}
-                    </span>
-                    /
-                    <span>
-                      {{ landingZone.name }}
-                    </span>
-                  </span>
-                </template>
-              </USelectMenu>
+                  </template>
+                </USelectMenu>
+                <button
+                  v-if="formData.birthplace === initialFormdata.birthplace"
+                  @click="formData.birthplace"
+                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                >
+                  <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+                </button>
+                <button
+                  v-else
+                  @click="formData.birthplace = initialFormdata.birthplace"
+                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                >
+                  <UIcon name="i-heroicons-arrow-uturn-left" class="my-auto transition opacity-75 hover:opacity-100" />
+                </button>
+              </div>
               <template #hint>
                 <UPopover mode="hover">
                   <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
@@ -1004,7 +1145,9 @@ definePageMeta({
             >
               <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
                 <UFormGroup size="xl" label="Dienstzeit" :ui="formgroupUi">
-                  <UInput v-model="formData.dutyPeriod" placeholder="2940 - 2950" icon="i-heroicons-user" />
+                  <!-- REGEX: (0?[1-9]|[1][0-2])\/\d{4,4}+ - (0?[1-9]|[1][0-2])\/\d{4,4}+ -->
+                  <!-- https://regex101.com/r/T1c030/1 -->
+                  <UInput v-model="formData.dutyPeriod" placeholder="01/2940 - 12/2950" icon="i-heroicons-user" />
                   <template #hint>
                     <UPopover mode="hover">
                       <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
@@ -1014,7 +1157,7 @@ definePageMeta({
                           <br />
                           <p class="pb-0 font-bold text-white">Beispiele:</p>
                           <p class="italic">
-                            <span class="text-secondary">2940 - 2950</span>
+                            <span class="text-secondary">01/2940 - 12/2950</span>
                           </p>
                         </div>
                       </template>
@@ -1080,8 +1223,8 @@ definePageMeta({
                     </UPopover>
                   </template>
                 </UFormGroup>
-                <UFormGroup size="xl" label="Ausbildung" :ui="formgroupUi">
-                  <UInput v-model="formData.educationPeriod" placeholder="2945 - 2948" icon="i-heroicons-user" />
+                <UFormGroup size="xl" label="Ausbildungszeit" :ui="formgroupUi">
+                  <UInput v-model="formData.educationPeriod" placeholder="09/2945 - 06/2948" icon="i-heroicons-user" />
                   <template #hint>
                     <UPopover mode="hover">
                       <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
@@ -1091,7 +1234,7 @@ definePageMeta({
                           <br />
                           <p class="pb-0 font-bold text-white">Beispiele:</p>
                           <p class="italic">
-                            <span class="text-secondary">2945 - 2948</span>
+                            <span class="text-secondary">09/2945 - 06/2948</span>
                           </p>
                         </div>
                       </template>
@@ -1108,7 +1251,7 @@ definePageMeta({
           <h4 class="mt-2 mb-1">Detaillierte Informationen:</h4>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
             <UFormGroup size="xl" label="Hobbies" :ui="formgroupUi">
-              <UInput v-model="formData.hobbys" placeholder="Sport, Fliegen, Schrauben, ..." icon="i-heroicons-user" />
+              <UInput v-model="formData.hobbies" placeholder="Sport, Fliegen, Schrauben, ..." icon="i-heroicons-user" />
               <template #hint>
                 <UPopover mode="hover">
                   <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
@@ -1629,7 +1772,7 @@ definePageMeta({
             </span>
           </TableHr>
           <!-- TODO: ADD EDITOR -->
-          <UFormGroup size="xl" label="Biografie">
+          <UFormGroup size="xl">
             <LazyClientOnly>
               <Editor
                 api-key="30ijnjychriexb76qdn1j9nrlsz8qu89urtbqt9jd7gjo5dq"
@@ -1790,6 +1933,24 @@ definePageMeta({
         </UForm>
       </div>
     </div>
+    <Teleport to="#profile_actions">
+      <div
+        class="absolute left-0 right-0 flex mx-auto rounded w-fit bg-bsecondary/50 sm:bg-transparent gap-x-4 sm:m-0 sm:left-auto sm:right-4"
+      >
+        <button
+          class="transition opacity-50 hover:opacity-100"
+          :class="[dataChanged ? 'text-danger' : 'text-dark-gray']"
+        >
+          <Icon name="heroicons:x-circle" size="48" />
+        </button>
+        <button
+          class="transition opacity-50 hover:opacity-100"
+          :class="[dataChanged ? 'text-success' : 'text-dark-gray']"
+        >
+          <Icon name="heroicons:check-circle" size="48" />
+        </button>
+      </div>
+    </Teleport>
   </NuxtLayout>
 </template>
 
