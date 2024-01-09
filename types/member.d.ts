@@ -31,6 +31,7 @@ declare global {
     duty?: {
       period: string;
       end: string;
+      division: string;
     };
     educationState?: boolean;
     education?: {

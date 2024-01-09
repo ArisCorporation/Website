@@ -96,5 +96,11 @@ export default defineAppConfig({
         background: 'bg-black/50',
       },
     },
+    card: {
+      body: { base: 'flex-1 overflow-auto' },
+      background: 'bg-bprimary',
+      ring: '',
+      divide: 'divide-y divide-btertiary',
+    },
   },
 });
