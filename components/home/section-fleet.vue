@@ -98,6 +98,7 @@ const handleCopy = () => {
               :hangar-data="ship"
               display-owner
               display-department
+              :display-name="ship.userData.showName"
             />
             <h3
               v-if="!data.fleetData.filter((e: IHangarItem) => e.userData.department?.name === department.name)[0]"
