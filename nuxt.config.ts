@@ -41,35 +41,9 @@ export default defineNuxtConfig({
       buildNumber: process.env.SOURCE_COMMIT,
       environment: process.env.NODE_ENV,
       url: process.env.NUXT_PUBLIC_URL,
+      backendUrl: 'https://cms.ariscorp.de',
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
       mbutton: { initial: { scale: 1 }, visible: { scale: 1 }, hovered: { scale: 1 }, tapped: { scale: 0.97 } },
-      motion: {
-        directives: {
-          button: {
-            initial: {
-              scale: 1,
-            },
-            hovered: {
-              scale: 1,
-            },
-            tapped: {
-              scale: 0.97,
-            },
-          },
-          'pop-bottom': {
-            initial: {
-              scale: 0,
-              opacity: 0,
-              y: 100,
-            },
-            visible: {
-              scale: 1,
-              opacity: 1,
-              y: 0,
-            },
-          },
-        },
-      },
     },
   },
 
@@ -97,6 +71,8 @@ export default defineNuxtConfig({
 
   directus: {
     url: 'https://cms.ariscorp.de',
+    cookieNameToken: 'ams_token',
+    cookieNameRefreshToken: 'ams_refresh_token',
   },
 
   headlessui: {
@@ -105,6 +81,10 @@ export default defineNuxtConfig({
 
   ui: {
     icons: ['heroicons', 'ic', 'mdi'],
+  },
+
+  anime: {
+    provide: true,
   },
 
   dayjs: {

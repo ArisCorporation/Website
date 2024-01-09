@@ -20,7 +20,12 @@ useHead({
       ? `${titleChunk} - Astro Research and Industrial Service Corporation`
       : 'Astro Research and Industrial Service Corporation';
   },
-  htmlAttrs: { lang: 'de', 'data-app-version': 'test' },
+  htmlAttrs: {
+    lang: 'de',
+    'data-app-version': `V${config.public.appVersion}-${
+      config.public.buildNumber
+    }.${config.public.environment.toUpperCase()}`,
+  },
   meta: [
     { name: 'theme-color', content: '#00FFE8' },
     { name: 'msapplication-square70x70logo', content: '/icons/mstile-icon-128.png' },

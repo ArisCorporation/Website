@@ -52,7 +52,7 @@ export default function (obj: any) {
     potrait: obj.avatar ? obj.avatar : '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492',
     sex: obj.sex,
     pronom: obj.sex === 'female' ? 'Sie' : 'Er',
-    roles: roles.length > 0 ? roles : undefined,
+    roles: roles.length > 0 ? roles : null,
     position: positionInfo,
     admin: obj.role === '767bb09e-a6fc-4ebb-8c5f-08b060ab0bdb',
     headOfDepartment: obj.head_of_department,
@@ -75,6 +75,14 @@ export default function (obj: any) {
     duty: {
       period: obj.dutyPeriod,
       end: obj.dutyEnd,
+      division:
+        obj.dutyDivision === 'army'
+          ? 'UEE Arme'
+          : obj.dutyDivision === 'navy'
+            ? 'UEE Marine'
+            : obj.dutyDivision === 'marine'
+              ? 'UEE Luftwaffe'
+              : null,
     },
     educationState: obj.educationState,
     education: {
