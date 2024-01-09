@@ -41,7 +41,7 @@ defineProps({
               Position:
               <span class="text-secondary">{{ data.position?.position }}</span>
             </p>
-            <template v-if="data.roles[0]">
+            <template v-if="data.roles">
               <hr />
               <p>&ldquo;{{ data.roles?.join(', ') }}&ldquo;</p>
             </template>
