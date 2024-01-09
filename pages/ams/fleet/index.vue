@@ -2,6 +2,7 @@
 import { mountedStates } from 'motion';
 
 const { getItems } = useDirectusItems();
+const { getUsers } = useDirectusUsers();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
 const loanerView = computed(() => userSettings.value.ams.fleetLoanerView);
@@ -12,15 +13,14 @@ const search = ref('');
 
 const { data } = await useAsyncData('getFleetData', async () => {
   const [members, departments, fleet] = await Promise.all([
-    getItems({
-      collection: 'member',
+    getUsers({
       params: {
-        fields: ['id', 'title', 'firstname', 'lastname', 'slug', 'member_potrait.id'],
+        fields: ['id', 'title', 'first_name', 'last_name', 'slug', 'avatar'],
         filter: {
-          status: { _eq: 'published' },
+          status: { _eq: 'active' },
         },
         limit: -1,
-        sort: ['firstname'],
+        sort: ['first_name'],
       },
     }),
     getItems({
@@ -60,28 +60,28 @@ const { data } = await useAsyncData('getFleetData', async () => {
           'id',
           'name',
           'planned',
-          'member_id.id',
-          'member_id.firstname',
-          'member_id.lastname',
-          'member_id.title',
-          'member_id.slug',
-          'ships_id.id',
-          'ships_id.name',
-          'ships_id.slug',
-          'ships_id.storeImage.id',
-          'ships_id.manufacturer.firmen_name',
-          'ships_id.manufacturer.code',
-          'ships_id.manufacturer.slug',
-          'ships_id.productionStatus',
-          'ships_id.length',
-          'ships_id.height',
-          'ships_id.beam',
-          'ships_id.classification',
-          'ships_id.minCrew',
-          'ships_id.maxCrew',
-          'ships_id.price',
-          'ships_id.cargo',
-          'ships_id.loaners',
+          'user_id.id',
+          'user_id.firstname',
+          'user_id.lastname',
+          'user_id.title',
+          'user_id.slug',
+          'ship_id.id',
+          'ship_id.name',
+          'ship_id.slug',
+          'ship_id.storeImage.id',
+          'ship_id.manufacturer.firmen_name',
+          'ship_id.manufacturer.code',
+          'ship_id.manufacturer.slug',
+          'ship_id.productionStatus',
+          'ship_id.length',
+          'ship_id.height',
+          'ship_id.beam',
+          'ship_id.classification',
+          'ship_id.minCrew',
+          'ship_id.maxCrew',
+          'ship_id.price',
+          'ship_id.cargo',
+          'ship_id.loaners',
           'department.id',
           'department.gameplay_name',
           'department.gameplay_logo.id',
@@ -91,7 +91,7 @@ const { data } = await useAsyncData('getFleetData', async () => {
           visibility: { _neq: 'private' },
           group: { _eq: 'ariscorp' },
         },
-        sort: ['ships_id.name'],
+        sort: ['ship_id.name'],
         limit: -1,
       },
     }),
@@ -103,8 +103,8 @@ const { data } = await useAsyncData('getFleetData', async () => {
 
   const loanerIds: string[] = [];
   fleet
-    .filter((e) => e.ships_id.productionStatus !== 'flight-ready')
-    .forEach((obj) => obj.ships_id.loaners?.forEach((i) => !loanerIds.includes(i.id) && loanerIds.push(i.id)));
+    .filter((e) => e.ship_id.productionStatus !== 'flight-ready')
+    .forEach((obj) => obj.ship_id.loaners?.forEach((i) => !loanerIds.includes(i.id) && loanerIds.push(i.id)));
 
   const [loanerData] = await Promise.all([
     getItems({
@@ -142,7 +142,7 @@ const { data } = await useAsyncData('getFleetData', async () => {
   }
 
   return {
-    members: members.map((obj) => transformMember(obj)),
+    members: members.map((obj) => transformUser(obj)),
     departments: departments.map((obj) => transformDepartment(obj)),
     fleet: fleet.map((obj) => transformHangarItem(obj, loanerData)),
   };
@@ -210,19 +210,19 @@ definePageMeta({
   layout: 'ams',
   middleware: [
     'auth',
-    async function (to, from) {
-      const { fetchUser, setUser } = useDirectusAuth();
-      const user = transformUser(useDirectusUser().value);
-      if (!user) {
-        const user = await fetchUser();
-        setUser(user.value);
-      }
-      if (user.permissionLevel < 3) {
-        return navigateTo({
-          path: '/ams',
-        });
-      }
-    },
+    // async function (to, from) {
+    //   const { fetchUser, setUser } = useDirectusAuth();
+    //   const user = transformUser(useDirectusUser().value);
+    //   if (!user) {
+    //     const user = await fetchUser();
+    //     setUser(user.value);
+    //   }
+    //   if (user.position.permissionLevel < 3) {
+    //     return navigateTo({
+    //       path: '/ams',
+    //     });
+    //   }
+    // },
   ],
 });
 
@@ -248,37 +248,56 @@ useHead({
       <div class="flex flex-wrap justify-center w-full mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
         <div class="flex mx-auto sm:mx-0 sm:pr-4 basis-full sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
           <UFormGroup class="w-full lg:w-80" label="Abteilung">
-            <USelectMenu
-              id="departmentSelect"
-              v-model="selectedDepartment"
-              searchable
-              clear-search-on-close
-              searchable-placeholder="Suche..."
-              :search-attributes="['name']"
-              name="Abteilung"
-              placeholder="Abteilung filtern"
-              :options="[{ name: 'Alle' }, ...data.departments]"
-              size="xl"
-            >
-              <template #label>
-                <UAvatar
-                  img-class="object-cover object-top"
-                  :src="
-                    selectedDepartment.logo ? $config.public.fileBase + selectedDepartment.logo + '?format=webp' : null
-                  "
-                  :alt="selectedDepartment.name || 'Alle'"
-                />
-                <span>{{ selectedDepartment.name }}</span>
-              </template>
-              <template #option="{ option: department }">
-                <UAvatar
-                  img-class="object-cover object-top"
-                  :src="department.logo ? $config.public.fileBase + department.logo + '?format=webp' : null"
-                  :alt="department.name"
-                />
-                <span>{{ department.name }}</span>
-              </template>
-            </USelectMenu>
+            <div class="relative">
+              <USelectMenu
+                id="departmentSelect"
+                v-model="selectedDepartment"
+                searchable
+                clear-search-on-close
+                searchable-placeholder="Suche..."
+                :search-attributes="['name']"
+                name="Abteilung"
+                placeholder="Abteilung filtern"
+                :options="[{ name: 'Alle' }, ...data.departments]"
+                size="xl"
+                :ui="{
+                  leading: {
+                    padding: {
+                      xl: 'ps-10',
+                    },
+                  },
+                }"
+              >
+                <template v-if="selectedDepartment?.name !== 'Alle'" #leading />
+                <template #label>
+                  <UAvatar
+                    img-class="object-cover object-top"
+                    :src="
+                      selectedDepartment.logo
+                        ? $config.public.fileBase + selectedDepartment.logo + '?format=webp'
+                        : null
+                    "
+                    :alt="selectedDepartment.name || 'Alle'"
+                  />
+                  <span>{{ selectedDepartment.name }}</span>
+                </template>
+                <template #option="{ option: department }">
+                  <UAvatar
+                    img-class="object-cover object-top"
+                    :src="department.logo ? $config.public.fileBase + department.logo + '?format=webp' : null"
+                    :alt="department.name"
+                  />
+                  <span>{{ department.name }}</span>
+                </template>
+              </USelectMenu>
+              <button
+                v-if="selectedDepartment?.name !== 'Alle'"
+                @click="selectedDepartment = { name: 'Alle' }"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
+            </div>
           </UFormGroup>
         </div>
         <div class="flex mx-auto mt-2 sm:mx-0 sm:pl-4 basis-full sm:mt-0 sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
