@@ -34,34 +34,48 @@ useHead({
     </TheModal>
     <USlideover v-model="useModalStore().isSlideOpen">
       <!-- <div class="flex-1 p-4 scrollbar-gray-thin"> -->
-      <div class="flex-1 overflow-y-scroll">
-        <UCard
-          class="flex flex-col flex-1 h-full overflow-y-scroll scrollbar-gray-thin"
-          :ui="{
-            body: { base: 'flex-1' },
-            background: 'bg-bprimary',
-            ring: '',
-            divide: 'divide-y divide-gray-100 dark:divide-gray-800',
-          }"
-        >
-          <template #header>
-            <slot name="slideHeader" />
-          </template>
-          <slot name="slideContent" />
-          <template #footer>
-            <slot name="slideFooter" />
-          </template>
-        </UCard>
-      </div>
+      <slot name="slideCard">
+        <div class="flex-1 overflow-y-scroll">
+          <UCard
+            class="flex flex-col flex-1 h-full overflow-y-scroll scrollbar-gray-thin"
+            :ui="{
+              body: { base: 'flex-1' },
+              background: 'bg-bprimary',
+              ring: '',
+              divide: 'divide-y divide-gray-100 dark:divide-gray-800',
+            }"
+          >
+            <template #header>
+              <slot name="slideHeader" />
+            </template>
+            <slot name="slideContent" />
+            <template #footer>
+              <slot name="slideFooter" />
+            </template>
+          </UCard>
+        </div>
+      </slot>
     </USlideover>
     <AmsSidebar />
     <div class="flex flex-col justify-between flex-1 min-h-screen lg:ml-64">
       <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
       <DevOnly>
-        <div class="bg-black z-[99] pb-4 px-8">
+        <div class="bg-black z-[99] pb-4 px-8" v-if="JSON.parse(useCookie('ams_devtools').value ?? 'true')">
           <h6>DEV TOOLS:</h6>
           <code class="block pb-2">User: {{ user }}</code>
         </div>
+        <ButtonDefault
+          class="w-fit"
+          @click="
+            useCookie('ams_devtools').value = JSON.stringify(!JSON.parse(useCookie('ams_devtools').value ?? 'true'))
+          "
+        >
+          <Icon
+            name="mdi-light:console"
+            class="w-6 h-6"
+            :class="{ 'text-primary': JSON.parse(useCookie('ams_devtools').value ?? 'true') }"
+          />
+        </ButtonDefault>
       </DevOnly>
       <div class="flex flex-wrap w-full px-4 mt-4">
         <Icon name="IconsLogosAmsBanner" class="w-1/4 aspect-[33/11] -mb-2 h-auto" />
@@ -75,7 +89,6 @@ useHead({
           <slot />
         </div>
       </div>
-      <div v-if="$route.path === '/ams/profile'" id="profile_actions" class="sticky z-10 w-full h-12 bottom-6" />
       <Footer />
     </div>
   </div>
