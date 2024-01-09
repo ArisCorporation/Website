@@ -51,7 +51,7 @@ const { data } = await useAsyncData('ams-employee-board', async () => {
     }),
   ]);
 
-  if (!members || !departments) {
+  if (!departments || !members) {
     return null;
   }
 
@@ -73,6 +73,7 @@ const updateMembers = () =>
   selectedDepartment.value.id
     ? (filteredMembers.value = data.value.members.filter((e) => e.department?.id === selectedDepartment.value.id))
     : (filteredMembers.value = data.value.members);
+// const updateMembers = () => (filteredMembers.value = data.value.members);
 
 updateMembers();
 
