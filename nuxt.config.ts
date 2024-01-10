@@ -42,7 +42,6 @@ export default defineNuxtConfig({
       test3: process.env.SOURCE_COMMIT,
       test4: 'test4-initial',
       test5: 'test5-initial',
-      gitId: 'null',
       appVersion: version,
       buildNumber: process.env.SOURCE_COMMIT,
       environment: process.env.NODE_ENV,
