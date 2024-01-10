@@ -843,15 +843,19 @@ definePageMeta({
                 <USelectMenu
                   v-model="formData.title"
                   :options="titleOptions"
-                  :ui="{
-                    leading: {
-                      padding: {
-                        xl: 'ps-10',
-                      },
-                    },
-                  }"
+                  :ui="
+                    formData.title || initialFormdata.title
+                      ? {
+                          leading: {
+                            padding: {
+                              xl: 'ps-10',
+                            },
+                          },
+                        }
+                      : { leading: { padding: { xl: 'hidden' } } }
+                  "
                 >
-                  <template v-if="formData.title !== null || initialFormdata.title !== null" #leading />
+                  <template v-if="formData.title || initialFormdata.title !== null" #leading />
                   <template #label>
                     <span v-if="formData.title">{{ formData.title }}</span>
                     <span v-else>Kein Titel ausgewählt</span>
@@ -863,7 +867,7 @@ definePageMeta({
                 </USelectMenu>
                 <template v-if="formData.title || initialFormdata.title">
                   <button
-                    v-if="formData.title !== null === initialFormdata.title !== null"
+                    v-if="(formData.title === initialFormdata.title) !== null"
                     @click="formData.title = null"
                     class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
                   >
@@ -972,15 +976,19 @@ definePageMeta({
                     v-model="formData.department"
                     :options="['', ...data?.departments]"
                     option-attribute="name"
-                    :ui="{
-                      leading: {
-                        padding: {
-                          xl: 'ps-10',
-                        },
-                      },
-                    }"
+                    :ui="
+                      formData.department || initialFormdata.department
+                        ? {
+                            leading: {
+                              padding: {
+                                xl: 'ps-10',
+                              },
+                            },
+                          }
+                        : { leading: { padding: { xl: 'hidden' } } }
+                    "
                   >
-                    <template v-if="formData.department !== null || initialFormdata.department !== null" #leading />
+                    <template v-if="formData.department || initialFormdata.department !== null" #leading />
                     <template #label>
                       <span v-if="formData.department">{{ formData.department.name }}</span>
                       <span class="text-[13.9px]" v-else>Keine Abteilung ausgewählt</span>
@@ -990,7 +998,7 @@ definePageMeta({
                       <span v-else>Keine Abteilung</span>
                     </template>
                   </USelectMenu>
-                  <template v-if="formData.department !== null || initialFormdata.department !== null">
+                  <template v-if="formData.department || initialFormdata.department !== null">
                     <button
                       v-if="formData.department === initialFormdata.department"
                       @click="formData.department = null"
@@ -1152,15 +1160,19 @@ definePageMeta({
                   searchable-placeholder="Suche..."
                   :search-attributes="['name', 'planet.name', 'planet.system.name']"
                   :options="['', ...data?.landingZones]"
-                  :ui="{
-                    leading: {
-                      padding: {
-                        xl: 'ps-10',
-                      },
-                    },
-                  }"
+                  :ui="
+                    formData.currentplace || initialFormdata.currentplace
+                      ? {
+                          leading: {
+                            padding: {
+                              xl: 'ps-10',
+                            },
+                          },
+                        }
+                      : { leading: { padding: { xl: 'hidden' } } }
+                  "
                 >
-                  <template v-if="formData.currentplace !== null || initialFormdata.currentplace !== null" #leading />
+                  <template v-if="formData.currentplace || initialFormdata.currentplace !== null" #leading />
                   <template #label>
                     <span class="truncate">
                       <template v-if="!formData.currentplace">
@@ -1204,7 +1216,7 @@ definePageMeta({
                     </span>
                   </template>
                 </USelectMenu>
-                <template v-if="formData.currentplace !== null || initialFormdata.currentplace !== null">
+                <template v-if="formData.currentplace || initialFormdata.currentplace !== null">
                   <button
                     v-if="formData.currentplace === initialFormdata.currentplace"
                     @click="formData.currentplace = null"
@@ -1380,15 +1392,19 @@ definePageMeta({
                   :search-attributes="['name', 'planet.name', 'planet.system.name']"
                   v-model="formData.birthplace"
                   :options="['', ...data?.landingZones]"
-                  :ui="{
-                    leading: {
-                      padding: {
-                        xl: 'ps-10',
-                      },
-                    },
-                  }"
+                  :ui="
+                    formData.birthplace || initialFormdata.birthplace
+                      ? {
+                          leading: {
+                            padding: {
+                              xl: 'ps-10',
+                            },
+                          },
+                        }
+                      : { leading: { padding: { xl: 'hidden' } } }
+                  "
                 >
-                  <template v-if="formData.birthplace !== null || initialFormdata.birthplace !== null" #leading />
+                  <template v-if="formData.birthplace || initialFormdata.birthplace !== null" #leading />
                   <template #label>
                     <span class="truncate">
                       <template v-if="!formData.birthplace">
@@ -1432,7 +1448,7 @@ definePageMeta({
                     </span>
                   </template>
                 </USelectMenu>
-                <template v-if="formData.birthplace !== null || initialFormdata.birthplace !== null">
+                <template v-if="formData.birthplace || initialFormdata.birthplace !== null">
                   <button
                     v-if="formData.birthplace === initialFormdata.birthplace"
                     @click="formData.birthplace = null"
@@ -1747,15 +1763,19 @@ definePageMeta({
                         { name: 'UEE Marine', value: 'marine' },
                         { name: 'UEE Nay', value: 'navy' },
                       ]"
-                      :ui="{
-                        leading: {
-                          padding: {
-                            xl: 'ps-10',
-                          },
-                        },
-                      }"
+                      :ui="
+                        formData.dutyDivision || initialFormdata.dutyDivision
+                          ? {
+                              leading: {
+                                padding: {
+                                  xl: 'ps-10',
+                                },
+                              },
+                            }
+                          : { leading: { padding: { xl: 'hidden' } } }
+                      "
                     >
-                      <template v-if="formData.dutyDivision !== null || initialFormdata.dutyDivision !== null" #leading />
+                      <template v-if="formData.dutyDivision || initialFormdata.dutyDivision !== null" #leading />
                       <template #label>
                         <span v-if="formData.dutyDivision">{{ formData.dutyDivision?.name }}</span>
                         <span v-else>Keine Division ausgewählt</span>
@@ -1765,7 +1785,7 @@ definePageMeta({
                         <span v-else>Keine Division</span>
                       </template>
                     </USelectMenu>
-                    <template v-if="formData.dutyDivision !== null || initialFormdata.dutyDivision !== null">
+                    <template v-if="formData.dutyDivision || initialFormdata.dutyDivision !== null">
                       <button
                         v-if="formData.dutyDivision === initialFormdata.dutyDivision"
                         @click="formData.dutyDivision = ''"
