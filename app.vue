@@ -182,6 +182,8 @@ onMounted(() => {
   console.log('rc: test1: ', config.public.test);
   console.log('rc test2: ', process.env.test2);
   console.log('rc test3: ', process.env.test3);
+  console.log('rc test4: ', process.env.test4);
+  console.log('rc test5: ', process.env.test5);
 });
 </script>
 
