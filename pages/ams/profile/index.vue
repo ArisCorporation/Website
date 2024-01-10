@@ -851,7 +851,7 @@ definePageMeta({
                     },
                   }"
                 >
-                  <template v-if="formData.title || initialFormdata.title" #leading />
+                  <template v-if="formData.title !== null || initialFormdata.title !== null" #leading />
                   <template #label>
                     <span v-if="formData.title">{{ formData.title }}</span>
                     <span v-else>Kein Titel ausgewählt</span>
@@ -863,7 +863,7 @@ definePageMeta({
                 </USelectMenu>
                 <template v-if="formData.title || initialFormdata.title">
                   <button
-                    v-if="formData.title === initialFormdata.title"
+                    v-if="formData.title !== null === initialFormdata.title !== null"
                     @click="formData.title = null"
                     class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
                   >
@@ -980,7 +980,7 @@ definePageMeta({
                       },
                     }"
                   >
-                    <template v-if="formData.department || initialFormdata.department" #leading />
+                    <template v-if="formData.department !== null || initialFormdata.department !== null" #leading />
                     <template #label>
                       <span v-if="formData.department">{{ formData.department.name }}</span>
                       <span class="text-[13.9px]" v-else>Keine Abteilung ausgewählt</span>
@@ -990,7 +990,7 @@ definePageMeta({
                       <span v-else>Keine Abteilung</span>
                     </template>
                   </USelectMenu>
-                  <template v-if="formData.department || initialFormdata.department">
+                  <template v-if="formData.department !== null || initialFormdata.department !== null">
                     <button
                       v-if="formData.department === initialFormdata.department"
                       @click="formData.department = null"
@@ -1160,7 +1160,7 @@ definePageMeta({
                     },
                   }"
                 >
-                  <template v-if="formData.currentplace || initialFormdata.currentplace" #leading />
+                  <template v-if="formData.currentplace !== null || initialFormdata.currentplace !== null" #leading />
                   <template #label>
                     <span class="truncate">
                       <template v-if="!formData.currentplace">
@@ -1204,7 +1204,7 @@ definePageMeta({
                     </span>
                   </template>
                 </USelectMenu>
-                <template v-if="formData.currentplace || initialFormdata.currentplace">
+                <template v-if="formData.currentplace !== null || initialFormdata.currentplace !== null">
                   <button
                     v-if="formData.currentplace === initialFormdata.currentplace"
                     @click="formData.currentplace = null"
@@ -1388,7 +1388,7 @@ definePageMeta({
                     },
                   }"
                 >
-                  <template v-if="formData.birthplace || initialFormdata.birthplace" #leading />
+                  <template v-if="formData.birthplace !== null || initialFormdata.birthplace !== null" #leading />
                   <template #label>
                     <span class="truncate">
                       <template v-if="!formData.birthplace">
@@ -1432,7 +1432,7 @@ definePageMeta({
                     </span>
                   </template>
                 </USelectMenu>
-                <template v-if="formData.birthplace || initialFormdata.birthplace">
+                <template v-if="formData.birthplace !== null || initialFormdata.birthplace !== null">
                   <button
                     v-if="formData.birthplace === initialFormdata.birthplace"
                     @click="formData.birthplace = null"
@@ -1757,7 +1757,7 @@ definePageMeta({
                         },
                       }"
                     >
-                      <template v-if="formData.dutyDivision || initialFormdata.dutyDivision" #leading />
+                      <template v-if="formData.dutyDivision !== null || initialFormdata.dutyDivision !== null" #leading />
                       <template #label>
                         <span v-if="formData.dutyDivision">{{ formData.dutyDivision?.name }}</span>
                         <span v-else>Keine Division ausgewählt</span>
@@ -1767,7 +1767,7 @@ definePageMeta({
                         <span v-else>Keine Division</span>
                       </template>
                     </USelectMenu>
-                    <template v-if="formData.dutyDivision || initialFormdata.dutyDivision">
+                    <template v-if="formData.dutyDivision !== null || initialFormdata.dutyDivision !== null">
                       <button
                         v-if="formData.dutyDivision === initialFormdata.dutyDivision"
                         @click="formData.dutyDivision = ''"
