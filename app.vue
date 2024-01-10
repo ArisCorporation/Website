@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const config = useRuntimeConfig();
+import 'dotenv/config';
+
 useSeoMeta({
   description:
     'Das hier, ist die Homepage der Astro Research and Industrial Service Corporation. Die Astro Research and Industrial Service Corporation (oder kurz: ArisCorp) ist eine fiktive Organisation in dem Universum des Spiels "Star Citizen".',
@@ -176,9 +178,11 @@ onMounted(() => {
       'ACHTUNG: DIES IST EINE EXTREM FRÜHE TESTVERSION DER 4. VERSION DER ARISCORP WEBSITE!\n\n\nDIESE VERSION IST NUR FÜR DAS INTERNE ENTWICKLUNGSTEAM DER ARISCORP BESTIMMT!',
     );
   }
-  console.log(config.public.appVersion);
-  console.log(config.public.buildNumber);
-  console.log(config.public.envTest);
+  console.log('rc appversion: ', config.public.appVersion);
+  console.log('rc build number: ', config.public.buildNumber);
+  console.log('pe: sourcecommit: ', process.env.SOURCE_COMMIT);
+  console.log('pe envtest: ', process.env.envTest);
+  console.log('rc envtest: ', config.public.envTest);
 });
 </script>
 
