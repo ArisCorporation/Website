@@ -179,8 +179,9 @@ onMounted(() => {
   }
   console.log('rc appversion: ', config.public.appVersion);
   console.log('rc build number: ', config.public.buildNumber);
-  console.log('rc: test1: ', config.public.nuxtTest);
-  console.log('rc test2: ', process.env.nuxtTets2);
+  console.log('rc: test1: ', config.public.test);
+  console.log('rc test2: ', process.env.test2);
+  console.log('rc test3: ', process.env.test3);
 });
 </script>
 

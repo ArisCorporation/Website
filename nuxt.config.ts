@@ -39,6 +39,7 @@ export default defineNuxtConfig({
     public: {
       test: process.env.NUXT_TEST,
       test2: process.env.NUXT_TEST2,
+      test3: process.env.SOURCE_COMMIT,
       appVersion: version,
       buildNumber: process.env.SOURCE_COMMIT,
       environment: process.env.NODE_ENV,
