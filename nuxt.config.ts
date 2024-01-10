@@ -83,10 +83,6 @@ export default defineNuxtConfig({
     icons: ['heroicons', 'ic', 'mdi'],
   },
 
-  anime: {
-    provide: true,
-  },
-
   dayjs: {
     locales: ['en', 'de'],
     plugins: ['relativeTime', 'utc', 'timezone'],
