@@ -23,7 +23,7 @@ useHead({
   htmlAttrs: {
     lang: 'de',
     'data-app-version': `V${config.public.appVersion}-${
-      config.public.buildNumber
+      process.env.SOURCE_COMMIT
     }.${config.public.environment.toUpperCase()}`,
   },
   meta: [
