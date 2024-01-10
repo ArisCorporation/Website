@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const config = useRuntimeConfig();
-import 'dotenv/config';
 
 useSeoMeta({
   description:
@@ -180,9 +179,8 @@ onMounted(() => {
   }
   console.log('rc appversion: ', config.public.appVersion);
   console.log('rc build number: ', config.public.buildNumber);
-  console.log('pe: sourcecommit: ', process.env.SOURCE_COMMIT);
-  console.log('pe envtest: ', process.env.envTest);
-  console.log('rc envtest: ', config.public.envTest);
+  console.log('rc: test1: ', config.public.nuxtTest);
+  console.log('rc test2: ', process.env.nuxtTets2);
 });
 </script>
 
