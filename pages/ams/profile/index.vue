@@ -1679,8 +1679,6 @@ definePageMeta({
                   name="dutyPeriod"
                   :ui="formgroupUi"
                 >
-                  <!-- REGEX: (0?[1-9]|[1][0-2])\/\d{4,4}+ - (0?[1-9]|[1][0-2])\/\d{4,4}+ -->
-                  <!-- https://regex101.com/r/T1c030/1 -->
                   <UInput v-model="formData.dutyPeriod" placeholder="01/2940 - 12/2950" icon="i-heroicons-user" />
                   <template #hint>
                     <UPopover mode="hover">
