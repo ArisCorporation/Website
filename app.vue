@@ -180,10 +180,10 @@ onMounted(() => {
   console.log('rc appversion: ', config.public.appVersion);
   console.log('rc build number: ', config.public.buildNumber);
   console.log('rc: test1: ', config.public.test);
-  console.log('rc test2: ', config.test2);
-  console.log('rc test3: ', config.test3);
-  console.log('rc test4: ', config.test4);
-  console.log('rc test5: ', config.test5);
+  console.log('rc test2: ', config.public.test2);
+  console.log('rc test3: ', config.public.test3);
+  console.log('rc test4: ', config.public.test4);
+  console.log('rc test5: ', config.public.test5);
 });
 </script>
 
