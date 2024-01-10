@@ -178,6 +178,7 @@ onMounted(() => {
   }
   console.log(config.public.appVersion);
   console.log(config.public.buildNumber);
+  console.log(config.public.envTest);
 });
 </script>
 
