@@ -1,0 +1,26 @@
+name: Set Commit SHA
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  set-commit-sha:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - uses: actions/checkout@v2
+      - name: Find and Replace
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: "gitId: 'null'"
+          replace: "gitId: $(git rev-parse --short '$GITHUB_SHA')"
+          include: 'nuxt.config.js'
+          regex: true
