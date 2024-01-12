@@ -71,6 +71,7 @@ export default function (obj: any) {
           : obj.citizenReason === 'social'
             ? 'Soziales Engagement'
             : null,
+    citizenReasonValue: obj.citizenReason,
     dutyState: obj.dutyState,
     duty: {
       period: obj.dutyPeriod,

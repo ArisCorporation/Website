@@ -27,6 +27,7 @@ declare global {
     currentplace?: ILandingZone;
     ueeState?: 'citizen' | 'civilian';
     citizenReason?: 'Militärischer Dienst' | 'Besondere Bildung' | 'Soziales Engagement' | null;
+    citizenReasonValue: string | null;
     dutyState?: boolean;
     duty?: {
       period: string;
