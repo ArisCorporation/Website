@@ -23,9 +23,8 @@ useHead({
   },
   htmlAttrs: {
     lang: 'de',
-    'data-app-version': `V${config.public.appVersion}-${
-      process.env.SOURCE_COMMIT
-    }.${config.public.environment.toUpperCase()}`,
+    'data-app-version': `V${config.public.appVersion}.${config.public.environment.toUpperCase()}`,
+    // 'data-app-version': `V${config.public.appVersion}-${config.public.buildNumber}.${config.public.environment.toUpperCase()}`,
   },
   meta: [
     { name: 'theme-color', content: '#00FFE8' },
@@ -177,11 +176,6 @@ onMounted(() => {
       'ACHTUNG: DIES IST EINE EXTREM FRÜHE TESTVERSION DER 4. VERSION DER ARISCORP WEBSITE!\n\n\nDIESE VERSION IST NUR FÜR DAS INTERNE ENTWICKLUNGSTEAM DER ARISCORP BESTIMMT!',
     );
   }
-  console.log('rc appversion: ', config.public.appVersion);
-  console.log('rc build number: ', config.public.buildNumber);
-  console.log('rc test3: ', config.public.test3);
-  console.log('rc test4: ', config.public.test4);
-  console.log('rc test5: ', config.public.test5);
 });
 </script>
 
