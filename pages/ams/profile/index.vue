@@ -145,15 +145,15 @@ const formgroupUi = {
   label: { wrapper: 'flex content-center items-center justify-between mr-4' },
 };
 
-const checkboxRecruitment = ref(user.value?.roles.includes('Rekrutierung'));
-const checkboxMarketing = ref(user.value?.roles.includes('Marketing & Presse'));
-const checkboxCW = ref(user.value?.roles.includes('Inhaltsersteller'));
+const checkboxRecruitment = ref(user.value?.roles?.includes('Rekrutierung'));
+const checkboxMarketing = ref(user.value?.roles?.includes('Marketing & Presse'));
+const checkboxCW = ref(user.value?.roles?.includes('Inhaltsersteller'));
 
 const birthdateDay = ref(user.value?.birthdate ? user.value?.birthdate.split('-')[2] : '');
 const birthdateMonth = ref(user.value?.birthdate ? user.value?.birthdate.split('-')[1] : '');
 const birthdateYear = ref(user.value?.birthdate ? user.value?.birthdate.split('-')[0] : '');
 
-const formData: Schema = reactive({
+const formData = reactive({
   firstname: user.value?.firstname || '',
   lastname: user.value?.lastname || '',
   title: user.value?.title || null,
@@ -186,9 +186,7 @@ const formData: Schema = reactive({
   weight: user.value?.weight || null,
   height: user.value?.height || null,
   citizen: user.value?.ueeState === 'citizen' || false,
-  citizenReason: user.value?.citizenReason
-    ? citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue).value
-    : '',
+  citizenReason: citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue)?.value ?? '',
   dutyState: user.value?.citizenReasonValue === 'military' ? true : user.value?.dutyState || false,
   educationState: user.value?.citizenReasonValue === 'education' ? true : user.value?.educationState || false,
   dutyPeriod: user.value?.duty.period || '',
@@ -422,9 +420,7 @@ const handleEdits = async (event: FormSubmitEvent<Schema>) => {
       weight: formData.weight,
       height: formData.height,
       citizen: formData.citizen,
-      citizenReason: formData.citizenReason
-        ? citizenReasonOptions.find((e) => e.value === formData.citizenReason).value
-        : '',
+      citizenReason: citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue)?.value ?? '',
       dutyState: formData.dutyState,
       dutyPeriod: formData.dutyPeriod,
       dutyEnd: formData.dutyEnd,
@@ -584,9 +580,7 @@ const setFormData = () => {
   formData.weight = user.value?.weight || null;
   formData.height = user.value?.height || null;
   formData.citizen = user.value?.ueeState === 'citizen' || false;
-  formData.citizenReason = user.value?.citizenReason
-    ? citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue).value
-    : '';
+  formData.citizenReason = citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue)?.value ?? '';
   formData.dutyState = user.value?.citizenReasonValue === 'military' ? true : user.value?.dutyState || false;
   formData.educationState = user.value?.citizenReasonValue === 'education' ? true : user.value?.educationState || false;
   formData.dutyPeriod = user.value?.duty.period || '';
@@ -653,9 +647,7 @@ const setFormData = () => {
   initialFormdata.weight = user.value?.weight || null;
   initialFormdata.height = user.value?.height || null;
   initialFormdata.citizen = user.value?.ueeState === 'citizen' || false;
-  initialFormdata.citizenReason = user.value?.citizenReason
-    ? citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue).value
-    : '';
+  initialFormdata.citizenReason = citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue)?.value ?? '';
   initialFormdata.dutyState = user.value?.citizenReasonValue === 'military' ? true : user.value?.dutyState || false;
   initialFormdata.educationState =
     user.value?.citizenReasonValue === 'education' ? true : user.value?.educationState || false;
@@ -691,8 +683,7 @@ const setFormData = () => {
   initialFormdata.medicalinfo = user.value?.medicalinfo || '';
   initialFormdata.biography = user.value?.biography || '';
 };
-console.log(formData);
-console.log(user.value);
+
 const refresh = async () => {
   await refreshUser();
   setFormData();
