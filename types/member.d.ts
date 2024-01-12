@@ -32,6 +32,7 @@ declare global {
       period: string;
       end: string;
       division: string;
+      divisionValue: string;
     };
     educationState?: boolean;
     education?: {

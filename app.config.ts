@@ -83,13 +83,19 @@ export default defineAppConfig({
         inputInfo:
           'text-dark-gray hover:text-light-gray disabled:cursor-not-allowed disabled:text-bsecondary underline-offset-4 hover:underline focus-visible:ring-0 focus-visible:text-[#555] p-0 ml-2 transition',
       },
+      color: {
+        table: {
+          ghost:
+            'text-white hover:bg-bsecondary hover:text-secondary font-medium focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-primary-400',
+        },
+      },
     },
     popover: {
       background: 'bg-bsecondary',
       ring: 'ring-1 ring-btertiary',
     },
     slideover: {
-      base: 'relative flex-1 flex flex-col w-full focus:outline-none border-l-2 border-l-btertiary',
+      base: 'relative flex-1 flex flex-col w-full focus:outline-none',
       background: 'bg-bprimary',
       width: 'w-screen max-w-[532px] xl:max-w-xl',
       overlay: {
@@ -99,8 +105,40 @@ export default defineAppConfig({
     card: {
       body: { base: 'flex-1 overflow-auto' },
       background: 'bg-bprimary',
-      ring: '',
+      ring: 'ring-1 ring-btertiary',
       divide: 'divide-y divide-btertiary',
+    },
+    table: {
+      divide: 'divide-y divide-btertiary',
+      tbody: 'divide-y divide-btertiary',
+      tr: {
+        selected: 'bg-bsecondary',
+        active: 'hover:bg-gray-800/50 cursor-pointer',
+      },
+      th: {
+        color: 'text-white',
+        font: 'font-medium',
+      },
+      td: {
+        base: 'whitespace-nowrap',
+        padding: 'px-3 py-4',
+        color: 'text-tbase',
+        font: '',
+        size: 'text-sm',
+      },
+      loadingState: {
+        wrapper: 'flex flex-col items-center justify-center flex-1 px-6 py-14 sm:px-14',
+        label: 'text-sm text-center text-white',
+      },
+      emptyState: {
+        label: 'text-sm text-center text-white',
+        icon: 'w-6 h-6 mx-auto text-gray-500 mb-4',
+      },
+      default: {
+        sortButton: {
+          color: 'table',
+        },
+      },
     },
   },
 });

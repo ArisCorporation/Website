@@ -26,7 +26,7 @@ useHead({
 </script>
 
 <template>
-  <div>
+  <div class="lg:grid lg:grid-cols-[16rem,_1fr]">
     <TheModal>
       <template #content>
         <slot name="modalContent" />
@@ -57,7 +57,9 @@ useHead({
       </slot>
     </USlideover>
     <AmsSidebar />
-    <div class="flex flex-col justify-between flex-1 min-h-screen lg:ml-64">
+    <div id="sidebar-space" class="hidden lg:block" />
+    <!-- lg:max-w-[calc(100vw-16rem)]  lg:ml-64 -->
+    <div class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen">
       <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
       <DevOnly>
         <div class="bg-black z-[99] pb-4 px-8" v-if="JSON.parse(useCookie('ams_devtools').value ?? 'true')">
