@@ -13,6 +13,24 @@ const dataChanged = ref(false);
 const form = ref();
 const tryCount = ref(0);
 
+const citizenReasonOptions = [
+  {
+    value: 'Militärischer Dienst',
+    label: 'Militärischer Dienst',
+    color: 'primary',
+  },
+  {
+    value: 'Besondere Bildung',
+    label: 'Besondere Bildung',
+    color: 'primary',
+  },
+  {
+    value: 'Soziales Engagement',
+    label: 'Soziales Engagement',
+    color: 'primary',
+  },
+];
+
 class FetchError extends Error {
   constructor(message: string, type: string) {
     super(message);
@@ -168,9 +186,11 @@ const formData: Schema = reactive({
   weight: user.value?.weight || null,
   height: user.value?.height || null,
   citizen: user.value?.ueeState === 'citizen' || false,
-  citizenReason: user.value?.citizenReason || '',
-  dutyState: user.value?.citizenReason === 'Militärischer Dienst' ? true : user.value?.dutyState || false,
-  educationState: user.value?.citizenReason === 'Besondere Bildung' ? true : user.value?.educationState || false,
+  citizenReason: user.value?.citizenReason
+    ? citizenReasonOptions.filter((e) => e.value === user.value?.citizenReasonValue)
+    : '',
+  dutyState: user.value?.citizenReasonValue === 'military' ? true : user.value?.dutyState || false,
+  educationState: user.value?.citizenReasonValue === 'education' ? true : user.value?.educationState || false,
   dutyPeriod: user.value?.duty.period || '',
   dutyEnd: user.value?.duty.end || '',
   dutyDivision:
@@ -562,10 +582,11 @@ const setFormData = () => {
   formData.weight = user.value?.weight || null;
   formData.height = user.value?.height || null;
   formData.citizen = user.value?.ueeState === 'citizen' || false;
-  formData.citizenReason = user.value?.citizenReason || '';
-  formData.dutyState = user.value?.citizenReason === 'Militärischer Dienst' ? true : user.value?.dutyState || false;
-  formData.educationState =
-    user.value?.citizenReason === 'Besondere Bildung' ? true : user.value?.educationState || false;
+  formData.citizenReason = user.value?.citizenReason
+    ? citizenReasonOptions.filter((e) => e.value === user.value?.citizenReasonValue)
+    : '';
+  formData.dutyState = user.value?.citizenReasonValue === 'military' ? true : user.value?.dutyState || false;
+  formData.educationState = user.value?.citizenReasonValue === 'education' ? true : user.value?.educationState || false;
   formData.dutyPeriod = user.value?.duty.period || '';
   formData.dutyEnd = user.value?.duty.end || '';
   formData.dutyDivision =
@@ -630,14 +651,15 @@ const setFormData = () => {
   initialFormdata.weight = user.value?.weight || null;
   initialFormdata.height = user.value?.height || null;
   initialFormdata.citizen = user.value?.ueeState === 'citizen' || false;
-  initialFormdata.citizenReason = user.value?.citizenReason || '';
-  initialFormdata.dutyState =
-    user.value?.citizenReason === 'Militärischer Dienst' ? true : user.value?.dutyState || false;
+  initialFormdata.citizenReason = user.value?.citizenReason
+    ? citizenReasonOptions.filter((e) => e.value === user.value?.citizenReasonValue)
+    : '';
+  initialFormdata.dutyState = user.value?.citizenReasonValue === 'military' ? true : user.value?.dutyState || false;
   initialFormdata.educationState =
-    user.value?.citizenReason === 'Besondere Bildung' ? true : user.value?.educationState || false;
+    user.value?.citizenReasonValue === 'education' ? true : user.value?.educationState || false;
   initialFormdata.dutyPeriod = user.value?.duty.period || '';
   initialFormdata.dutyEnd = user.value?.duty.end || '';
-  initialformData.dutyDivision =
+  initialFormdata.dutyDivision =
     [
       { name: 'UEE Army', value: 'army' },
       { name: 'UEE Marine', value: 'marines' },
