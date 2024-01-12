@@ -80,9 +80,10 @@ export default function (obj: any) {
           ? 'UEE Arme'
           : obj.dutyDivision === 'navy'
             ? 'UEE Marine'
-            : obj.dutyDivision === 'marine'
+            : obj.dutyDivision === 'marines'
               ? 'UEE Luftwaffe'
               : null,
+      divisionValue: obj.dutyDivision,
     },
     educationState: obj.educationState,
     education: {

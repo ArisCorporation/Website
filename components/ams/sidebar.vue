@@ -30,9 +30,9 @@ const sidebarItems = [
     level: 0,
   },
   {
-    name: 'Admin',
+    name: 'Administration',
     icon: 'ri:admin-line',
-    link: '/admin',
+    link: '/administration',
     level: 4,
   },
 ];

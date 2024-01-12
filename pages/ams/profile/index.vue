@@ -13,12 +13,6 @@ const dataChanged = ref(false);
 const form = ref();
 const tryCount = ref(0);
 
-class FormValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ValidationError';
-  }
-}
 class FetchError extends Error {
   constructor(message: string, type: string) {
     super(message);
@@ -182,9 +176,9 @@ const formData: Schema = reactive({
   dutyDivision:
     [
       { name: 'UEE Army', value: 'army' },
-      { name: 'UEE Marine', value: 'marine' },
-      { name: 'UEE Nay', value: 'navy' },
-    ].find((e) => e.name === user.value?.duty.division) || null,
+      { name: 'UEE Marine', value: 'marines' },
+      { name: 'UEE Navy', value: 'navy' },
+    ].find((e) => e.value === user.value?.duty.divisionValue) || null,
   educationName: user.value?.education.name || '',
   educationPeriod: user.value?.education.period || '',
   educationPlace: user.value?.education.place || null,
@@ -412,7 +406,7 @@ const handleEdits = async (event: FormSubmitEvent<Schema>) => {
       dutyState: formData.dutyState,
       dutyPeriod: formData.dutyPeriod,
       dutyEnd: formData.dutyEnd,
-      dutyDivision: formData.dutyDivision?.value ?? null,
+      dutyDivision: formData.dutyDivision?.value ? formData.dutyDivision?.value : null,
       educationState: formData.educationState,
       educationName: formData.educationName,
       educationPeriod: formData.educationPeriod,
@@ -577,9 +571,9 @@ const setFormData = () => {
   formData.dutyDivision =
     [
       { name: 'UEE Army', value: 'army' },
-      { name: 'UEE Marine', value: 'marine' },
-      { name: 'UEE Nay', value: 'navy' },
-    ].find((e) => e.name === user.value?.duty.division) || null;
+      { name: 'UEE Marine', value: 'marines' },
+      { name: 'UEE Navy', value: 'navy' },
+    ].find((e) => e.value === user.value?.duty.divisionValue) || null;
   formData.educationName = user.value?.education.name || '';
   formData.educationPeriod = user.value?.education.period || '';
   formData.educationPlace = user.value?.education.place || null;
@@ -643,12 +637,12 @@ const setFormData = () => {
     user.value?.citizenReason === 'Besondere Bildung' ? true : user.value?.educationState || false;
   initialFormdata.dutyPeriod = user.value?.duty.period || '';
   initialFormdata.dutyEnd = user.value?.duty.end || '';
-  initialFormdata.dutyDivision =
+  initialformData.dutyDivision =
     [
       { name: 'UEE Army', value: 'army' },
-      { name: 'UEE Marine', value: 'marine' },
-      { name: 'UEE Nay', value: 'navy' },
-    ].find((e) => e.name === user.value?.duty.division) || null;
+      { name: 'UEE Marine', value: 'marines' },
+      { name: 'UEE Navy', value: 'navy' },
+    ].find((e) => e.value === user.value?.duty.divisionValue) || null;
   initialFormdata.educationName = user.value?.education.name || '';
   initialFormdata.educationPeriod = user.value?.education.period || '';
   initialFormdata.educationPlace = user.value?.education.place || null;
@@ -673,7 +667,8 @@ const setFormData = () => {
   initialFormdata.medicalinfo = user.value?.medicalinfo || '';
   initialFormdata.biography = user.value?.biography || '';
 };
-
+console.log(formData);
+console.log(user.value);
 const refresh = async () => {
   await refreshUser();
   setFormData();
@@ -1682,8 +1677,8 @@ definePageMeta({
             enter-active-class="transition-all duration-300 overflow-clip"
             leave-active-class="transition-all duration-300 overflow-clip"
             enter-from-class="h-0"
-            enter-to-class="h-[164px] xl:h-[120px]"
-            leave-from-class="h-[164px] xl:h-[120px]"
+            enter-to-class="h-[140px] xl:h-[96px]"
+            leave-from-class="h-[140px] xl:h-[96px]"
             leave-to-class="h-0"
           >
             <div v-if="formData.dutyState">
@@ -1760,8 +1755,8 @@ definePageMeta({
                       :options="[
                         '',
                         { name: 'UEE Army', value: 'army' },
-                        { name: 'UEE Marine', value: 'marine' },
-                        { name: 'UEE Nay', value: 'navy' },
+                        { name: 'UEE Marine', value: 'marines' },
+                        { name: 'UEE Navy', value: 'navy' },
                       ]"
                       :ui="
                         formData.dutyDivision || initialFormdata.dutyDivision
