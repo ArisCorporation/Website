@@ -152,7 +152,7 @@ const checkboxCW = ref(user.value?.roles?.includes('Inhaltsersteller'));
 const birthdateDay = ref(user.value?.birthdate ? user.value?.birthdate.split('-')[2] : '');
 const birthdateMonth = ref(user.value?.birthdate ? user.value?.birthdate.split('-')[1] : '');
 const birthdateYear = ref(user.value?.birthdate ? user.value?.birthdate.split('-')[0] : '');
-
+console.log(user.value);
 const formData = reactive({
   firstname: user.value?.firstname || '',
   lastname: user.value?.lastname || '',
@@ -231,9 +231,9 @@ watch(
       formData.citizenReason = '';
     }
 
-    if (formData.citizenReason === 'Militärischer Dienst') {
+    if (formData.citizenReason === 'military') {
       formData.dutyState = true;
-    } else if (formData.citizenReason === 'Besondere Bildung') {
+    } else if (formData.citizenReason === 'education') {
       formData.educationState = true;
     }
 
@@ -1646,14 +1646,14 @@ definePageMeta({
             <UFormGroup size="xl" label="Was trifft auf sie zu?" name="states" :ui="formgroupUi">
               <ArisCheckbox
                 v-model="formData.dutyState"
-                :disabled="formData.citizenReason === 'Militärischer Dienst'"
+                :disabled="formData.citizenReason === 'military'"
                 name="military"
                 label="Ich habe im Militär gedient."
                 color="primary"
               />
               <ArisCheckbox
                 v-model="formData.educationState"
-                :disabled="formData.citizenReason === 'Besondere Bildung'"
+                :disabled="formData.citizenReason === 'education'"
                 name="education"
                 label="Ich besitze eine Hochschulausbildung."
                 color="primary"
