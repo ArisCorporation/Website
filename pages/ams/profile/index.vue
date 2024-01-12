@@ -924,7 +924,13 @@ definePageMeta({
               </template>
             </UFormGroup>
             <UFormGroup size="xl" label="Passwort" name="password" :ui="formgroupUi">
-              <UInput v-model="formData.password" placeholder="******" type="password" icon="i-heroicons-lock-closed" />
+              <UInput
+                autocomplete="new-password"
+                v-model="formData.password"
+                placeholder="******"
+                type="password"
+                icon="i-heroicons-lock-closed"
+              />
               <template #hint>
                 <UPopover mode="hover">
                   <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
