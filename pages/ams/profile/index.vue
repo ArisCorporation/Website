@@ -420,7 +420,7 @@ const handleEdits = async (event: FormSubmitEvent<Schema>) => {
       weight: formData.weight,
       height: formData.height,
       citizen: formData.citizen,
-      citizenReason: citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue)?.value ?? '',
+      citizenReason: citizenReasonOptions.find((e) => e.value === formData.citizenReason)?.value ?? '',
       dutyState: formData.dutyState,
       dutyPeriod: formData.dutyPeriod,
       dutyEnd: formData.dutyEnd,
@@ -647,7 +647,8 @@ const setFormData = () => {
   initialFormdata.weight = user.value?.weight || null;
   initialFormdata.height = user.value?.height || null;
   initialFormdata.citizen = user.value?.ueeState === 'citizen' || false;
-  initialFormdata.citizenReason = citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue)?.value ?? '';
+  initialFormdata.citizenReason =
+    citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue)?.value ?? '';
   initialFormdata.dutyState = user.value?.citizenReasonValue === 'military' ? true : user.value?.dutyState || false;
   initialFormdata.educationState =
     user.value?.citizenReasonValue === 'education' ? true : user.value?.educationState || false;
@@ -1616,7 +1617,6 @@ definePageMeta({
               </template>
             </UFormGroup>
           </div>
-          {{ formData.citizenReason }}
           <Transition
             enter-active-class="transition-all duration-300 overflow-clip"
             leave-active-class="transition-all duration-300 overflow-clip"
