@@ -42,7 +42,7 @@ useHead({
               body: { base: 'flex-1' },
               background: 'bg-bprimary',
               ring: '',
-              divide: 'divide-y divide-gray-100 dark:divide-gray-800',
+              divide: 'divide-y divide-btertiary',
             }"
           >
             <template #header>

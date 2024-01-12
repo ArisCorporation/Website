@@ -2421,35 +2421,33 @@ definePageMeta({
           <UFormGroup size="xl" name="biography">
             <LazyClientOnly>
               <Editor
-                api-key="30ijnjychriexb76qdn1j9nrlsz8qu89urtbqt9jd7gjo5dq"
                 v-model="formData.biography"
                 :init="{
                   height: 500,
                   menubar: true,
                   plugins: [
-                    'a11ychecker',
-                    'advlist',
-                    'advcode',
-                    'advtable',
-                    'autolink',
-                    'checklist',
-                    'export',
+                    // 'a11ychecker',
+                    // 'advlist',
+                    // 'advcode',
+                    // 'advtable',
+                    // 'autolink',
+                    // 'checklist',
+                    // 'export',
                     'lists',
                     'link',
-                    'image',
-                    'charmap',
+                    // 'image',
+                    // 'charmap',
                     'preview',
-                    'anchor',
-                    'searchreplace',
-                    'visualblocks',
-                    'powerpaste',
+                    // 'anchor',
+                    // 'searchreplace',
+                    // 'visualblocks',
+                    // 'powerpaste',
                     'fullscreen',
-                    'formatpainter',
-                    'insertdatetime',
-                    'media',
+                    // 'formatpainter',
+                    // 'insertdatetime',
+                    // 'media',
                     'table',
-                    'help',
-                    'ariscorpElements',
+                    // 'help',
                   ],
                   toolbar:
                     'undo redo | casechange blocks | bold italic backcolor | ' +
