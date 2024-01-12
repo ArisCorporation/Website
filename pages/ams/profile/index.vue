@@ -15,17 +15,17 @@ const tryCount = ref(0);
 
 const citizenReasonOptions = [
   {
-    value: 'Militärischer Dienst',
+    value: 'military',
     label: 'Militärischer Dienst',
     color: 'primary',
   },
   {
-    value: 'Besondere Bildung',
+    value: 'education',
     label: 'Besondere Bildung',
     color: 'primary',
   },
   {
-    value: 'Soziales Engagement',
+    value: 'social',
     label: 'Soziales Engagement',
     color: 'primary',
   },
@@ -187,7 +187,7 @@ const formData: Schema = reactive({
   height: user.value?.height || null,
   citizen: user.value?.ueeState === 'citizen' || false,
   citizenReason: user.value?.citizenReason
-    ? citizenReasonOptions.filter((e) => e.value === user.value?.citizenReasonValue)
+    ? citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue).value
     : '',
   dutyState: user.value?.citizenReasonValue === 'military' ? true : user.value?.dutyState || false,
   educationState: user.value?.citizenReasonValue === 'education' ? true : user.value?.educationState || false,
@@ -422,7 +422,9 @@ const handleEdits = async (event: FormSubmitEvent<Schema>) => {
       weight: formData.weight,
       height: formData.height,
       citizen: formData.citizen,
-      citizenReason: formData.citizenReason,
+      citizenReason: formData.citizenReason
+        ? citizenReasonOptions.find((e) => e.value === formData.citizenReason).value
+        : '',
       dutyState: formData.dutyState,
       dutyPeriod: formData.dutyPeriod,
       dutyEnd: formData.dutyEnd,
@@ -463,7 +465,7 @@ const handleEdits = async (event: FormSubmitEvent<Schema>) => {
     if (formData.password) {
       updatedData.password = formData?.password;
     }
-
+    console.log(updatedData);
     let fetchError = false;
     let fetchMessage = null;
     const { data: fetchData, error: fetchErrorRes } = await useFetch(
@@ -583,7 +585,7 @@ const setFormData = () => {
   formData.height = user.value?.height || null;
   formData.citizen = user.value?.ueeState === 'citizen' || false;
   formData.citizenReason = user.value?.citizenReason
-    ? citizenReasonOptions.filter((e) => e.value === user.value?.citizenReasonValue)
+    ? citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue).value
     : '';
   formData.dutyState = user.value?.citizenReasonValue === 'military' ? true : user.value?.dutyState || false;
   formData.educationState = user.value?.citizenReasonValue === 'education' ? true : user.value?.educationState || false;
@@ -652,7 +654,7 @@ const setFormData = () => {
   initialFormdata.height = user.value?.height || null;
   initialFormdata.citizen = user.value?.ueeState === 'citizen' || false;
   initialFormdata.citizenReason = user.value?.citizenReason
-    ? citizenReasonOptions.filter((e) => e.value === user.value?.citizenReasonValue)
+    ? citizenReasonOptions.find((e) => e.value === user.value?.citizenReasonValue).value
     : '';
   initialFormdata.dutyState = user.value?.citizenReasonValue === 'military' ? true : user.value?.dutyState || false;
   initialFormdata.educationState =
@@ -1623,6 +1625,7 @@ definePageMeta({
               </template>
             </UFormGroup>
           </div>
+          {{ formData.citizenReason }}
           <Transition
             enter-active-class="transition-all duration-300 overflow-clip"
             leave-active-class="transition-all duration-300 overflow-clip"
@@ -1633,26 +1636,7 @@ definePageMeta({
           >
             <div v-if="formData.citizen" class="xl:pr-4">
               <UFormGroup size="xl" label="Wie wurdest du Bürger?" name="citizenReason" :ui="formgroupUi">
-                <ArisRadioGroup
-                  v-model="formData.citizenReason"
-                  :options="[
-                    {
-                      value: 'Militärischer Dienst',
-                      label: 'Militärischer Dienst',
-                      color: 'primary',
-                    },
-                    {
-                      value: 'Besondere Bildung',
-                      label: 'Besondere Bildung',
-                      color: 'primary',
-                    },
-                    {
-                      value: 'Soziales Engagement',
-                      label: 'Soziales Engagement',
-                      color: 'primary',
-                    },
-                  ]"
-                />
+                <ArisRadioGroup v-model="formData.citizenReason" :options="citizenReasonOptions" />
                 <template #hint>
                   <UPopover mode="hover">
                     <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
