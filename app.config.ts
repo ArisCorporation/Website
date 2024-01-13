@@ -140,5 +140,24 @@ export default defineAppConfig({
         },
       },
     },
+    pagination: {
+      default: {
+        inactiveButton: {
+          class: '!bg-bsecondary',
+        },
+        firstButton: {
+          class: '!bg-bsecondary',
+        },
+        lastButton: {
+          class: '!bg-bsecondary',
+        },
+        prevButton: {
+          class: '!bg-btertiary',
+        },
+        nextButton: {
+          class: '!bg-btertiary',
+        },
+      },
+    },
   },
 });
