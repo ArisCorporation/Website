@@ -177,6 +177,9 @@ onMounted(() => {
     );
   }
 });
+
+console.log(config.public.test1);
+console.log(config.public.test2);
 </script>
 
 <template>
