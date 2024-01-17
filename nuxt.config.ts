@@ -59,12 +59,6 @@ export default defineNuxtConfig({
       prefix: '',
       global: true,
     },
-    // For Page-Components
-    {
-      path: '~/pages',
-      pattern: '*/components/**',
-      pathPrefix: false,
-    },
   ],
 
   image: {
@@ -96,18 +90,5 @@ export default defineNuxtConfig({
     plugins: ['relativeTime', 'utc', 'timezone'],
     defaultLocale: 'de',
     defaultTimezone: 'Europe/Berlin',
-  },
-
-  hooks: {
-    'pages:extend'(pages) {
-      const pagesToRemove: NuxtPage[] = [];
-      pages.forEach((page) => {
-        if (page.path.includes('component')) pagesToRemove.push(page);
-      });
-
-      pagesToRemove.forEach((page: NuxtPage) => {
-        pages.splice(pages.indexOf(page), 1);
-      });
-    },
   },
 });
