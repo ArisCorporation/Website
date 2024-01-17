@@ -31,6 +31,7 @@ export default defineNuxtConfig({
     'dayjs-nuxt',
     '@nuxt/ui',
     'nuxt-lodash',
+    '@nuxt/content',
   ],
 
   runtimeConfig: {
