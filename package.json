@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@headlessui/tailwindcss": "^0.2.0",
+    "@nuxt/content": "^2.10.0",
     "@nuxt/image": "^1.1.0",
     "@nuxt/ui": "^2.11.1",
     "@pinia-plugin-persistedstate/nuxt": "^1.2.0",
