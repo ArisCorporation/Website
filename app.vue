@@ -23,8 +23,9 @@ useHead({
   },
   htmlAttrs: {
     lang: 'de',
-    'data-app-version': `V${config.public.appVersion}.${config.public.environment.toUpperCase()}`,
-    // 'data-app-version': `V${config.public.appVersion}-${config.public.buildNumber}.${config.public.environment.toUpperCase()}`,
+    'data-app-version': `V${config.public.appVersion}-${
+      config.public.buildNumber
+    }.${config.public.environment.toUpperCase()}`,
   },
   meta: [
     { name: 'theme-color', content: '#00FFE8' },
@@ -177,9 +178,6 @@ onMounted(() => {
     );
   }
 });
-
-console.log(config.public.test1);
-console.log(config.public.test2);
 </script>
 
 <template>

@@ -38,9 +38,7 @@ export default defineNuxtConfig({
     cmsToken: process.env.NUXT_CMS_TOKEN,
     public: {
       appVersion: version,
-      test1: process.env.SOURCE_COMMIT,
-      test2: process.env.NUXT_PUBLIC_TEST2,
-      // buildNumber: process.env.SOURCE_COMMIT,
+      buildNumber: process.env.NUXT_PUBLIC_BUILD_NUMBER,
       environment: process.env.NODE_ENV,
       url: process.env.NUXT_PUBLIC_URL,
       backendUrl: 'https://cms.ariscorp.de',
