@@ -87,6 +87,10 @@
     @apply bg-secondary h-[2px] w-full my-5 border-none;
   }
 
+  button {
+    @apply focus:outline-aris-400;
+  }
+
   .prose td {
     vertical-align: middle !important;
   }

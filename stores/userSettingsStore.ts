@@ -1,3 +1,5 @@
+type tableColumns = { key: string; label?: string; sortable?: boolean }[];
+
 export const useUserSettingsStore = defineStore({
   id: 'userSettings',
   persist: true,
@@ -9,6 +11,9 @@ export const useUserSettingsStore = defineStore({
         fleetDetailView: false,
         fleetLoanerView: false,
         avatarConsent: false,
+        administration: {
+          userTableColumns: null as tableColumns | null,
+        },
       },
       se: {
         shipDetailView: false,
@@ -30,6 +35,9 @@ export const useUserSettingsStore = defineStore({
     },
     AMSAcceptAvatarConsent() {
       this.userSettings.ams.avatarConsent = true;
+    },
+    AMSAdministrationSetUserTableColumns(columns: tableColumns) {
+      this.userSettings.ams.administration.userTableColumns = columns;
     },
     SEToggleShipDetailView() {
       this.userSettings.se.shipDetailView = !this.userSettings.se.shipDetailView;

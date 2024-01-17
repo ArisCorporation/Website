@@ -39,6 +39,7 @@ export default function (obj: any) {
 
   return {
     id: obj.id,
+    status: obj.status,
     firstname: obj.first_name,
     lastname: obj.last_name,
     title: obj.title,
@@ -120,5 +121,23 @@ export default function (obj: any) {
     biographyLink: `/biography/${obj.slug}`,
     biographyAmsLink: `/ams/employees/biography/${obj.slug}`,
     // hangar: obj.ships?.map(transformHangarItem),
+  };
+}
+
+export function revertTransformUser(obj: IMember) {
+  return {
+    // id: obj.id,
+    // first_name: obj.firstname,
+    // last_name: obj.lastname,
+    // email: obj.email,
+    // password: obj.password ?? null,
+    // title: obj.title,
+    // description: obj.description,
+    // tags: obj.tags,
+    // avatar: obj.avatar,
+    // language: obj.language,
+    // tfa_secret: obj.tfa_secret,
+    // status: obj.status,
+    // role: obj.role,
   };
 }

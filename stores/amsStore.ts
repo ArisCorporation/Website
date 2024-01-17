@@ -1,7 +1,7 @@
 export const useVeStore = defineStore({
   id: 'amsStore',
   state: () => ({
-    MobileSidebar: false,
+    MobileSidebar: false as boolean,
   }),
   getters: {},
   actions: {
