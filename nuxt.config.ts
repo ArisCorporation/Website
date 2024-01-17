@@ -24,7 +24,7 @@ export default defineNuxtConfig({
     'nuxt-icon',
     'nuxt-headlessui',
     'nuxt-directus',
-    '@nuxt/content',
+    // '@nuxt/content',
     '@pinia/nuxt',
     '@vueuse/motion/nuxt',
     '@pinia-plugin-persistedstate/nuxt',
@@ -37,13 +37,10 @@ export default defineNuxtConfig({
     authSecret: process.env.NUXT_AUTH_SECRET,
     cmsToken: process.env.NUXT_CMS_TOKEN,
     public: {
-      test: process.env.NUXT_PUBLIC_TEST,
-      test2: process.env.NUXT_PUBLIC_TEST2,
-      test3: process.env.SOURCE_COMMIT,
-      test4: process.env.NUXT_PUBLIC_TEST5,
-      test5: process.env.SOURCE_COMMIT,
       appVersion: version,
-      buildNumber: process.env.SOURCE_COMMIT,
+      test1: process.env.SOURCE_COMMIT,
+      test2: process.env.NUXT_PUBLIC_TEST2,
+      // buildNumber: process.env.SOURCE_COMMIT,
       environment: process.env.NODE_ENV,
       url: process.env.NUXT_PUBLIC_URL,
       backendUrl: 'https://cms.ariscorp.de',
@@ -53,14 +50,22 @@ export default defineNuxtConfig({
   },
 
   components: [
+    // For All Components
     {
       path: '~/components',
       global: true,
     },
+    // For Global-Components
     {
       path: '~/components/global',
       prefix: '',
       global: true,
+    },
+    // For Page-Components
+    {
+      path: '~/pages',
+      pattern: '*/components/**',
+      pathPrefix: false,
     },
   ],
 
@@ -93,5 +98,18 @@ export default defineNuxtConfig({
     plugins: ['relativeTime', 'utc', 'timezone'],
     defaultLocale: 'de',
     defaultTimezone: 'Europe/Berlin',
+  },
+
+  hooks: {
+    'pages:extend'(pages) {
+      const pagesToRemove: NuxtPage[] = [];
+      pages.forEach((page) => {
+        if (page.path.includes('component')) pagesToRemove.push(page);
+      });
+
+      pagesToRemove.forEach((page: NuxtPage) => {
+        pages.splice(pages.indexOf(page), 1);
+      });
+    },
   },
 });
