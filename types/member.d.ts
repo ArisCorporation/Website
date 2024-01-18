@@ -3,6 +3,7 @@ export { IMember, IRawUser };
 declare global {
   interface IMember {
     id: string;
+    status?: string;
     firstname?: string;
     lastname?: string;
     title?: string;
@@ -112,6 +113,7 @@ declare global {
     citizenReason?: string | null;
     dutyPeriod?: string | null;
     dutyEnd?: string | null;
+    dutyDivision?: string | null;
     study?: string | null;
     studyPeriod?: string | null;
     studyPlace?: string | null;
