@@ -123,21 +123,3 @@ export default function (obj: any) {
     // hangar: obj.ships?.map(transformHangarItem),
   };
 }
-
-export function revertTransformUser(obj: IMember) {
-  return {
-    // id: obj.id,
-    // first_name: obj.firstname,
-    // last_name: obj.lastname,
-    // email: obj.email,
-    // password: obj.password ?? null,
-    // title: obj.title,
-    // description: obj.description,
-    // tags: obj.tags,
-    // avatar: obj.avatar,
-    // language: obj.language,
-    // tfa_secret: obj.tfa_secret,
-    // status: obj.status,
-    // role: obj.role,
-  };
-}
