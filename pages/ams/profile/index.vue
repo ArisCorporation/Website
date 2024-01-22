@@ -160,6 +160,7 @@ const formData = reactive({
   contactEmail: user.value?.contactEmail || '',
   rsiHandle: user.value?.rsiHandle || '',
   discordName: user.value?.discordName || '',
+  discordId: user.value?.discordId || '',
   password: '',
   roles:
     computed(() => {
@@ -170,7 +171,7 @@ const formData = reactive({
 
       return roles;
     }) || [],
-  head_of_department: user.value?.headOfDepartment || false,
+  headOfDepartment: user.value?.headOfDepartment || false,
   department: null,
   // department: data.value?.departments.find((e) => e.id === user.value?.department.id) || null,
   currentplace: user.value?.currentplace || null,
@@ -213,7 +214,7 @@ const formData = reactive({
   books: user.value?.books || '',
   clothing: user.value?.clothing || '',
   food: user.value?.food || '',
-  drinks: user.value?.drink || '',
+  drink: user.value?.drink || '',
   alcohol: user.value?.alcohol || '',
   colors: user.value?.colors || '',
   loves: user.value?.loves || '',
@@ -276,10 +277,11 @@ const schema = object({
   title: string().nullable(),
   contactEmail: string().email().nullable(),
   discordName: string().nullable(),
+  // TODO: add dynamic discord id search validation for name
   rsiHandle: string().nullable(),
   password: string().nullable(),
   roles: array().nullable(),
-  head_of_department: boolean().required(
+  headOfDepartment: boolean().required(
     'Du musst angeben ob du ein Abteilungsleiter bist. \b Solltest du kein Verwaltungsmitglied sein, rede bitte mit dem Website-Team (@Thomas_Blakeney oder @Decon_Vorn)',
   ),
   department: object().nullable(),
@@ -369,7 +371,7 @@ const schema = object({
   books: string().nullable(),
   clothing: string().nullable(),
   food: string().nullable(),
-  drinks: string().nullable(),
+  drink: string().nullable(),
   alcohol: string().nullable(),
   colors: string().nullable(),
   loves: string().nullable(),
@@ -409,7 +411,7 @@ const handleEdits = async (event: FormSubmitEvent<Schema>) => {
       rsiHandle: formData.rsiHandle,
       discordName: formData.discordName,
       roles: formData.roles,
-      head_of_department: formData.head_of_department,
+      headOfDepartment: formData.headOfDepartment,
       // department: formData.department?.id ?? null,
       currentResidence: formData.currentplace?.id ?? null,
       sex: formData.sex,
@@ -443,7 +445,7 @@ const handleEdits = async (event: FormSubmitEvent<Schema>) => {
       books: formData.books,
       clothing: formData.clothing,
       food: formData.food,
-      drink: formData.drinks,
+      drink: formData.drink,
       alcohol: formData.alcohol,
       colors: formData.colors,
       loves: formData.loves,
@@ -451,17 +453,6 @@ const handleEdits = async (event: FormSubmitEvent<Schema>) => {
       medicalInformations: formData.medicalinfo,
       biography: formData.biography,
     };
-    if (formData.firstname !== user.value?.firstname || formData.lastname !== user.value?.lastname) {
-      updatedData.slug = useSlugify(`${formData.firstname}${formData.lastname && ' ' + formData.lastname}`);
-      updatedData.email = `${useSlugify(
-        formData.firstname + (formData.lastname && '.' + formData.lastname),
-        true,
-      )}@ariscorp.de`;
-    }
-    if (formData.password) {
-      updatedData.password = formData?.password;
-    }
-    console.log(updatedData);
     let fetchError = false;
     let fetchMessage = null;
     const { data: fetchData, error: fetchErrorRes } = await useFetch(
@@ -554,6 +545,7 @@ const setFormData = () => {
   formData.contactEmail = user.value?.contactEmail || '';
   formData.rsiHandle = user.value?.rsiHandle || '';
   formData.discordName = user.value?.discordName || '';
+  formData.discordId = user.value?.discordId || '';
   formData.password = '';
   formData.roles =
     computed(() => {
@@ -564,7 +556,7 @@ const setFormData = () => {
 
       return roles;
     }) || [];
-  formData.head_of_department = user.value?.headOfDepartment || false;
+  formData.headOfDepartment = user.value?.headOfDepartment || false;
   formData.department = null;
   // department: data.value?.departments.find((e) => e.id === user.value?.department.id) || null;
   formData.currentplace = user.value?.currentplace || null;
@@ -607,7 +599,7 @@ const setFormData = () => {
   formData.books = user.value?.books || '';
   formData.clothing = user.value?.clothing || '';
   formData.food = user.value?.food || '';
-  formData.drinks = user.value?.drink || '';
+  formData.drink = user.value?.drink || '';
   formData.alcohol = user.value?.alcohol || '';
   formData.colors = user.value?.colors || '';
   formData.loves = user.value?.loves || '';
@@ -621,6 +613,7 @@ const setFormData = () => {
   initialFormdata.contactEmail = user.value?.contactEmail || '';
   initialFormdata.rsiHandle = user.value?.rsiHandle || '';
   initialFormdata.discordName = user.value?.discordName || '';
+  initialFormdata.discordId = user.value?.discordId || '';
   initialFormdata.password = '';
   initialFormdata.roles =
     computed(() => {
@@ -631,7 +624,7 @@ const setFormData = () => {
 
       return roles;
     }) || [];
-  initialFormdata.head_of_department = user.value?.headOfDepartment || false;
+  initialFormdata.headOfDepartment = user.value?.headOfDepartment || false;
   initialFormdata.department = null;
   // department: data.value?.departments.find((e) => e.id === user.value?.department.id) || null;
   initialFormdata.currentplace = user.value?.currentplace || null;
@@ -676,7 +669,7 @@ const setFormData = () => {
   initialFormdata.books = user.value?.books || '';
   initialFormdata.clothing = user.value?.clothing || '';
   initialFormdata.food = user.value?.food || '';
-  initialFormdata.drinks = user.value?.drink || '';
+  initialFormdata.drink = user.value?.drink || '';
   initialFormdata.alcohol = user.value?.alcohol || '';
   initialFormdata.colors = user.value?.colors || '';
   initialFormdata.loves = user.value?.loves || '';
@@ -790,66 +783,68 @@ definePageMeta({
       <div class="flex px-6">
         <UForm class="w-full" ref="form" :state="formData" :schema="schema">
           <div class="flex w-full text-center">
-            <UFormGroup class="mx-auto" name="customErrors" />
+            <ArisUFormGroup class="mx-auto" name="customErrors" />
           </div>
           <TableHr> Basisinformationen </TableHr>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup required size="xl" label="Vorname" name="firstname" :ui="formgroupUi">
+            <ArisUFormGroup required size="xl" label="Vorname" name="firstname" :ui="formgroupUi">
               <UInput v-model="formData.firstname" placeholder="Chris" icon="i-heroicons-user" />
+              <button
+                v-if="formData.firstname !== ''"
+                @click="formData.firstname = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p class="text-danger">Jedes Mitglied braucht einen Vornamen.</p>
-                      <p class="italic text-danger bold">
-                        WICHTIG: Das ändern deines Vor- und Nachnamen ändert auch deinen Login-Benutzername.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic">
-                        Falls du dir schon Gedanken über einen richtigen Vornamen gemacht hast.
-                        <span class="text-secondary">Decon</span>
-                      </p>
-                      <p class="italic">
-                        Natürlich kannst du auch mehrere Vornamen haben.
-                        <span class="text-secondary">Decon Malcom</span>
-                      </p>
-                      <p class="italic">
-                        Falls du noch keinen Vornamen hast, <br class="md:hidden" />
-                        kannst du einfach solange deinen Benutzernamen eingeben.
-                        <span class="text-secondary">Blizii</span>
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p class="text-danger">Jedes Mitglied braucht einen Vornamen.</p>
+                <p class="italic text-danger bold">
+                  WICHTIG: Das ändern deines Vor- und Nachnamen ändert auch deinen Login-Benutzername.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic">
+                  Falls du dir schon Gedanken über einen richtigen Vornamen gemacht hast.
+                  <span class="text-secondary">Decon</span>
+                </p>
+                <p class="italic">
+                  Natürlich kannst du auch mehrere Vornamen haben.
+                  <span class="text-secondary">Decon Malcom</span>
+                </p>
+                <p class="italic">
+                  Falls du noch keinen Vornamen hast, <br class="md:hidden" />
+                  kannst du einfach solange deinen Benutzernamen eingeben.
+                  <span class="text-secondary">Blizii</span>
+                </p>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Nachname" name="lastname" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Nachname" name="lastname" :ui="formgroupUi">
               <UInput v-model="formData.lastname" placeholder="Roberts" icon="i-heroicons-user" />
+              <button
+                v-if="formData.lastname !== ''"
+                @click="formData.lastname = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Wenn du ein Vorname hast, brauchst du natürlich auch einen Nachnamen.</p>
-                      <p class="text-primary">
-                        WICHTIG: Das ändern deines Vor- und Nachnamen ändert auch deinen Login-Benutzername.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic">
-                        Ein passender Nachname wäre zum Beispiel:
-                        <span class="text-secondary">Vorn</span>
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Wenn du ein Vorname hast, brauchst du natürlich auch einen Nachnamen.</p>
+                <p class="text-primary">
+                  WICHTIG: Das ändern deines Vor- und Nachnamen ändert auch deinen Login-Benutzername.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic">
+                  Ein passender Nachname wäre zum Beispiel:
+                  <span class="text-secondary">Vorn</span>
+                </p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup required size="xl" label="Titel" name="title" :ui="formgroupUi">
+            <ArisUFormGroup required size="xl" label="Titel" name="title" :ui="formgroupUi">
               <div class="relative">
                 <USelectMenu
                   v-model="formData.title"
@@ -897,27 +892,18 @@ definePageMeta({
                 </template>
               </div>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>
-                        Falls du eine besondere Hochschulausbildung hast, kannst du hier den passenden Titel auswählen.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic">
-                        Falls du einen Doktortitel hast:
-                        <span class="text-secondary">Dr.</span>
-                        oder
-                        <span class="text-secondary">Dr. Med.</span>
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Falls du eine besondere Hochschulausbildung hast, kannst du hier den passenden Titel auswählen.</p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic">
+                  Falls du einen Doktortitel hast:
+                  <span class="text-secondary">Dr.</span>
+                  oder
+                  <span class="text-secondary">Dr. Med.</span>
+                </p>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Passwort" name="password" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Passwort" name="password" :ui="formgroupUi">
               <UInput
                 autocomplete="new-password"
                 v-model="formData.password"
@@ -925,21 +911,22 @@ definePageMeta({
                 type="password"
                 icon="i-heroicons-lock-closed"
               />
+              <button
+                v-if="formData.password !== ''"
+                @click="formData.password = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du dein Passwort ganz einfach ändern.</p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du dein Passwort ganz einfach ändern.</p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <TableHr />
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Rollen" name="roles" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Rollen" name="roles" :ui="formgroupUi">
               <ArisCheckbox
                 :disabled="(user?.position.permissionLevel || 0) < 4"
                 v-model="checkboxRecruitment"
@@ -962,20 +949,13 @@ definePageMeta({
                 color="primary"
               />
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du deine Rollen sehen.</p>
-                      <p>Du kannst mit der Verwaltung sprechen, falls du eine der Rollen annehmen möchtest.</p>
-                      <p>Falls du in der Verwaltung bist, kannst du auch deine Rollen anpassen.</p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du deine Rollen sehen.</p>
+                <p>Du kannst mit der Verwaltung sprechen, falls du eine der Rollen annehmen möchtest.</p>
+                <p>Falls du in der Verwaltung bist, kannst du auch deine Rollen anpassen.</p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
             <div class="w-full xl:w-1/2">
-              <UFormGroup
+              <ArisUFormGroup
                 size="xl"
                 label="Abteilung"
                 name="department"
@@ -984,95 +964,82 @@ definePageMeta({
                   container: 'relative mt-1 w-full max-w-[303px]',
                   wrapper: 'flex justify-between h-fit w-full',
                   label: {
-                    wrapper: 'flex flex-wrap content-center items-center justify-between w-full',
+                    wrapper: 'flex flex-wrap content-center items-center w-full',
                   },
                 }"
               >
-                <div class="relative">
-                  <USelectMenu
-                    v-model="formData.department"
-                    :options="['', ...data?.departments]"
-                    option-attribute="name"
-                    :ui="
-                      formData.department || initialFormdata.department
-                        ? {
-                            leading: {
-                              padding: {
-                                xl: 'ps-10',
-                              },
+                <USelectMenu
+                  v-model="formData.department"
+                  :options="['', ...data?.departments]"
+                  option-attribute="name"
+                  searchable
+                  clear-search-on-close
+                  searchable-placeholder="Suche..."
+                  :search-attributes="['name']"
+                  :ui="
+                    formData.department || initialFormdata.department
+                      ? {
+                          leading: {
+                            padding: {
+                              xl: 'ps-10',
                             },
-                          }
-                        : { leading: { padding: { xl: 'hidden' } } }
-                    "
-                  >
-                    <template v-if="formData.department || initialFormdata.department !== null" #leading />
-                    <template #label>
-                      <span v-if="formData.department">{{ formData.department.name }}</span>
-                      <span class="text-[13.9px]" v-else>Keine Abteilung ausgewählt</span>
-                    </template>
-                    <template #option="{ option }">
-                      <span v-if="option">{{ option.name }}</span>
-                      <span v-else>Keine Abteilung</span>
-                    </template>
-                  </USelectMenu>
-                  <template v-if="formData.department || initialFormdata.department !== null">
-                    <button
-                      v-if="formData.department === initialFormdata.department"
-                      @click="formData.department = null"
-                      class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                    >
-                      <UIcon
-                        name="i-heroicons-x-mark-16-solid"
-                        class="my-auto transition opacity-75 hover:opacity-100"
-                      />
-                    </button>
-                    <button
-                      v-else
-                      @click="formData.department = initialFormdata.department"
-                      class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                    >
-                      <UIcon
-                        name="i-heroicons-arrow-uturn-left"
-                        class="my-auto transition opacity-75 hover:opacity-100"
-                      />
-                    </button>
+                          },
+                        }
+                      : { leading: { padding: { xl: 'hidden' } } }
+                  "
+                >
+                  <template v-if="formData.department || initialFormdata.department !== null" #leading />
+                  <template #label>
+                    <span v-if="formData.department">{{ formData.department.name }}</span>
+                    <span class="text-[13.9px]" v-else>Keine Abteilung ausgewählt</span>
                   </template>
-                </div>
-                <template #label>
-                  <div class="flex">
-                    Abteilung
-                    <UPopover mode="hover">
-                      <UButton icon="i-heroicons-information-circle" class="" variant="inputInfo" />
-                      <template #panel>
-                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                          <p>Hier kannst du auswählen in welcher Abteilung der ArisCorp du tätig sein möchtest.</p>
-                          <p>
-                            Außerdem kannst du sehen ob du Abteilungsleiter bist. Dies kann ein Mitglied der Verwaltung
-                            ändern.
-                          </p>
-                          <p>
-                            Falls du Mitglied der Verwaltung bist, kannst du dir außerdem den Abteilungsleiter Status
-                            entfernen.
-                            <br />
-                            Bitte tu dies niemals ohne Rücksprache mit der Verwaltung!
-                          </p>
-                        </div>
-                      </template>
-                    </UPopover>
-                  </div>
+                  <template #option="{ option }">
+                    <span v-if="option">{{ option.name }}</span>
+                    <span v-else>Keine Abteilung</span>
+                  </template>
+                </USelectMenu>
+                <template v-if="formData.department || initialFormdata.department !== null">
+                  <button
+                    v-if="formData.department === initialFormdata.department"
+                    @click="formData.department = null"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                  >
+                    <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+                  </button>
+                  <button
+                    v-else
+                    @click="formData.department = initialFormdata.department"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                  >
+                    <UIcon
+                      name="i-heroicons-arrow-uturn-left"
+                      class="my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
                 </template>
-                <template #hint>
+                <!-- <template #description>
                   <ArisCheckbox
-                    v-model="formData.head_of_department"
-                    name="head_of_department"
+                    v-model="formData.headOfDepartment"
+                    name="headOfDepartment"
                     label="Abteilungsleiter"
                     color="primary"
-                    class="mr-4"
+                    class="mt-2 mr-4"
                     :disabled="(user?.position.permissionLevel || 0) < 4"
                   />
+                </template> -->
+                <template #hint>
+                  <p>Hier kannst du auswählen in welcher Abteilung der ArisCorp du tätig sein möchtest.</p>
+                  <p>
+                    Außerdem kannst du sehen ob du Abteilungsleiter bist. Dies kann ein Mitglied der Verwaltung ändern.
+                  </p>
+                  <p>
+                    Falls du Mitglied der Verwaltung bist, kannst du dir außerdem den Abteilungsleiter Status entfernen.
+                    <br />
+                    Bitte tu dies niemals ohne Rücksprache mit der Verwaltung!
+                  </p>
                 </template>
-              </UFormGroup>
-              <UFormGroup
+              </ArisUFormGroup>
+              <ArisUFormGroup
                 size="xl"
                 label="Avatar"
                 name="avatar"
@@ -1094,81 +1061,85 @@ definePageMeta({
                   Avatar ändern
                 </ButtonDefault>
                 <template #hint>
-                  <UPopover mode="hover">
-                    <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                    <template #panel>
-                      <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                        <p>
-                          Hier kannst du deinen Avatar anpassen. Weitere Instruktionen siehst du, wenn du auf den Button
-                          drückst.
-                        </p>
-                      </div>
-                    </template>
-                  </UPopover>
+                  <p>
+                    Hier kannst du deinen Avatar anpassen. Weitere Instruktionen siehst du, wenn du auf den Button
+                    drückst.
+                  </p>
                 </template>
-              </UFormGroup>
+              </ArisUFormGroup>
             </div>
           </div>
           <TableHr />
-          <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Kontakt Email" name="contactEmail" :ui="formgroupUi">
+          <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4 xl:pr-4">
+            <ArisUFormGroup size="xl" label="Kontakt Email" name="contactEmail" :ui="formgroupUi">
               <UInput
                 v-model="formData.contactEmail"
                 placeholder="kontakt.email@gmail.com"
                 icon="i-heroicons-envelope"
               />
+              <button
+                v-if="formData.contactEmail !== ''"
+                @click="formData.contactEmail = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>
-                        Für das A.M.S. Benachrichtigungssystem (coming-soon) <span class="bold">kannst</span> du eine
-                        Kontakt Email angeben. <br />Du würdest dann per Mail Benachrichtigungen bekommen und die
-                        Möglichkeit per Mail dein Passwort zurück zu setzen.
-                      </p>
-                      <p>Alternativ kannst du auch deinen Discord-Namen angeben.</p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>
+                  Für das A.M.S. Benachrichtigungssystem (coming-soon) <span class="bold">kannst</span> du eine Kontakt
+                  Email angeben. <br />Du würdest dann per Mail Benachrichtigungen bekommen und die Möglichkeit per Mail
+                  dein Passwort zurück zu setzen.
+                </p>
+                <p>Alternativ kannst du auch deinen Discord-Namen angeben.</p>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Discord Name" name="discordName" :ui="formgroupUi">
-              <UInput v-model="formData.discordName" placeholder="Chris_Roberts" icon="i-ic-baseline-discord" />
+            </ArisUFormGroup>
+          </div>
+          <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
+            <ArisUFormGroup size="xl" label="Discord Name" name="discordName" :ui="formgroupUi">
+              <UInput v-model="formData.discordName" placeholder="chris_roberts" icon="i-ic-baseline-discord" />
+              <button
+                v-if="formData.discordName !== ''"
+                @click="formData.discordName = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>
-                        Für das A.M.S. Benachrichtigungssystem (coming-soon) <span class="bold">kannst</span> du deinen
-                        Discord Namen angeben. <br />Du würdest dann per PM Benachrichtigungen bekommen und die
-                        Möglichkeit per PM dein Passwort zurück zu setzen.
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>
+                  Für das A.M.S. Benachrichtigungssystem (coming-soon) <span class="bold">kannst</span> du deinen
+                  Discord Namen angeben. <br />Du würdest dann per PM Benachrichtigungen bekommen und die Möglichkeit
+                  per PM dein Passwort zurück zu setzen.
+                </p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Discord ID" name="discordId" :ui="formgroupUi">
+              <UInput disabled v-model="formData.discordId" placeholder="" icon="i-ic-baseline-discord" />
+              <template #hint>
+                <p>Das ist die automatisch ermittelte Discord-Id deines Benutzers.</p>
+              </template>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4 xl:pr-4">
-            <UFormGroup size="xl" label="RSI Handle" name="rsiHandle" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="RSI Handle" name="rsiHandle" :ui="formgroupUi">
               <UInput v-model="formData.rsiHandle" placeholder="Chris_Roberts" icon="i-heroicons-user" />
+              <button
+                v-if="formData.rsiHandle !== ''"
+                @click="formData.rsiHandle = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du deinen RSI Handle angeben.</p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du deinen RSI Handle angeben.</p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <TableHr> Steckbrief </TableHr>
           <div class="flex flex-wrap items-center justify-between xl:pr-4 xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Aktueller Wohnsitz" name="currentplace" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Aktueller Wohnsitz" name="currentplace" :ui="formgroupUi">
               <div class="relative">
                 <USelectMenu
                   v-model="formData.currentplace"
@@ -1254,30 +1225,22 @@ definePageMeta({
                 </template>
               </div>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du deinen Aktuellen Wohnsitz auswählen.</p>
-                      <p>Du kannst sowohl nach System, Planet (o. Mond) oder Landezone suchen.</p>
-                      <p>
-                        Falls du die Anzeige nicht verstehst hier eine Erläuterung:
-                        <br />
-                        <span
-                          ><span class="text-secondary">System</span> /
-                          <span class="text-secondary">Planet o. Mond</span> /
-                          <span class="text-secondary">Landezone</span></span
-                        >
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du deinen Aktuellen Wohnsitz auswählen.</p>
+                <p>Du kannst sowohl nach System, Planet (o. Mond) oder Landezone suchen.</p>
+                <p>
+                  Falls du die Anzeige nicht verstehst hier eine Erläuterung:
+                  <br />
+                  <span
+                    ><span class="text-secondary">System</span> / <span class="text-secondary">Planet o. Mond</span> /
+                    <span class="text-secondary">Landezone</span></span
+                  >
+                </p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <h4 class="mt-2 mb-1">Grundlegende Informationen:</h4>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Geschlecht" name="sex" :ui="formgroupUi" class="">
+            <ArisUFormGroup size="xl" label="Geschlecht" name="sex" :ui="formgroupUi" class="">
               <div class="flex gap-x-4">
                 <ArisRadioGroup
                   v-model="formData.sex"
@@ -1325,17 +1288,10 @@ definePageMeta({
                 </div>
               </div> -->
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du dein (also deines Charakter) Geschlecht auswählen.</p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du dein (also deines Charakter) Geschlecht auswählen.</p>
               </template>
-            </UFormGroup>
-            <UFormGroup size="lg" label="Geburtsdatum" name="birthdate" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="lg" label="Geburtsdatum" name="birthdate" :ui="formgroupUi">
               <div class="relative flex pb-4 gap-x-4">
                 <USelectMenu
                   class="w-1/3"
@@ -1377,30 +1333,22 @@ definePageMeta({
                 </div>
               </div>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du dein Geburtsdatum eingeben.</p>
-                      <p>
-                        Allerdings kannst du auch den Modus umstellen und einfach für das Jahr dein aktuelles Alter
-                        angeben.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic">
-                        <span class="text-secondary"
-                          >04 12 2930 ({{ $dayjs().add(930, 'year').diff('2930-12-04', 'year') }} Jahre)</span
-                        >
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du dein Geburtsdatum eingeben.</p>
+                <p>
+                  Allerdings kannst du auch den Modus umstellen und einfach für das Jahr dein aktuelles Alter angeben.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic">
+                  <span class="text-secondary"
+                    >04 12 2930 ({{ $dayjs().add(930, 'year').diff('2930-12-04', 'year') }} Jahre)</span
+                  >
+                </p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:pr-4 xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Geburtsort" name="birthplace" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Geburtsort" name="birthplace" :ui="formgroupUi">
               <div class="relative">
                 <USelectMenu
                   searchable
@@ -1486,109 +1434,105 @@ definePageMeta({
                 </template>
               </div>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du dein Geburtsort auswählen.</p>
-                      <p>Du kannst sowohl nach System, Planet (o. Mond) oder Landezone suchen.</p>
-                      <p>
-                        Falls du die Anzeige nicht verstehst hier eine Erläuterung:
-                        <br />
-                        <span
-                          ><span class="text-secondary">System</span> /
-                          <span class="text-secondary">Planet o. Mond</span> /
-                          <span class="text-secondary">Landezone</span></span
-                        >
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du dein Geburtsort auswählen.</p>
+                <p>Du kannst sowohl nach System, Planet (o. Mond) oder Landezone suchen.</p>
+                <p>
+                  Falls du die Anzeige nicht verstehst hier eine Erläuterung:
+                  <br />
+                  <span
+                    ><span class="text-secondary">System</span> / <span class="text-secondary">Planet o. Mond</span> /
+                    <span class="text-secondary">Landezone</span></span
+                  >
+                </p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Haarfarbe" name="haircolor" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Haarfarbe" name="haircolor" :ui="formgroupUi">
               <UInput v-model="formData.haircolor" placeholder="Schwarz" icon="i-ic-round-color-lens" />
+              <button
+                v-if="formData.haircolor !== ''"
+                @click="formData.haircolor = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du ganz einfach deine Haarfarbe eingeben.</p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic">
-                        <span class="text-secondary">Schwarz</span>
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du ganz einfach deine Haarfarbe eingeben.</p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic">
+                  <span class="text-secondary">Schwarz</span>
+                </p>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Augenfarbe" name="eyecolor" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Augenfarbe" name="eyecolor" :ui="formgroupUi">
               <UInput v-model="formData.eyecolor" placeholder="Blau/Grün" icon="i-ic-round-color-lens" />
+              <button
+                v-if="formData.eyecolor !== ''"
+                @click="formData.eyecolor = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du ganz einfach deine Augenfarbe eingeben.</p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic">
-                        <span class="text-secondary">Blau/Grün</span>
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du ganz einfach deine Augenfarbe eingeben.</p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic">
+                  <span class="text-secondary">Blau/Grün</span>
+                </p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Gewicht" name="weight" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Gewicht" name="weight" :ui="formgroupUi">
               <UInput v-model="formData.weight" placeholder="85" icon="i-mdi-scale-balance">
                 <template #trailing>
                   <span class="text-xs text-gray-400">KG</span>
                 </template>
               </UInput>
+              <button
+                v-if="formData.weight !== ''"
+                @click="formData.weight = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du dein Gewicht (in der Einheit Kilo) eingeben.</p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du dein Gewicht (in der Einheit Kilo) eingeben.</p>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Größe" name="height" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Größe" name="height" :ui="formgroupUi">
               <UInput v-model="formData.height" placeholder="192" icon="i-mdi-ruler">
                 <template #trailing>
                   <span class="text-xs text-gray-400">CM</span>
                 </template>
               </UInput>
+              <button
+                v-if="formData.height !== ''"
+                @click="formData.height = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du deine Größe (in der Einheit CM) eingeben.</p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic">
-                        <span class="text-secondary">182</span>
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du deine Größe (in der Einheit CM) eingeben.</p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic">
+                  <span class="text-secondary">182</span>
+                </p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <h5 class="mt-2 mb-1">Bürgerstatus:</h5>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4 xl:pr-4">
-            <UFormGroup size="xl" label="UEE Status" name="UEEState" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="UEE Status" name="UEEState" :ui="formgroupUi">
               <ArisRadioGroup
                 v-model="formData.citizen"
                 :options="[
@@ -1605,17 +1549,10 @@ definePageMeta({
                 ]"
               />
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier geht es darum wie dein UEE-Status ist.</p>
-                      <p>Du kannst entweder Bürger oder Zivilist sein.</p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier geht es darum wie dein UEE-Status ist.</p>
+                <p>Du kannst entweder Bürger oder Zivilist sein.</p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <Transition
             enter-active-class="transition-all duration-300 overflow-clip"
@@ -1626,24 +1563,17 @@ definePageMeta({
             leave-to-class="h-0"
           >
             <div v-if="formData.citizen" class="xl:pr-4">
-              <UFormGroup size="xl" label="Wie wurdest du Bürger?" name="citizenReason" :ui="formgroupUi">
+              <ArisUFormGroup size="xl" label="Wie wurdest du Bürger?" name="citizenReason" :ui="formgroupUi">
                 <ArisRadioGroup v-model="formData.citizenReason" :options="citizenReasonOptions" />
                 <template #hint>
-                  <UPopover mode="hover">
-                    <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                    <template #panel>
-                      <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                        <p>Jeder wird aus einem bestimmten Grund ein UEE-Bürger.</p>
-                        <p>Welcher Grund trifft bei dir zu?</p>
-                      </div>
-                    </template>
-                  </UPopover>
+                  <p>Jeder wird aus einem bestimmten Grund ein UEE-Bürger.</p>
+                  <p>Welcher Grund trifft bei dir zu?</p>
                 </template>
-              </UFormGroup>
+              </ArisUFormGroup>
             </div>
           </Transition>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4 xl:pr-4">
-            <UFormGroup size="xl" label="Was trifft auf sie zu?" name="states" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Was trifft auf sie zu?" name="states" :ui="formgroupUi">
               <ArisCheckbox
                 v-model="formData.dutyState"
                 :disabled="formData.citizenReason === 'military'"
@@ -1659,22 +1589,13 @@ definePageMeta({
                 color="primary"
               />
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>
-                        Hier kannst du auswählen ob du im Militär gedient hast oder/und eine Hochschulausbildung hast.
-                      </p>
-                      <p>
-                        <span class="text-primary">Information</span>: Es könnte eine Option gesperrt sein, da du ihn
-                        als Grund deines Bürgerstatus angegeben hast.
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du auswählen ob du im Militär gedient hast oder/und eine Hochschulausbildung hast.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Es könnte eine Option gesperrt sein, da du ihn als
+                  Grund deines Bürgerstatus angegeben hast.
+                </p>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <Transition
             enter-active-class="transition-all duration-300 overflow-clip"
@@ -1686,7 +1607,7 @@ definePageMeta({
           >
             <div v-if="formData.dutyState">
               <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-                <UFormGroup
+                <ArisUFormGroup
                   :required="formData.dutyState"
                   size="xl"
                   label="Dienstzeit"
@@ -1694,23 +1615,24 @@ definePageMeta({
                   :ui="formgroupUi"
                 >
                   <UInput v-model="formData.dutyPeriod" placeholder="01/2940 - 12/2950" icon="i-heroicons-user" />
+                  <button
+                    v-if="formData.dutyPeriod !== ''"
+                    @click="formData.dutyPeriod = ''"
+                    type="button"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+                  >
+                    <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+                  </button>
                   <template #hint>
-                    <UPopover mode="hover">
-                      <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                      <template #panel>
-                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                          <p>Hier geht es um den Zeitraum, in dem du gedient hast.</p>
-                          <br />
-                          <p class="pb-0 font-bold text-white">Beispiele:</p>
-                          <p class="italic">
-                            <span class="text-secondary">01/2940 - 12/2950</span>
-                          </p>
-                        </div>
-                      </template>
-                    </UPopover>
+                    <p>Hier geht es um den Zeitraum, in dem du gedient hast.</p>
+                    <br />
+                    <p class="pb-0 font-bold text-white">Beispiele:</p>
+                    <p class="italic">
+                      <span class="text-secondary">01/2940 - 12/2950</span>
+                    </p>
                   </template>
-                </UFormGroup>
-                <UFormGroup
+                </ArisUFormGroup>
+                <ArisUFormGroup
                   :required="formData.dutyState"
                   size="xl"
                   label="Dienstende"
@@ -1733,19 +1655,12 @@ definePageMeta({
                     ]"
                   />
                   <template #hint>
-                    <UPopover mode="hover">
-                      <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                      <template #panel>
-                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                          <p>Hier geht es darum, wie du dein Dienst quittiert hast.</p>
-                        </div>
-                      </template>
-                    </UPopover>
+                    <p>Hier geht es darum, wie du dein Dienst quittiert hast.</p>
                   </template>
-                </UFormGroup>
+                </ArisUFormGroup>
               </div>
               <div class="flex flex-wrap items-center justify-between xl:pr-4 xl:flex-nowrap gap-x-4">
-                <UFormGroup
+                <ArisUFormGroup
                   :required="formData.dutyState"
                   size="xl"
                   label="Division"
@@ -1807,27 +1722,19 @@ definePageMeta({
                     </template>
                   </div>
                   <template #hint>
-                    <UPopover mode="hover">
-                      <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                      <template #panel>
-                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                          <p>
-                            Falls du eine besondere Hochschulausbildung hast, kannst du hier den passenden Titel
-                            auswählen.
-                          </p>
-                          <br />
-                          <p class="pb-0 font-bold text-white">Beispiele:</p>
-                          <p class="italic">
-                            Falls du einen Doktortitel hast:
-                            <span class="text-secondary">Dr.</span>
-                            oder
-                            <span class="text-secondary">Dr. Med.</span>
-                          </p>
-                        </div>
-                      </template>
-                    </UPopover>
+                    <p>
+                      Falls du eine besondere Hochschulausbildung hast, kannst du hier den passenden Titel auswählen.
+                    </p>
+                    <br />
+                    <p class="pb-0 font-bold text-white">Beispiele:</p>
+                    <p class="italic">
+                      Falls du einen Doktortitel hast:
+                      <span class="text-secondary">Dr.</span>
+                      oder
+                      <span class="text-secondary">Dr. Med.</span>
+                    </p>
                   </template>
-                </UFormGroup>
+                </ArisUFormGroup>
               </div>
             </div>
           </Transition>
@@ -1841,44 +1748,46 @@ definePageMeta({
           >
             <div v-if="formData.educationState">
               <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-                <UFormGroup size="xl" label="Ausbildung" name="educationName" :ui="formgroupUi">
+                <ArisUFormGroup size="xl" label="Ausbildung" name="educationName" :ui="formgroupUi">
                   <UInput v-model="formData.educationName" placeholder="Medizinstudium" icon="i-heroicons-user" />
+                  <button
+                    v-if="formData.educationName !== ''"
+                    @click="formData.educationName = ''"
+                    type="button"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+                  >
+                    <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+                  </button>
                   <template #hint>
-                    <UPopover mode="hover">
-                      <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                      <template #panel>
-                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                          <p>Hier kannst du deine Hochschulausbildung eingeben.</p>
-                          <br />
-                          <p class="pb-0 font-bold text-white">Beispiele:</p>
-                          <p class="italic">
-                            <span class="text-secondary">Medizinstudium</span>
-                          </p>
-                        </div>
-                      </template>
-                    </UPopover>
+                    <p>Hier kannst du deine Hochschulausbildung eingeben.</p>
+                    <br />
+                    <p class="pb-0 font-bold text-white">Beispiele:</p>
+                    <p class="italic">
+                      <span class="text-secondary">Medizinstudium</span>
+                    </p>
                   </template>
-                </UFormGroup>
-                <UFormGroup size="xl" label="Ausbildungszeit" name="educationPeriod" :ui="formgroupUi">
+                </ArisUFormGroup>
+                <ArisUFormGroup size="xl" label="Ausbildungszeit" name="educationPeriod" :ui="formgroupUi">
                   <UInput v-model="formData.educationPeriod" placeholder="09/2945 - 06/2948" icon="i-heroicons-user" />
+                  <button
+                    v-if="formData.educationPeriod !== ''"
+                    @click="formData.educationPeriod = ''"
+                    type="button"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+                  >
+                    <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+                  </button>
                   <template #hint>
-                    <UPopover mode="hover">
-                      <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                      <template #panel>
-                        <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                          <p>Hier kannst du den Zeitraum deiner Hochschulausbildung eingeben.</p>
-                          <br />
-                          <p class="pb-0 font-bold text-white">Beispiele:</p>
-                          <p class="italic">
-                            <span class="text-secondary">09/2945 - 06/2948</span>
-                          </p>
-                        </div>
-                      </template>
-                    </UPopover>
+                    <p>Hier kannst du den Zeitraum deiner Hochschulausbildung eingeben.</p>
+                    <br />
+                    <p class="pb-0 font-bold text-white">Beispiele:</p>
+                    <p class="italic">
+                      <span class="text-secondary">09/2945 - 06/2948</span>
+                    </p>
                   </template>
-                </UFormGroup>
+                </ArisUFormGroup>
               </div>
-              <UFormGroup
+              <ArisUFormGroup
                 v-model="formData.educationPlace"
                 name="educationPlace"
                 size="xl"
@@ -1887,486 +1796,501 @@ definePageMeta({
               >
                 <!-- TODO: HOCHSCHULEN ALS AUSWAHL -->
                 <span class="text-danger">SOON</span>
-              </UFormGroup>
+              </ArisUFormGroup>
             </div>
           </Transition>
           <h4 class="mt-2 mb-1">Detaillierte Informationen:</h4>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Hobbies" name="hobbies" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Hobbies" name="hobbies" :ui="formgroupUi">
               <UInput v-model="formData.hobbies" placeholder="Sport, Fliegen, Schrauben, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.hobbies !== ''"
+                @click="formData.hobbies = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du deine Hobbies eingeben.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Sport, Fliegen, Schrauben</span>:</p>
-                      <ul class="ml-2">
-                        <li>Sport</li>
-                        <li>Fligen</li>
-                        <li>Schrauben</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du deine Hobbies eingeben.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Sport, Fliegen, Schrauben</span>:</p>
+                <ul class="ml-2">
+                  <li>Sport</li>
+                  <li>Fligen</li>
+                  <li>Schrauben</li>
+                </ul>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Freizeitgestaltung" name="activities" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Freizeitgestaltung" name="activities" :ui="formgroupUi">
               <UInput v-model="formData.activities" placeholder="Fischen, Kochen, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.activities !== ''"
+                @click="formData.activities = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du eingeben was du in deiner Frezeit machst.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Fischen, Kochen</span>:</p>
-                      <ul class="ml-2">
-                        <li>Fischen</li>
-                        <li>Kochen</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du eingeben was du in deiner Frezeit machst.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Fischen, Kochen</span>:</p>
+                <ul class="ml-2">
+                  <li>Fischen</li>
+                  <li>Kochen</li>
+                </ul>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Talente" name="talents" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Talente" name="talents" :ui="formgroupUi">
               <UInput
                 v-model="formData.talents"
                 placeholder="Spricht Sprache X, Handwerklich begabt, ..."
                 icon="i-heroicons-user"
               />
+              <button
+                v-if="formData.talents !== ''"
+                @click="formData.talents = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du deine Talente eingeben.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Spricht Sprache X, Handwerklich begabt</span>:</p>
-                      <ul class="ml-2">
-                        <li>Spricht Sprache X</li>
-                        <li>Handwerklich begabt</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du deine Talente eingeben.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Spricht Sprache X, Handwerklich begabt</span>:</p>
+                <ul class="ml-2">
+                  <li>Spricht Sprache X</li>
+                  <li>Handwerklich begabt</li>
+                </ul>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Angewohnheiten" name="habits" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Angewohnheiten" name="habits" :ui="formgroupUi">
               <UInput
                 v-model="formData.habits"
                 placeholder="Überspielt Unsicherheit mit Humor, ..."
                 icon="i-heroicons-user"
               />
+              <button
+                v-if="formData.habits !== ''"
+                @click="formData.habits = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du deine typischen Angewohnheiten eingeben.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Überspielt Unsicherheit mit Humor</span>:</p>
-                      <ul class="ml-2">
-                        <li>Überspielt Unsicherheit mit Humor</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du deine typischen Angewohnheiten eingeben.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Überspielt Unsicherheit mit Humor</span>:</p>
+                <ul class="ml-2">
+                  <li>Überspielt Unsicherheit mit Humor</li>
+                </ul>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Tics & Marotten" name="tics" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Tics & Marotten" name="tics" :ui="formgroupUi">
               <UInput v-model="formData.tics" placeholder="Hat fragwürdigen Humor, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.tics !== ''"
+                @click="formData.tics = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du deine Tics & Marotten eingeben.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Hat fragwürdigen Humor</span>:</p>
-                      <ul class="ml-2">
-                        <li>Hat fragwürdigen Humor</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du deine Tics & Marotten eingeben.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Hat fragwürdigen Humor</span>:</p>
+                <ul class="ml-2">
+                  <li>Hat fragwürdigen Humor</li>
+                </ul>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Ängste" name="fears" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Ängste" name="fears" :ui="formgroupUi">
               <UInput v-model="formData.fears" placeholder="Hat Angst im Dunkeln, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.fears !== ''"
+                @click="formData.fears = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du deine Ängste eingeben.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Hat Angst im Dunkeln</span>:</p>
-                      <ul class="ml-2">
-                        <li>Hat Angst im Dunkeln</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du deine Ängste eingeben.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Hat Angst im Dunkeln</span>:</p>
+                <ul class="ml-2">
+                  <li>Hat Angst im Dunkeln</li>
+                </ul>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Hervorstechender Charakterzug" name="character" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Hervorstechender Charakterzug" name="character" :ui="formgroupUi">
               <UInput v-model="formData.character" placeholder="Ist sehr loyal, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.character !== ''"
+                @click="formData.character = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du deinen hervorstechenden Charakterzug eingeben.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Ist sehr loyal</span>:</p>
-                      <ul class="ml-2">
-                        <li>Ist sehr loyal</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du deinen hervorstechenden Charakterzug eingeben.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Ist sehr loyal</span>:</p>
+                <ul class="ml-2">
+                  <li>Ist sehr loyal</li>
+                </ul>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Rästelhafte Züge" name="mysterious" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Rästelhafte Züge" name="mysterious" :ui="formgroupUi">
               <UInput
                 v-model="formData.mysterious"
                 placeholder="Spricht ungern über Ereignis X, ..."
                 icon="i-heroicons-user"
               />
+              <button
+                v-if="formData.mysterious !== ''"
+                @click="formData.mysterious = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>
-                        Hier kannst du deine rätselhaften Züge eingeben. Also Dinge, die du nicht gerne über dich
-                        preisgibst.
-                      </p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Spricht ungern über Ereignis X</span>:</p>
-                      <ul class="ml-2">
-                        <li>Spricht ungern über Ereignis X</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>
+                  Hier kannst du deine rätselhaften Züge eingeben. Also Dinge, die du nicht gerne über dich preisgibst.
+                </p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Spricht ungern über Ereignis X</span>:</p>
+                <ul class="ml-2">
+                  <li>Spricht ungern über Ereignis X</li>
+                </ul>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <h5 class="mt-2 mb-1">Geschmäcker:</h5>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Musik" name="music" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Musik" name="music" :ui="formgroupUi">
               <UInput v-model="formData.music" placeholder="Rock Musik, EDM, Metal, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.music !== ''"
+                @click="formData.music = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>
-                        Hier kannst du Musik eingeben die du gerne hörst. Das können Genres, Künstler oder auch einzelne
-                        Lieder sein.
-                      </p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Rock Musik, EDM, Metal</span>:</p>
-                      <ul class="ml-2">
-                        <li>Rock Musik</li>
-                        <li>EDM</li>
-                        <li>Metal</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>
+                  Hier kannst du Musik eingeben die du gerne hörst. Das können Genres, Künstler oder auch einzelne
+                  Lieder sein.
+                </p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Rock Musik, EDM, Metal</span>:</p>
+                <ul class="ml-2">
+                  <li>Rock Musik</li>
+                  <li>EDM</li>
+                  <li>Metal</li>
+                </ul>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Filme" name="movies" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Filme" name="movies" :ui="formgroupUi">
               <UInput v-model="formData.movies" placeholder="Star Trek, Star Wars, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.movies !== ''"
+                @click="formData.movies = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>
-                        Hier kannst du Filme eingeben die du gerne schaust. Das können Genres oder auch einzelne Filme
-                        sein.
-                      </p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Star Trek, Star Wars</span>:</p>
-                      <ul class="ml-2">
-                        <li>Star Trek</li>
-                        <li>Star Wars</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>
+                  Hier kannst du Filme eingeben die du gerne schaust. Das können Genres oder auch einzelne Filme sein.
+                </p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Star Trek, Star Wars</span>:</p>
+                <ul class="ml-2">
+                  <li>Star Trek</li>
+                  <li>Star Wars</li>
+                </ul>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Bücher" name="books" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Bücher" name="books" :ui="formgroupUi">
               <UInput v-model="formData.books" placeholder="Broschüren von Hersteller X, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.books !== ''"
+                @click="formData.books = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>
-                        Hier kannst du Bücher eingeben die du gerne liest. Das können Genres oder auch einzelne Bücher
-                        sein.
-                      </p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <p>
-                        <span class="text-success">Tipp</span>: Du kannst dir
-                        <NuxtLink target="_blank" to="/VerseExkurs/literature">hier</NuxtLink> im VerseExkurs unter
-                        "Literatur" ein paar Bücher der Lore anschauen.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Brochuren von Hersteller X</span>:</p>
-                      <ul class="ml-2">
-                        <li>Broschüren von Hersteller X</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>
+                  Hier kannst du Bücher eingeben die du gerne liest. Das können Genres oder auch einzelne Bücher sein.
+                </p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <p>
+                  <span class="text-success">Tipp</span>: Du kannst dir
+                  <NuxtLink target="_blank" to="/VerseExkurs/literature">hier</NuxtLink> im VerseExkurs unter
+                  "Literatur" ein paar Bücher der Lore anschauen.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Brochuren von Hersteller X</span>:</p>
+                <ul class="ml-2">
+                  <li>Broschüren von Hersteller X</li>
+                </ul>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Kleidung" name="clothing" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Kleidung" name="clothing" :ui="formgroupUi">
               <UInput v-model="formData.clothing" placeholder="Lederjacken, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.clothing !== ''"
+                @click="formData.clothing = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>
-                        Hier kannst du Kleidung eingeben die du gerne trägst. Das können Kleidungsstücke oder auch ganze
-                        Outfits sein.
-                      </p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Lederjacken</span>:</p>
-                      <ul class="ml-2">
-                        <li>Lederjacken</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>
+                  Hier kannst du Kleidung eingeben die du gerne trägst. Das können Kleidungsstücke oder auch ganze
+                  Outfits sein.
+                </p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Lederjacken</span>:</p>
+                <ul class="ml-2">
+                  <li>Lederjacken</li>
+                </ul>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Speisen" name="food" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Speisen" name="food" :ui="formgroupUi">
               <UInput v-model="formData.food" placeholder="Big Bennys Nudeln, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.food !== ''"
+                @click="formData.food = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du Gerichte oder Dinge eingeben die du gerne isst.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Big Bennys Nudeln</span>:</p>
-                      <ul class="ml-2">
-                        <li>Big Bennys Nudeln</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du Gerichte oder Dinge eingeben die du gerne isst.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Big Bennys Nudeln</span>:</p>
+                <ul class="ml-2">
+                  <li>Big Bennys Nudeln</li>
+                </ul>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Getränke" name="drinks" :ui="formgroupUi">
-              <UInput v-model="formData.drinks" placeholder="Vestal Wasser, ..." icon="i-heroicons-user" />
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Getränke" name="drink" :ui="formgroupUi">
+              <UInput v-model="formData.drink" placeholder="Vestal Wasser, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.drink !== ''"
+                @click="formData.drink = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du (alkoholfreie) Getränke eingeben die du gerne trinkst.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Vestal Wasser</span>:</p>
-                      <ul class="ml-2">
-                        <li>Vestal Wasser</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du (alkoholfreie) Getränke eingeben die du gerne trinkst.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Vestal Wasser</span>:</p>
+                <ul class="ml-2">
+                  <li>Vestal Wasser</li>
+                </ul>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" label="Alkohol" name="alcohol" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" label="Alkohol" name="alcohol" :ui="formgroupUi">
               <UInput v-model="formData.alcohol" placeholder="Schmolz Bier, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.alcohol !== ''"
+                @click="formData.alcohol = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du alkoholische Getränke eingeben die du gerne trinkst.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Schmolz Bier</span>:</p>
-                      <ul class="ml-2">
-                        <li>Schmolz Bier</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du alkoholische Getränke eingeben die du gerne trinkst.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Schmolz Bier</span>:</p>
+                <ul class="ml-2">
+                  <li>Schmolz Bier</li>
+                </ul>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" label="Farben" name="colors" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" label="Farben" name="colors" :ui="formgroupUi">
               <UInput v-model="formData.colors" placeholder="Schwarz, Blau, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.colors !== ''"
+                @click="formData.colors = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du Farben eingeben die du gerne magst.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Schwarz, Blau</span>:</p>
-                      <ul class="ml-2">
-                        <li>Schwarz</li>
-                        <li>Blau</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du Farben eingeben die du gerne magst.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Schwarz, Blau</span>:</p>
+                <ul class="ml-2">
+                  <li>Schwarz</li>
+                  <li>Blau</li>
+                </ul>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
           <div class="flex flex-wrap items-center justify-between xl:flex-nowrap gap-x-4">
-            <UFormGroup size="xl" :label="user?.pronom + ' liebt...'" name="loves" :ui="formgroupUi">
+            <ArisUFormGroup size="xl" :label="user?.pronom + ' liebt...'" name="loves" :ui="formgroupUi">
               <UInput v-model="formData.loves" placeholder="Hochwertige Schiffe, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.love !== ''"
+                @click="formData.love = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du Dinge eingeben die du Liebst.</p>
-                      <p>Das können Schiffe, Marken, Produkte oder egal was sein.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Hochwertige Schiffe</span>:</p>
-                      <ul class="ml-2">
-                        <li>Hochwertige Schiffe</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du Dinge eingeben die du Liebst.</p>
+                <p>Das können Schiffe, Marken, Produkte oder egal was sein.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Hochwertige Schiffe</span>:</p>
+                <ul class="ml-2">
+                  <li>Hochwertige Schiffe</li>
+                </ul>
               </template>
-            </UFormGroup>
-            <UFormGroup size="xl" :label="user?.pronom + ' hasst...'" name="hates" :ui="formgroupUi">
+            </ArisUFormGroup>
+            <ArisUFormGroup size="xl" :label="user?.pronom + ' hasst...'" name="hates" :ui="formgroupUi">
               <UInput v-model="formData.hates" placeholder="Drake, ..." icon="i-heroicons-user" />
+              <button
+                v-if="formData.hates !== ''"
+                @click="formData.hates = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
               <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="p-1 text-xs text-tbase/60 whitespace-break-spaces">
-                      <p>Hier kannst du Dinge eingeben die du hasst.</p>
-                      <p>Das können Schiffe, Marken, Produkte oder egal was sein.</p>
-                      <p>
-                        <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach
-                        jedem Komma ein neues Item in der Liste kommt.
-                      </p>
-                      <br />
-                      <p class="pb-0 font-bold text-white">Beispiele:</p>
-                      <p class="italic"><span class="text-secondary">Drake</span>:</p>
-                      <ul class="ml-2">
-                        <li>Drake</li>
-                      </ul>
-                    </div>
-                  </template>
-                </UPopover>
+                <p>Hier kannst du Dinge eingeben die du hasst.</p>
+                <p>Das können Schiffe, Marken, Produkte oder egal was sein.</p>
+                <p>
+                  <span class="text-primary">Information</span>: Dies ist ein Listenfeld. Das bedeutet, dass nach jedem
+                  Komma ein neues Item in der Liste kommt.
+                </p>
+                <br />
+                <p class="pb-0 font-bold text-white">Beispiele:</p>
+                <p class="italic"><span class="text-secondary">Drake</span>:</p>
+                <ul class="ml-2">
+                  <li>Drake</li>
+                </ul>
               </template>
-            </UFormGroup>
+            </ArisUFormGroup>
           </div>
-          <UFormGroup size="xl">
+          <ArisUFormGroup size="xl">
             <UTextarea
               v-model="formData.medicalinfo"
               name="medicalinfo"
@@ -2395,7 +2319,7 @@ definePageMeta({
                 </UPopover>
               </div>
             </template>
-          </UFormGroup>
+          </ArisUFormGroup>
           <TableHr>
             <span class="flex">
               Biografie
@@ -2418,7 +2342,7 @@ definePageMeta({
               </UPopover>
             </span>
           </TableHr>
-          <UFormGroup size="xl" name="biography">
+          <ArisUFormGroup size="xl" name="biography">
             <LazyClientOnly>
               <Editor
                 v-model="formData.biography"
@@ -2573,7 +2497,7 @@ definePageMeta({
                 }"
               />
             </LazyClientOnly>
-          </UFormGroup>
+          </ArisUFormGroup>
           <div id="profile_actions" class="sticky z-10 w-full h-12 mx-auto max-w-[1800px] bottom-6">
             <div
               class="absolute left-0 right-0 flex mx-auto rounded w-fit bg-bsecondary/50 sm:bg-transparent gap-x-4 sm:m-0 sm:left-auto sm:right-4"
