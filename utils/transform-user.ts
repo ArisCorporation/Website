@@ -49,6 +49,7 @@ export default function (obj: any) {
     arisEmail: obj.email,
     contactEmail: obj.contactEmail,
     discordName: obj.discordName,
+    discordId: obj.discordId,
     rsiHandle: obj.rsiHandle,
     potrait: obj.avatar ? obj.avatar : '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492',
     sex: obj.sex,
