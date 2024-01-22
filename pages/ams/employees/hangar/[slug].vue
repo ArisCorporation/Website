@@ -205,25 +205,23 @@ useHead({
     <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
       <div class="flex flex-wrap justify-center w-full mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
         <div class="flex mx-auto sm:mx-0 basis-full sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <UFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-96" label="Suchen">
-            <div class="relative">
-              <UInput
-                size="2xl"
-                v-model="search"
-                class="my-auto"
-                icon="i-heroicons-magnifying-glass-20-solid"
-                placeholder="Schiffsname, Modell, Hersteller..."
-              />
-              <button
-                v-if="search !== ''"
-                @click="search = ''"
-                type="button"
-                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
-              >
-                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
-              </button>
-            </div>
-          </UFormGroup>
+          <ArisUFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-96" label="Suchen">
+            <UInput
+              size="2xl"
+              v-model="search"
+              class="my-auto"
+              icon="i-heroicons-magnifying-glass-20-solid"
+              placeholder="Schiffsname, Modell, Hersteller..."
+            />
+            <button
+              v-if="search !== ''"
+              @click="search = ''"
+              type="button"
+              class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+            >
+              <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+            </button>
+          </ArisUFormGroup>
         </div>
       </div>
       <div

@@ -71,8 +71,8 @@ if (!data.value) {
 
 const updateMembers = () =>
   selectedDepartment.value.id
-    ? (filteredMembers.value = data.value.members.filter((e) => e.department?.id === selectedDepartment.value.id))
-    : (filteredMembers.value = data.value.members);
+    ? (filteredMembers.value = data.value?.members.filter((e) => e.department?.id === selectedDepartment.value.id))
+    : (filteredMembers.value = data.value?.members);
 // const updateMembers = () => (filteredMembers.value = data.value.members);
 
 updateMembers();
@@ -94,7 +94,7 @@ definePageMeta({
 <template>
   <div>
     <div class="flex flex-wrap-reverse justify-center px-6 mx-auto my-4 lg:justify-between gap-y-4 gap-x-12">
-      <UFormGroup size="xl" class="w-full lg:w-80" label="Abteilung">
+      <ArisUFormGroup size="xl" class="w-full lg:w-80" label="Abteilung">
         <USelectMenu
           id="departmentSelect"
           v-model="selectedDepartment"
@@ -105,7 +105,15 @@ definePageMeta({
           name="Abteilung"
           placeholder="Abteilung filtern"
           :options="[{ name: 'Alle' }, ...data.departments]"
+          :ui="{
+            leading: {
+              padding: {
+                xl: 'ps-10',
+              },
+            },
+          }"
         >
+          <template v-if="selectedDepartment?.name !== 'Alle'" #leading />
           <template #label>
             <UAvatar
               img-class="object-cover object-top"
@@ -123,8 +131,15 @@ definePageMeta({
             <span>{{ department.name }}</span>
           </template>
         </USelectMenu>
-      </UFormGroup>
-      <UFormGroup size="xl" class="w-full lg:w-80" label="Suchen">
+        <button
+          v-if="selectedDepartment?.name !== 'Alle'"
+          @click="selectedDepartment = { name: 'Alle' }"
+          class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+        >
+          <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+        </button>
+      </ArisUFormGroup>
+      <ArisUFormGroup size="xl" class="w-full lg:w-80" label="Suchen">
         <UInput
           size="2xl"
           v-model="search"
@@ -132,7 +147,15 @@ definePageMeta({
           icon="i-heroicons-magnifying-glass-20-solid"
           placeholder="Suche..."
         />
-      </UFormGroup>
+        <button
+          v-if="search !== ''"
+          @click="search = ''"
+          type="button"
+          class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+        >
+          <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+        </button>
+      </ArisUFormGroup>
     </div>
     <div class="flex flex-wrap justify-center">
       <MemberCard
