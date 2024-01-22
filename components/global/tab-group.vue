@@ -60,7 +60,7 @@ const changeTab = (index: number) => {
             v-for="tab in tablist"
             v-slot="{ selected }"
             :key="tab.header"
-            class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none"
+            class="m-1 outline-none sm:p-1 md:p-3 focus:!outline-none focus-visible:!outline-none"
           >
             <h1
               class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"

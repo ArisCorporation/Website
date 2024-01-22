@@ -51,3 +51,7 @@ defineProps({
     </div>
   </button>
 </template>
+<!-- text-industrial-400 -->
+<!-- border-industrial-400 -->
+<!-- text-aris-400 -->
+<!-- border-aris-400 -->

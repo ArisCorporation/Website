@@ -2,6 +2,7 @@
 const { getUsers } = useDirectusUsers();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
+const emit = defineEmits(['create', 'lock', 'unlock', 'archive', 'delete', 'edit']);
 
 const { data: baseItemCount } = await useAsyncData('get-administration-data', async () =>
   getUsers({
@@ -31,6 +32,57 @@ const columnsTable = computed(() =>
     JSON.stringify(userSettings.value?.ams.administration.userTableColumns).includes(column.key),
   ),
 );
+const itemOptions = computed(() => [
+  [
+    {
+      slot: 'avatar',
+    },
+  ],
+  [
+    {
+      label: 'Editieren',
+      icon: 'i-heroicons-pencil',
+      color: 'industrial',
+      disabled: selectedRows.value.length !== 1,
+      onClick: () => emit('edit', selectedRows[0]),
+    },
+  ],
+  [
+    {
+      label: 'Freischalten',
+      icon: 'i-heroicons-lock-open',
+      color: 'green',
+      disabled:
+        selectedRows.value.length > 0 && selectedRows.value.every((row) => row.statusValue !== 'active') ? false : true,
+      onClick: () => emit('unlock', selectedRows),
+    },
+    {
+      label: 'Sperren',
+      icon: 'i-heroicons-lock-closed',
+      color: 'red',
+      disabled:
+        selectedRows.value.length > 0 && selectedRows.value.every((row) => row.statusValue === 'active') ? false : true,
+      onClick: () => emit('lock', selectedRows),
+    },
+    {
+      label: 'Archivieren',
+      color: 'industrial',
+      icon: 'i-heroicons-archive-box-arrow-down',
+      disabled:
+        selectedRows.value.length > 0 && selectedRows.value.every((row) => row.statusValue !== 'archived')
+          ? false
+          : true,
+      onClick: () => emit('archive', selectedRows),
+    },
+    {
+      label: 'Löschen',
+      icon: 'i-heroicons-trash',
+      color: 'red',
+      disabled: selectedRows.value.length < 1,
+      onClick: () => emit('delete', selectedRows),
+    },
+  ],
+]);
 
 // USER - Selected Rows
 const selectedRows = ref<IMember[]>([]);
@@ -168,10 +220,19 @@ onMounted(() => {
         <h2 class="my-4 ml-6">Mitgliederübersicht</h2>
 
         <!-- Filters -->
+        <!-- TODO: ADD FILTER FOR STATE (ACTIVE, ARCHIVED, ETC) -->
         <div class="w-full divide-y divide-btertiary">
           <div class="flex flex-wrap items-center justify-between w-full px-4 py-4 lg:flex-nowrap">
-            <div class="w-full lg:w-1/4">
+            <div class="relative w-full lg:w-1/4">
               <UInput size="md" v-model="search" placeholder="Vorname, Nachname, Abteilung, ..." />
+              <button
+                v-if="search !== ''"
+                @click="search = ''"
+                type="button"
+                class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
             </div>
           </div>
           <div class="flex flex-wrap items-center justify-between w-full px-4 py-4 gap-y-1.5">
@@ -181,6 +242,86 @@ onMounted(() => {
               <USelectMenu v-model="pageCount" :options="[3, 5, 10, 20, 30, 40, 100]" size="sm" />
             </div>
             <div class="w-fit flex flex-wrap text-center gap-1.5 items-center ml-auto">
+              <ButtonDefault
+                v-if="selectedRows.length < 1"
+                @click="!(selectedRows.length > 0) && $emit('create')"
+                :disabled="selectedRows.length > 0"
+                color="success"
+                class="w-fit"
+                size="xs"
+              >
+                <span class="flex items-center gap-1.5"><UIcon name="i-heroicons-plus" />Erstellen</span>
+              </ButtonDefault>
+              <UDropdown
+                v-else
+                mode="hover"
+                :items="itemOptions"
+                :popper="{ placement: 'bottom-start' }"
+                :disabled="selectedRows.length < 1"
+              >
+                <ButtonDefault :disabled="selectedRows.length < 1" size="xs" color="industrial-400">
+                  <div class="flex items-center my-auto gap-x-1.5">
+                    Optionen {{ optionsOpen }}
+                    <UIcon
+                      name="i-heroicons-chevron-down-20-solid"
+                      class="w-4 h-4 transition"
+                      :class="{ 'rotate-180': optionsOpen }"
+                    />
+                  </div>
+                </ButtonDefault>
+                <template #avatar>
+                  <UAvatarGroup size="xs" :max="8">
+                    <UAvatar
+                      v-if="selectedRows.length > 1"
+                      v-for="item in selectedRows"
+                      :key="item.id"
+                      :label="item.first_name"
+                      :src="$config.public.fileBase + (item.avatar ?? '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492')"
+                      :size="32"
+                    />
+                    <NuxtLink
+                      v-else-if="selectedRows.length === 1"
+                      :to="'/ams/employees/biography/' + selectedRows[0].slug"
+                      target="_blank"
+                      class="transition opacity-80 ring-0 group-hover:opacity-100 hover:no-underline"
+                    >
+                      <div class="flex items-center my-auto gap-x-2">
+                        <UAvatar
+                          size="xs"
+                          :label="selectedRows[0].first_name"
+                          :src="
+                            $config.public.fileBase + (selectedRows[0].avatar ?? '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492')
+                          "
+                          :size="32"
+                        />
+                        <span class="text-primary"> Biografie </span>
+                      </div>
+                    </NuxtLink>
+                    <UAvatar
+                      v-else
+                      label="'None'"
+                      :src="$config.public.fileBase + '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'"
+                      :size="32"
+                    />
+                  </UAvatarGroup>
+                </template>
+              </UDropdown>
+              <USelectMenu
+                :model-value="
+                  userSettings.ams.administration.userTableColumns?.map((column) =>
+                    columns.find((e) => e.key === column.key),
+                  )
+                "
+                @update:model-value="userSettingsStore.AMSAdministrationSetUserTableColumns($event)"
+                :options="columns"
+                multiple
+                placeholder="Columns"
+                size="md"
+              >
+                <UButton icon="i-heroicons-view-columns" class="ml-auto"> Spalten </UButton>
+              </USelectMenu>
+            </div>
+            <!-- <div class="w-fit flex flex-wrap text-center gap-1.5 items-center ml-auto">
               <ButtonDefault
                 :disabled="!(selectedRows.length > 0 && selectedRows.every((e) => e.statusValue !== 'active'))"
                 @click="
@@ -206,14 +347,17 @@ onMounted(() => {
                 <span class="flex items-center gap-1.5"><UIcon name="i-heroicons-lock-closed" />Sperren</span>
               </ButtonDefault>
               <ButtonDefault
-                @click="!selectedRows.length < 1 && $emit('delete', selectedRows)"
+                @click="!selectedRows.length < 1 && $emit('archive', selectedRows)"
                 :disabled="selectedRows.length < 1"
                 color="danger"
                 class="w-fit"
                 size="xs"
               >
-                <span class="flex items-center gap-1.5"><UIcon name="i-heroicons-trash" />Löschen</span>
+                <span class="flex items-center gap-1.5"><UIcon name="i-heroicons-archive" />Archivieren</span>
               </ButtonDefault>
+                <ButtonDefault @click="!selectedRows.length < 1 && $emit('delete', selectedRows)" :disabled="selectedRows.length < 1" color="danger" class="w-fit" size="xs">
+                  <span class="flex items-center gap-1.5"><UIcon name="i-heroicons-trash" />Löschen</span>
+                </ButtonDefault>
               <ButtonDefault
                 @click="selectedRows.length === 1 && $emit('edit', selectedRows[0])"
                 :disabled="selectedRows.length !== 1"
@@ -246,7 +390,7 @@ onMounted(() => {
               >
                 <UButton icon="i-heroicons-view-columns" class="ml-auto"> Spalten </UButton>
               </USelectMenu>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>

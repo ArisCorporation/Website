@@ -159,5 +159,13 @@ export default defineAppConfig({
         },
       },
     },
+    dropdown: {
+      background: 'bg-bprimary',
+      ring: 'ring-1 ring-btertiary',
+      divide: 'divide-y divide-btertiary',
+      item: {
+        active: 'bg-bsecondary text-white',
+      },
+    },
   },
 });

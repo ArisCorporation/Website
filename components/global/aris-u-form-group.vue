@@ -1,4 +1,11 @@
 <script setup lang="ts">
+defineProps({
+  input: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+});
 // const formgroupUi = {
 //   strategy: 'override',
 //   container: 'relative w-full max-w-[303px]',
@@ -18,6 +25,9 @@ const formgroupUi = {
 <template>
   <UFormGroup :ui="formgroupUi">
     <slot />
+    <template v-if="$slots.description" #description>
+      <slot name="description" />
+    </template>
     <template v-if="$slots.help" #help>
       <slot name="help" />
     </template>
