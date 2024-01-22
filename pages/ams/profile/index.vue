@@ -473,7 +473,10 @@ const handleEdits = async (event: FormSubmitEvent<Schema>) => {
       },
     );
     if (fetchError) {
-      throw new FetchError(fetchMessage || '', 'expired');
+      if (fetchMessage === 'Token expired.') {
+        throw new FetchError(fetchMessage || '', 'expired');
+      }
+      throw new FetchError(fetchMessage || '', 'other');
     }
     // await updateItem({
     //   collection: 'directus_users',
@@ -516,6 +519,24 @@ const handleEdits = async (event: FormSubmitEvent<Schema>) => {
             },
           ]);
         }
+      } else if (e?.type === 'dc') {
+        console.error('Fetch error:', e.message);
+        form.value.setErrors([
+          ...form.value.getErrors(),
+          {
+            path: 'customErrors',
+            message: 'Es gab ein Problem dabei deine Discord ID zu ermitteln.',
+          },
+        ]);
+      } else {
+        console.error('Fetch error: API Error');
+        form.value.setErrors([
+          ...form.value.getErrors(),
+          {
+            path: 'customErrors',
+            message: 'Es gab ein Problem dabei deine Daten zu aktualisieren. Wende dich für Hilfe bitte an das Administrations-Team. (@thomas_blakeney, @decon_vorn)',
+          },
+        ]);
       }
     }
   }

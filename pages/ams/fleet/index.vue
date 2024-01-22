@@ -234,7 +234,7 @@ useHead({
 <template>
   <div>
     <div class="flex w-full px-6">
-      <UFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-96" label="Suchen">
+      <ArisUFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-96" label="Suchen">
         <UInput
           size="2xl"
           v-model="search"
@@ -242,66 +242,70 @@ useHead({
           icon="i-heroicons-magnifying-glass-20-solid"
           placeholder="Schiffsname, Modell, Hersteller..."
         />
-      </UFormGroup>
+        <button
+          v-if="search !== ''"
+          @click="search = ''"
+          type="button"
+          class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+        >
+          <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+        </button>
+      </ArisUFormGroup>
     </div>
     <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
       <div class="flex flex-wrap justify-center w-full mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
         <div class="flex mx-auto sm:mx-0 sm:pr-4 basis-full sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <UFormGroup class="w-full lg:w-80" label="Abteilung">
-            <div class="relative">
-              <USelectMenu
-                id="departmentSelect"
-                v-model="selectedDepartment"
-                searchable
-                clear-search-on-close
-                searchable-placeholder="Suche..."
-                :search-attributes="['name']"
-                name="Abteilung"
-                placeholder="Abteilung filtern"
-                :options="[{ name: 'Alle' }, ...data.departments]"
-                size="xl"
-                :ui="{
-                  leading: {
-                    padding: {
-                      xl: 'ps-10',
-                    },
+          <ArisUFormGroup class="w-full lg:w-80" label="Abteilung">
+            <USelectMenu
+              id="departmentSelect"
+              v-model="selectedDepartment"
+              searchable
+              clear-search-on-close
+              searchable-placeholder="Suche..."
+              :search-attributes="['name']"
+              name="Abteilung"
+              placeholder="Abteilung filtern"
+              :options="[{ name: 'Alle' }, ...data.departments]"
+              size="xl"
+              :ui="{
+                leading: {
+                  padding: {
+                    xl: 'ps-10',
                   },
-                }"
-              >
-                <template v-if="selectedDepartment?.name !== 'Alle'" #leading />
-                <template #label>
-                  <UAvatar
-                    img-class="object-cover object-top"
-                    :src="
-                      selectedDepartment.logo
-                        ? $config.public.fileBase + selectedDepartment.logo + '?format=webp'
-                        : null
-                    "
-                    :alt="selectedDepartment.name || 'Alle'"
-                  />
-                  <span>{{ selectedDepartment.name }}</span>
-                </template>
-                <template #option="{ option: department }">
-                  <UAvatar
-                    img-class="object-cover object-top"
-                    :src="department.logo ? $config.public.fileBase + department.logo + '?format=webp' : null"
-                    :alt="department.name"
-                  />
-                  <span>{{ department.name }}</span>
-                </template>
-              </USelectMenu>
-              <button
-                v-if="selectedDepartment?.name !== 'Alle'"
-                @click="selectedDepartment = { name: 'Alle' }"
-                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-              >
-                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
-              </button>
-            </div>
-          </UFormGroup>
+                },
+              }"
+            >
+              <template v-if="selectedDepartment?.name !== 'Alle'" #leading />
+              <template #label>
+                <UAvatar
+                  img-class="object-cover object-top"
+                  :src="
+                    selectedDepartment.logo ? $config.public.fileBase + selectedDepartment.logo + '?format=webp' : null
+                  "
+                  :alt="selectedDepartment.name || 'Alle'"
+                />
+                <span>{{ selectedDepartment.name }}</span>
+              </template>
+              <template #option="{ option: department }">
+                <UAvatar
+                  img-class="object-cover object-top"
+                  :src="department.logo ? $config.public.fileBase + department.logo + '?format=webp' : null"
+                  :alt="department.name"
+                />
+                <span>{{ department.name }}</span>
+              </template>
+            </USelectMenu>
+            <button
+              v-if="selectedDepartment?.name !== 'Alle'"
+              @click="selectedDepartment = { name: 'Alle' }"
+              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+            >
+              <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+            </button>
+          </ArisUFormGroup>
         </div>
         <div class="flex mx-auto mt-2 sm:mx-0 sm:pl-4 basis-full sm:mt-0 sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <UFormGroup class="w-full lg:w-80" label="Mitglied">
+          <ArisUFormGroup class="w-full lg:w-80" label="Mitglied">
             <USelectMenu
               id="memberSelect"
               v-model="selectedMember"
@@ -313,7 +317,15 @@ useHead({
               placeholder="Mitarbeiter filtern"
               :options="[{ fullName: 'Alle' }, ...data.members]"
               size="xl"
+              :ui="{
+                leading: {
+                  padding: {
+                    xl: 'ps-10',
+                  },
+                },
+              }"
             >
+              <template v-if="selectedMember?.fullName !== 'Alle'" #leading />
               <template #label>
                 <UAvatar
                   img-class="object-cover object-top"
@@ -333,7 +345,14 @@ useHead({
                 <span>{{ member.fullName }}</span>
               </template>
             </USelectMenu>
-          </UFormGroup>
+            <button
+              v-if="selectedMember?.fullName !== 'Alle'"
+              @click="selectedMember = { fullName: 'Alle' }"
+              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+            >
+              <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+            </button>
+          </ArisUFormGroup>
         </div>
       </div>
       <div
