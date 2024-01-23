@@ -59,8 +59,8 @@ const sidebarItems = [
   <button
     aria-controls="default-sidebar"
     type="button"
-    class="fixed inline-flex items-center p-2 mt-2 text-sm text-gray-500 rounded-lg w-fit ms-3 lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-    @click="SidebarStore.ToggleMobileSidebar()"
+    class="fixed z-40 inline-flex items-center p-2 mt-2 text-sm rounded-lg text-tbase hover:text-bprimary w-fit ms-3 lg:hidden focus:outline-none focus:ring-0 hover:bg-tbase"
+    @click="SidebarStore.toggleMobileSidebar"
   >
     <span class="sr-only">Open sidebar</span>
     <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -73,20 +73,20 @@ const sidebarItems = [
   </button>
   <aside
     id="default-sidebar"
-    class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform lg:translate-x-0"
+    class="fixed top-0 left-0 z-50 w-64 h-screen transition-transform lg:translate-x-0"
     :class="{ '-translate-x-full': !SidebarStore.MobileSidebar }"
     aria-label="Sidebar"
   >
     <div class="relative h-full pb-4 overflow-y-auto bg-bsecondary">
       <div class="flex w-full px-4">
-        <Icon name="IconsLogosVeBanner" class="w-1/2 mx-auto h-fit" />
+        <Icon name="IconsLogosVeBanner" class="w-3/4 px-4 mx-auto -mt-0.5 -mb-0.5 h-fit" />
       </div>
       <ul class="p-0 font-medium list-none basis-full">
         <li v-for="(item, i) in sidebarItems" :key="i" class="pb-0">
           <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
           <NuxtLink
             :to="'/VerseExkurs' + item.link"
-            @click="SidebarStore.ToggleMobileSidebar"
+            @click="SidebarStore.toggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
             :class="[
               (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
@@ -96,7 +96,7 @@ const sidebarItems = [
           >
             <Icon
               :name="item.icon"
-              class="w-5 h-5 transition-group"
+              class="w-6 h-6 transition-group"
               :class="[
                 (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
                   ? 'text-white'
@@ -116,18 +116,50 @@ const sidebarItems = [
         </li>
       </ul>
       <ul class="absolute bottom-0 p-0 mt-auto space-y-2 font-medium list-none basis-full">
+        <li v-for="(item, i) in userSidebarItems" :key="i" class="pb-0">
+          <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
+          <NuxtLink
+            v-if="item.link"
+            :to="'/VerseExkurs' + item.link"
+            @click="SidebarStore.toggleMobileSidebar"
+            class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group before:transition-default"
+            :class="[
+              (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
+                ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
+                : 'text-tbase/75 hover:text-white',
+            ]"
+          >
+            <Icon
+              :name="item.icon"
+              class="w-6 h-6 transition-group"
+              :class="[
+                (item.link ? $route.path.startsWith('/VerseExkurs' + item.link) : $route.path === '/VerseExkurs')
+                  ? 'text-white'
+                  : 'text-tbase/75 group-hover:text-white',
+              ]"
+            />
+            <span class="ms-3">{{ item.name }}</span>
+          </NuxtLink>
+          <button
+            v-else
+            class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group text-tbase/75 hover:text-white"
+            @click="item.action"
+          >
+            <Icon :name="item.icon" class="w-6 h-6 transition-group text-tbase/75 group-hover:text-white" />
+            <span class="ms-3">{{ item.name }}</span>
+          </button>
+        </li>
         <li>
           <NuxtLink
             to="/"
-            @click="SidebarStore.ToggleMobileSidebar"
+            @click="SidebarStore.toggleMobileSidebar"
             class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline text-tbase hover:text-white group"
           >
-            <Icon name="IconsLogosAriscorp" class="w-5 h-5 transition duration-75 text-tbase group-hover:text-white" />
+            <Icon name="IconsLogosAriscorp" class="w-6 h-6 transition duration-75 text-tbase group-hover:text-white" />
             <span class="ms-3">ArisCorp Homepage</span>
           </NuxtLink>
         </li>
       </ul>
     </div>
   </aside>
-  <!-- </div> -->
 </template>

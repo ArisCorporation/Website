@@ -21,12 +21,67 @@ useHead({
 </script>
 
 <template>
-  <div>
+  <div class="lg:grid lg:grid-cols-[16rem,_1fr]">
+    <TheModal>
+      <template #content>
+        <slot name="modalContent" />
+      </template>
+    </TheModal>
+    <USlideover v-model="useModalStore().isSlideOpen">
+      <!-- <div class="flex-1 p-4 scrollbar-gray-thin"> -->
+      <slot name="slideCard">
+        <div class="flex-1 overflow-y-scroll">
+          <UCard
+            class="flex flex-col flex-1 h-full overflow-y-scroll scrollbar-gray-thin"
+            :ui="{
+              body: { base: 'flex-1' },
+              background: 'bg-bprimary',
+              ring: '',
+              divide: 'divide-y divide-btertiary',
+            }"
+          >
+            <template #header>
+              <slot name="slideHeader" />
+            </template>
+            <slot name="slideContent" />
+            <template #footer>
+              <slot name="slideFooter" />
+            </template>
+          </UCard>
+        </div>
+      </slot>
+    </USlideover>
     <VerseExkursSidebar />
-    <div class="flex flex-col justify-between flex-1 min-h-screen overflow-hidden lg:ml-64">
-      <div class="container px-8 mx-auto">
-        <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.ToggleMobileSidebar()" />
-        <div class="mt-6">
+    <div id="sidebar-space" class="hidden lg:block" />
+    <div class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen">
+      <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
+      <DevOnly>
+        <div class="bg-black z-[99] pb-4 px-8" v-if="JSON.parse(useCookie('ams_devtools').value ?? 'true')">
+          <h6>DEV TOOLS:</h6>
+          <code class="block pb-2">User: {{ user }}</code>
+        </div>
+        <ButtonDefault
+          class="w-fit"
+          @click="
+            useCookie('ams_devtools').value = JSON.stringify(!JSON.parse(useCookie('ams_devtools').value ?? 'true'))
+          "
+        >
+          <Icon
+            name="mdi-light:console"
+            class="w-6 h-6"
+            :class="{ 'text-primary': JSON.parse(useCookie('ams_devtools').value ?? 'true') }"
+          />
+        </ButtonDefault>
+      </DevOnly>
+      <div class="flex flex-wrap w-full px-4 mt-4">
+        <Icon name="IconsLogosAmsBanner" class="w-1/4 aspect-[33/11] -mb-2 h-auto" />
+        <div class="relative mt-auto ml-auto group">
+          <div class="absolute right-0 justify-center hidden mt-2 text-center w-14 group-hover:flex">Hilfe</div>
+        </div>
+      </div>
+      <hr class="my-2" />
+      <div class="container min-h-screen px-4 mx-auto">
+        <div class="mt-4">
           <slot />
         </div>
       </div>
