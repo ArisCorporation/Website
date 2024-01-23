@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { number, object, string, type InferType, ValidationError } from 'yup';
 const { width } = useWindowSize();
-const { createUsers } = useDirectusUsers();
+const { createUsers, updateUser, deleteUsers } = useDirectusUsers();
 const user = transformUser(useDirectusUser().value);
 const { token: userToken } = useDirectusToken();
 const config = useRuntimeConfig();
 const modalStore = useModalStore();
+const userTable = ref();
 
 class FetchError extends Error {
   constructor(message: string, type: string) {
@@ -16,26 +17,23 @@ class FetchError extends Error {
 }
 
 // USER - Actions
-const resetUserFormData = () => {
+function resetUserFormData() {
   userFormData.firstname = '';
   userFormData.lastname = '';
   userFormData.title = '';
   userFormData.password = null;
-  userFormData.email = useSlugify(
-    userFormData.firstname + (userFormData.lastname && '.' + userFormData.lastname),
-    true,
-  );
   userFormData.role = null;
   userFormData.discordName = '';
-};
+}
 const handleCreate = () => {
+  resetUserFormData();
   modalStore.openSlide({ type: 'createUser' });
 };
 const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) => {
   userCreationForm.value.clear();
   try {
     await userCreationSchema.validate(userFormData);
-    //TODO: GET DISCORD ID AND SET REF FOR CHECKBOX IN SUCCESS-MODAL
+    //TODO: GET DISCORD ID AND SET REF FOR CHECKBOX IN SUCCESS-MODAL FOR SENDING CREDENTIALS
     const userData = {
       status: 'draft',
       first_name: userFormData.firstname,
@@ -51,41 +49,24 @@ const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) =>
               true,
             ),
       role: userFormData.role?.id,
-      discordName: userFormData.discordName,
+      discordName: userFormData.discordName ?? '',
     };
+    console.log(userData);
 
     if (userTable.value.items?.find((e: IRawUser) => e.email === userData.email)) {
       throw new Error('Es existiert bereits ein Benutzer mit dieser Vor- Nachnamen-Kombination.');
     }
-
-    let fetchError = false;
-    let fetchMessage = null;
-    const { data: newUser } = await useFetch(`${config.public.backendUrl}/users`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + userToken.value,
-        // Authorization:
-        // 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijc3ZmI0NDJhLTgwYjItNDBiNy05ZTNjLWY5ZDE4MTkwYWM4NiIsInJvbGUiOiI3NjdiYjA5ZS1hNmZjLTRlYmItOGM1Zi0wOGIwNjBhYjBiZGIiLCJhcHBfYWNjZXNzIjp0cnVlLCJhZG1pbl9hY2Nlc3MiOnRydWUsImlhdCI6MTcwNDgyNDY5MiwiZXhwIjoxNzA0ODI1NTkyLCJpc3MiOiJkaXJlY3R1cyJ9.jJBsc0bAVpmWaheaDqRMCtERCjqtwfbG18H5yF07u04',
-      },
-      method: 'POST',
-      body: JSON.stringify(userData),
-      onResponseError({ request, response, options }) {
-        fetchError = true;
-        fetchMessage = response?._data.errors[0].message;
-      },
-    });
-
-    if (fetchError) {
-      throw new FetchError(fetchMessage || '', 'expired');
-    }
+    const { data: newUser, error: createError } = await useAsyncData('create-user', () =>
+      createUsers({
+        users: userData,
+      }),
+    );
 
     modalStore.closeSlide();
 
     await setTimeout(() => {
-      console.log(newUser.value?.data);
-      console.log(transformUser(newUser.value?.data));
       userTable.value.refresh();
-      modalStore.setData(transformUser(newUser.value?.data));
+      modalStore.setData(transformUser(newUser.value));
       modalStore.openModal('Benutzer erstellt.', {
         hideCloseButton: true,
         hideXButton: true,
@@ -93,62 +74,96 @@ const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) =>
       });
     }, 600);
   } catch (e) {
-    if (e instanceof ValidationError) {
-      console.error(
-        'Validation error: Validierungsfehler! Bitte überprüfe nochmal ob du alles richtig eingegeben hast. (Unter den jeweiligen Feldern tauchen Fehlermeldungen auf.)',
-      );
-      await setTimeout(
-        () =>
-          userCreationForm.value.setErrors([
-            ...userCreationForm.value.getErrors(),
-            {
-              path: 'customErrors',
-              message:
-                'Validierungsfehler! Bitte überprüfe nochmal ob du alles richtig eingegeben hast. (Unter den jeweiligen Feldern tauchen Fehlermeldungen auf.)',
-            },
-          ]),
-        0,
-      );
-    } else if (e instanceof FetchError) {
-      console.error('Fetch error: Es gab einen Fehler bei der Erstellung des Benutzers.');
-      await setTimeout(
-        () =>
-          userCreationForm.value.setErrors([
-            ...userCreationForm.value.getErrors(),
-            {
-              path: 'customErrors',
-              message:
-                'Fetch error! Es gab ein Problem bei der Erstellung des Benutzers. Bitte versuche es später erneut. Sollte dieser Fehler wiederholt auftreten melde dich bitte beim Website-Team. (@Thomas_Blakeney, @Decon_Malcom_Vorn)',
-            },
-          ]),
-        0,
-      );
-    } else {
-      console.error('Error:', e?.message);
-      await setTimeout(
-        () =>
-          userCreationForm.value.setErrors([
-            ...userCreationForm.value.getErrors(),
-            {
-              path: 'customErrors',
-              message: e?.message,
-            },
-          ]),
-        0,
-      );
-    }
+    console.error('Error:', createError);
+    await setTimeout(
+      () =>
+        userCreationForm.value.setErrors([
+          ...userCreationForm.value.getErrors(),
+          {
+            path: 'customErrors',
+            message:
+              'Error! Es gab ein Problem bei der Erstellung des Benutzers. Bitte versuche es später erneut. Sollte dieser Fehler wiederholt auftreten melde dich bitte beim Website-Team. (@Thomas_Blakeney, @Decon_Malcom_Vorn)',
+          },
+        ]),
+      0,
+    );
   }
 };
 
 const handleEdit = (user: IMember) => {
   console.log('edit');
 };
-const handleDelete = (users: IMember[]) => {
-  console.log('delete');
+const handleDelete = async (users: IMember[]) => {
+  try {
+    await deleteUsers({
+      users: users.value?.map((obj: IMember) => obj.id),
+    });
+  } catch (e) {
+    console.error(e);
+  } finally {
+    userTable.value.refresh();
+    userTable.value.selectedRows = [];
+  }
+};
+const handleLock = async (users: IMember[]) => {
+  try {
+    await Promise.all(
+      users.value?.map(async (user: IMember) => {
+        await updateUser({
+          id: user.id,
+          user: {
+            status: 'suspended',
+          },
+        });
+      }),
+    );
+  } catch (e) {
+    console.error(e);
+  } finally {
+    userTable.value.refresh();
+    userTable.value.selectedRows = [];
+  }
+};
+const handleUnlock = async (users: IMember[]) => {
+  try {
+    await Promise.all(
+      users.value?.map(async (user: IMember) => {
+        await updateUser({
+          id: user.id,
+          user: {
+            status: 'active',
+          },
+        });
+      }),
+    );
+  } catch (e) {
+    console.error(e);
+  } finally {
+    userTable.value.refresh();
+    userTable.value.selectedRows = [];
+  }
+};
+const handleArchive = async (users: IMember[]) => {
+  try {
+    await Promise.all(
+      users.value?.map(async (user: IMember) => {
+        await updateUser({
+          id: user.id,
+          user: {
+            status: 'archived',
+          },
+        });
+      }),
+    );
+  } catch (e) {
+    console.error(e);
+  } finally {
+    userTable.value.refresh();
+    userTable.value.selectedRows = [];
+  }
 };
 
 // USER - Data
-const userTable = ref();
 const userCreationForm = ref();
 const userCreationSendCredentials = ref(false);
 const userCreationSchema = object({
@@ -320,6 +335,7 @@ useHead({
           ref="userCreationForm"
           :state="userFormData"
           :schema="userCreationSchema"
+          validateOn="submit"
           @submit="onEditSubmit"
         >
           <UCard class="flex flex-col flex-1 h-screen scrollbar-gray-thin">
@@ -520,9 +536,10 @@ useHead({
               <AmsAdministrationUserTable
                 @create="handleCreate"
                 @edit="handleEdit"
-                @delete="handleEdit"
-                @lock="console.log('lock')"
-                @unlock="console.log('unlock')"
+                @delete="handleDelete"
+                @lock="handleLock"
+                @unlock="handleUnlock"
+                @archive="handleArchive"
                 ref="userTable"
               />
             </div>

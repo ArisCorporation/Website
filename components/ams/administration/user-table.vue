@@ -25,7 +25,6 @@ const columns = [
   { key: 'last_name', label: 'Nachname', sortable: true },
   { key: 'discordName', label: 'Discord Benutzername' },
   { key: 'contactEmail', label: 'Kontakt Email' },
-  { key: 'state', label: 'Status', sortable: true },
 ];
 const columnsTable = computed(() =>
   columns.filter((column) =>
@@ -42,44 +41,39 @@ const itemOptions = computed(() => [
     {
       label: 'Editieren',
       icon: 'i-heroicons-pencil',
-      color: 'industrial',
       disabled: selectedRows.value.length !== 1,
-      onClick: () => emit('edit', selectedRows[0]),
+      click: () => emit('edit', selectedRows[0]),
     },
   ],
   [
     {
       label: 'Freischalten',
       icon: 'i-heroicons-lock-open',
-      color: 'green',
       disabled:
         selectedRows.value.length > 0 && selectedRows.value.every((row) => row.statusValue !== 'active') ? false : true,
-      onClick: () => emit('unlock', selectedRows),
+      click: () => emit('unlock', selectedRows),
     },
     {
       label: 'Sperren',
       icon: 'i-heroicons-lock-closed',
-      color: 'red',
       disabled:
         selectedRows.value.length > 0 && selectedRows.value.every((row) => row.statusValue === 'active') ? false : true,
-      onClick: () => emit('lock', selectedRows),
+      click: () => emit('lock', selectedRows),
     },
     {
       label: 'Archivieren',
-      color: 'industrial',
       icon: 'i-heroicons-archive-box-arrow-down',
       disabled:
         selectedRows.value.length > 0 && selectedRows.value.every((row) => row.statusValue !== 'archived')
           ? false
           : true,
-      onClick: () => emit('archive', selectedRows),
+      click: () => emit('archive', selectedRows),
     },
     {
       label: 'Löschen',
       icon: 'i-heroicons-trash',
-      color: 'red',
       disabled: selectedRows.value.length < 1,
-      onClick: () => emit('delete', selectedRows),
+      click: () => emit('delete', selectedRows),
     },
   ],
 ]);
@@ -249,6 +243,7 @@ const { data, pending, refresh } = await useLazyAsyncData(
 
 defineExpose({
   refresh,
+  selectedRows,
   items: data.value.allItems,
 });
 
@@ -274,7 +269,7 @@ onMounted(() => {
         <!-- Filters -->
         <!-- TODO: ADD FILTER FOR STATE (ACTIVE, ARCHIVED, ETC) -->
         <div class="w-full divide-y divide-btertiary">
-          <div class="flex flex-wrap items-center justify-between w-full px-4 py-4 lg:flex-nowrap">
+          <div class="flex flex-wrap items-center justify-between w-full px-4 py-4 lg:flex-nowrap gap-y-2">
             <div class="relative w-full lg:w-1/4">
               <UInput size="md" v-model="search" placeholder="Vorname, Nachname, Abteilung, ..." />
               <button
@@ -338,12 +333,8 @@ onMounted(() => {
               >
                 <ButtonDefault :disabled="selectedRows.length < 1" size="xs" color="industrial-400">
                   <div class="flex items-center my-auto gap-x-1.5">
-                    Optionen {{ optionsOpen }}
-                    <UIcon
-                      name="i-heroicons-chevron-down-20-solid"
-                      class="w-4 h-4 transition"
-                      :class="{ 'rotate-180': optionsOpen }"
-                    />
+                    Optionen
+                    <UIcon name="i-heroicons-chevron-down-20-solid" class="w-4 h-4 transition" />
                   </div>
                 </ButtonDefault>
                 <template #avatar>
@@ -494,13 +485,13 @@ onMounted(() => {
       <div class="flex flex-wrap items-center justify-between">
         <div>
           <span class="text-sm leading-5">
-            Showing
+            Zeigt
             <span class="font-medium">{{ pageFrom }}</span>
-            to
+            bis
             <span class="font-medium">{{ pageTo }}</span>
-            of
+            von
             <span class="font-medium">{{ pageTotal }}</span>
-            results
+            Ergebnissen
           </span>
         </div>
 
