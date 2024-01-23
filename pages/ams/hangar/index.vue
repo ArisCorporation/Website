@@ -3,7 +3,8 @@ import type { FormSubmitEvent } from '#ui/types';
 import { object, string, type InferType, boolean } from 'yup';
 
 const { getItems, updateItem, deleteItems, createItems } = useDirectusItems();
-const user = useDirectusUser();
+const { getUsers } = useDirectusUsers();
+const { params, path } = useRoute();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
 const loanerView = computed(() => userSettings.value.ams.hangarLoanerView);
@@ -17,13 +18,34 @@ const modalStore = useModalStore();
 const dataChanged = ref(false);
 const form = ref();
 
-const { data, refresh: refreshData } = await useAsyncData('my-hangar', async () => {
+const { data: user } = await useAsyncData(
+  'get-user',
+  async () => {
+    if (path.startsWith('/ams/hangar')) {
+      return await useDirectusUser().value;
+    } else {
+      return await getUsers({
+        params: {
+          filter: {
+            slug: {
+              _eq: params.slug,
+            },
+          },
+        },
+      });
+    }
+  },
+  { transform: (data: any) => transformUser(data[0] ?? data) },
+);
+console.log(user);
+const { data, refresh: refreshData } = await useAsyncData('hangar-data', async () => {
   const [hangarItems, wishlistItems, departments, shipList] = await Promise.all([
     getItems({
       collection: 'member_ships',
       params: {
         filter: {
           user_id: { _eq: user.value?.id },
+          ...(!path.startsWith('/ams/hangar') && { visibility: { _neq: 'hidden' } }),
         },
         fields: [
           'id',
@@ -173,7 +195,7 @@ const { data, refresh: refreshData } = await useAsyncData('my-hangar', async () 
   return {
     ships: hangarItems.map((obj) => transformHangarItem(obj, loanerData)),
     shipList: shipList.map((obj) => transformShip(obj)),
-    wishlist: wishlistItems.map((obj) => transformHangarItem(obj)),
+    wishlist: path.startsWith('/ams/hangar') && wishlistItems.map((obj) => transformHangarItem(obj)),
     departments: departments.map((obj) => transformDepartment(obj)),
   };
 });
@@ -413,8 +435,9 @@ watch(
 );
 
 definePageMeta({
-  layout: false,
+  alias: '/ams/employees/hangar/:slug()',
   middleware: 'auth',
+  layout: false,
 });
 
 useHead({
@@ -852,7 +875,12 @@ useHead({
         </div>
       </div>
     </div>
-    <TabGroup :tablist="[{ header: 'Hangar' }, { header: 'Wunschliste' }]" :store="selectedTab" :change="setTab">
+    <TabGroup
+      v-if="path.startsWith('/ams/hangar')"
+      :tablist="[{ header: 'Hangar' }, { header: 'Wunschliste' }]"
+      :store="selectedTab"
+      :change="setTab"
+    >
       <template #tablist>
         <div class="flex flex-wrap items-center justify-between w-full">
           <div class="flex flex-wrap">
@@ -917,6 +945,7 @@ useHead({
               display-name
               display-production-state
               display-loaner-state
+              display-hidden-state
             />
             <Presence>
               <Motion
@@ -984,5 +1013,58 @@ useHead({
         </div>
       </template>
     </TabGroup>
+    <div v-else class="flex flex-wrap">
+      <ShipCard
+        @edit="handleEdit"
+        @remove-confirm="onRemoveSubmit"
+        v-if="currentHangar"
+        v-for="item in currentHangar.filter(
+          (e) =>
+            (e.userData.name ? e.userData.name.toLowerCase().includes(search.toLowerCase()) : false) ||
+            e.ship.name.toLowerCase().includes(search.toLowerCase()) ||
+            e.ship.manufacturer.name.toLowerCase().includes(search.toLowerCase()) ||
+            e.ship.manufacturer.code.toLowerCase().includes(search.toLowerCase()),
+        )"
+        :key="item.id"
+        :ship-data="item.ship"
+        :hangar-data="item"
+        :detail-view="userSettings.ams.hangarDetailView"
+        :hidden="hideHangar"
+        :color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
+        preload-images
+        display-crud
+        internal-bio
+        display-department
+        display-name
+        display-production-state
+        display-loaner-state
+      />
+      <Presence>
+        <Motion
+          v-if="!currentHangar"
+          :initial="{ opacity: 0 }"
+          :animate="{ opacity: 1 }"
+          :exit="{ opacity: 0 }"
+          key="errorMsg"
+          class="mx-auto"
+        >
+          <h2 class="text-center text-secondary">
+            Es gibt keine Schiffe in der ArisCorp-Flotte die deinen Kriterien entsprechen.
+          </h2>
+        </Motion>
+      </Presence>
+      <Presence>
+        <Motion
+          v-if="!currentHangar[0]"
+          :initial="{ opacity: 0 }"
+          :animate="{ opacity: 1 }"
+          :exit="{ opacity: 0 }"
+          key="errorMsg"
+          class="mx-auto"
+        >
+          <h2 class="text-center text-secondary">Ganz schön leer hier...</h2>
+        </Motion>
+      </Presence>
+    </div>
   </NuxtLayout>
 </template>
