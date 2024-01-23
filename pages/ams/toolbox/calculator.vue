@@ -30,7 +30,7 @@ useHead({
             <button
               v-for="tab in tabs"
               @click="changeTab(tab.id)"
-              class="w-32 h-32 transition border first:rounded-l last:rounded-r"
+              class="w-32 h-32 transition border first:rounded-l last:rounded-r !outline-none"
               :class="[
                 selectedTab === tab.id
                   ? 'shadow-[0_0px_30px_5px_rgba(228,134,50,0.3)] hover:shadow-[0_0px_50px_5px_rgba(228,134,50,0.3)] z-10 border-industrial-400 bg-industrial-400/50 hover:bg-industrial-400/25'
