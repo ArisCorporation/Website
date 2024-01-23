@@ -52,6 +52,11 @@ const props = defineProps({
     required: false,
     default: false,
   },
+  displayHiddenState: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
   preloadImages: {
     type: Boolean,
     required: false,
@@ -111,8 +116,14 @@ const handleEdit = () => {
                 'text-white': shipData.productionState == 'Im Konzept',
               }"
             >
-              <span v-if="displayProductionState" class="block">{{ shipData.productionState }}</span>
-              <span v-if="displayLoanerState && hangarData.loaner" class="block text-secondary">Loaner</span>
+              <p v-if="displayProductionState" class="block p-0">{{ shipData.productionState }}</p>
+              <p v-if="displayLoanerState && hangarData.loaner" class="block p-0 text-secondary">Loaner</p>
+              <p
+                v-if="displayHiddenState && hangarData.userData.visibility === 'hidden'"
+                class="block p-0 text-secondary"
+              >
+                Versteckt
+              </p>
             </div>
             <div
               v-if="displayDepartment && hangarData.userData.department"
