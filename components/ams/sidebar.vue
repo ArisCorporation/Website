@@ -21,7 +21,7 @@ const sidebarItems = [
     name: 'Flotte',
     icon: 'IconsNavigationFleet',
     link: '/fleet',
-    level: 3,
+    level: 0,
   },
   {
     name: 'Mitarbeiter',
@@ -34,6 +34,11 @@ const sidebarItems = [
     icon: 'ri:admin-line',
     link: '/administration',
     level: 4,
+  },
+  {
+    name: 'Toolbox',
+    link: '/toolbox',
+    level: 0,
   },
 ];
 
