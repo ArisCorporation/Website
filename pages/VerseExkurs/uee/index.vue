@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { getSingletonItem } = useDirectusItems();
-const VeTabs = useVeTabs();
+const VeTabs = useVeTabsStore();
 
 const { data } = await useAsyncData(
   'getUEE',
