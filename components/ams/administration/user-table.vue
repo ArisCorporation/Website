@@ -98,7 +98,40 @@ function select(row: IMember) {
 // USER - Actions
 
 // USER - Filters
+interface IStatusOption {
+  key: string;
+  label: string;
+  value: string;
+}
+const statusOptions: IStatusOption[] = [
+  {
+    key: 'draft',
+    label: 'Entwurf',
+    value: 'draft',
+  },
+  {
+    key: 'invited',
+    label: 'Eingeladen',
+    value: 'invited',
+  },
+  {
+    key: 'active',
+    label: 'Aktiv',
+    value: 'active',
+  },
+  {
+    key: 'suspended',
+    label: 'Gesperrt',
+    value: 'suspended',
+  },
+  {
+    key: 'archived',
+    label: 'Archiviert',
+    value: 'archived',
+  },
+];
 const search = ref('');
+const selectedStatus = ref([]);
 
 // USER - Pagination
 const sort = ref({ column: 'first_name', direction: 'asc' as const });
@@ -117,18 +150,28 @@ const { data, pending, refresh } = await useLazyAsyncData(
         params: {
           limit: -1,
           fields: ['id', 'email'],
-          filter: search.value
-            ? {
-                _or: [
-                  { title: { _icontains: search.value } },
-                  { first_name: { _icontains: search.value } },
-                  { last_name: { _icontains: search.value } },
-                  { discordName: { _icontains: search.value } },
-                  { rsiHandle: { _icontains: search.value } },
-                  // { department: { gameplay_name: { _icontains: search.value } } },
-                ],
-              }
-            : {},
+          filter: {
+            _or: [
+              ...(search.value && [
+                { title: { _icontains: search.value } },
+                { first_name: { _icontains: search.value } },
+                { last_name: { _icontains: search.value } },
+                { discordName: { _icontains: search.value } },
+                { rsiHandle: { _icontains: search.value } },
+              ]),
+              ...(selectedStatus.value[0]
+                ? [
+                    {
+                      status: {
+                        _in: selectedStatus.value.map((obj: IStatusOption) => obj.value),
+                      },
+                    },
+                  ]
+                : []),
+              // TODO: ADD DEPARTMENT
+              // { department: { gameplay_name: { _icontains: search.value } } },
+            ],
+          },
         },
       }),
       getUsers({
@@ -136,18 +179,28 @@ const { data, pending, refresh } = await useLazyAsyncData(
           limit: pageCount.value,
           page: page.value,
           sort: [sort.value.column],
-          filter: search.value
-            ? {
-                _or: [
-                  { title: { _icontains: search.value } },
-                  { first_name: { _icontains: search.value } },
-                  { last_name: { _icontains: search.value } },
-                  { discordName: { _icontains: search.value } },
-                  { rsiHandle: { _icontains: search.value } },
-                  // { department: { gameplay_name: { _icontains: search.value } } },
-                ],
-              }
-            : {},
+          filter: {
+            _or: [
+              ...(search.value && [
+                { title: { _icontains: search.value } },
+                { first_name: { _icontains: search.value } },
+                { last_name: { _icontains: search.value } },
+                { discordName: { _icontains: search.value } },
+                { rsiHandle: { _icontains: search.value } },
+              ]),
+              ...(selectedStatus.value[0]
+                ? [
+                    {
+                      status: {
+                        _in: selectedStatus.value.map((obj: IStatusOption) => obj.value),
+                      },
+                    },
+                  ]
+                : []),
+              // TODO: ADD DEPARTMENT
+              // { department: { gameplay_name: { _icontains: search.value } } },
+            ],
+          },
           fields: [
             'id',
             'title',
@@ -190,7 +243,7 @@ const { data, pending, refresh } = await useLazyAsyncData(
   },
   {
     default: () => [],
-    watch: [page, search, pageCount, sort],
+    watch: [page, search, pageCount, sort, selectedStatus],
   },
 );
 
@@ -218,7 +271,6 @@ onMounted(() => {
       <div class="w-full divide-y divide-btertiary">
         <!-- Header -->
         <h2 class="my-4 ml-6">Mitgliederübersicht</h2>
-
         <!-- Filters -->
         <!-- TODO: ADD FILTER FOR STATE (ACTIVE, ARCHIVED, ETC) -->
         <div class="w-full divide-y divide-btertiary">
@@ -230,6 +282,31 @@ onMounted(() => {
                 @click="search = ''"
                 type="button"
                 class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              >
+                <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+              </button>
+            </div>
+            <div class="relative w-full lg:w-1/4">
+              <USelectMenu
+                v-model="selectedStatus"
+                :options="statusOptions"
+                multiple
+                size="md"
+                placeholder="Status"
+                :ui="{
+                  leading: {
+                    padding: {
+                      xl: 'ps-10',
+                    },
+                  },
+                }"
+              >
+                <template v-if="selectedStatus[0]" #leading />
+              </USelectMenu>
+              <button
+                v-if="selectedStatus[0]"
+                @click="selectedStatus = []"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
               >
                 <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
               </button>
