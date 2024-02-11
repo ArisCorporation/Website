@@ -23,7 +23,7 @@ export default defineNuxtConfig({
     '@nuxt/image',
     'nuxt-icon',
     'nuxt-headlessui',
-    'nuxt-directus',
+    'nuxt-directus-next',
     // '@nuxt/content',
     '@pinia/nuxt',
     '@vueuse/motion/nuxt',
@@ -31,7 +31,7 @@ export default defineNuxtConfig({
     'dayjs-nuxt',
     '@nuxt/ui',
     'nuxt-lodash',
-    '@nuxt/content',
+    'nuxt-markdown-render',
   ],
 
   runtimeConfig: {
@@ -40,9 +40,9 @@ export default defineNuxtConfig({
     public: {
       appVersion: version,
       buildNumber: process.env.NUXT_PUBLIC_BUILD_NUMBER,
-      environment: process.env.NODE_ENV,
+      environment: process.env.NUXT_PUBLIC_ENV || process.env.NODE_ENV,
       url: process.env.NUXT_PUBLIC_URL,
-      backendUrl: 'https://cms.ariscorp.de',
+      backendUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
       mbutton: { initial: { scale: 1 }, visible: { scale: 1 }, hovered: { scale: 1 }, tapped: { scale: 0.97 } },
     },
@@ -65,17 +65,27 @@ export default defineNuxtConfig({
   image: {
     provider: 'directus',
     directus: {
-      baseURL: 'https://cms.ariscorp.de/assets/',
+      baseURL: process.env.NUXT_PUBLIC_FILE_BASE,
       modifiers: {
         format: 'webp',
       },
     },
   },
 
-  directus: {
-    url: 'https://cms.ariscorp.de',
-    cookieNameToken: 'ams_token',
-    cookieNameRefreshToken: 'ams_refresh_token',
+  // directus: {
+  //   authConfig: {
+  //     refreshTokenCookieName: 'ams_refresh_token',
+  //   },
+  //   // cookieNameToken: 'ams_token',
+  //   // cookieNameRefreshToken: 'ams_refresh_token',
+  // },
+
+  nuxtMarkdownRender: {
+    as: 'div',
+    options: {
+      html: true,
+    },
+    global: true,
   },
 
   headlessui: {
@@ -91,5 +101,9 @@ export default defineNuxtConfig({
     plugins: ['relativeTime', 'utc', 'timezone'],
     defaultLocale: 'de',
     defaultTimezone: 'Europe/Berlin',
+  },
+
+  typescript: {
+    shim: false,
   },
 });

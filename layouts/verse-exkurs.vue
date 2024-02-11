@@ -73,13 +73,6 @@ useHead({
           />
         </ButtonDefault>
       </DevOnly>
-      <div class="flex flex-wrap w-full px-4 mt-4">
-        <Icon name="IconsLogosAmsBanner" class="w-1/4 aspect-[33/11] -mb-2 h-auto" />
-        <div class="relative mt-auto ml-auto group">
-          <div class="absolute right-0 justify-center hidden mt-2 text-center w-14 group-hover:flex">Hilfe</div>
-        </div>
-      </div>
-      <hr class="my-2" />
       <div class="container min-h-screen px-4 mx-auto">
         <div class="mt-4">
           <slot />

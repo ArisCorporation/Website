@@ -23,9 +23,10 @@ useHead({
   },
   htmlAttrs: {
     lang: 'de',
-    'data-app-version': `V${config.public.appVersion}-
-      ${config.public.buildNumber.slice(0, 8)}.
-      ${config.public.environment.toUpperCase()}`,
+    'data-app-version': `V${config.public.appVersion}-${config.public.buildNumber.slice(
+      0,
+      8,
+    )}.${config.public.environment.toUpperCase()}`,
   },
   meta: [
     { name: 'theme-color', content: '#00FFE8' },
