@@ -1,31 +1,15 @@
 <script setup>
 const footerLang = useState('footerLang', () => 'de');
-const { getItems } = useDirectusItems();
+const { readSingleton } = useDirectusItems();
 
-const { data: footer } = await useAsyncData(
-  'footer',
-  () =>
-    getItems({
-      collection: 'footer',
-      params: {
-        fields: ['footer_text_titel', 'footer_text'],
-        filter: {
-          _or: [{ footer_text_titel: 'de' }, { footer_text_titel: 'en' }],
-        },
-      },
-    }),
-  {
-    transform: (data) => {
-      return data.map((footer) => ({
-        title: footer.footer_text_titel,
-        content: footer.footer_text,
-      }));
-    },
-  },
-);
+const footerRes = await readSingleton('footer', {
+  fields: ['translations.languages_code', 'translations.content'],
+  status: { _eq: 'published' },
+});
+const footer = computed(() => footerRes?.translations?.map((e) => ({ code: e.languages_code, content: e.content })));
 
-const de = await parseMarkdown(footer.value?.find((e) => e.title === 'de').content);
-const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').content);
+const de = footer.value?.find((e) => e.code === 'de-DE').content;
+const en = footer.value?.find((e) => e.code === 'en-EN').content;
 </script>
 
 <template>
@@ -47,13 +31,16 @@ const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').conte
           <div class="">
             <template v-if="footer">
               <p v-if="footerLang == 'de'">
-                <ContentRenderer :value="de" />
+                <NuxtMarkdown :source="de" />
               </p>
               <p v-if="footerLang == 'en'">
-                <ContentRenderer :value="en" />
+                <NuxtMarkdown :source="en" />
               </p>
             </template>
-            <p v-else>FEHLER: DISCLAIMER KONNTE NICHT GELADEN WERDEN...</p>
+            <template v-else>
+              <p>FEHLER: DISCLAIMER KONNTE NICHT GELADEN WERDEN...</p>
+              <p>ERROR: CANNOT LOAD DISCLAIMER...</p>
+            </template>
           </div>
           <p>
             <span>&copy; ArisCorp - V{{ $config.public.appVersion }} - </span>
