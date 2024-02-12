@@ -4,18 +4,8 @@ const { readItems } = useDirectusItems();
 const { $preview } = useNuxtApp();
 const selectedTab = ref(0);
 
-let dataRes: any[] = [];
-
 if ($preview) {
-  dataRes = await readItems('aliens', {
-    fields: ['name', 'slug', 'banner', 'content', 'tabs'],
-    filter: {
-      slug: { _eq: route.params.slug },
-    },
-    limit: 1,
-  });
-} else {
-  dataRes = await readItems('aliens', {
+  const dataRes = await readItems('aliens', {
     fields: ['name', 'slug', 'banner', 'content', 'tabs'],
     filter: {
       slug: { _eq: route.params.slug },
@@ -23,6 +13,14 @@ if ($preview) {
     limit: 1,
   });
 }
+
+const dataRes = await readItems('aliens', {
+  fields: ['name', 'slug', 'banner', 'content', 'tabs'],
+  filter: {
+    slug: { _eq: route.params.slug },
+  },
+  limit: 1,
+});
 
 if (!dataRes[0]) {
   throw createError({
@@ -58,7 +56,7 @@ definePageMeta({
       small-header
       :tablist="data?.tabs"
       :store="selectedTab"
-      :change="(index: number: number: number) => (selectedTab = index)"
+      :change="(index: number) => (selectedTab = index)"
     >
       <template #tabcontent>
         <div v-html="data?.tabs[selectedTab].content" />
