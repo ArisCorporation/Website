@@ -41,9 +41,10 @@ defineProps({
       :class="{ 'xl:p-3 xl:absolute xl:h-full': size == 2, 'md:p-3 md:absolute md:h-full': size == 3 }"
     >
       <NuxtImg
-        class="object-fill object-center w-full h-full sm:object-cover"
-        :src="data.storeImage"
+        :src="data.banner"
+        :placeholder="[16, 16, 1, 5]"
         :alt="'Titelbild von dem Comm-Link: ' + data.title"
+        class="object-fill object-center w-full h-full sm:object-cover"
       />
     </div>
     <div
@@ -62,7 +63,8 @@ defineProps({
       >
         <div class="flex flex-wrap justify-between w-full my-auto text-xs text-primary-400">
           <div>
-            <span class="opacity-50">Geposted: </span><span>{{ $dayjs().add(930, 'years').to(data.datePosted) }}</span>
+            <span class="opacity-50">Geposted: </span
+            ><span>{{ $dayjs().add(930, 'years').to(data.date_created) }}</span>
           </div>
           <div>
             <span class="opacity-50">Channel: </span><span>{{ data.channel.name }}</span>

@@ -1,31 +1,22 @@
 <script setup lang="ts">
-const { getItemById } = useDirectusItems();
+const { readItem } = useDirectusItems();
 const { params } = useRoute();
 
-const { data } = await useAsyncData(
-  'comm-link',
-  () =>
-    getItemById({
-      collection: 'comm_links',
-      id: params.id,
-      params: {
-        fields: [
-          'comm_link_titel',
-          'comm_link_banner.id',
-          'comm_link',
-          'date_created',
-          'comm_link_author.firstname',
-          'comm_link_author.lastname',
-          'comm_link_author.title',
-          'comm_link_author.member_potrait.id',
-          'comm_link_author.slug',
-        ],
-      },
-    }),
-  {
-    transform: (data) => transformCommLink(data),
-  },
-);
+const dataRes = await readItem('comm_links', params.id, {
+  fields: [
+    'id',
+    'comm_link_titel',
+    'comm_link_banner.id',
+    'comm_link',
+    'date_created',
+    'user_created.first_name',
+    'user_created.last_name',
+    'user_created.title',
+    'user_created.avatar',
+    'user_created.slug',
+  ],
+});
+const data = computed(() => transformCommLink(dataRes));
 
 if (!data.value) {
   throw createError({
@@ -48,17 +39,21 @@ useHead({
     <div>
       <h1 class="text-center">
         Comm-Link Übertragung:
-        <span class="text-primary"> {{ data?.title }}</span>
+        <span class="text-primary"> {{ data?.title }} </span>
       </h1>
       <DefaultPanel>
-        <NuxtImg class="object-cover w-full mx-auto max-h-96" :src="data?.storeImage" />
+        <NuxtImg :src="data?.banner" :placeholder="[16, 16, 1, 5]" class="object-cover w-full mx-auto max-h-96" />
       </DefaultPanel>
       <hr class="mb-2 hr-short" />
       <div class="flex flex-wrap justify-between space-y-4">
         <div
           class="relative flex max-w-full pr-4 w-fit sm:max-w-1/2 after:w-full after:h-2px after:bg-secondary after:absolute after:-bottom-2"
         >
-          <NuxtImg :src="data?.author?.potrait" class="w-auto h-20 aspect-potrait sm:h-32" />
+          <NuxtImg
+            :src="data?.author?.potrait"
+            :placeholder="[16, 16, 1, 5]"
+            class="w-auto h-20 aspect-potrait sm:h-32"
+          />
           <p class="mt-auto ml-2 italic uppercase">
             <span class="text-secondary">Author: </span
             ><NuxtLink class="text-tbase" :to="'/biography/' + data?.author?.slug">{{
@@ -70,7 +65,7 @@ useHead({
           class="relative flex max-w-full pl-2 mt-4 ml-auto w-fit sm:max-w-1/4 after:w-full after:h-2px after:bg-secondary after:absolute after:-bottom-2"
         >
           <p class="mt-auto ml-2 italic uppercase">
-            <span class="text-secondary">Gepostet: </span>{{ $dayjs(data?.datePosted).format('DD. MMMM YYYY') }}
+            <span class="text-secondary">Gepostet: </span>{{ $dayjs(data?.date_posted).format('DD. MMMM YYYY') }}
           </p>
         </div>
       </div>
