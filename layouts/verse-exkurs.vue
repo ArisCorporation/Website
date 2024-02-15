@@ -27,30 +27,20 @@ useHead({
         <slot name="modalContent" />
       </template>
     </TheModal>
-    <USlideover v-model="useModalStore().isSlideOpen">
-      <!-- <div class="flex-1 p-4 scrollbar-gray-thin"> -->
-      <slot name="slideCard">
-        <div class="flex-1 overflow-y-scroll">
-          <UCard
-            class="flex flex-col flex-1 h-full overflow-y-scroll scrollbar-gray-thin"
-            :ui="{
-              body: { base: 'flex-1' },
-              background: 'bg-bprimary',
-              ring: '',
-              divide: 'divide-y divide-btertiary',
-            }"
-          >
-            <template #header>
-              <slot name="slideHeader" />
-            </template>
-            <slot name="slideContent" />
-            <template #footer>
-              <slot name="slideFooter" />
-            </template>
-          </UCard>
-        </div>
-      </slot>
-    </USlideover>
+    <Slideover>
+      <template v-if="$slots.slideCard" #slideCard>
+        <slot name="slideCard" />
+      </template>
+      <template v-if="$slots.slideHeader" #slideHeader>
+        <slot name="slideHeader" />
+      </template>
+      <template v-if="$slots.slideContent" #slideContent>
+        <slot name="slideContent" />
+      </template>
+      <template v-if="$slots.slideFooter" #slideFooter>
+        <slot name="slideFooter" />
+      </template>
+    </Slideover>
     <VerseExkursSidebar />
     <div id="sidebar-space" class="hidden lg:block" />
     <div class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen">
