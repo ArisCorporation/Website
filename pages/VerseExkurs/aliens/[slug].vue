@@ -1,18 +1,7 @@
 <script setup lang="ts">
 const route = useRoute();
 const { readItems } = useDirectusItems();
-const { $preview } = useNuxtApp();
 const selectedTab = ref(0);
-
-if ($preview) {
-  const dataRes = await readItems('aliens', {
-    fields: ['name', 'slug', 'banner', 'content', 'tabs'],
-    filter: {
-      slug: { _eq: route.params.slug },
-    },
-    limit: 1,
-  });
-}
 
 const dataRes = await readItems('aliens', {
   fields: ['name', 'slug', 'banner', 'content', 'tabs'],
@@ -41,16 +30,11 @@ definePageMeta({
 </script>
 
 <template>
-  <div>
-    <div>
-      <h1 class="text-center">
-        Alienrasse:
-        <span class="text-primary"> {{ data?.name }}</span>
-      </h1>
-      <DefaultPanel>
-        <NuxtImg class="object-cover w-full mx-auto max-h-96" :src="data?.banner" />
-      </DefaultPanel>
-    </div>
+  <VeBaseArticle :banner="data?.banner">
+    <template #title>
+      Alienrasse:
+      <span class="text-primary"> {{ data?.name }}</span>
+    </template>
     <div class="mt-8" v-html="data?.content" />
     <TabGroup
       small-header
@@ -62,5 +46,5 @@ definePageMeta({
         <div v-html="data?.tabs[selectedTab].content" />
       </template>
     </TabGroup>
-  </div>
+  </VeBaseArticle>
 </template>
