@@ -56,15 +56,14 @@ const changeTab = (index: number) => {
       <hr v-if="!hideHr" />
       <slot name="tablist">
         <div :class="{ 'justify-between': between }" class="flex flex-wrap w-full">
-          <HeadlessTab
-            v-for="tab in tablist"
-            v-slot="{ selected }"
-            :key="tab.header"
-            class="m-1 sm:p-1 md:p-3 !outline-none"
-          >
+          <HeadlessTab v-for="tab in tablist" :key="tab.header" class="m-1 sm:p-1 md:p-3 !outline-none">
             <h1
               class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
-              :class="{ 'text-primary-400': selected, 'opacity-50': !selected, 'text-xl': smallHeader }"
+              :class="{
+                'text-primary-400': store === tablist.indexOf(tab),
+                'opacity-50': store !== tablist.indexOf(tab),
+                'text-xl': smallHeader,
+              }"
             >
               {{ tab.header }}
             </h1>
