@@ -24,12 +24,13 @@ definePageMeta({
               <NuxtImg
                 :src="link.icon.split('.')[0]"
                 :placeholder="[16, 16, 1, 5]"
+                :alt="'Icon for ' + link.name"
                 class="w-32 p-2 m-auto aspect-square"
               />
             </div>
             <div class="col-span-8">
               <div class="p-2">
-                <h4 class="text-aris-400">&quot;{{ link.name }}&quot;</h4>
+                <h3 class="mb-2 text-aris-400">&quot;{{ link.name }}&quot;</h3>
                 <p>{{ link.description }}</p>
               </div>
             </div>
