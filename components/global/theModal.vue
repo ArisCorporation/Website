@@ -7,7 +7,7 @@ defineProps({
   },
 });
 const modalStore = useModalStore();
-const { isModalOpen, title, hideCloseButton, hideXButton, agreeAction } = storeToRefs(modalStore);
+const { isModalOpen, title, hideCloseButton, hideXButton, agreeAction, big } = storeToRefs(modalStore);
 
 const closeModal = () => {
   modalStore.closeModal();
@@ -39,7 +39,7 @@ const closeModal = () => {
             leave-from="opacity-100 scale-100"
             leave-to="opacity-0 scale-95"
           >
-            <HeadlessDialogPanel class="w-full max-w-2xl">
+            <HeadlessDialogPanel class="w-full" :class="[big ? 'max-w-4xl' : 'max-w-2xl']">
               <DefaultPanel overflow>
                 <div class="px-4 pt-2 pb-6">
                   <button v-if="!hideXButton" type="button" class="absolute top-1 left-1" @click="closeAction">
