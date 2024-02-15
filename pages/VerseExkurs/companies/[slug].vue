@@ -63,18 +63,18 @@ if (
       orbit: data.value.headquarter.planet
         ? {
             'object:planets': {
-              name: { _eq: data.value.headquarter.planet.name },
+              name: { _eq: data.value.headquarter.planet?.name },
             },
           }
         : {
             'object:moons': {
-              name: { _eq: data.value.headquarter.moon.name },
+              name: { _eq: data.value.headquarter.moon?.name },
             },
           },
     },
     limit: 1,
   });
-  if (system[0]) {
+  if (system && system[0]) {
     data.value.headquarter.system = { name: system[0].name, slug: system[0].slug };
   }
 }
@@ -95,18 +95,24 @@ definePageMeta({
     </template>
     <div>
       <!-- <DefaultPanel class="w-full mb-8 ml-12 xl:float-right xl:w-1/2"> -->
-      <TableParent title="Infobox" class="w-full mb-8 xl:ml-12 xl:float-right xl:w-1/2">
+      <TableParent
+        v-if="
+          data.headquarter.name ||
+          data.headquarter.system ||
+          data.headquarter.planet ||
+          data.headquarter.moon ||
+          data.founded ||
+          data.founder ||
+          data.category.name ||
+          data.famous_goods
+        "
+        title="Infobox"
+        class="w-full mb-8 xl:ml-12 xl:float-right xl:w-1/2"
+      >
         <!-- Stanton / ArcCorp / Area18 -->
         <TableRow
-          v-if="data.headquarter"
+          v-if="data.headquarter.name || data.headquarter.system || data.headquarter.planet || data.headquarter.moon"
           title="Hauptsitz"
-          :content="
-            data.headquarter?.collection === 'systems'
-              ? data.headquarter.name
-              : data.headquarter?.collection === 'planets'
-                ? data.headquarter.name
-                : data.headquarter?.collection === 'landing_zones' && data.headquarter.name
-          "
           full-width
         >
           <span class="my-auto">
@@ -142,10 +148,10 @@ definePageMeta({
             </NuxtLink>
           </span>
         </TableRow>
-        <TableRow title="Gründungsdatum" :content="data?.founded" full-width />
-        <TableRow title="Gründer" :content="data?.founder" full-width />
-        <TableRow title="Kategorie" :content="data?.category.name" full-width />
-        <TableRow title="Bekannteste Waren" :content="data?.famous_goods" full-width />
+        <TableRow v-if="data.founded" title="Gründungsdatum" :content="data?.founded" full-width />
+        <TableRow v-if="data.founder" title="Gründer" :content="data?.founder" full-width />
+        <TableRow v-if="data.category.name" title="Kategorie" :content="data?.category.name" full-width />
+        <TableRow v-if="data.famous_goods" title="Bekannteste Waren" :content="data?.famous_goods" full-width />
       </TableParent>
       <!-- </DefaultPanel> -->
       <div v-html="data?.content" />
