@@ -1,8 +1,9 @@
 <script setup lang="ts">
 const { readSingleton } = useDirectusItems();
 const data = await readSingleton('verse_exkurs', {
-  fields: ['content', 've_links'],
+  fields: ['content', 've_links', 'sources'],
 });
+console.log(data);
 
 definePageMeta({
   path: '/VerseExkurs',
@@ -11,7 +12,7 @@ definePageMeta({
 </script>
 
 <template>
-  <VeBaseArticle>
+  <VerseExkursBaseArticle>
     <div class="prose prose-invert" v-html="data.content" />
     <div class="mb-4">
       <ul class="divide-y divide-btertiary">
@@ -49,8 +50,16 @@ definePageMeta({
         <NuxtLink target="_blank" to="https://robertsspaceindustries.com">RobertsSpaceIndustries.com</NuxtLink> an:
       </p>
     </div>
+    <!-- w-1/3 h-1/3 -->
     <div class="flex flex-wrap justify-between gap-4 px-4 mx-auto mt-12 mb-8">
-      <NuxtLink to="https://robertsspaceindustries.com/starmap" target="_blank">
+      <template v-for="source in data.sources">
+        <NuxtLink :to="source.url" target="_blank" class="w-1/5 aspect-square">
+          <ImageHoverEffect :src="source.icon" />
+        </NuxtLink>
+        <!-- {{ source }} -->
+        <!-- <NuxtImg :src="source.icon.split('.')[0]" /> -->
+      </template>
+      <!-- <NuxtLink to="https://robertsspaceindustries.com/starmap" target="_blank">
         <IconHover name="IconsLogosArk" size="48" />
       </NuxtLink>
       <NuxtLink to="https://robertsspaceindustries.com/galactapedia" target="_blank">
@@ -61,7 +70,7 @@ definePageMeta({
       /></NuxtLink>
       <NuxtLink to="https://robertsspaceindustries.com/roadmap" target="_blank"
         ><IconHover name="IconsLogosRoadmap" size="48"
-      /></NuxtLink>
+      /></NuxtLink> -->
     </div>
-  </VeBaseArticle>
+  </VerseExkursBaseArticle>
 </template>
