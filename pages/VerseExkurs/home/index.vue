@@ -20,7 +20,7 @@ definePageMeta({
             :to="link.link.startsWith('/') ? link.link : '/VerseExkurs/' + link.link"
             class="grid w-full grid-cols-12 my-2 py-2 !no-underline transition divide-x-2 cursor-pointer h-fit divide-btertiary hover:bg-bsecondary text-tbase"
           >
-            <div class="col-span-2">
+            <div class="flex items-center col-span-2">
               <NuxtImg
                 :src="link.icon.split('.')[0]"
                 :placeholder="[16, 16, 1, 5]"
