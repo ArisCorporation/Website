@@ -34,9 +34,10 @@ const handleCopy = () => {
           <div>
             <NuxtImg
               src="a3495a27-dc35-4ba9-a37b-a5752db473ee"
+              :placeholder="[16, 16, 1, 5]"
               height="160"
-              class="relative w-20 h-auto mx-1 transition-all duration-300 ease-out border-solid cursor-pointer focus-visible:outline-0 border-1 hover:scale-[1.6]"
               :class="[selected ? 'scale-150' : 'scale-[1.2]']"
+              class="relative w-20 h-auto mx-1 transition-all duration-300 ease-out border-solid cursor-pointer focus-visible:outline-0 border-1 hover:scale-[1.6]"
             />
           </div>
         </HeadlessTab>
@@ -51,9 +52,10 @@ const handleCopy = () => {
             <div>
               <NuxtImg
                 :src="department.logo"
+                :placeholder="[16, 16, 1, 5]"
                 height="160"
-                class="relative w-20 h-auto mx-1 transition-all duration-300 ease-out border-solid cursor-pointer focus-visible:outline-0 border-1 hover:scale-150"
                 :class="{ 'scale-125': selected }"
+                class="relative w-20 h-auto mx-1 transition-all duration-300 ease-out border-solid cursor-pointer focus-visible:outline-0 border-1 hover:scale-150"
               />
             </div>
           </HeadlessTab>

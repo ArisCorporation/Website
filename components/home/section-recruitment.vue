@@ -25,7 +25,7 @@ const modalStore = useModalStore();
       <ButtonDefault
         color="secondary"
         type="button"
-        class="p-2 mt-2"
+        class="mt-2"
         @click="modalStore.openModal('', { hideCloseButton: true, hideXButton: true })"
       >
         Jetzt bewerben
@@ -71,14 +71,14 @@ const modalStore = useModalStore();
             <ButtonDefault class="w-full mt-4 sm:my-auto sm:w-fit h-fit" @click="close"> Schließen </ButtonDefault>
             <div class="flex justify-center mx-auto space-x-12">
               <NuxtLink class="my-auto transition rounded hover:bg-white" :to="data.dcLink" target="_blank">
-                <NuxtImg width="125" src="90d5157b-2d6e-4ce2-af5a-9bf59343ec66" />
+                <NuxtImg src="90d5157b-2d6e-4ce2-af5a-9bf59343ec66" :placeholder="[16, 16, 1, 5]" width="125" />
               </NuxtLink>
               <NuxtLink
                 class="my-auto transition rounded hover:bg-white"
                 to="https://robertsspaceindustries.com/orgs/ARISCORP"
                 target="_blank"
               >
-                <NuxtImg width="125" src="74529b89-cf09-4b2d-bd65-5813097cd65b" />
+                <NuxtImg src="74529b89-cf09-4b2d-bd65-5813097cd65b" :placeholder="[16, 16, 1, 5]" width="125" />
               </NuxtLink>
             </div>
           </div>

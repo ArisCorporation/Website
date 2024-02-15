@@ -23,7 +23,13 @@ defineProps({
           class="items-center m-2"
           target="_blank"
         >
-          <NuxtImg :alt="'Logo von dem Partner ' + partner.name" class="mx-auto" width="225" :src="partner.logo" />
+          <NuxtImg
+            :src="partner.logo"
+            :placeholder="[16, 16, 1, 5]"
+            :alt="'Logo von dem Partner ' + partner.name"
+            class="mx-auto"
+            width="225"
+          />
           <h3 class="text-center uppercase text-secondary">{{ partner.name }}</h3>
         </NuxtLink>
       </div>

@@ -1,11 +1,12 @@
 <script setup>
 const homepageTabsStore = useHomepageTabsStore();
-defineProps({
+const props = defineProps({
   data: {
     type: Array,
     required: true,
   },
 });
+console.log(props.data);
 </script>
 <template>
   <TabGroup
@@ -26,9 +27,10 @@ defineProps({
           <div>
             <NuxtImg
               :src="department.logo"
+              :placeholder="[16, 16, 1, 5]"
               height="160"
-              class="relative w-20 h-auto mx-1 transition-all duration-300 ease-out border-solid cursor-pointer focus-visible:outline-0 border-1 hover:scale-150"
               :class="{ 'scale-125': selected }"
+              class="relative w-20 h-auto mx-1 transition-all duration-300 ease-out border-solid cursor-pointer focus-visible:outline-0 border-1 hover:scale-150"
             />
           </div>
         </HeadlessTab>
@@ -40,12 +42,20 @@ defineProps({
         <div class="flex flex-wrap justify-center max-w-full mx-auto mt-4">
           <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
-              <NuxtImg :src="department.pic1" class="w-full aspect-[21/9] object-cover" />
+              <NuxtImg
+                :src="department.gallery[0]"
+                :placeholder="[16, 16, 1, 5]"
+                class="w-full aspect-[21/9] object-cover"
+              />
             </DefaultPanel>
           </div>
           <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
-              <NuxtImg :src="department.pic2" class="object-cover w-full aspect-[21/9]" />
+              <NuxtImg
+                :src="department.gallery[1]"
+                :placeholder="[16, 16, 1, 5]"
+                class="object-cover w-full aspect-[21/9]"
+              />
             </DefaultPanel>
           </div>
         </div>
@@ -59,13 +69,14 @@ defineProps({
               </div>
               <NuxtImg
                 :src="department.head_of_department?.potrait || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'"
+                :placeholder="[16, 16, 1, 5]"
                 width="200"
                 class="aspect-potrait"
               />
             </DefaultPanel>
             <div class="ml-4">
               <h2>Abteilungsleiter:</h2>
-              <h3 class="text-primary-400">{{ department.head_of_department?.fullName || 'N/A' }}</h3>
+              <h3 class="text-primary-400">{{ department.head_of_department?.full_name || 'N/A' }}</h3>
             </div>
           </div>
           <div class="w-full text-center lg:w-1/2 2xl:w-1/3">
@@ -76,7 +87,7 @@ defineProps({
                 :key="employee.id"
                 :class="[department.employees.length > 1 ? 'basis-1/2' : 'basis-full']"
               >
-                {{ employee.fullName }}
+                {{ employee.full_name }}
               </li>
             </ul>
           </div>
