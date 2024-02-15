@@ -38,7 +38,7 @@ definePageMeta({
 </script>
 
 <template>
-  <VeBaseArticle>
+  <VerseExkursBaseArticle>
     <template #title>
       Alles über das <span class="text-aris-400">United Empire of Earth</span>
       <NuxtImg :src="data?.banner" :placeholder="[16, 16, 1, 5]" class="mx-auto" />
@@ -61,5 +61,5 @@ definePageMeta({
         </div>
       </template>
     </TabGroup>
-  </VeBaseArticle>
+  </VerseExkursBaseArticle>
 </template>

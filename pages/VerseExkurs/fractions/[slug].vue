@@ -30,11 +30,11 @@ definePageMeta({
 </script>
 
 <template>
-  <VeBaseArticle :banner="data?.banner">
+  <VerseExkursBaseArticle :banner="data?.banner">
     <template #title>
       Fraktion:
       <span class="text-primary"> {{ data?.name }}</span>
     </template>
     <div v-html="data?.content" />
-  </VeBaseArticle>
+  </VerseExkursBaseArticle>
 </template>
