@@ -51,7 +51,7 @@ definePageMeta({
     <template #slideContent>
       <div v-html="selectedItem.content" />
     </template>
-    <VeBaseArticle banner="1b43af1c-7c25-4b2e-9e16-fc495a8520b1">
+    <VerseExkursBaseArticle banner="1b43af1c-7c25-4b2e-9e16-fc495a8520b1">
       <template #title>
         <span class="text-primary">Flora</span>
       </template>
@@ -82,6 +82,6 @@ definePageMeta({
           </div>
         </template>
       </TabGroup>
-    </VeBaseArticle>
+    </VerseExkursBaseArticle>
   </NuxtLayout>
 </template>

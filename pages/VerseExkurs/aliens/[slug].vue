@@ -30,7 +30,7 @@ definePageMeta({
 </script>
 
 <template>
-  <VeBaseArticle :banner="data?.banner">
+  <VerseExkursBaseArticle :banner="data?.banner">
     <template #title>
       Alienrasse:
       <span class="text-primary"> {{ data?.name }}</span>
@@ -46,5 +46,5 @@ definePageMeta({
         <div v-html="data?.tabs[selectedTab].content" />
       </template>
     </TabGroup>
-  </VeBaseArticle>
+  </VerseExkursBaseArticle>
 </template>

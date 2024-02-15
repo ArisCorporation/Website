@@ -88,7 +88,7 @@ definePageMeta({
 </script>
 
 <template>
-  <VeBaseArticle :banner="data?.banner">
+  <VerseExkursBaseArticle :banner="data?.banner">
     <template #title>
       Firma:
       <span class="text-primary"> {{ data?.name }}</span>
@@ -208,5 +208,5 @@ definePageMeta({
         </div>
       </Disclosure> -->
     </div>
-  </VeBaseArticle>
+  </VerseExkursBaseArticle>
 </template>

@@ -86,47 +86,47 @@ definePageMeta({
               >
                 {{ category.name }}
               </TableHr>
-              <div class="company-grid">
+              <div class="fraction-grid">
                 <NuxtLink
-                  v-for="company in fractions
+                  v-for="fraction in fractions
                     .filter(
                       (obj: any) =>
                         obj.category.name === subSubCategories.find((obj) => obj.name === category.name).name,
                     )
                     .sort((a, b) => a.name.localeCompare(b.name))"
-                  :key="company.slug"
-                  :to="'/VerseExkurs/fractions/' + company.slug"
+                  :key="fraction.slug"
+                  :to="'/VerseExkurs/fractions/' + fraction.slug"
                   class="w-full h-full transition opacity-50 hover:opacity-100"
                 >
-                  <NuxtImg :src="company.logo" :placeholder="[16, 16, 1, 5]" class="w-full h-full" />
+                  <ImageHoverEffect :src="fraction.logo" class="w-full h-full" />
                 </NuxtLink>
               </div>
             </div>
-            <div v-else class="company-grid">
+            <div v-else class="fraction-grid">
               <NuxtLink
-                v-for="company in fractions
+                v-for="fraction in fractions
                   .filter((obj: any) => obj.category.name === subCategories[selectedSubTab].name)
                   .sort((a, b) => a.name.localeCompare(b.name))"
-                :key="company.slug"
-                :to="'/VerseExkurs/fractions/' + company.slug"
+                :key="fraction.slug"
+                :to="'/VerseExkurs/fractions/' + fraction.slug"
                 class="w-full h-full transition opacity-50 hover:opacity-100"
               >
-                <NuxtImg :src="company.logo" :placeholder="[16, 16, 1, 5]" class="w-full h-full" />
+                <ImageHoverEffect :src="fraction.logo" class="w-full h-full" />
               </NuxtLink>
             </div>
           </template>
         </TabGroup>
         <template v-else>
-          <div class="company-grid">
+          <div class="fraction-grid">
             <NuxtLink
-              v-for="company in fractions
+              v-for="fraction in fractions
                 .filter((obj: any) => obj.category.name === mainCategory.name)
                 .sort((a, b) => a.name.localeCompare(b.name))"
-              :key="company.slug"
-              :to="'/VerseExkurs/fractions/' + company.slug"
+              :key="fraction.slug"
+              :to="'/VerseExkurs/fractions/' + fraction.slug"
               class="w-full h-full transition opacity-50 hover:opacity-100"
             >
-              <NuxtImg :src="company.logo" :placeholder="[16, 16, 1, 5]" class="w-full h-full" />
+              <ImageHoverEffect :src="fraction.logo" class="w-full h-full" />
             </NuxtLink>
           </div>
         </template>
@@ -136,7 +136,7 @@ definePageMeta({
 </template>
 
 <style scoped lang="postcss">
-.company-grid {
+.fraction-grid {
   @apply grid w-full grid-cols-4 gap-8;
 }
 </style>
