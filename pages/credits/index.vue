@@ -1,20 +1,13 @@
 <script setup lang="ts">
-const { getSingletonItem } = useDirectusItems();
-const { data } = await useAsyncData(
-  'credits',
-  () =>
-    getSingletonItem({
-      collection: 'credits',
-      params: {
-        fields: ['text'],
-      },
-    }),
-  {
-    transform: (data) => data.text,
-  },
-);
+const { readSingleton } = useDirectusItems();
 
-if (!data.value) {
+const { content: credits } = await readSingleton('credits', {
+  query: {
+    fields: ['content'],
+  },
+});
+
+if (!credits) {
   throw createError({
     statusCode: 500,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
@@ -31,5 +24,5 @@ useHead({
 </script>
 
 <template>
-  <div v-html="data" />
+  <div v-html="credits" />
 </template>
