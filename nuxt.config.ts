@@ -65,7 +65,7 @@ export default defineNuxtConfig({
   image: {
     provider: 'directus',
     directus: {
-      baseURL: process.env.NUXT_PUBLIC_FILE_BASE,
+      baseURL: 'https://cms.ariscorp.de/assets/',
       modifiers: {
         format: 'webp',
       },
