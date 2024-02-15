@@ -1,32 +1,4 @@
 export default function (obj: any) {
-  const roleMapping: { [key: string]: { id: string; position: string; permissionLevel: number } } = {
-    '030fee1b-0a1c-413c-a7c5-c1b2f10765ea': {
-      id: '030fee1b-0a1c-413c-a7c5-c1b2f10765ea',
-      position: 'Anwärter',
-      permissionLevel: 1,
-    },
-    '175c81cc-7d77-4fe8-a115-c0092df766a0': {
-      id: '175c81cc-7d77-4fe8-a115-c0092df766a0',
-      position: 'Freier Mitarbeiter',
-      permissionLevel: 2,
-    },
-    '362f98a8-7be4-4b48-88bf-5ca35e4ac80e': {
-      id: '362f98a8-7be4-4b48-88bf-5ca35e4ac80e',
-      position: 'Mitarbeiter',
-      permissionLevel: 3,
-    },
-    'd55635b8-f203-4651-9a8a-8878044bc347': {
-      id: 'd55635b8-f203-4651-9a8a-8878044bc347',
-      position: 'Verwaltung',
-      permissionLevel: 4,
-    },
-    '767bb09e-a6fc-4ebb-8c5f-08b060ab0bdb': {
-      id: '767bb09e-a6fc-4ebb-8c5f-08b060ab0bdb',
-      position: 'Verwaltung',
-      permissionLevel: 5,
-    },
-  };
-
   const roles = [
     obj.head_of_department ? 'Abteilungsleiter' : null,
     obj.roles?.includes('recruitment') ? 'Rekrutierung' : null,
@@ -35,92 +7,108 @@ export default function (obj: any) {
   ]
     .filter(Boolean)
     .sort();
-  const positionInfo = roleMapping[obj.role] || { position: null, permissionLevel: null };
 
   return {
-    id: obj.id,
-    status: obj.status,
-    firstname: obj.first_name,
-    lastname: obj.last_name,
-    title: obj.title,
-    temporaryPassword: obj.temporaryPassword,
-    fullName: `${obj.title ? obj.title + ' ' : ''}${obj.first_name}${obj.last_name ? ' ' + obj.last_name : ''}`,
-    slug: obj.slug,
-    arisEmail: obj.email,
-    contactEmail: obj.contactEmail,
-    discordName: obj.discordName,
-    discordId: obj.discordId,
-    rsiHandle: obj.rsiHandle,
-    potrait: obj.avatar ? obj.avatar : '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492',
-    sex: obj.sex,
-    pronom: obj.sex === 'female' ? 'Sie' : 'Er',
-    roles: roles.length > 0 ? roles : null,
-    position: positionInfo,
-    admin: obj.role === '767bb09e-a6fc-4ebb-8c5f-08b060ab0bdb',
-    headOfDepartment: obj.head_of_department,
-    // department: obj.head_of_department
-    //   ? transformDepartment(obj.head_department?.[0])
-    //   : transformDepartment(obj.department),
-    birthplace: obj.birthplace ? transformLandingZone(obj.birthplace) : null,
-    birthdate: obj.birthdate,
-    currentplace: obj.currentResidence ? transformLandingZone(obj.currentResidence) : null,
-    ueeState: obj.citizen ? 'citizen' : 'civilian',
-    citizenReason:
-      obj.citizenReason === 'military'
-        ? 'Militärischer Dienst'
-        : obj.citizenReason === 'education'
-          ? 'Besondere Bildung'
-          : obj.citizenReason === 'social'
-            ? 'Soziales Engagement'
-            : null,
-    citizenReasonValue: obj.citizenReason,
-    dutyState: obj.dutyState,
-    duty: {
-      period: obj.dutyPeriod,
-      end: obj.dutyEnd,
-      division:
-        obj.dutyDivision === 'army'
-          ? 'UEE Arme'
-          : obj.dutyDivision === 'navy'
-            ? 'UEE Marine'
-            : obj.dutyDivision === 'marines'
-              ? 'UEE Luftwaffe'
+    ...(obj.id && { id: obj.id }),
+    ...(obj.status && { status: obj.status }),
+    ...(obj.first_name && { first_name: obj.first_name }),
+    ...(obj.last_name && { last_name: obj.last_name }),
+    ...(obj.title && { title: obj.title }),
+    ...(obj.temporary_password && { temporary_password: obj.temporary_password }),
+    ...(obj.first_name &&
+      obj.last_name && {
+        full_name: `${obj.title ? obj.title + ' ' : ''}${obj.first_name}${obj.last_name ? ' ' + obj.last_name : ''}`,
+      }),
+    ...(obj.slug && { slug: obj.slug }),
+    ...(obj.email && { login_email: obj.email }),
+    ...(obj.contact_email && { contact_email: obj.contact_email }),
+    ...(obj.discord_name && { discord_name: obj.discord_name }),
+    ...(obj.discord_id && { discord_id: obj.discord_id }),
+    ...(obj.rsi_handle && { rsi_handle: obj.rsi_handle }),
+    avatar: obj.avatar ? obj.avatar : '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492',
+    ...(obj.sex && { sex: obj.sex, pronom: obj.sex === 'female' ? 'Sie' : 'Er' }),
+    ...(obj.roles && { roles: roles.length > 0 ? roles : null }),
+    ...(obj.role && {
+      position: {
+        id: obj.role.id,
+        name: obj.role.label,
+        access_level: obj.role.access_level,
+      },
+      admin: obj.role.access_level >= 5,
+    }),
+    ...(obj.head_of_department && { head_of_department: obj.head_of_department }),
+    ...(obj.department && {
+      department:
+        (obj.department || obj.leading_department) && obj.head_of_department
+          ? transformDepartment(obj.leading_department[0])
+          : transformDepartment(obj.department[0]),
+    }),
+    ...(obj.birthplace && { birthplace: transformLandingZone(obj.birthplace) }),
+    ...(obj.birthdate && { birthdate: obj.birthdate }),
+    ...(obj.current_residence && { current_residence: transformLandingZone(obj.current_residence) }),
+    ...(obj.citizen && { citizen_state: obj.citizen }),
+    ...(obj.citizen_reason && {
+      citizen_reason:
+        obj.citizen_reason === 'military'
+          ? 'Militärischer Dienst'
+          : obj.citizen_reason === 'special_education'
+            ? 'Besondere Bildung'
+            : obj.citizen_reason === 'social_commitment'
+              ? 'Soziales Engagement'
               : null,
-      divisionValue: obj.dutyDivision,
-    },
-    educationState: obj.educationState,
-    education: {
-      name: obj.study,
-      period: obj.studyPeriod,
-      place: obj.studyPlace,
-    },
-    haircolor: obj.haircolor,
-    eyecolor: obj.eyecolor,
-    height: obj.height,
-    weight: obj.weight,
-    hobbies: obj.hobbies,
-    habits: obj.habits,
-    talents: obj.talents,
-    tics: obj.tics,
-    activities: obj.activities,
-    mysterious: obj.mysteriousThings,
-    character: obj.characterTrait,
-    fears: obj.fears,
-    books: obj.books,
-    music: obj.music,
-    movies: obj.movies,
-    colors: obj.colors,
-    clothing: obj.clothing,
-    food: obj.food,
-    drink: obj.drink,
-    alcohol: obj.alcohol,
-    loves: obj.loves,
-    hates: obj.hates,
-    medicalinfo: obj.medicalInformations,
-    biography: obj.biography,
-    hangarLink: `/ams/employees/hangar/${obj.slug}`,
-    biographyLink: `/biography/${obj.slug}`,
-    biographyAmsLink: `/ams/employees/biography/${obj.slug}`,
-    // hangar: obj.ships?.map(transformHangarItem),
+    }),
+    ...(obj.citizen_reason_value && { citizen_reason_value: obj.citizen_reason }),
+    ...(obj.duty_state !== null && { duty_state: obj.duty_state }),
+    ...(obj.duty_state === true && {
+      duty: {
+        period: obj.duty_period,
+        end: obj.duty_end,
+        division:
+          obj.duty_division === 'army'
+            ? 'UEE Arme'
+            : obj.duty_division === 'navy'
+              ? 'UEE Marine'
+              : obj.duty_division === 'marines'
+                ? 'UEE Luftwaffe'
+                : null,
+        division_value: obj.duty_division,
+      },
+    }),
+    ...(obj.education_state !== null && { education_state: obj.education_state }),
+    ...(obj.education_state === true && {
+      education: {
+        name: obj.education_name,
+        period: obj.education_period,
+        // place: obj.education_place,
+      },
+    }),
+    ...(obj.hair_color && { hair_color: obj.hair_color }),
+    ...(obj.eye_color && { eye_color: obj.eye_color }),
+    ...(obj.height && { height: obj.height }),
+    ...(obj.weight && { weight: obj.weight }),
+    ...(obj.hobbies && { hobbies: obj.hobbies }),
+    ...(obj.habits && { habits: obj.habits }),
+    ...(obj.talents && { talents: obj.talents }),
+    ...(obj.tics && { tics: obj.tics }),
+    ...(obj.activities && { activities: obj.activities }),
+    ...(obj.mysterious_things && { mysterious: obj.mysterious_things }),
+    ...(obj.character_trait && { character: obj.character_trait }),
+    ...(obj.fears && { fears: obj.fears }),
+    ...(obj.books && { books: obj.books }),
+    ...(obj.music && { music: obj.music }),
+    ...(obj.movies && { movies: obj.movies }),
+    ...(obj.colors && { colors: obj.colors }),
+    ...(obj.clothing && { clothing: obj.clothing }),
+    ...(obj.food && { food: obj.food }),
+    ...(obj.drink && { drink: obj.drink }),
+    ...(obj.alcohol && { alcohol: obj.alcohol }),
+    ...(obj.loves && { loves: obj.loves }),
+    ...(obj.hates && { hates: obj.hates }),
+    ...(obj.medical_informations && { medical_informations: obj.medical_informations }),
+    ...(obj.biography && { biography: obj.biography }),
+    ...(obj.slug && { hangar_link: `/ams/employees/hangar/${obj.slug}` }),
+    ...(obj.slug && { biography_link: `/biography/${obj.slug}` }),
+    ...(obj.slug && { biography_ams_link: `/ams/employees/biography/${obj.slug}` }),
+    ...(obj.hangar_items && { hangar: obj.hangar_items.map((item: any) => transformHangarItem(item)) }),
   };
 }

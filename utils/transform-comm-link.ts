@@ -1,7 +1,7 @@
 export default function (obj: any, array?: ICommLink[]) {
   // TODO: AUTHOR FROM MEMBER TO USER
-  const getAuthor = () => (obj.comm_link_author ? transformMember(obj.comm_link_author) : null);
-  const getChannel = () => (obj.comm_link_channel ? transformCommLinkChannel(obj.comm_link_channel) : null);
+  const getAuthor = () => (obj.user_created ? transformUser(obj.user_created) : null);
+  const getChannel = () => (obj.channel ? transformCommLinkChannel(obj.channel) : null);
   const getSize = () => {
     if (array) {
       for (let i = 0; i < array?.length; i += 10) {
@@ -43,13 +43,13 @@ export default function (obj: any, array?: ICommLink[]) {
 
   return {
     id: obj.id,
-    title: obj.comm_link_titel,
-    slug: obj.comm_link_slug,
+    title: obj.titel,
+    slug: obj.slug,
     author: getAuthor(),
-    storeImage: obj.comm_link_banner?.id,
-    datePosted: obj.date_created,
-    description: obj.comm_link_beschreibung,
-    content: obj.comm_link,
+    banner: obj.banner,
+    date_posted: obj.date_created,
+    description: obj.description,
+    content: obj.content,
     channel: getChannel(),
     size: getSize(),
   };

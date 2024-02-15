@@ -10,7 +10,7 @@ export default function (obj: any) {
     // astronomicalSlug: getAstronomicalSlug(),
     // astronomicalDesignation: getAstronomicalDesignation(),
     astronomicalDesignationNumber: obj.astronomicalDesignationNumber,
-    storeImage: obj.storeImage?.id,
+    storeImage: obj.storeImage?.id || obj.storeImage,
     description: obj.description,
     system: getStarsystem(),
     moons: getMoons(),

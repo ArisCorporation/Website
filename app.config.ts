@@ -88,6 +88,10 @@ export default defineAppConfig({
           ghost:
             'text-white hover:bg-bsecondary hover:text-secondary font-medium focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-primary-400',
         },
+        'accordion-gray': {
+          outline:
+            'ring-1 ring-inset ring-btertiary/50 text-white hover:bg-bsecondary disabled:bg-transparent focus-visible:ring-2 focus-visible:ring-btertiary',
+        },
       },
     },
     popover: {
