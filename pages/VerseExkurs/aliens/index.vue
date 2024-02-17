@@ -8,7 +8,7 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="grid grid-cols-2 px-6 mt-4 overflow-x-clip gap-x-4 gap-y-2 md:grid-cols-4">
+  <div class="grid grid-cols-2 px-6 mt-4 2xl:px-10 overflow-x-clip gap-x-4 gap-y-2 md:grid-cols-4">
     <NuxtLink to="/VerseExkurs/aliens/banu" class="alien-item group">
       <DefaultPanel>
         <NuxtImg
