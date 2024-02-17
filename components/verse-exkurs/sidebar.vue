@@ -73,13 +73,13 @@ const sidebarItems = [
   </button>
   <aside
     id="default-sidebar"
-    class="fixed top-0 left-0 z-50 w-64 h-screen transition-transform lg:translate-x-0"
+    class="fixed top-0 left-0 z-50 w-64 transition-transform h-[100dvh] lg:translate-x-0"
     :class="{ '-translate-x-full': !SidebarStore.MobileSidebar }"
     aria-label="Sidebar"
   >
     <div class="relative h-full pb-4 overflow-y-auto bg-bsecondary">
       <div class="flex w-full px-4">
-        <Icon name="IconsLogosVeBanner" class="w-3/4 px-4 mx-auto -mt-0.5 -mb-0.5 h-fit" />
+        <Icon name="IconsLogosVeBanner" class="w-3/4 px-4 mx-auto -mt-0.5 -mb-0.5 h-auto" />
       </div>
       <ul class="p-0 font-medium list-none basis-full">
         <li v-for="(item, i) in sidebarItems" :key="i" class="pb-0">
