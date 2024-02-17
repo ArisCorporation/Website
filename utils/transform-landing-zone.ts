@@ -1,15 +1,11 @@
 export default function (obj: any) {
-  const getPlanet = () => (obj.planet ? transformPlanet(obj.planet) : null);
-  const getMoon = () => (obj.moon ? transformMoon(obj.moon) : null);
-  const getCompanies = () => (obj.companies ? obj.companies.map((item) => transformCompany(item)) : null);
-
   return {
-    id: obj.id,
-    name: obj.name,
-    slug: obj.slug,
-    storeImage: obj.storeImage,
-    planet: getPlanet(),
-    moon: getMoon(),
-    companies: getCompanies(),
+    ...(obj.id && { id: obj.id }),
+    ...(obj.name && { name: obj.name }),
+    ...(obj.slug && { slug: obj.slug }),
+    ...(obj.banner && { banner: obj.banner }),
+    ...(obj.planet && { planet: transformPlanet(obj.planet) }),
+    ...(obj.moon && { moon: transformMoon(obj.moon) }),
+    ...(obj.companies && { companies: obj.companies.map((item: any) => transformCompany(item)) }),
   };
 }
