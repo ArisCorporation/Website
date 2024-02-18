@@ -51,11 +51,10 @@ const systems = await readItems('systems', {
     'orbit.collection',
   ],
   filter: {
-    // status: 'published',
+    status: 'published',
     starmap_position_left: { _nnull: true },
   },
 });
-console.log(data);
 
 // STARMAP
 const starmapIcons = reactive([
@@ -104,10 +103,10 @@ useHead({
                   src="e3b8e2b3-5657-4112-ab8f-c0f1311e9a6b"
                   :placeholder="[16, 16, 1, 5]"
                   @contextmenu.native="(e) => e.preventDefault()"
-                  @load="starmapLoaded = true"
                 />
-                <div v-if="starmapLoaded" class="relative w-full h-fit">
+                <div class="relative w-full h-fit">
                   <UPopover
+                    v-if="starmapLoaded"
                     v-for="system in systems"
                     :popper="{ placement: 'right' }"
                     mode="hover"
@@ -193,25 +192,11 @@ useHead({
                       </div>
                     </template>
                   </UPopover>
-
-                  <div :style="{ left: `80%`, top: `20%` }" class="absolute w-[1.65%] h-auto aspect-[1/1]">
-                    <div class="absolute w-full h-full bg-aris-400/50" />
-                    <Icon
-                      :name="'IconsNavigationStarmapUee'"
-                      class="absolute z-10 w-full h-auto opacity-75 aspect-square"
-                    />
-                  </div>
-                  <!-- <Icon
-                    :name="'IconsNavigationStarmapUnclaimed'"
-                    class="absolute w-[1.65%] h-auto aspect-square"
-                    :style="{ left: `80%`, top: `20%` }"
-                  /> -->
                   <NuxtImg
                     src="59e8771b-d5a2-468e-971d-7594da3c113e"
                     :placeholder="[16, 16, 1, 5]"
                     format=""
-                    height=""
-                    width=""
+                    @load="() => (starmapLoaded = true)"
                     class="pointer-events-none"
                   />
                 </div>
