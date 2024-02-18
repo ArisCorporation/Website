@@ -118,7 +118,7 @@ definePageMeta({
           <span class="my-auto">
             <NuxtLink
               v-if="data.headquarter.system"
-              :to="'/VerseExkurs/starmap/' + data.headquarter.system.slug"
+              :to="'/verseexkurs/starmap/' + data.headquarter.system.slug"
               class="my-auto transition opacity-75 decoration-transparent hover:opacity-100 text-aris-400"
             >
               {{ data.headquarter.system.name }}
@@ -126,7 +126,7 @@ definePageMeta({
             <template v-if="data.headquarter.system && data.headquarter.planet"> / </template>
             <NuxtLink
               v-if="data.headquarter.planet"
-              :to="'/VerseExkurs/starmap/' + data.headquarter.system?.slug + '?planet=' + data.headquarter.planet.slug"
+              :to="'/verseexkurs/starmap/' + data.headquarter.system?.slug + '?planet=' + data.headquarter.planet.slug"
               class="my-auto transition opacity-75 decoration-transparent hover:opacity-100 text-aris-400"
             >
               {{ data.headquarter.planet.name }}
@@ -135,7 +135,7 @@ definePageMeta({
             <NuxtLink
               v-if="data.headquarter.name"
               :to="
-                '/VerseExkurs/starmap/' +
+                '/verseexkurs/starmap/' +
                 data.headquarter.system.slug +
                 '?planet=' +
                 data.headquarter.planet.slug +

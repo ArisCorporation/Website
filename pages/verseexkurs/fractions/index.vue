@@ -3,20 +3,23 @@ const { readItems } = useDirectusItems();
 const selectedMainTab = ref(0);
 const selectedSubTab = ref(0);
 
-const categories = await readItems('company_categories', {
+const categories = await readItems('fraction_categories', {
   fields: ['name', 'sub_categories.name', 'sub_categories.sub_categories.name'],
   filter: { superior_category: { _null: true } },
   sort: ['sort'],
 });
 
-const companies = await readItems('companies', {
+const fractions = await readItems('fractions', {
   fields: ['name', 'slug', 'logo', 'category.name'],
   filter: { status: { _eq: 'published' } },
   sort: ['name'],
   limit: -1,
 });
 
-if (!categories || !companies) {
+console.log(fractions);
+console.log(categories);
+
+if (!categories || !fractions) {
   throw createError({
     statusCode: 500,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
@@ -76,54 +79,54 @@ definePageMeta({
             <div v-if="subSubCategories[0]" v-for="category in subSubCategories" :key="category.name">
               <TableHr
                 v-if="
-                  companies.filter(
+                  fractions.filter(
                     (obj: any) => obj.category.name === subSubCategories.find((obj) => obj.name === category.name).name,
                   )[0]
                 "
               >
                 {{ category.name }}
               </TableHr>
-              <div class="company-grid">
+              <div class="fraction-grid">
                 <NuxtLink
-                  v-for="company in companies
+                  v-for="fraction in fractions
                     .filter(
                       (obj: any) =>
                         obj.category.name === subSubCategories.find((obj) => obj.name === category.name).name,
                     )
                     .sort((a, b) => a.name.localeCompare(b.name))"
-                  :key="company.slug"
-                  :to="'/VerseExkurs/companies/' + company.slug"
+                  :key="fraction.slug"
+                  :to="'/verseexkurs/fractions/' + fraction.slug"
                   class="w-full h-full transition opacity-50 hover:opacity-100"
                 >
-                  <ImageHoverEffect :src="company.logo" class="w-full h-full" />
+                  <ImageHoverEffect :src="fraction.logo" class="w-full h-full" />
                 </NuxtLink>
               </div>
             </div>
-            <div v-else class="company-grid">
+            <div v-else class="fraction-grid">
               <NuxtLink
-                v-for="company in companies
+                v-for="fraction in fractions
                   .filter((obj: any) => obj.category.name === subCategories[selectedSubTab].name)
                   .sort((a, b) => a.name.localeCompare(b.name))"
-                :key="company.slug"
-                :to="'/VerseExkurs/companies/' + company.slug"
+                :key="fraction.slug"
+                :to="'/verseexkurs/fractions/' + fraction.slug"
                 class="w-full h-full transition opacity-50 hover:opacity-100"
               >
-                <ImageHoverEffect :src="company.logo" class="w-full h-full" />
+                <ImageHoverEffect :src="fraction.logo" class="w-full h-full" />
               </NuxtLink>
             </div>
           </template>
         </TabGroup>
         <template v-else>
-          <div class="company-grid">
+          <div class="fraction-grid">
             <NuxtLink
-              v-for="company in companies
+              v-for="fraction in fractions
                 .filter((obj: any) => obj.category.name === mainCategory.name)
                 .sort((a, b) => a.name.localeCompare(b.name))"
-              :key="company.slug"
-              :to="'/VerseExkurs/companies/' + company.slug"
+              :key="fraction.slug"
+              :to="'/verseexkurs/fractions/' + fraction.slug"
               class="w-full h-full transition opacity-50 hover:opacity-100"
             >
-              <ImageHoverEffect :src="company.logo" class="w-full h-full" />
+              <ImageHoverEffect :src="fraction.logo" class="w-full h-full" />
             </NuxtLink>
           </div>
         </template>
@@ -133,7 +136,7 @@ definePageMeta({
 </template>
 
 <style scoped lang="postcss">
-.company-grid {
+.fraction-grid {
   @apply grid w-full grid-cols-4 gap-8;
 }
 </style>

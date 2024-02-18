@@ -115,7 +115,7 @@ useHead({
                     class="absolute w-[1.65%] h-auto aspect-[1/1]"
                   >
                     <NuxtLink
-                      :to="'/VerseExkurs/starmap/' + system.slug"
+                      :to="'/verseexkurs/starmap/' + system.slug"
                       class="w-full h-auto aspect-[1/1] group absolute top-0"
                     >
                       <!-- class="absolute w-[1.65%] h-auto aspect-[1/1] group" -->

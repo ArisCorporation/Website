@@ -6,7 +6,7 @@ const data = await readSingleton('verse_exkurs', {
 console.log(data);
 
 definePageMeta({
-  path: '/VerseExkurs',
+  path: '/verseexkurs',
   layout: 'verse-exkurs',
 });
 </script>
@@ -18,7 +18,7 @@ definePageMeta({
       <ul class="divide-y divide-btertiary">
         <li v-for="link in data.ve_links" class="p-0 list-none">
           <NuxtLink
-            :to="link.link.startsWith('/') ? link.link : '/VerseExkurs/' + link.link"
+            :to="link.link.startsWith('/') ? link.link : '/verseexkurs/' + link.link"
             class="grid w-full grid-cols-12 my-2 py-2 !no-underline transition divide-x-2 cursor-pointer h-fit divide-btertiary hover:bg-bsecondary text-tbase"
           >
             <div class="flex items-center col-span-2">
