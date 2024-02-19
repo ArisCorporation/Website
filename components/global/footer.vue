@@ -54,6 +54,7 @@ const en = footer.value?.find((e) => e.code === 'en-EN').content;
           <NuxtImg
             src="2983446c-d4a8-4df4-b63d-aa46f0f8eabe"
             :placeholder="[16, 16, 1, 5]"
+            alt="Made by the Community-Logo"
             class="w-1/3 max-w-[125px] mx-auto my-4 xl:w-1/2 xl:m-auto"
           />
           <div class="flex mx-auto mt-auto space-x-2 xl:mt-4 w-fit">

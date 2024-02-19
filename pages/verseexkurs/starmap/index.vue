@@ -33,6 +33,7 @@ const tabs = [
 const selectedTab = ref(0);
 const changeTab = (index: number) => {
   selectedTab.value = index;
+  starmapLoaded.value = false;
 };
 
 // DATA

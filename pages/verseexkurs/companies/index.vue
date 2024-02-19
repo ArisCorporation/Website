@@ -95,7 +95,7 @@ definePageMeta({
                   :to="'/verseexkurs/companies/' + company.slug"
                   class="w-full h-full transition opacity-50 hover:opacity-100"
                 >
-                  <ImageHoverEffect :src="company.logo" class="w-full h-full" />
+                  <ImageHoverEffect :src="company.logo" :alt="'Logo von ' + company.name" class="w-full h-full" />
                 </NuxtLink>
               </div>
             </div>
@@ -108,7 +108,7 @@ definePageMeta({
                 :to="'/verseexkurs/companies/' + company.slug"
                 class="w-full h-full transition opacity-50 hover:opacity-100"
               >
-                <ImageHoverEffect :src="company.logo" class="w-full h-full" />
+                <ImageHoverEffect :src="company.logo" :alt="'Logo von ' + company.name" class="w-full h-full" />
               </NuxtLink>
             </div>
           </template>
@@ -123,7 +123,7 @@ definePageMeta({
               :to="'/verseexkurs/companies/' + company.slug"
               class="w-full h-full transition opacity-50 hover:opacity-100"
             >
-              <ImageHoverEffect :src="company.logo" class="w-full h-full" />
+              <ImageHoverEffect :src="company.logo" :alt="'Logo von ' + company.name" class="w-full h-full" />
             </NuxtLink>
           </div>
         </template>

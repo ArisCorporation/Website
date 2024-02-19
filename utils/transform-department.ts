@@ -1,7 +1,5 @@
 export default function (obj: any) {
   const getShips = () => obj.ships?.map((i: any) => transformHangarItem(i));
-  // TODO: MEMBER FROM MEMBER TO USER
-  const getMembers = () => obj.members?.map((i: any) => transformUser(i));
   // TODO: HoD FROM MEMBER TO USER
   const getTabId = () => {
     if (obj.name) {
@@ -29,7 +27,7 @@ export default function (obj: any) {
     gallery: obj.gallery.map((image: any) => image.directus_files_id),
     description: obj.description,
     // ships: getShips(),
-    // employees: getMembers(),
+    employees: obj.employees.map((employee: any) => transformUser(employee)),
     head_of_department: obj.head_of_department[0] ? transformUser(obj.head_of_department[0]) : null,
     tabId: getTabId(),
   };

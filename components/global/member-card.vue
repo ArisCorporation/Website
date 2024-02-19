@@ -61,7 +61,7 @@ defineProps({
         />
       </div>
       <h4>{{ data.full_name }}</h4>
-      <h6 class="pt-0 text-light-gray">{{ data.position?.position }}</h6>
+      <h6 class="pt-0 text-light-gray">{{ data.position?.name }}</h6>
     </Motion>
   </Presence>
 </template>
