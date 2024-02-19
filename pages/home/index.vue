@@ -24,7 +24,6 @@ const departmentsRes = await readItems('departments', {
     'logo',
     'gallery.directus_files_id',
     'description',
-    'employees',
     'employees.first_name',
     'employees.last_name',
     'employees.title',

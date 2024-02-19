@@ -10,7 +10,7 @@
           </h1>
           <NuxtImg
             src="62eb0e48-6a0e-432f-b90d-fbd6aca6eaac"
-            :placeholder="[16, 16, 1, 5]"
+            preload
             sizes="200px sm:300px md:400px lg:600px xl:750px 2xl:850px"
             class="mx-auto"
             alt="ArisCorp Banner"
