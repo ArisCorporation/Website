@@ -55,7 +55,7 @@ const bannerItems = [
   {
     name: 'VerseExkurs',
     icon: 'IconsLogosVeBanner',
-    link: '/VerseExkurs',
+    link: '/verseexkurs',
   },
   {
     name: 'ArisCorp Management System',

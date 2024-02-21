@@ -68,7 +68,7 @@ console.log(props.data);
                 <span class="m-auto text-center">Diese Abteilungen hat noch keinen Abteilungsleiter gefunden</span>
               </div>
               <NuxtImg
-                :src="department.head_of_department?.potrait || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'"
+                :src="department.head_of_department?.avatar || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'"
                 :placeholder="[16, 16, 1, 5]"
                 width="200"
                 class="aspect-potrait"

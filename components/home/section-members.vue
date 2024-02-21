@@ -1,7 +1,7 @@
 <script setup>
 defineProps({
   data: {
-    type: Array,
+    type: null,
     required: true,
   },
 });

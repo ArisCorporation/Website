@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { readItems, readSingleton } = useDirectusItems();
-const starmapLoaded = ref(false);
 const historyIndex = ref(0);
 
 const tabs = [
@@ -43,6 +42,7 @@ const data = await readSingleton('starmap', {
 const systems = await readItems('systems', {
   fields: [
     'id',
+    'status',
     'name',
     'slug',
     'banner',
@@ -52,7 +52,6 @@ const systems = await readItems('systems', {
     'orbit.collection',
   ],
   filter: {
-    status: 'published',
     starmap_position_left: { _nnull: true },
   },
 });
@@ -104,18 +103,18 @@ useHead({
                   src="e3b8e2b3-5657-4112-ab8f-c0f1311e9a6b"
                   :placeholder="[16, 16, 1, 5]"
                   @contextmenu.native="(e) => e.preventDefault()"
+                  class="w-1/2 h-fit aspect-[637/160]"
                 />
                 <div class="relative w-full h-fit">
                   <UPopover
-                    v-if="starmapLoaded"
-                    v-for="system in systems"
+                    v-for="system in systems.filter((e) => e.status === 'published')"
                     :popper="{ placement: 'right' }"
                     mode="hover"
                     :style="{ left: `${system.starmap_position_left}%`, top: `${system.starmap_position_top}%` }"
                     class="absolute w-[1.65%] h-auto aspect-[1/1]"
                   >
                     <NuxtLink
-                      :to="'/verseexkurs/starmap/' + system.slug"
+                      :to="system.status === 'published' && '/verseexkurs/starmap/' + system.slug"
                       class="w-full h-auto aspect-[1/1] group absolute top-0"
                     >
                       <!-- class="absolute w-[1.65%] h-auto aspect-[1/1] group" -->
@@ -193,13 +192,77 @@ useHead({
                       </div>
                     </template>
                   </UPopover>
-                  <NuxtImg
-                    src="59e8771b-d5a2-468e-971d-7594da3c113e"
-                    :placeholder="[16, 16, 1, 5]"
-                    format=""
-                    @load="() => (starmapLoaded = true)"
-                    class="pointer-events-none"
-                  />
+                  <div
+                    v-for="system in systems.filter((e) => e.status !== 'published')"
+                    :style="{ left: `${system.starmap_position_left}%`, top: `${system.starmap_position_top}%` }"
+                    class="absolute w-[1.65%] h-auto aspect-[1/1]"
+                  >
+                    <Icon
+                      :name="
+                        'IconsNavigationStarmap' +
+                        (system.affiliation === 'in_development'
+                          ? 'Indevelopment'
+                          : system.affiliation[0].toUpperCase() + system.affiliation.slice(1))
+                      "
+                      class="absolute z-10 w-full h-auto aspect-square"
+                    />
+                  </div>
+                  <div class="aspect-[3840/2655] w-full h-auto relative">
+                    <NuxtImg
+                      src="fcbbe4f2-7bf2-49fc-828c-4037c47dafe3"
+                      id="starmap-names-uee"
+                      :placeholder="[16, 16, 1, 5]"
+                      class="absolute top-0 left-0 pointer-events-none"
+                    />
+                    <NuxtImg
+                      src="b25ab791-24ae-47f0-aecb-96e770d3235f"
+                      id="starmap-names-banu"
+                      :placeholder="[16, 16, 1, 5]"
+                      class="absolute top-0 left-0 pointer-events-none"
+                    />
+                    <NuxtImg
+                      src="7977fb47-9b37-4857-9f51-20d53680dfb5"
+                      id="starmap-names-vanduul"
+                      :placeholder="[16, 16, 1, 5]"
+                      class="absolute top-0 left-0 pointer-events-none"
+                    />
+                    <NuxtImg
+                      src="852522cb-8df8-4c22-801f-879b8424a5ef"
+                      id="starmap-names-xian"
+                      :placeholder="[16, 16, 1, 5]"
+                      class="absolute top-0 left-0 pointer-events-none"
+                    />
+                    <NuxtImg
+                      src="b9b06b08-d3a4-4a24-8056-3425f3c85379"
+                      id="starmap-names-unclaimed"
+                      :placeholder="[16, 16, 1, 5]"
+                      class="absolute top-0 left-0 pointer-events-none"
+                    />
+                    <NuxtImg
+                      src="90bab722-42a9-4a83-b453-1552e7abda5d"
+                      id="starmap-names-development"
+                      :placeholder="[16, 16, 1, 5]"
+                      class="absolute top-0 left-0 pointer-events-none"
+                    />
+                    <NuxtImg
+                      src="fc7bd959-b2ff-466e-8445-2948e84735f3"
+                      id="starmap-jumppoints-small"
+                      :placeholder="[16, 16, 1, 5]"
+                      class="absolute top-0 left-0 pointer-events-none"
+                    />
+                    <NuxtImg
+                      src="dd257e4a-36cd-4418-87d3-9465ab9c2f34"
+                      id="starmap-jumppoints-medium"
+                      :placeholder="[16, 16, 1, 5]"
+                      class="absolute top-0 left-0 pointer-events-none"
+                    />
+                    <NuxtImg
+                      src="053d9d72-7519-461e-8a55-971f84927fd4"
+                      id="starmap-jumppoints-large"
+                      :placeholder="[16, 16, 1, 5]"
+                      class="absolute top-0 left-0 pointer-events-none"
+                    />
+                  </div>
                 </div>
               </div>
             </DefaultPanel>
