@@ -25,10 +25,10 @@ defineProps({
 
 <template>
   <button
-    class="relative inline-block transition group/button after:absolute after:bg-bsecondary after:left-4 after:right-4 before:absolute before:bg-bsecondary before:box-border before:left-4 before:right-4 bg-bprimary text-inherit"
+    class="relative inline-block group/button after:absolute after:bg-bsecondary after:left-4 after:right-4 before:absolute before:bg-bsecondary before:box-border before:left-4 before:right-4 bg-bprimary text-inherit"
     :class="[
       {
-        'active:scale-95': !noAnimation,
+        'animate-link': !noAnimation && !disabled,
         'p-0.5 rounded-[10px] border-2 after:h-0.5 before:h-0.5 before:-top-0.5 after:-bottom-0.5': size === 'base',
         'p-[2px] text-xs rounded-lg border after:h-px before:h-px before:-top-px after:-bottom-px': size === 'xs',
       },
