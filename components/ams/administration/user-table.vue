@@ -1,17 +1,23 @@
 <script setup lang="ts">
-const { getUsers } = useDirectusUsers();
+const { readUsers, readAsyncUsers } = useDirectusUsers();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
 const emit = defineEmits(['create', 'lock', 'unlock', 'archive', 'delete', 'edit']);
-
-const { data: baseItemCount } = await useAsyncData('get-administration-data', async () =>
-  getUsers({
-    params: {
-      limit: -1,
-      fields: ['id'],
-    },
-  }),
-);
+//TODO
+const { data: baseItemCount } = await readAsyncUsers({
+  query: {
+    limit: -1,
+    fields: ['id'],
+  },
+});
+// const { data: baseItemCount } = await useAsyncData('get-administration-data', async () =>
+//   readUsers({
+//     params: {
+//       limit: -1,
+//       fields: ['id'],
+//     },
+//   }),
+// );
 
 // USER - Columns
 // TODO: ADD DEPARTMENT AND AVATAR
@@ -23,7 +29,7 @@ const columns = [
   { key: 'title', label: 'Titel', sortable: true },
   { key: 'first_name', label: 'Vorname', sortable: true },
   { key: 'last_name', label: 'Nachname', sortable: true },
-  { key: 'discordName', label: 'Discord Benutzername' },
+  { key: 'discord_name', label: 'Discord Benutzername' },
   { key: 'contactEmail', label: 'Kontakt Email' },
 ];
 const columnsTable = computed(() =>
@@ -125,6 +131,7 @@ const statusOptions: IStatusOption[] = [
   },
 ];
 const search = ref('');
+const search_input = ref();
 const selectedStatus = ref([]);
 
 // USER - Pagination
@@ -140,78 +147,74 @@ const { data, pending, refresh } = await useLazyAsyncData(
   'members',
   async () => {
     const [itemCount, items] = await Promise.all([
-      getUsers({
-        params: {
-          limit: -1,
-          fields: ['id', 'email'],
-          filter: {
-            _or: [
-              ...(search.value && [
-                { title: { _icontains: search.value } },
-                { first_name: { _icontains: search.value } },
-                { last_name: { _icontains: search.value } },
-                { discordName: { _icontains: search.value } },
-                { rsiHandle: { _icontains: search.value } },
-              ]),
-              ...(selectedStatus.value[0]
-                ? [
-                    {
-                      status: {
-                        _in: selectedStatus.value.map((obj: IStatusOption) => obj.value),
-                      },
+      readUsers({
+        limit: -1,
+        fields: ['id', 'email'],
+        filter: {
+          _or: [
+            ...(search.value && [
+              { title: { _icontains: search.value } },
+              { first_name: { _icontains: search.value } },
+              { last_name: { _icontains: search.value } },
+              { discord_name: { _icontains: search.value } },
+              { rsi_handle: { _icontains: search.value } },
+            ]),
+            ...(selectedStatus.value[0]
+              ? [
+                  {
+                    status: {
+                      _in: selectedStatus.value.map((obj: IStatusOption) => obj.value),
                     },
-                  ]
-                : []),
-              // TODO: ADD DEPARTMENT
-              // { department: { gameplay_name: { _icontains: search.value } } },
-            ],
-          },
-        },
-      }),
-      getUsers({
-        params: {
-          limit: pageCount.value,
-          page: page.value,
-          sort: [sort.value.column],
-          filter: {
-            _or: [
-              ...(search.value && [
-                { title: { _icontains: search.value } },
-                { first_name: { _icontains: search.value } },
-                { last_name: { _icontains: search.value } },
-                { discordName: { _icontains: search.value } },
-                { rsiHandle: { _icontains: search.value } },
-              ]),
-              ...(selectedStatus.value[0]
-                ? [
-                    {
-                      status: {
-                        _in: selectedStatus.value.map((obj: IStatusOption) => obj.value),
-                      },
-                    },
-                  ]
-                : []),
-              // TODO: ADD DEPARTMENT
-              // { department: { gameplay_name: { _icontains: search.value } } },
-            ],
-          },
-          fields: [
-            'id',
-            'title',
-            'first_name',
-            'last_name',
-            'email',
-            'slug',
-            'avatar',
-            'roles',
-            'role',
-            //TODO: ADD DEPARTMENT
-            // 'head_of_department',
-            'discordName',
-            'contactEmail',
-            'status',
+                  },
+                ]
+              : []),
+            // TODO: ADD DEPARTMENT
+            // { department: { gameplay_name: { _icontains: search.value } } },
           ],
         },
+      }),
+      readUsers({
+        limit: pageCount.value,
+        page: page.value,
+        sort: [sort.value.column],
+        filter: {
+          _or: [
+            ...(search.value && [
+              { title: { _icontains: search.value } },
+              { first_name: { _icontains: search.value } },
+              { last_name: { _icontains: search.value } },
+              { discord_name: { _icontains: search.value } },
+              { rsi_handle: { _icontains: search.value } },
+            ]),
+            ...(selectedStatus.value[0]
+              ? [
+                  {
+                    status: {
+                      _in: selectedStatus.value.map((obj: IStatusOption) => obj.value),
+                    },
+                  },
+                ]
+              : []),
+            // TODO: ADD DEPARTMENT
+            // { department: { gameplay_name: { _icontains: search.value } } },
+          ],
+        },
+        fields: [
+          'id',
+          'title',
+          'first_name',
+          'last_name',
+          'email',
+          'slug',
+          'avatar',
+          'roles',
+          'role',
+          //TODO: ADD DEPARTMENT
+          // 'head_of_department',
+          'discord_name',
+          'contactEmail',
+          'status',
+        ],
       }),
     ]);
 
@@ -241,6 +244,14 @@ const { data, pending, refresh } = await useLazyAsyncData(
   },
 );
 
+defineShortcuts({
+  s: {
+    handler: () => {
+      search_input.value?.input.focus();
+    },
+  },
+});
+
 defineExpose({
   refresh,
   selectedRows,
@@ -258,20 +269,20 @@ onMounted(() => {
   <UCard
     :ui="{
       body: { padding: 'p-0' },
-      header: { padding: 'p-0' },
+      header: { padding: 'pt-4' },
     }"
   >
     <!-- Header and Filters -->
     <template #header>
       <div class="w-full divide-y divide-btertiary">
         <!-- Header -->
-        <h2 class="my-4 ml-6">Mitgliederübersicht</h2>
+        <h2 class="mt-0 mb-4 ml-6">Mitgliederübersicht</h2>
         <!-- Filters -->
         <!-- TODO: ADD FILTER FOR STATE (ACTIVE, ARCHIVED, ETC) -->
         <div class="w-full divide-y divide-btertiary">
           <div class="flex flex-wrap items-center justify-between w-full px-4 py-4 lg:flex-nowrap gap-y-2">
             <div class="relative w-full lg:w-1/4">
-              <UInput size="md" v-model="search" placeholder="Vorname, Nachname, Abteilung, ..." />
+              <UInput size="md" ref="search_input" v-model="search" placeholder="Vorname, Nachname, Abteilung, ..." />
               <button
                 v-if="search !== ''"
                 @click="search = ''"
