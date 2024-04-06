@@ -50,7 +50,7 @@ const bannerItems = [
   {
     name: 'ShipExkurs',
     icon: 'IconsLogosSeBanner',
-    link: '/ShipExkurs',
+    link: '/shipexkurs',
   },
   {
     name: 'VerseExkurs',
@@ -88,12 +88,12 @@ function handleHomeButton(item: any) {
     <div
       class="flex flex-wrap items-center justify-between w-full h-full max-w-screen-xl p-2 mx-auto md:flex-nowrap md:px-4"
     >
-      <NuxtLink to="/" class="flex w-auto h-16 lg:h-20 aspect-[1/1]">
+      <NuxtLink to="/" class="flex w-auto h-16 lg:h-20 aspect-[1/1] animate-link">
         <Icon name="IconsLogosAriscorp" class="w-full h-full" />
         <span class="sr-only">ArisCorp</span>
       </NuxtLink>
       <button
-        class="inline-flex items-center justify-center w-10 h-10 p-2 text-sm rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-0 hover:bg-transparent"
+        class="inline-flex items-center justify-center w-10 h-10 p-2 text-sm rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-0 hover:bg-transparent animate-link"
         @click="toggleMenu"
       >
         <span class="sr-only">Open main menu</span>
@@ -116,7 +116,7 @@ function handleHomeButton(item: any) {
             >
               <NuxtLink
                 :to="'/#' + item.hash"
-                class="block px-3 py-2 rounded md:p-0 md:border-0 not-active"
+                class="block px-3 py-2 rounded md:p-0 md:border-0 not-active animate-link"
                 :class="{
                   active: route.hash == item.hash,
                   'not-active': route.hash != item.hash,
@@ -133,7 +133,11 @@ function handleHomeButton(item: any) {
           class="flex flex-col w-full p-4 mt-4 mb-0 font-medium list-none border rounded-lg md:w-fit md:space-x-8 md:p-0 border-secondary bg-bsecondary md:flex-row md:mt-0 md:border-0 md:bg-transparent"
         >
           <li v-for="item in bannerItems" :key="item.name" class="relative w-full my-auto group md:w-fit">
-            <NuxtLink @click="toggleMenu" :to="item.link" class="block px-3 py-2 rounded md:p-0 md:border-0 not-active">
+            <NuxtLink
+              @click="toggleMenu"
+              :to="item.link"
+              class="block px-3 py-2 rounded md:p-0 md:border-0 not-active animate-link"
+            >
               <span class="block md:hidden">{{ item.name }}</span>
               <span class="hidden md:block"
                 ><Icon
