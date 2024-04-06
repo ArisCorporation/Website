@@ -24,15 +24,18 @@ export default defineNuxtConfig({
     'nuxt-icon',
     'nuxt-headlessui',
     'nuxt-directus-next',
-    // '@nuxt/content',
+    '@nuxt/content',
+    '@nuxtjs/mdc',
     '@pinia/nuxt',
     '@vueuse/motion/nuxt',
     '@pinia-plugin-persistedstate/nuxt',
     'dayjs-nuxt',
     '@nuxt/ui',
     'nuxt-lodash',
-    'nuxt-markdown-render',
+    'nuxt-tiptap-editor',
+    // 'nuxt-markdown-render',
   ],
+  // plugins: [{ src: '~/plugins/vue-cropper', ssr: false }],
 
   runtimeConfig: {
     authSecret: process.env.NUXT_AUTH_SECRET,
@@ -72,20 +75,12 @@ export default defineNuxtConfig({
     },
   },
 
-  // directus: {
-  //   authConfig: {
-  //     refreshTokenCookieName: 'ams_refresh_token',
-  //   },
-  //   // cookieNameToken: 'ams_token',
-  //   // cookieNameRefreshToken: 'ams_refresh_token',
-  // },
-
-  nuxtMarkdownRender: {
-    as: 'div',
-    options: {
-      html: true,
+  directus: {
+    authConfig: {
+      refreshTokenCookieName: 'ams_refresh_token',
     },
-    global: true,
+    // cookieNameToken: 'ams_token',
+    // cookieNameRefreshToken: 'ams_refresh_token',
   },
 
   headlessui: {
@@ -93,7 +88,7 @@ export default defineNuxtConfig({
   },
 
   ui: {
-    icons: ['heroicons', 'ic', 'mdi'],
+    icons: ['heroicons', 'ic', 'mdi', 'fa6-regular', 'fa6-solid', 'radix-icons', 'lucide', 'svg-spinners'],
   },
 
   dayjs: {
@@ -105,5 +100,9 @@ export default defineNuxtConfig({
 
   typescript: {
     shim: false,
+  },
+
+  tiptap: {
+    prefix: 'Tiptap', //prefix for Tiptap imports, composables not included
   },
 });

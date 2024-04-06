@@ -62,6 +62,16 @@ export default defineAppConfig({
           },
         },
       },
+      file: {
+        padding: {
+          '2xs': 'ps-[85px]',
+          xs: 'ps-[87px]',
+          sm: 'ps-[96px]',
+          md: 'ps-36',
+          lg: 'ps-[100px]',
+          xl: 'ps-[109px]',
+        },
+      },
     },
     textarea: {
       color: {
@@ -71,6 +81,7 @@ export default defineAppConfig({
       },
     },
     button: {
+      base: 'focus:outline-none focus-visible:outline-0 disabled:cursor-not-allowed animate-link',
       variant: {
         solid:
           'shadow-sm text-white dark:text-gray-900 bg-{color}-500 hover:bg-{color}-600 disabled:bg-{color}-500 dark:bg-{color}-400 dark:hover:bg-{color}-500 dark:disabled:bg-{color}-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-{color}-500 dark:focus-visible:outline-{color}-400',
@@ -91,6 +102,10 @@ export default defineAppConfig({
         'accordion-gray': {
           outline:
             'ring-1 ring-inset ring-btertiary/50 text-white hover:bg-bsecondary disabled:bg-transparent focus-visible:ring-2 focus-visible:ring-btertiary',
+        },
+        inverted: {
+          solid:
+            'shadow-sm ring-1 ring-inset ring-btertiary text-aris-400 bg-bsecondary hover:bg-gray-800/50 disabled:bg-gray-900 focus-visible:ring-2 focus-visible:ring-primary-400',
         },
       },
     },
@@ -170,6 +185,9 @@ export default defineAppConfig({
       item: {
         active: 'bg-bsecondary text-white',
       },
+    },
+    horizontalNavigation: {
+      base: 'group relative w-full flex items-center gap-1.5 px-2.5 py-3.5 rounded-md font-medium text-sm focus:outline-0 focus-visible:outline-0 focus-visible:ring-inset focus-visible:ring-0 focus-visible:ring-primary-400 disabled:cursor-not-allowed disabled:opacity-75 animate-link',
     },
   },
 });
