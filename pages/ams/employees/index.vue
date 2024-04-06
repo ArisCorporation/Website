@@ -1,67 +1,65 @@
 <script setup lang="ts">
-const { getItems } = useDirectusItems();
-const { getUsers } = useDirectusUsers();
+const { readAsyncItems } = useDirectusItems();
+const { readAsyncUsers } = useDirectusUsers();
 const selectedDepartment = ref({ name: 'Alle' });
 const search = ref('');
+const search_input = ref();
 const hideMembers = ref(false);
 const filteredMembers = ref();
 
-const { data } = await useAsyncData('ams-employee-board', async () => {
-  const [departments, members] = await Promise.all([
-    getItems({
-      collection: 'gameplays',
-      params: {
-        fields: [
-          'id',
-          'gameplay_name',
-          'gameplay_logo.id',
-          'gameplay_bild_links.id',
-          'gameplay_bild_rechts.id',
-          'text',
-          'ships',
-          'members.id',
-          'members.firstname',
-          'members.lastname',
-          'members.title',
-          'members.slug',
-          'head_of_department.id',
-          'head_of_department.firstname',
-          'head_of_department.lastname',
-          'head_of_department.title',
-          'head_of_department.slug',
-          'head_of_department.member_potrait.id',
-        ],
-        filter: {
-          status: { _eq: 'published' },
-        },
-        limit: -1,
-        sort: ['gameplay_name'],
-      },
-    }),
-    getUsers({
-      params: {
-        // TODO: ADD DEPARTMENT
-        fields: ['id', 'title', 'first_name', 'last_name', 'slug', 'avatar', 'roles', 'head_of_department', 'role'],
-        filter: {
-          status: { _eq: 'active' },
-        },
-        limit: -1,
-        sort: ['first_name'],
-      },
-    }),
-  ]);
-
-  if (!departments || !members) {
-    return null;
-  }
-
-  return {
-    members: members.map((obj) => transformUser(obj)),
-    departments: departments.map((obj) => transformDepartment(obj)),
-  };
+const { data: departments } = await readAsyncItems('departments', {
+  query: {
+    fields: [
+      'id',
+      'name',
+      'logo',
+      'ships',
+      'employees.id',
+      'employees.first_name',
+      'employees.last_name',
+      'employees.title',
+      'employees.slug',
+      'head_of_department.id',
+      'head_of_department.first_name',
+      'head_of_department.last_name',
+      'head_of_department.title',
+      'head_of_department.slug',
+      'head_of_department.avatar',
+    ],
+    filter: {
+      status: { _eq: 'published' },
+    },
+    limit: -1,
+    sort: ['name'],
+  },
+  transform: (departments: any[]) => departments.map((department) => transformDepartment(department)),
 });
 
-if (!data.value) {
+const { data: users } = await readAsyncUsers({
+  query: {
+    fields: [
+      'id',
+      'title',
+      'first_name',
+      'last_name',
+      'slug',
+      'avatar',
+      'roles',
+      'head_of_department',
+      'department',
+      'leading_department',
+      'role',
+    ],
+    filter: {
+      status: { _eq: 'active' },
+    },
+    limit: -1,
+    sort: ['first_name'],
+  },
+  transform: (users: IRawUser[]) => users.map((user) => transformUser(user)),
+});
+
+if (!departments.value || !users.value) {
   throw createError({
     statusCode: 500,
     statusMessage: 'Die Übertragung des Personalverzeichnisses konnte nicht vollständig empfangen werden!',
@@ -71,8 +69,8 @@ if (!data.value) {
 
 const updateMembers = () =>
   selectedDepartment.value.id
-    ? (filteredMembers.value = data.value?.members.filter((e) => e.department?.id === selectedDepartment.value.id))
-    : (filteredMembers.value = data.value?.members);
+    ? (filteredMembers.value = users.value.filter((e) => e.department_id === selectedDepartment.value.id))
+    : (filteredMembers.value = users.value);
 // const updateMembers = () => (filteredMembers.value = data.value.members);
 
 updateMembers();
@@ -85,6 +83,14 @@ watch(selectedDepartment, async () => {
   }, 500);
 });
 
+defineShortcuts({
+  s: {
+    handler: () => {
+      search_input.value?.input.focus();
+    },
+  },
+});
+
 definePageMeta({
   middleware: 'auth',
   layout: 'ams',
@@ -94,7 +100,7 @@ definePageMeta({
 <template>
   <div>
     <div class="flex flex-wrap-reverse justify-center px-6 mx-auto my-4 lg:justify-between gap-y-4 gap-x-12">
-      <ArisUFormGroup size="xl" class="w-full lg:w-80" label="Abteilung">
+      <UFormGroup size="xl" class="w-full lg:w-80" label="Abteilung">
         <USelectMenu
           id="departmentSelect"
           v-model="selectedDepartment"
@@ -104,7 +110,7 @@ definePageMeta({
           :search-attributes="['name']"
           name="Abteilung"
           placeholder="Abteilung filtern"
-          :options="[{ name: 'Alle' }, ...data.departments]"
+          :options="[{ name: 'Alle' }, ...departments]"
           :ui="{
             leading: {
               padding: {
@@ -138,11 +144,12 @@ definePageMeta({
         >
           <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
         </button>
-      </ArisUFormGroup>
-      <ArisUFormGroup size="xl" class="w-full lg:w-80" label="Suchen">
+      </UFormGroup>
+      <UFormGroup size="xl" class="w-full lg:w-80" label="Suchen">
         <UInput
           size="2xl"
           v-model="search"
+          ref="search_input"
           class="my-auto"
           icon="i-heroicons-magnifying-glass-20-solid"
           placeholder="Suche..."
@@ -155,11 +162,11 @@ definePageMeta({
         >
           <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
         </button>
-      </ArisUFormGroup>
+      </UFormGroup>
     </div>
     <div class="flex flex-wrap justify-center">
       <MemberCard
-        v-for="member in filteredMembers.filter((e) => e.fullName.toLowerCase().includes(search.toLowerCase()))"
+        v-for="member in filteredMembers.filter((e: any) => e.full_name.toLowerCase().includes(search.toLowerCase()))"
         :key="member"
         :data="member"
         :hidden="hideMembers"
