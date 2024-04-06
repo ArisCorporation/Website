@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+const colors = require('tailwindcss/colors');
 const srcDir = '.';
 
 export default {
@@ -17,9 +18,10 @@ export default {
   ],
   theme: {
     colors: {
+      transparent: 'transparent',
+      current: 'currentColor',
       black: '#000',
       white: '#fff',
-      transparent: 'transparent',
       // primary: '#00FFE8',
       secondary: '#E48632',
       aris: {
@@ -74,7 +76,7 @@ export default {
         900: '#222',
         950: '#222',
       },
-      uidanger: {
+      red: {
         50: '#fef2f2',
         100: '#fee2e2',
         200: '#fecaca',
@@ -86,6 +88,19 @@ export default {
         800: '#991b1b',
         900: '#7f1d1d',
         950: '#450a0a',
+      },
+      yellow: {
+        50: '#fdfde9',
+        100: '#fdfbc4',
+        200: '#fbf38d',
+        300: '#f9e54b',
+        400: '#f5d31a',
+        500: '#f1c40f',
+        600: '#c59009',
+        700: '#9d670b',
+        800: '#825211',
+        900: '#6f4314',
+        950: '#412307',
       },
       bprimary: '#111',
       bsecondary: '#222',
@@ -108,10 +123,26 @@ export default {
         900: '#7f1d1d',
         950: '#450a0a',
       },
+      green: {
+        50: '#f0fdf5',
+        100: '#dcfce8',
+        200: '#bbf7d1',
+        300: '#86efad',
+        400: '#4ade81',
+        500: '#22c55e',
+        600: '#16a34a',
+        700: '#15803c',
+        800: '#166533',
+        900: '#14532b',
+        950: '#052e14',
+      },
     },
     extend: {
       fontFamily: {
         nasa: ['nasalization', 'sans-serif'],
+      },
+      brightness: {
+        85: '.85',
       },
       aspectRatio: {
         potrait: '270 / 320',
