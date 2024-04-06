@@ -93,7 +93,7 @@ definePageMeta({
                     .sort((a, b) => a.name.localeCompare(b.name))"
                   :key="company.slug"
                   :to="'/verseexkurs/companies/' + company.slug"
-                  class="w-full h-full transition opacity-50 hover:opacity-100"
+                  class="w-full h-full transition opacity-50 hover:opacity-100 animate-link"
                 >
                   <ImageHoverEffect :src="company.logo" :alt="'Logo von ' + company.name" class="w-full h-full" />
                 </NuxtLink>
@@ -106,7 +106,7 @@ definePageMeta({
                   .sort((a, b) => a.name.localeCompare(b.name))"
                 :key="company.slug"
                 :to="'/verseexkurs/companies/' + company.slug"
-                class="w-full h-full transition opacity-50 hover:opacity-100"
+                class="w-full h-full transition opacity-50 hover:opacity-100 animate-link"
               >
                 <ImageHoverEffect :src="company.logo" :alt="'Logo von ' + company.name" class="w-full h-full" />
               </NuxtLink>
@@ -121,7 +121,7 @@ definePageMeta({
                 .sort((a, b) => a.name.localeCompare(b.name))"
               :key="company.slug"
               :to="'/verseexkurs/companies/' + company.slug"
-              class="w-full h-full transition opacity-50 hover:opacity-100"
+              class="w-full h-full transition opacity-50 hover:opacity-100 animate-link"
             >
               <ImageHoverEffect :src="company.logo" :alt="'Logo von ' + company.name" class="w-full h-full" />
             </NuxtLink>

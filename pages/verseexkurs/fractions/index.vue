@@ -96,7 +96,7 @@ definePageMeta({
                     .sort((a, b) => a.name.localeCompare(b.name))"
                   :key="fraction.slug"
                   :to="'/verseexkurs/fractions/' + fraction.slug"
-                  class="w-full h-full transition opacity-50 hover:opacity-100"
+                  class="w-full h-full transition opacity-50 hover:opacity-100 animate-link"
                 >
                   <ImageHoverEffect :src="fraction.logo" class="w-full h-full" />
                 </NuxtLink>
@@ -109,7 +109,7 @@ definePageMeta({
                   .sort((a, b) => a.name.localeCompare(b.name))"
                 :key="fraction.slug"
                 :to="'/verseexkurs/fractions/' + fraction.slug"
-                class="w-full h-full transition opacity-50 hover:opacity-100"
+                class="w-full h-full transition opacity-50 hover:opacity-100 animate-link"
               >
                 <ImageHoverEffect :src="fraction.logo" class="w-full h-full" />
               </NuxtLink>
@@ -124,7 +124,7 @@ definePageMeta({
                 .sort((a, b) => a.name.localeCompare(b.name))"
               :key="fraction.slug"
               :to="'/verseexkurs/fractions/' + fraction.slug"
-              class="w-full h-full transition opacity-50 hover:opacity-100"
+              class="w-full h-full transition opacity-50 hover:opacity-100 animate-link"
             >
               <ImageHoverEffect :src="fraction.logo" class="w-full h-full" />
             </NuxtLink>

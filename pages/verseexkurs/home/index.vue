@@ -19,19 +19,19 @@ definePageMeta({
         <li v-for="link in data.ve_links" class="p-0 list-none">
           <NuxtLink
             :to="link.link.startsWith('/') ? link.link : '/verseexkurs/' + link.link"
-            class="grid w-full grid-cols-12 my-2 py-2 !no-underline transition divide-x-2 cursor-pointer h-fit divide-btertiary hover:bg-bsecondary text-tbase"
+            class="grid w-full grid-cols-12 my-2 py-2 !no-underline transition divide-x-2 cursor-pointer h-fit divide-btertiary bg-bprimary text-tbase hover:brightness-85 rounded-xl"
           >
             <div class="flex items-center col-span-2">
               <NuxtImg
                 :src="link.icon.split('.')[0]"
                 :placeholder="[16, 16, 1, 5]"
                 :alt="'Icon for ' + link.name"
-                class="w-32 p-2 m-auto aspect-square"
+                class="w-32 p-2 m-auto aspect-square animate-link"
               />
             </div>
             <div class="col-span-8">
               <div class="p-2">
-                <h3 class="mb-2 text-aris-400">&quot;{{ link.name }}&quot;</h3>
+                <h3 class="mb-2 w-fit text-aris-400 animate-link">&quot;{{ link.name }}&quot;</h3>
                 <p>{{ link.description }}</p>
               </div>
             </div>
