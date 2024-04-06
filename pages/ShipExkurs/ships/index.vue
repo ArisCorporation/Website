@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { debounce } from 'lodash';
-
 const { readAsyncItems } = useDirectusItems();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
@@ -10,7 +8,7 @@ const hideShips = ref(false);
 const search = ref('');
 const search_input = ref();
 
-const debounceSearch = debounce(() => {
+const debounceSearch = useDebounce(() => {
   hideShips.value = false;
 }, 500);
 
