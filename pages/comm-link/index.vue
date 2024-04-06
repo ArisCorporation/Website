@@ -1,30 +1,28 @@
 <script setup lang="ts">
-const { readItems } = useDirectusItems();
+const { readAsyncItems } = useDirectusItems();
 const selectedChannel = ref('Alle');
 const search = ref('');
 
-const commLinks = await readItems('comm_links', {
-  fields: [
-    'id',
-    'comm_link_titel',
-    'comm_link_banner.id',
-    'comm_link_channel.channel',
-    'comm_link_channel.beschreibung',
-    'date_created',
-  ],
-  filter: {
-    status: { _eq: 'published' },
+const { data: commLinks } = await readAsyncItems('comm_links', {
+  query: {
+    fields: ['id', 'titel', 'banner', 'description', 'channel.name', 'channel.description', 'date_created'],
+    filter: {
+      status: { _eq: 'published' },
+    },
+    limit: -1,
+    sort: ['-date_created'],
   },
-  limit: -1,
-  sort: ['-date_created'],
 });
 
-const channelsRes = await readItems('comm_link_channels', {
-  fields: ['id', 'name', 'description'],
-  limit: -1,
-  sort: ['name'],
+const { data: channels } = await readAsyncItems('comm_link_channels', {
+  query: {
+    fields: ['id', 'name', 'description'],
+    limit: -1,
+    sort: ['name'],
+  },
+  transform: (channels: any[]) => channels.map((channel) => channel.name),
 });
-const channels = computed(() => channelsRes.map((obj) => obj.name));
+// const channels = computed(() => channelsRes.map((obj: any) => obj.name));
 
 // const { data } = await useAsyncData('comm-link-data', async () => {
 //   const [commLinks, channels] = await Promise.all([
@@ -66,7 +64,7 @@ const channels = computed(() => channelsRes.map((obj) => obj.name));
 //   };
 // });
 
-if (!commLinks || !channels.value) {
+if (!commLinks.value || !channels.value) {
   throw createError({
     statusCode: 500,
     statusMessage: 'Es konnten nicht alle Daten vollständig empfangen werden!',
@@ -75,7 +73,7 @@ if (!commLinks || !channels.value) {
 }
 
 const filterData = computed(() =>
-  commLinks.filter((e) =>
+  commLinks.value.filter((e) =>
     selectedChannel.value !== 'Alle' ? e.comm_link_channel?.channel === selectedChannel.value : e,
   ),
 );
