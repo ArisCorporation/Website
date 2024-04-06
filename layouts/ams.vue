@@ -1,7 +1,71 @@
 <script setup lang="ts">
 const config = useRuntimeConfig();
 const SidebarStore = useSidebarStore();
-const user = useDirectusUser();
+const { user, logout } = useDirectusAuth();
+const router = useRouter();
+
+const handleLogout = async () => {
+  await logout();
+  router.push('/');
+};
+
+const sidebarItems = [
+  {
+    name: 'Home',
+    icon: 'heroicons:home-solid',
+    link: '',
+    level: 0,
+  },
+  {
+    name: 'Flotte',
+    icon: 'IconsNavigationFleet',
+    link: '/fleet',
+    level: 0,
+  },
+  {
+    name: 'Mitarbeiter',
+    icon: 'IconsNavigationMembers',
+    link: '/employees',
+    level: 0,
+  },
+  {
+    name: 'Administration',
+    icon: 'ri:admin-line',
+    link: '/administration',
+    level: 4,
+  },
+  {
+    name: 'Toolbox',
+    link: '/toolbox',
+    level: 0,
+  },
+];
+
+const sidebarUserItems = [
+  {
+    name: 'Mein Hangar',
+    icon: 'IconsNavigationHangar',
+    link: '/hangar',
+  },
+  {
+    name: 'Mein Profil',
+    icon: 'heroicons:user-20-solid',
+    link: '/profile',
+  },
+  {
+    name: 'Logout',
+    icon: 'material-symbols:logout',
+    action: handleLogout,
+  },
+];
+
+defineShortcuts({
+  dead: {
+    usingInput: true,
+    handler: () =>
+      (useCookie('ams_devtools').value = JSON.stringify(!JSON.parse(useCookie('ams_devtools').value ?? 'true'))),
+  },
+});
 
 useSeoMeta({
   description:
@@ -56,16 +120,22 @@ useHead({
         </div>
       </slot>
     </USlideover>
-    <AmsSidebar />
+    <Sidebar
+      banner="IconsLogosAmsBanner"
+      base-url="/ams"
+      :sidebar-items="sidebarItems"
+      :user-sidebar-items="sidebarUserItems"
+    />
     <div id="sidebar-space" class="hidden lg:block" />
     <!-- lg:max-w-[calc(100vw-16rem)]  lg:ml-64 -->
     <div class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen">
       <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
+
+      <div v-if="JSON.parse(useCookie('ams_devtools').value ?? 'true')" class="bg-black z-[99] pb-4 px-8">
+        <h6>DEV TOOLS:</h6>
+        <code class="block pb-2">User: {{ user }}</code>
+      </div>
       <DevOnly>
-        <div class="bg-black z-[99] pb-4 px-8" v-if="JSON.parse(useCookie('ams_devtools').value ?? 'true')">
-          <h6>DEV TOOLS:</h6>
-          <code class="block pb-2">User: {{ user }}</code>
-        </div>
         <ButtonDefault
           class="w-fit"
           @click="
