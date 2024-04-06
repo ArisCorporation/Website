@@ -2,7 +2,6 @@ type tableColumns = { key: string; label?: string; sortable?: boolean }[];
 
 export const useUserSettingsStore = defineStore({
   id: 'userSettings',
-  persist: true,
   state: () => ({
     userSettings: {
       ams: {
