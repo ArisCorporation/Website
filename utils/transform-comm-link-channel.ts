@@ -1,6 +1,7 @@
 export default function (obj: any) {
   return {
-    name: obj?.channel,
-    description: obj?.beschreibung,
+    ...(obj.id && { id: obj.id }),
+    ...(obj.name && { name: obj.name }),
+    ...(obj.description && { description: obj.description }),
   };
 }

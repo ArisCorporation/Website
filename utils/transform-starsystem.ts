@@ -1,3 +1,5 @@
+import transformStarsystem from './transform-starsystem';
+
 export default function (obj: any) {
   return {
     ...(obj.id && { id: obj.id }),
@@ -21,7 +23,7 @@ export default function (obj: any) {
           .filter((e) => e.collection === 'jumppoints')
           .map((jumppoint: any) => ({
             size: jumppoint.object.size,
-            systems: jumppoint.object.systems.map((item: any) => item.systems_id),
+            systems: jumppoint.object.systems?.map((system: any) => transformStarsystem(system)),
           })),
       }),
       ...(obj.orbit.filter((e) => e.collection === 'asteroid_belts') && {

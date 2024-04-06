@@ -42,15 +42,15 @@ export default function (obj: any, array?: ICommLink[]) {
   };
 
   return {
-    id: obj.id,
-    title: obj.titel,
-    slug: obj.slug,
-    author: getAuthor(),
-    banner: obj.banner,
-    date_posted: obj.date_created,
-    description: obj.description,
-    content: obj.content,
-    channel: getChannel(),
-    size: getSize(),
+    ...(obj.id && { id: obj.id }),
+    ...(obj.titel && { titel: obj.titel }),
+    ...(obj.slug && { slug: obj.slug }),
+    ...(obj.user_created && { author: getAuthor() }),
+    ...(obj.banner && { banner: obj.banner }),
+    ...(obj.date_created && { date_posted: obj.date_created }),
+    ...(obj.description && { description: obj.description }),
+    ...(obj.content && { content: obj.content }),
+    ...(obj.channel && { channel: getChannel() }),
+    ...(obj.id && { size: getSize() }),
   };
 }
