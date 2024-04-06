@@ -6,7 +6,18 @@ defineProps({
   },
   content: {
     type: String,
-    required: true,
+    required: false,
+    default: null,
+  },
+  prefix: {
+    type: String,
+    required: false,
+    default: null,
+  },
+  suffix: {
+    type: String,
+    required: false,
+    default: null,
   },
   link: {
     type: String,
@@ -32,7 +43,7 @@ defineProps({
 </script>
 <template>
   <div :class="{ 'col-span-6': fullWidth, 'col-span-2': third, 'col-span-3': !fullWidth && !third }">
-    <p class="p-0 pt-1 text-sm">{{ title }}:</p>
+    <p class="pt-1 text-sm uppercase">{{ title }}:</p>
     <slot>
       <template v-if="content">
         <ul v-if="isList" className="p-0 pl-6">
@@ -41,11 +52,11 @@ defineProps({
           </li>
         </ul>
         <NuxtLink v-else-if="link" :to="link">
-          <p class="p-0">{{ content }}</p>
+          <p>{{ prefix }} {{ content }} {{ suffix }}</p>
         </NuxtLink>
-        <p v-else class="p-0 text-primary-400">{{ content }}</p>
+        <p v-else class="text-primary-400">{{ prefix }} {{ content }} {{ suffix }}</p>
       </template>
-      <p v-else class="p-0 text-primary-400">N/A</p>
+      <p v-else class="text-primary-400">N/A</p>
     </slot>
   </div>
 </template>
@@ -53,5 +64,8 @@ defineProps({
 <style scoped lang="postcss">
 li {
   @apply pb-1;
+}
+p {
+  @apply p-0 w-fit;
 }
 </style>
