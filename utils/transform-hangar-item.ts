@@ -10,7 +10,7 @@ export default function (obj: any, shipList?: any) {
     userData: {
       owner: obj.user_id ? transformUser(obj.user_id) : null,
       name: obj.name,
-      showName: obj.namePublic,
+      show_name: obj.name_public,
       serial: obj.serial,
       group: obj.group,
       visibility: obj.visibility,

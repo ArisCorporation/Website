@@ -1,5 +1,3 @@
-import { getTypeParameterOwner } from 'typescript';
-
 export default function (obj: any) {
   const getType = () => {
     const typeMap: { [key: string]: string } = {
@@ -36,18 +34,25 @@ export default function (obj: any) {
     ...(obj.name && { name: obj.name }),
     ...(obj.slug && { slug: obj.slug }),
     ...(obj.banner && { banner: obj.banner }),
-    ...(obj.astronomical_designation && { astronomical_designation: obj.astronomical_designation }),
+    ...(obj.astronomical_designation && {
+      astronomical_designation: obj.astronomical_designation,
+    }),
     ...(obj.content && { content: obj.content }),
     ...(obj.orbit && {
       orbit: obj.orbit,
-      moons: obj.orbit.filter((e: any) => e.collection === 'moons').map((moon: any) => transformMoon(moon.object)),
-      // space_stations: obj.orbit.filter((e: any) => e.collection === 'space_stations').map((space_station: any) => transformSpaceStation(space_station)),
-      planets: obj.orbit
-        .filter((e: any) => e.collection === 'planets')
-        .map((planet: any) => transformPlanet(planet.object)),
-      space_stations: obj.orbit
-        .filter((e: any) => e.collection === 'space_stations')
-        .map((station: any) => transformSpacestation(station.object)),
+      ...(obj.orbit.filter((e: any) => e.collection === 'moons') && {
+        moons: obj.orbit.filter((e: any) => e.collection === 'moons').map((moon: any) => transformMoon(moon.object)),
+      }),
+      ...(obj.orbit.filter((e: any) => e.collection === 'planets') && {
+        planets: obj.orbit
+          .filter((e: any) => e.collection === 'planets')
+          .map((planet: any) => transformPlanet(planet.object)),
+      }),
+      ...(obj.orbit.filter((e: any) => e.collection === 'space_stations') && {
+        space_stations: obj.orbit
+          .filter((e: any) => e.collection === 'space_stations')
+          .map((station: any) => transformSpacestation(station.object)),
+      }),
     }),
     ...(obj.landing_zones && { landing_zones: obj.landing_zones.map((item: any) => transformLandingZone(item)) }),
     ...(obj.size && { size: obj.size }),

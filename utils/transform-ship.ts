@@ -17,7 +17,7 @@ export default function transformShip(obj: any, shipList?: any) {
     return variants;
   };
   const getLoaners = () => {
-    if (!shipList || !obj.loaners || obj.productionStatus === 'flight-ready') return;
+    if (!shipList || !obj.loaners || obj.production_status === 'flight-ready') return;
     const loaners = [];
     const loanerData = [];
     obj.loaners.forEach((rawLoaner) => {
@@ -36,79 +36,106 @@ export default function transformShip(obj: any, shipList?: any) {
   };
 
   return {
-    id: obj.id,
-    erkulId: obj.erkulIdentifier,
-    smId: obj.smIdentifier,
-    flId: obj.flIdentifier,
-    scId: obj.scIdentifier,
-    apiId: obj.apiid,
-    rsiId: obj.rsiId,
-    name: obj.name,
-    p4kName: obj.p4kname,
-    rsiName: obj.rsiName,
-    slug: obj.slug,
-    flSlug: obj.flSlug,
-    rsiSlug: obj.rsiSlug,
-    p4kMode: obj.p4kMode,
-    p4kId: obj.p4kId,
-    p4kVersion: obj.p4kVersion,
-    manufacturer: getManufacturer(),
-    storePage: obj.storeUrl,
-    salesPage: obj.salesPageUrl,
-    length: obj.length,
-    beam: obj.beam,
-    height: obj.height,
-    mass: obj.mass,
-    cargo: obj.cargo,
-    price: obj.price?.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.'),
-    pledgePrice: obj.pledgePrice?.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.'),
-    onSale: obj.onSale,
-    productionState: getProductionState(),
-    readyPatch: obj.readyPatch,
-    career: obj.career,
-    hydrogenTank: obj.hydrogenTank,
-    quantumTank: obj.quantumTank,
-    minCrew: obj.minCrew,
-    maxCrew: obj.maxCrew,
-    scmSpeed: obj.scmSpeed,
-    maxSpeed: obj.maxSpeed,
-    maxGroundSpeed: obj.maxGroundSpeed,
-    zeroToScm: obj.zeroToScm,
-    zeroToMax: obj.zeroToMax,
-    scmToZero: obj.scmToZero,
-    maxToZero: obj.maxToZero,
-    pitchMax: obj.pitchMax,
-    yawMax: obj.yawMax,
-    rollMax: obj.rollMax,
-    xaxisAcceleration: obj.xaxisAcceleration,
-    yaxisAcceleration: obj.yaxisAcceleration,
-    zaxisAcceleration: obj.zaxisAcceleration,
-    brochure: obj.brochure?.id,
-    holo: obj.holo?.id,
-    holoColored: obj.holoColored,
-    hardpoints: obj.hardoints,
-    weaponHardpoints: obj.weaponHardpoints,
+    ...(obj.id && { id: obj.id }),
+    ...(obj.erkul_id && { erkul_id: obj.erkul_id }),
+    ...(obj.p4k_id && { p4k_id: obj.p4k_id }),
+    ...(obj.fl_id && { fl_id: obj.fl_id }),
+    ...(obj.sm_id && { sm_id: obj.sm_id }),
+    ...(obj.name && { name: obj.name }),
+    ...(obj.p4k_name && { p4k_name: obj.p4k_name }),
+    ...(obj.slug && { slug: obj.slug }),
+    ...(obj.p4k_mode && { p4k_mode: obj.p4k_mode }),
+    ...(obj.p4k_version && { p4k_version: obj.p4k_version }),
+    ...(obj.manufacturer && { manufacturer: getManufacturer() }),
+    ...(obj.store_url && { store_url: obj.store_url }),
+    ...(obj.sales_url && { sales_url: obj.sales_url }),
+    ...(obj.length && { length: obj.length }),
+    ...(obj.beam && { beam: obj.beam }),
+    ...(obj.height && { height: obj.height }),
+    ...(obj.mass && { mass: obj.mass }),
+    ...(obj.cargo && { cargo: obj.cargo }),
+    ...(obj.price && {
+      price:
+        obj.price
+          .split('.')[0]
+          ?.toString()
+          .replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.') +
+        ',' +
+        obj.price.split('.')[1].slice(0, 2),
+    }),
+    ...(obj.pledgePrice && {
+      pledgePrice:
+        obj.pledgePrice
+          .split('.')[0]
+          ?.toString()
+          .replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.') +
+        ',' +
+        obj.pledgePrice.split('.')[1].slice(0, 2),
+    }),
+    ...(obj.on_sale && { on_sale: obj.on_sale }),
+    ...(obj.production_status && {
+      production_status:
+        obj.production_status === 'flight-ready'
+          ? 'Flugfertig'
+          : obj.production_status === 'in-production'
+            ? 'In Produktion'
+            : 'In Konzept',
+      production_status_value: obj.production_status,
+    }),
+    ...(obj.live_patch && { live_patch: obj.live_patch }),
+    ...(obj.production_note && { production_note: obj.production_note }),
+    ...(obj.crew_min && { crew_min: obj.crew_min }),
+    ...(obj.crew_max && { crew_max: obj.crew_max }),
+    ...(obj.scm_speed && { scm_speed: obj.scm_speed }),
+    ...(obj.max_speed && { max_speed: obj.max_speed }),
+    ...(obj.zero_to_scm && { zero_to_scm: obj.zero_to_scm }),
+    ...(obj.zero_to_max && { zero_to_max: obj.zero_to_max }),
+    ...(obj.scm_to_zero && { scm_to_zero: obj.scm_to_zero }),
+    ...(obj.max_to_zero && { max_to_zero: obj.max_to_zero }),
+    ...(obj.quantum_fuel_tanks && { quantum_fuel_tanks: obj.quantum_fuel_tanks }),
+    ...(obj.hydrogen_fuel_tanks && { hydrogen_fuel_tanks: obj.hydrogen_fuel_tanks }),
+    ...(obj.pitch && { pitch: obj.pitch }),
+    ...(obj.yaw && { yaw: obj.yaw }),
+    ...(obj.roll && { roll: obj.roll }),
+    ...(obj.acceleration_main && { acceleration_main: obj.acceleration_main }),
+    ...(obj.acceleration_retro && { acceleration_retro: obj.acceleration_retro }),
+    ...(obj.acceleration_vtol && { acceleration_vtol: obj.acceleration_vtol }),
+    ...(obj.acceleration_maneuvering && { acceleration_maneuvering: obj.acceleration_maneuvering }),
+    ...(obj.brochure && { brochure: obj.brochure }),
+    ...(obj.holo && { holo: obj.holo }),
+    ...(obj.holoColored && { holoColored: obj.holoColored }),
     // variants: getVariants(),
-    loaners: getLoaners(),
+    ...(obj.loaners && { loaners: getLoaners() }),
     // loaners: shipList,
-    paints: obj.paints,
-    classification: obj.classification,
-    focus: obj.focus,
-    lastUpdatedAt: obj.lastUpdatedAt,
-    insuranceClaimTime: obj.insuranceClaimTime,
-    insuranceExpeditedClaimTime: obj.insuranceExpeditedClaimTime,
-    insuranceExpeditedCost: obj.insuranceExpeditedCost,
-    storeImage: obj.storeImage?.id,
-    // gallery: getGallery(),
-    commercialVideo: obj.commercialVideoId,
-    tags: obj.tags,
+    // paints: obj.paints,
+    // classification: obj.classification,
+    // focus: obj.focus,
+    // lastUpdatedAt: obj.lastUpdatedAt,
+    ...(obj.insurance_claim_time && {
+      insurance_claim_time: parseFloat(obj.insurance_claim_time),
+    }),
+    ...(obj.insurance_expedited_time && { insurance_expedited_time: parseFloat(obj.insurance_expedited_time) }),
+    ...(obj.insurance_expedited_cost && {
+      insurance_expedited_cost:
+        obj.insurance_expedited_cost
+          .split('.')[0]
+          ?.toString()
+          .replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.') +
+        ',' +
+        obj.insurance_expedited_cost.split('.')[1].slice(0, 2),
+    }),
+    ...(obj.store_image && { store_image: obj.store_image }),
+    ...(obj.gallery && { gallery: obj.gallery.map((obj: any) => obj.directus_files_id) }),
+    ...(obj.commercial_video_id && { commercial_video_id: obj.commercial_video_id }),
+    ...(obj.commercial && { commercial: obj.commercial }),
+    // tags: obj.tags,
     // groundVehicle: getGroundVehicle(),
-    role: obj.role,
-    description: obj.description,
-    history: obj.history,
+    // role: obj.role,
+    ...(obj.description && { description: obj.description }),
+    ...(obj.history && { history: obj.history }),
     // rating: getRating,
-    size: obj.size,
-    sortSize: obj.sortSize,
-    modules: obj.modules ? obj.modules.map((module) => transformShipModule(module)) : null,
+    // size: obj.size,
+    // sortSize: obj.sortSize,
+    // modules: obj.modules ? obj.modules.map((module) => transformShipModule(module)) : null,
   };
 }

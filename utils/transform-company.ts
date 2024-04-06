@@ -8,7 +8,7 @@ export default function (obj: any) {
     ...(obj.banner && { banner: obj.banner }),
     ...(obj.content && { content: obj.content }),
     ...(obj.category && { category: { id: obj.category.id, name: obj.category.name } }),
-    ...(obj.headquarter[0] && {
+    ...(obj.headquarter && {
       headquarter: {
         test: obj.headquarter[0],
         collection: obj.headquarter[0].collection,
