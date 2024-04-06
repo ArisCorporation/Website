@@ -15,10 +15,10 @@ defineProps({
 <template>
   <NuxtLink
     :to="'/comm-link/transmission/' + data.id"
-    class="relative block w-full col-span-1 p-3 border border-solid hover:no-underline h-80 border-primary-400 border-opacity-20 group"
+    class="relative block w-full col-span-1 p-3 border border-solid hover:no-underline h-80 border-primary-400 border-opacity-20 group animate-link"
     :class="{
-      'xl:col-span-2 xl:mx-0': size == 2,
-      'md:col-span-2 lg:col-span-3 xl:col-span-3 md:mx-0': size == 3,
+      'lg:col-span-2 lg:mx-0': size == 2,
+      'md:col-span-2 lg:col-span-3 md:mx-0': size == 3,
     }"
   >
     <div
@@ -38,7 +38,7 @@ defineProps({
     </div>
     <div
       class="relative top-0 right-0 w-full h-3/5"
-      :class="{ 'xl:p-3 xl:absolute xl:h-full': size == 2, 'md:p-3 md:absolute md:h-full': size == 3 }"
+      :class="{ 'lg:p-3 lg:absolute lg:h-full': size == 2, 'md:p-3 md:absolute md:h-full': size == 3 }"
     >
       <NuxtImg
         :src="data.banner"
@@ -50,14 +50,14 @@ defineProps({
     <div
       class="relative right-0 w-full px-px h-fit"
       :class="{
-        'xl:pb-3 xl:px-3 xl:absolute xl:bottom-0': size == 2,
+        'lg:pb-3 lg:px-3 lg:absolute lg:bottom-0': size == 2,
         'md:pb-3 md:px-3 md:absolute md:bottom-0': size == 3,
       }"
     >
       <div
         class="flex w-full h-12"
         :class="{
-          'xl:px-5 xl:bg-black xl:bg-opacity-80': size == 2,
+          'lg:px-5 lg:bg-black lg:bg-opacity-80': size == 2,
           'md:px-5 md:bg-black md:bg-opacity-80': size == 3,
         }"
       >
@@ -75,13 +75,13 @@ defineProps({
     <div
       class="z-10 flex w-full pl-px"
       :class="{
-        'xl:left-0 xl:top-0 xl:p-3 xl:absolute xl:text-center xl:h-full': size == 2,
+        'lg:left-0 lg:top-0 lg:p-3 lg:absolute lg:text-center lg:h-full': size == 2,
         'md:left-0 md:top-0 md:p-3 md:absolute md:text-center md:h-full': size == 3,
       }"
     >
       <h1
         class="absolute bottom-0 text-base uppercase"
-        :class="{ 'xl:m-auto xl:text-5xl xl:static': size == 2, 'md:m-auto md:text-5xl md:static': size == 3 }"
+        :class="{ 'lg:m-auto lg:text-5xl lg:static': size == 2, 'md:m-auto md:text-5xl md:static': size == 3 }"
       >
         {{ data.title }}
       </h1>
