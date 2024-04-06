@@ -1,5 +1,67 @@
 <script setup lang="ts">
 const SidebarStore = useSidebarStore();
+
+const sidebarItems = [
+  {
+    name: 'Home',
+    icon: 'heroicons:home-solid',
+    link: '',
+  },
+  {
+    name: 'Geschichte',
+    icon: 'IconsNavigationTimeline',
+    link: '/timeline',
+  },
+  {
+    name: 'UEE',
+    icon: 'IconsNavigationUee',
+    link: '/uee',
+  },
+  {
+    name: 'ARK Starmap',
+    icon: 'IconsNavigationStarmap',
+    link: '/starmap',
+  },
+  {
+    name: 'Alienrassen',
+    icon: 'IconsNavigationAliens',
+    link: '/aliens',
+  },
+  {
+    name: 'Firmen',
+    icon: 'IconsNavigationCompanies',
+    link: '/companies',
+  },
+  {
+    name: 'Fraktionen',
+    icon: 'heroicons:user-group-solid',
+    link: '/fractions',
+  },
+  {
+    name: 'Technologie',
+    icon: 'IconsNavigationTechnology',
+    link: '/technology',
+  },
+  {
+    name: 'Spectrum',
+    icon: 'IconsNavigationSpectrum',
+    link: '/spectrum',
+  },
+  {
+    name: 'Literatur',
+    icon: 'material-symbols:book-4-outline',
+    link: '/literature',
+  },
+];
+
+defineShortcuts({
+  dead: {
+    usingInput: true,
+    handler: () =>
+      (useCookie('ams_devtools').value = JSON.stringify(!JSON.parse(useCookie('ams_devtools').value ?? 'true'))),
+  },
+});
+
 useSeoMeta({
   description:
     'Das hier, ist die Informationsplattform der Astro Research and Industrial Service Corporation. Hier kann man alle Informationen über die Lore des Universums rund um das Spiel "Star Citizen" finden.',
@@ -41,7 +103,7 @@ useHead({
         <slot name="slideFooter" />
       </template>
     </Slideover>
-    <VerseExkursSidebar />
+    <Sidebar banner="IconsLogosVeBanner" base-url="/verseexkurs" :sidebar-items="sidebarItems" />
     <div id="sidebar-space" class="hidden lg:block" />
     <div class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen">
       <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
