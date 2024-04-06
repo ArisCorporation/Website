@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    // "build": "NUXT_PUBLIC_TEST=`git rev-parse --short HEAD` nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
