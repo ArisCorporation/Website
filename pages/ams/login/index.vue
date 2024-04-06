@@ -2,15 +2,18 @@
 import type { FormSubmitEvent } from '#ui/types';
 import { object, string, type InferType } from 'yup';
 const { login } = useDirectusAuth();
-const { getFiles } = useDirectusFiles();
+const { readFiles } = useDirectusFiles();
 const error = ref();
+const devtools = ref(false);
 const router = useRouter();
 const route = useRoute();
 const { query } = route;
 const config = useRuntimeConfig();
-const redirectUri = ref(route.query.redirect ? decodeURIComponent(route.query.redirect.toString()) : '/ams');
+const redirectUri = ref(
+  route.query.redirect?.toString() ? decodeURIComponent(route.query.redirect.toString()) : '/ams',
+);
 
-const state = reactive({
+const state: { username: string; password: string } = reactive({
   username: '',
   password: '',
 });
@@ -23,49 +26,58 @@ const schema = object({
 
 type Schema = InferType<typeof schema>;
 
-const { data: wallpaperList } = await useAsyncData(
-  'wallpapers',
-  () =>
-    getFiles({
-      params: {
-        fields: ['id'],
-        filter: {
-          folder: { _eq: '3550a45d-ae4f-49bb-84bd-d4a438b9aaa6' },
-        },
-        limit: -1,
-      },
-    }),
-  {
-    transform: (data) => data.map((obj) => obj.id),
+const wallpaperListRes = await readFiles({
+  fields: ['id'],
+  filter: {
+    folder: { _eq: '55452a29-4311-4ac9-ab3f-cc8cc3a28395' },
   },
-);
+  limit: -1,
+});
+const wallpaperList = wallpaperListRes.map((item: any) => item.id);
+
 const selectedWallpaper = ref();
 const wallpaper = computed(
-  () => selectedWallpaper.value || wallpaperList.value[Math.floor(Math.random() * wallpaperList.value.length)],
+  () => selectedWallpaper.value || wallpaperList[Math.floor(Math.random() * wallpaperList.length)],
 );
 
 const onSubmit = async (event: FormSubmitEvent<Schema>) => {
   error.value = null;
+  // console.log('e');
+
   try {
-    await login({
-      email: event.data.username + (!event.data.username.includes('@') ? '@ariscorp.de' : ''),
-      password: event.data.password,
+    await $fetch(config.public.backendUrl + '/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: event.data.username + (!event.data.username.includes('@') ? '@ariscorp.de' : ''),
+        password: event.data.password,
+      }),
+      onResponseError({ response }) {
+        throw new Error(response.status + ': ' + response._data.errors[0].message.toString());
+      },
     });
+
+    await login(event.data.username + (!event.data.username.includes('@') ? '@ariscorp.de' : ''), event.data.password);
     router.push(redirectUri.value);
-  } catch (e) {
+  } catch ({ message }: any) {
     event.data.username = '';
     event.data.password = '';
-    console.error('There was an error:', e.message);
-    error.value = e.message.match('\: (.*)')[1];
-    if (error.value.startsWith('401') || error.value.startsWith('400')) {
+
+    const errorCode = message.split(': ')[0];
+    const errorMessage = message.split(': ')[1];
+    console.error('There was an error:', errorMessage);
+
+    if (errorCode === '401' || errorCode === '400') {
       form.value.setErrors([
         { path: 'username', message: 'Benutzername oder Passwort falsch!' },
         { path: 'password', message: 'Benutzername oder Passwort falsch!' },
       ]);
     } else {
       form.value.setErrors([
-        { path: 'username', message: 'Error: ' + e.message },
-        { path: 'password', message: 'Error: ' + e.message },
+        { path: 'username', errorMessage: 'Error: ' + errorMessage },
+        { path: 'password', errorMessage: 'Error: ' + errorMessage },
       ]);
     }
   }
@@ -85,10 +97,10 @@ const inputConfig = {
 
 if (query) {
   if (query.username) {
-    state.username = query.username.toString();
+    state.username = String(query.username);
   }
   if (query.password) {
-    state.password = query.password.toString();
+    state.password = String(query.password);
   }
 }
 
@@ -105,22 +117,25 @@ useSeoMeta({
   twitterCard: 'summary_large_image',
 });
 
+defineShortcuts({
+  dead: {
+    usingInput: true,
+    handler: () =>
+      (useCookie('ams_devtools').value = JSON.stringify(!JSON.parse(useCookie('ams_devtools').value ?? 'true'))),
+  },
+});
+
 useHead({
-  link: [{ rel: 'preload', href: config.public.fileBase + wallpaper.value }],
+  link: [{ rel: 'preload', href: config.public.fileBase + wallpaper?.value }],
   title: 'Log In - A.M.S. - Astro Research and Industrial Service Corporation',
 });
 
 definePageMeta({
   layout: false,
   middleware: async function (to, _from) {
-    const { fetchUser, setUser } = useDirectusAuth();
-    const user = useDirectusUser();
-    if (!user.value) {
-      const user = await fetchUser();
-      setUser(user.value);
-    }
+    const { user } = useDirectusAuth();
     if (user.value) {
-      return navigateTo(to.query.redirect ? decodeURIComponent(to.query.redirect) : '/ams');
+      return navigateTo(to.query.redirect ? decodeURIComponent(to.query.redirect as string) : '/ams');
     }
   },
 });
@@ -128,50 +143,47 @@ definePageMeta({
 
 <template>
   <div>
-    <DevOnly>
-      <div class="bg-black z-[99] pb-4 px-8 relative">
-        <h6>DEV TOOLS:</h6>
-        <code class="block pb-1">Form: {{ form }}</code>
-        <code class="block">State: {{ state }}</code>
-        <code class="block">
-          <button
-            @click="
-              async () => {
-                await login({
-                  email: 'dev@ariscorp.de',
-                  password: 'dev',
-                });
-                router.push(redirectUri);
-              }
-            "
-          >
-            Fast-Login
-          </button>
-        </code>
-        <code class="block">Background: {{ wallpaper }}</code>
-        <code class="block">Redirect: {{ route.query.redirect }}</code>
-        <code class="block"
-          >Select Background:
-          <div class="flex justify-between space-x-6">
-            <NuxtImg
-              v-for="item in wallpaperList"
-              :key="item"
-              :src="item"
-              class="aspect[16/9] min-w-0 flex-1 cursor-pointer object-cover"
-              :class="{ 'border-primary border-2': wallpaper === item }"
-              @click="() => (selectedWallpaper = item)"
-            />
-          </div>
-        </code>
-      </div>
-    </DevOnly>
+    <div v-if="JSON.parse(useCookie('ams_devtools').value ?? 'true')" class="bg-black z-[99] pb-4 px-8 relative">
+      <h6>DEV TOOLS:</h6>
+      <code class="block pb-1">Form: {{ form }}</code>
+      <code class="block">State: {{ state }}</code>
+      <code class="block">
+        <button
+          @click="
+            async () => {
+              await login('dev@ariscorp.de', 'dev');
+              router.push(redirectUri);
+            }
+          "
+        >
+          Fast-Login
+        </button>
+      </code>
+      <code class="block">Background: {{ wallpaper }}</code>
+      <code class="block">Redirect: {{ decodeURIComponent(String(route.query.redirect)) }}</code>
+      <code class="block"
+        >Select Background:
+        <div class="flex justify-between space-x-6">
+          <NuxtImg
+            v-for="item in wallpaperList"
+            @click="() => (selectedWallpaper = item)"
+            :key="item"
+            :src="item"
+            :placeholder="[16, 16, 1, 5]"
+            class="aspect[16/9] min-w-0 flex-1 cursor-pointer object-cover"
+            :class="{ 'border-primary border-2': wallpaper === item }"
+          />
+        </div>
+      </code>
+    </div>
     <div
       class="flex-wrap w-full max-h-screen min-h-screen px-4 mx-auto sm:flex bg-image"
       :style="{ backgroundImage: `url(${$config.public.fileBase + wallpaper})` }"
     >
       <NuxtImg
-        class="flex object-contain w-full mx-auto sm:absolute sm:top-0 h-fit sm:left-6 sm:w-80 sm:m-0"
         src="3090187e-6348-4290-a878-af1b2b48c114"
+        :placeholder="[16, 16, 1, 5]"
+        class="flex object-contain w-full mx-auto sm:absolute sm:top-0 h-fit sm:left-6 sm:w-80 sm:m-0"
       />
       <div
         class="relative flex w-full max-w-md px-4 pt-8 pb-10 mx-auto mt-12 sm:my-auto rounded-xl backdrop-blur-sm glass-bg"
