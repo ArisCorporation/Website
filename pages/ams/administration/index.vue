@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { number, object, string, type InferType, ValidationError } from 'yup';
 const { width } = useWindowSize();
-const { createUsers, updateUser, deleteUsers } = useDirectusUsers();
-const user = transformUser(useDirectusUser().value);
-const { token: userToken } = useDirectusToken();
+const { createUser, updateUser, deleteUsers } = useDirectusUsers();
+const user = transformUser(useDirectusAuth().user?.value);
 const config = useRuntimeConfig();
 const modalStore = useModalStore();
 const userTable = ref();
@@ -56,17 +55,14 @@ const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) =>
     if (userTable.value.items?.find((e: IRawUser) => e.email === userData.email)) {
       throw new Error('Es existiert bereits ein Benutzer mit dieser Vor- Nachnamen-Kombination.');
     }
-    const { data: newUser, error: createError } = await useAsyncData('create-user', () =>
-      createUsers({
-        users: userData,
-      }),
-    );
+    const newUser = await createUser(userData);
+    console.log(newUser);
 
     modalStore.closeSlide();
 
     await setTimeout(() => {
       userTable.value.refresh();
-      modalStore.setData(transformUser(newUser.value));
+      modalStore.setData(transformUser(newUser));
       modalStore.openModal('Benutzer erstellt.', {
         hideCloseButton: true,
         hideXButton: true,
@@ -95,9 +91,7 @@ const handleEdit = (user: IMember) => {
 };
 const handleDelete = async (users: IMember[]) => {
   try {
-    await deleteUsers({
-      users: users.value?.map((obj: IMember) => obj.id),
-    });
+    await deleteUsers(users?.map((obj: IMember) => obj.id));
   } catch (e) {
     console.error(e);
   } finally {
@@ -109,12 +103,7 @@ const handleLock = async (users: IMember[]) => {
   try {
     await Promise.all(
       users.value?.map(async (user: IMember) => {
-        await updateUser({
-          id: user.id,
-          user: {
-            status: 'suspended',
-          },
-        });
+        await updateUser(user.id, { status: 'suspended' }, {});
       }),
     );
   } catch (e) {
@@ -128,12 +117,7 @@ const handleUnlock = async (users: IMember[]) => {
   try {
     await Promise.all(
       users.value?.map(async (user: IMember) => {
-        await updateUser({
-          id: user.id,
-          user: {
-            status: 'active',
-          },
-        });
+        await updateUser(user.id, { status: 'active' }, {});
       }),
     );
   } catch (e) {
@@ -147,12 +131,7 @@ const handleArchive = async (users: IMember[]) => {
   try {
     await Promise.all(
       users.value?.map(async (user: IMember) => {
-        await updateUser({
-          id: user.id,
-          user: {
-            status: 'archived',
-          },
-        });
+        await updateUser(user.id, { status: 'archived' }, {});
       }),
     );
   } catch (e) {
@@ -231,7 +210,7 @@ const roleOptions = [
 
 if (user.position.permissionLevel >= 5) {
   roleOptions.push({
-    id: '767bb09e-a6fc-4ebb-8c5f-08b060ab0bdb',
+    id: 'bc712fc8-ce4f-4427-b431-4942eaaedaa6',
     position: 'Verwaltung + Administration',
     permissionLevel: 5,
   });
@@ -242,12 +221,7 @@ definePageMeta({
   middleware: [
     'auth',
     async function (to, from) {
-      const { fetchUser, setUser } = useDirectusAuth();
-      const user = transformUser(useDirectusUser().value);
-      if (!user) {
-        const user = await fetchUser();
-        setUser(user.value);
-      }
+      const user = transformUser(useDirectusAuth().user?.value);
       if (user.position.permissionLevel < 4) {
         return navigateTo({
           path: '/ams',
@@ -284,7 +258,7 @@ useHead({
             </tr>
             <tr class="border-aris-400">
               <td>Benutzername(login):</td>
-              <td>{{ modalStore.data?.arisEmail.replace('@ariscorp.de', '') }}</td>
+              <td>{{ modalStore.data?.login_email.replace('@ariscorp.de', '') }}</td>
             </tr>
             <tr class="border-aris-400">
               <td>Passwort:</td>
