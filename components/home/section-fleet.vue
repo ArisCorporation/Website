@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
+const userSettingsStore = useUserSettingsStore();
+const { userSettings } = storeToRefs(userSettingsStore);
 const homepageTabsStore = useHomepageTabsStore();
 const config = useRuntimeConfig();
 const toast = useToast();
@@ -30,7 +32,11 @@ const handleCopy = () => {
     </div>
     <TabGroup :store="homepageTabsStore.selectedOurFleetTab" :change="homepageTabsStore.setOurFleetTab" hide-hr>
       <template #tablist>
-        <HeadlessTab v-slot="{ selected }" as="template" class="flex justify-center w-full p-3 my-1 outline-none">
+        <HeadlessTab
+          v-slot="{ selected }"
+          as="template"
+          class="flex justify-center w-full p-3 my-1 outline-none animate-link"
+        >
           <div>
             <NuxtImg
               src="a3495a27-dc35-4ba9-a37b-a5752db473ee"
@@ -47,7 +53,7 @@ const handleCopy = () => {
             :key="department.id"
             v-slot="{ selected }"
             as="template"
-            class="p-3 m-1 outline-none"
+            class="p-3 m-1 outline-none animate-link"
           >
             <div>
               <NuxtImg
@@ -71,15 +77,47 @@ const handleCopy = () => {
               @click="handleCopy"
             />
           </h2>
+          <hr />
+          <div class="flex mb-3 ml-auto">
+            <ButtonDefault class="mx-auto sm:mr-0 sm:ml-auto" @click="userSettingsStore.AMSToggleFleetDetailView">
+              Detail Ansicht:
+              {{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
+            </ButtonDefault>
+          </div>
           <div class="flex flex-wrap">
-            <ShipCard
+            <!-- <ShipCard
               v-for="ship in data.fleetData"
               :key="ship.id"
               :ship-data="ship.ship"
               :hangar-data="ship"
               display-owner
               display-department
-            />
+            /> -->
+            <ClientOnly>
+              <TransitionGroup
+                appear
+                enter-active-class="transition-all duration-500"
+                leave-active-class="transition-all duration-500"
+                enter-from-class="-translate-y-4 opacity-0"
+                enter-to-class="translate-y-0 opacity-100"
+                leave-from-class="translate-y-0 opacity-100"
+                leave-to-class="-translate-y-4 opacity-0"
+              >
+                <ShipCard
+                  v-for="item in data.fleetData"
+                  :key="item.id"
+                  :ship-data="item.ship"
+                  :hangar-data="item"
+                  :detail-view="userSettings.ams.fleetDetailView"
+                  preload-images
+                  internal-bio
+                  display-department
+                  :display-name="item.userData.show_name"
+                  display-production-state
+                  display-owner
+                />
+              </TransitionGroup>
+            </ClientOnly>
           </div>
         </HeadlessTabPanel>
         <HeadlessTabPanel v-for="department in data.departmentData" :key="department.id" class="px-4">
@@ -92,8 +130,14 @@ const handleCopy = () => {
             />
           </h2>
           <hr />
+          <div class="flex mb-3 ml-auto">
+            <ButtonDefault class="mx-auto sm:mr-0 sm:ml-auto" @click="userSettingsStore.AMSToggleFleetDetailView">
+              Detail Ansicht:
+              {{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
+            </ButtonDefault>
+          </div>
           <div class="flex flex-wrap">
-            <ShipCard
+            <!-- <ShipCard
               v-for="ship in data.fleetData.filter((e: IHangarItem) => e.userData.department?.name === department.name)"
               :key="ship.id"
               :ship-data="ship.ship"
@@ -101,7 +145,34 @@ const handleCopy = () => {
               display-owner
               display-department
               :display-name="ship.userData.showName"
-            />
+            /> -->
+            <ClientOnly>
+              <TransitionGroup
+                appear
+                enter-active-class="transition-all duration-500"
+                leave-active-class="transition-all duration-500"
+                enter-from-class="-translate-y-4 opacity-0"
+                enter-to-class="translate-y-0 opacity-100"
+                leave-from-class="translate-y-0 opacity-100"
+                leave-to-class="-translate-y-4 opacity-0"
+              >
+                <ShipCard
+                  v-for="item in data.fleetData.filter(
+                    (e: IHangarItem) => e.userData.department?.name === department.name,
+                  )"
+                  :key="item.id"
+                  :ship-data="item.ship"
+                  :hangar-data="item"
+                  :detail-view="userSettings.ams.fleetDetailView"
+                  preload-images
+                  internal-bio
+                  display-department
+                  :display-name="item.userData.show_name"
+                  display-production-state
+                  display-owner
+                />
+              </TransitionGroup>
+            </ClientOnly>
             <h3
               v-if="!data.fleetData.filter((e: IHangarItem) => e.userData.department?.name === department.name)[0]"
               class="mx-auto"

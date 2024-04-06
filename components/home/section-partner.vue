@@ -20,17 +20,19 @@ defineProps({
           v-for="partner in data"
           :key="partner.id"
           :to="partner.website"
-          class="items-center m-2"
+          class="items-center m-2 bg-bprimary hover:brightness-85 rounded-xl"
           target="_blank"
         >
           <NuxtImg
             :src="partner.logo"
             :placeholder="[16, 16, 1, 5]"
             :alt="'Logo von dem Partner ' + partner.name"
-            class="mx-auto"
+            class="mx-auto animate-link"
             width="225"
           />
-          <h3 class="text-center uppercase text-secondary">{{ partner.name }}</h3>
+          <h3 class="text-center uppercase text-secondary animate-link">
+            {{ partner.name }}
+          </h3>
         </NuxtLink>
       </div>
     </div>

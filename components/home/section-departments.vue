@@ -1,12 +1,11 @@
-<script setup>
+<script setup lang="ts">
 const homepageTabsStore = useHomepageTabsStore();
 const props = defineProps({
   data: {
-    type: Array,
+    type: Array<any>,
     required: true,
   },
 });
-console.log(props.data);
 </script>
 <template>
   <TabGroup
@@ -22,7 +21,7 @@ console.log(props.data);
           :key="department.id"
           v-slot="{ selected }"
           as="template"
-          class="p-3 m-1 outline-none"
+          class="p-3 m-1 outline-none animate-link"
         >
           <div>
             <NuxtImg
@@ -43,22 +42,25 @@ console.log(props.data);
           <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
               <NuxtImg
-                :src="department.gallery[0]"
+                :src="department.gallery[0] || department.logo"
                 :placeholder="[16, 16, 1, 5]"
-                class="w-full aspect-[21/9] object-cover"
+                class="w-full aspect-[21/9]"
+                :class="department.gallery[0] ? 'object-cover' : 'object-contain'"
               />
             </DefaultPanel>
           </div>
           <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
             <DefaultPanel>
               <NuxtImg
-                :src="department.gallery[1]"
+                :src="department.gallery[1] || department.logo"
                 :placeholder="[16, 16, 1, 5]"
-                class="object-cover w-full aspect-[21/9]"
+                class="w-full aspect-[21/9]"
+                :class="department.gallery[1] ? 'object-cover' : 'object-contain'"
               />
             </DefaultPanel>
           </div>
         </div>
+        <div v-html="department.description" class="text-center" />
         <div class="mt-4 text-center" v-html="department.text" />
         <hr />
         <div class="justify-between w-full lg:flex">
