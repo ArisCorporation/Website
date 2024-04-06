@@ -6,8 +6,9 @@ const props = defineProps({
     default: null,
   },
   tablist: {
-    type: Array as PropType<ITab[]>,
-    required: true,
+    type: Array as PropType<ITab>,
+    required: false,
+    default: [],
   },
   between: {
     type: Boolean,
@@ -56,7 +57,7 @@ const changeTab = (index: number) => {
       <hr v-if="!hideHr" />
       <slot name="tablist">
         <div :class="{ 'justify-between': between }" class="flex flex-wrap w-full">
-          <HeadlessTab v-for="tab in tablist" :key="tab.header" class="m-1 sm:p-1 md:p-3 !outline-none">
+          <HeadlessTab v-for="tab in tablist" :key="tab.header" class="m-1 sm:p-1 md:p-3 !outline-none animate-link">
             <h1
               class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
               :class="{

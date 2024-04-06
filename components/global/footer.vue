@@ -1,15 +1,22 @@
-<script setup>
+<script setup lang="ts">
 const footerLang = useState('footerLang', () => 'de');
-const { readSingleton } = useDirectusItems();
+const { readAsyncSingleton } = useDirectusItems();
 
-const footerRes = await readSingleton('footer', {
-  fields: ['translations.languages_code', 'translations.content'],
-  status: { _eq: 'published' },
+const { data: footer } = await readAsyncSingleton('footer', {
+  query: {
+    fields: ['translations.languages_code', 'translations.content'],
+    status: { _eq: 'published' },
+  },
+  transform: (rawFooter: any) =>
+    rawFooter.translations.map((rawLanguage: any) => ({
+      code: rawLanguage.languages_code,
+      content: rawLanguage.content,
+    })),
 });
-const footer = computed(() => footerRes?.translations?.map((e) => ({ code: e.languages_code, content: e.content })));
+// const footer = computed(() => footerRes?.translations?.map((e) => ({ code: e.languages_code, content: e.content })));
 
-const de = footer.value?.find((e) => e.code === 'de-DE').content;
-const en = footer.value?.find((e) => e.code === 'en-EN').content;
+const de = footer.value?.find((e: any) => e.code === 'de-DE').content;
+const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
 </script>
 
 <template>
@@ -31,10 +38,10 @@ const en = footer.value?.find((e) => e.code === 'en-EN').content;
           <div class="">
             <template v-if="footer">
               <p v-if="footerLang == 'de'">
-                <NuxtMarkdown :source="de" />
+                <MDC :value="de" />
               </p>
               <p v-if="footerLang == 'en'">
-                <NuxtMarkdown :source="en" />
+                <MDC :value="en" />
               </p>
             </template>
             <template v-else>
@@ -42,12 +49,16 @@ const en = footer.value?.find((e) => e.code === 'en-EN').content;
               <p>ERROR: CANNOT LOAD DISCLAIMER...</p>
             </template>
           </div>
-          <p>
-            <span>&copy; ArisCorp - V{{ $config.public.appVersion }} - </span>
-            <span><NuxtLink to="/credits">Credits</NuxtLink> - </span>
-            <span><NuxtLink to="/bug-report">Bug-Report Tool</NuxtLink> - </span>
-            <span><NuxtLink to="/ams">A.M.S.</NuxtLink> - </span>
-            <span><NuxtLink target="_blank" to="https://releases.ariscorp.de">Release-Notes</NuxtLink></span>
+          <p class="*:after:content-['_-_'] *:after:text-tbase">
+            <span>&copy; ArisCorp - V{{ $config.public.appVersion }}</span>
+            <span><NuxtLink to="/credits" class="hover:brightness-85 animate-link">Credits</NuxtLink></span>
+            <span><NuxtLink to="/bug-report" class="hover:brightness-85 animate-link">Bug-Report Tool</NuxtLink></span>
+            <span><NuxtLink to="/ams" class="hover:brightness-85 animate-link">A.M.S.</NuxtLink></span>
+            <span class="after:!content-[]">
+              <NuxtLink target="_blank" to="https://releases.ariscorp.de" class="hover:brightness-85 animate-link">
+                Release-Notes
+              </NuxtLink>
+            </span>
           </p>
         </div>
         <div class="flex flex-col justify-between w-full xl:w-1/3">
@@ -95,6 +106,6 @@ const en = footer.value?.find((e) => e.code === 'en-EN').content;
 
 <style scoped lang="postcss">
 .footer-icon {
-  @apply w-16 h-16;
+  @apply w-16 h-16 animate-link;
 }
 </style>
