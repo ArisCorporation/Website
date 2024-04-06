@@ -83,7 +83,7 @@ useHead({
           <button
             v-for="tab in tabs"
             @click="changeTab(tab.id)"
-            class="w-16 h-16 mx-auto transition sm:w-24 sm:h-24 md:w-32 md:h-32"
+            class="w-16 h-16 mx-auto transition sm:w-24 sm:h-24 md:w-32 md:h-32 animate-link"
             :class="[selectedTab === tab.id ? 'opacity-100' : 'opacity-50 hover:opacity-100']"
           >
             <Icon :name="tab.icon" class="w-full h-full p-1" />
@@ -105,7 +105,7 @@ useHead({
                   @contextmenu.native="(e) => e.preventDefault()"
                   class="w-1/2 h-fit aspect-[637/160]"
                 />
-                <div class="relative w-full h-fit">
+                <div @contextmenu.native="(e) => e.preventDefault()" class="relative w-full h-fit">
                   <UPopover
                     v-for="system in systems.filter((e) => e.status === 'published')"
                     :popper="{ placement: 'right' }"
@@ -212,54 +212,63 @@ useHead({
                       src="fcbbe4f2-7bf2-49fc-828c-4037c47dafe3"
                       id="starmap-names-uee"
                       :placeholder="[16, 16, 1, 5]"
+                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
                     />
                     <NuxtImg
                       src="b25ab791-24ae-47f0-aecb-96e770d3235f"
                       id="starmap-names-banu"
                       :placeholder="[16, 16, 1, 5]"
+                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
                     />
                     <NuxtImg
                       src="7977fb47-9b37-4857-9f51-20d53680dfb5"
                       id="starmap-names-vanduul"
                       :placeholder="[16, 16, 1, 5]"
+                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
                     />
                     <NuxtImg
                       src="852522cb-8df8-4c22-801f-879b8424a5ef"
                       id="starmap-names-xian"
                       :placeholder="[16, 16, 1, 5]"
+                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
                     />
                     <NuxtImg
                       src="b9b06b08-d3a4-4a24-8056-3425f3c85379"
                       id="starmap-names-unclaimed"
                       :placeholder="[16, 16, 1, 5]"
+                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
                     />
                     <NuxtImg
                       src="90bab722-42a9-4a83-b453-1552e7abda5d"
                       id="starmap-names-development"
                       :placeholder="[16, 16, 1, 5]"
+                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
                     />
                     <NuxtImg
                       src="fc7bd959-b2ff-466e-8445-2948e84735f3"
                       id="starmap-jumppoints-small"
                       :placeholder="[16, 16, 1, 5]"
+                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
                     />
                     <NuxtImg
                       src="dd257e4a-36cd-4418-87d3-9465ab9c2f34"
                       id="starmap-jumppoints-medium"
                       :placeholder="[16, 16, 1, 5]"
+                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
                     />
                     <NuxtImg
                       src="053d9d72-7519-461e-8a55-971f84927fd4"
                       id="starmap-jumppoints-large"
                       :placeholder="[16, 16, 1, 5]"
+                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
                     />
                   </div>
