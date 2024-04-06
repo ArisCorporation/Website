@@ -1,91 +1,125 @@
 <script setup lang="ts">
-const { readSingleton, readItems } = useDirectusItems();
-const { readUsers } = useDirectusUsers();
+const { readAsyncSingleton, readAsyncItems } = useDirectusItems();
+const { readAsyncUsers } = useDirectusUsers();
 const { query } = useRoute();
 const homepageTabsStore = useHomepageTabsStore();
-const scrollMargin = ref('scroll-m-14');
+// const scrollMargin = ref('scroll-m-14');
+const scrollMargin = ref('scroll-m-0');
 
-const home_data = await readSingleton('home');
+const { data: home_data } = await readAsyncSingleton('home');
 
-const usersRes = await readUsers({
-  fields: ['id', 'title', 'first_name', 'last_name', 'slug', 'avatar', 'roles', 'head_of_department', 'role.*'],
-  filter: {
-    status: { _eq: 'active' },
+const { data: users } = await readAsyncUsers({
+  query: {
+    fields: [
+      'id',
+      'title',
+      'first_name',
+      'last_name',
+      'slug',
+      'avatar',
+      'roles',
+      'head_of_department',
+      'role.id',
+      'role.label',
+    ],
+    filter: {
+      status: { _eq: 'active' },
+    },
+    limit: -1,
+    sort: ['first_name'],
   },
-  limit: -1,
-  sort: ['first_name'],
+  transform: (rawUsers: IRawUser[]) => rawUsers.map((rawUser: IRawUser) => transformUser(rawUser)),
 });
-const users = computed(() => usersRes.map((user: IRawUser) => transformUser(user)));
+// const users = computed(() => usersRes.map((user: IRawUser) => transformUser(user)));
 
-const departmentsRes = await readItems('departments', {
-  fields: [
-    'id',
-    'name',
-    'logo',
-    'gallery.directus_files_id',
-    'description',
-    'employees.first_name',
-    'employees.last_name',
-    'employees.title',
-    'employees.slug',
-    'head_of_department.id',
-    'head_of_department.first_name',
-    'head_of_department.last_name',
-    'head_of_department.title',
-    'head_of_department.slug',
-    'head_of_department.avatar',
-  ],
-});
-const departments = computed(() => departmentsRes.map((department: any) => transformDepartment(department)));
-
-const userHangarsRes = await readItems('user_hangars', {
-  fields: [
-    'id',
-    'name',
-    'name_public',
-    'user_id.first_name',
-    'user_id.last_name',
-    'user_id.title',
-    'user_id.slug',
-    'ship_id.name',
-    'ship_id.slug',
-    'ship_id.storeImage',
-    'ship_id.manufacturer.name',
-    'ship_id.manufacturer.slug',
-    'department.name',
-    'department.logo',
-  ],
-  filter: {
-    visibility: { _eq: 'public' },
-    group: { _eq: 'ariscorp' },
-    planned: { _eq: false },
+const { data: departments } = await readAsyncItems('departments', {
+  query: {
+    fields: [
+      'id',
+      'name',
+      'logo',
+      'gallery.directus_files_id',
+      'description',
+      'employees.first_name',
+      'employees.last_name',
+      'employees.title',
+      'employees.slug',
+      'head_of_department.id',
+      'head_of_department.first_name',
+      'head_of_department.last_name',
+      'head_of_department.title',
+      'head_of_department.slug',
+      'head_of_department.avatar',
+    ],
   },
-  sort: ['ship_id.name'],
-  limit: -1,
+  transform: (rawDepartments: any[]) => rawDepartments.map((rawDepartment: any) => transformDepartment(rawDepartment)),
 });
-const userHangars = computed(() => userHangarsRes.map((hangar: any) => transformHangarItem(hangar)));
+// const departments = computed(() => departmentsRes.map((department: any) => transformDepartment(department)));
 
-const commLinksRes = await readItems('comm_links', {
-  fields: ['id', 'title', 'banner', 'description', 'channel.name', 'channel.description', 'date_created'],
-  filter: {
-    status: { _eq: 'published' },
+const { data: userHangars } = await readAsyncItems('user_hangars', {
+  query: {
+    fields: [
+      'id',
+      'name',
+      'name_public',
+      'user_id.first_name',
+      'user_id.last_name',
+      'user_id.title',
+      'user_id.slug',
+      'ship_id.name',
+      'ship_id.slug',
+      'ship_id.store_image',
+      'ship_id.manufacturer.name',
+      'ship_id.manufacturer.slug',
+      'department.name',
+      'department.logo',
+    ],
+    filter: {
+      visibility: { _eq: 'public' },
+      group: { _eq: 'ariscorp' },
+      planned: { _eq: false },
+    },
+    sort: ['ship_id.name'],
+    limit: -1,
   },
-  sort: ['-date_created'],
-  limit: 4,
+  transform: (rawHangars: any[]) => rawHangars.map((rawHangar: any) => transformHangarItem(rawHangar)),
 });
-const commLinks = computed(() => commLinksRes.map((link: any) => transformCommLink(link)));
+// const userHangars = computed(() => userHangarsRes.map((hangar: any) => transformHangarItem(hangar)));
 
-const partnersRes = await readItems('partners', {
-  fields: ['logo', 'name', 'url'],
-  filter: {
-    status: { _eq: 'published' },
+const { data: commLinks } = await readAsyncItems('comm_links', {
+  query: {
+    fields: ['id', 'title', 'banner', 'description', 'channel.name', 'channel.description', 'date_created'],
+    filter: {
+      status: { _eq: 'published' },
+    },
+    sort: ['-date_created'],
+    limit: 4,
   },
-  sort: ['name'],
-  limit: -1,
+  transform: (rawCommLinks: any[]) => rawCommLinks.map((rawCommLink: any) => transformCommLink(rawCommLink)),
 });
-const partners = computed(() => partnersRes.map((partner: any) => transformPartner(partner)));
+// const commLinks = computed(() => commLinksRes.map((link: any) => transformCommLink(link)));
 
-if (!home_data || !users || !departments || !userHangars || !commLinks || !partners) {
+const { data: partners } = await readAsyncItems('partners', {
+  query: {
+    fields: ['logo', 'name', 'url'],
+    filter: {
+      status: { _eq: 'published' },
+    },
+    sort: ['name'],
+    limit: -1,
+  },
+  transform: (rawPartners: any[]) => rawPartners.map((rawPartner: any) => transformPartner(rawPartner)),
+});
+// const partners = computed(() => partnersRes.map((partner: any) => transformPartner(partner)));
+
+if (
+  !home_data.value ||
+  !users.value ||
+  !departments.value ||
+  !userHangars.value ||
+  !commLinks.value ||
+  !partners.value
+) {
   throw createError({
     statusCode: 500,
     statusMessage: 'Es können bestimmte Daten nicht abgerufen werden!',
@@ -96,21 +130,22 @@ if (!home_data || !users || !departments || !userHangars || !commLinks || !partn
 const aristabs = [
   {
     header: 'Die ArisCorp',
-    content: home_data?.ariscorp_description,
+    content: home_data.value?.ariscorp_description,
   },
   {
     header: 'Geschichte',
-    content: home_data?.ariscorp_history,
+    content: home_data.value?.ariscorp_history,
   },
   {
     header: 'Manifest',
-    content: home_data?.ariscorp_manifest,
+    content: home_data.value?.ariscorp_manifest,
   },
   {
     header: 'Charter',
-    content: home_data?.ariscorp_charta,
+    content: home_data.value?.ariscorp_charta,
   },
 ];
+
 const ourtabs = [
   {
     header: 'Mitarbeiter',
