@@ -120,8 +120,7 @@ useSeoMeta({
 defineShortcuts({
   dead: {
     usingInput: true,
-    handler: () =>
-      (useCookie('ams_devtools').value = JSON.stringify(!JSON.parse(useCookie('ams_devtools').value ?? 'true'))),
+    handler: () => (useCookie('devtools').value = JSON.stringify(!JSON.parse(useCookie('devtools').value ?? 'false'))),
   },
 });
 
@@ -143,7 +142,7 @@ definePageMeta({
 
 <template>
   <div>
-    <div v-if="JSON.parse(useCookie('ams_devtools').value ?? 'true')" class="bg-black z-[99] pb-4 px-8 relative">
+    <div v-if="JSON.parse(useCookie('devtools').value ?? 'false')" class="bg-black z-[99] pb-4 px-8 relative">
       <h6>DEV TOOLS:</h6>
       <code class="block pb-1">Form: {{ form }}</code>
       <code class="block">State: {{ state }}</code>

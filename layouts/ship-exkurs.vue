@@ -17,7 +17,7 @@ const sidebarItems = [
 defineShortcuts({
   dead: {
     usingInput: true,
-    handler: () => (useCookie('devtools').value = JSON.stringify(!JSON.parse(useCookie('devtools').value ?? 'true'))),
+    handler: () => (useCookie('devtools').value = JSON.stringify(!JSON.parse(useCookie('devtools').value ?? 'false'))),
   },
 });
 
@@ -67,18 +67,18 @@ useHead({
     <div class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen">
       <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
       <DevOnly>
-        <div class="bg-black z-[99] pb-4 px-8" v-if="JSON.parse(useCookie('devtools').value ?? 'true')">
+        <div class="bg-black z-[99] pb-4 px-8" v-if="JSON.parse(useCookie('devtools').value ?? 'false')">
           <h6>DEV TOOLS:</h6>
           <code class="block pb-2">User: {{ user }}</code>
         </div>
         <ButtonDefault
           class="w-fit"
-          @click="useCookie('devtools').value = JSON.stringify(!JSON.parse(useCookie('devtools').value ?? 'true'))"
+          @click="useCookie('devtools').value = JSON.stringify(!JSON.parse(useCookie('devtools').value ?? 'false'))"
         >
           <Icon
             name="mdi-light:console"
             class="w-6 h-6"
-            :class="{ 'text-primary': JSON.parse(useCookie('devtools').value ?? 'true') }"
+            :class="{ 'text-primary': JSON.parse(useCookie('devtools').value ?? 'false') }"
           />
         </ButtonDefault>
       </DevOnly>
