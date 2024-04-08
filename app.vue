@@ -172,6 +172,10 @@ useHead({
   ],
 });
 
+if (!useCookie('devtools').value) {
+  useCookie('devtools').value = 'false';
+}
+
 onMounted(() => {
   if (config.public.environment !== 'development') {
     window.alert(
