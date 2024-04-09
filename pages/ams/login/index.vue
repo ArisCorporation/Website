@@ -61,12 +61,13 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
 
     await login(event.data.username + (!event.data.username.includes('@') ? '@ariscorp.de' : ''), event.data.password);
     router.push(redirectUri.value);
-  } catch ({ message }: any) {
+  } catch (error: any) {
     event.data.username = '';
     event.data.password = '';
 
-    const errorCode = message.split(': ')[0];
-    const errorMessage = message.split(': ')[1];
+    const errorCode = error?.message?.split(': ')[0];
+    const errorMessage = error?.message?.split(': ')[1];
+    console.error('There was an error:', error);
     console.error('There was an error:', errorMessage);
 
     if (errorCode === '401' || errorCode === '400') {
@@ -124,8 +125,14 @@ defineShortcuts({
   },
 });
 
+const img = useImage();
+const wallpaperBgStyle = computed(() => {
+  const imgUrl = img(wallpaper?.value);
+  return { backgroundImage: `url('${imgUrl}')` };
+});
+
 useHead({
-  link: [{ rel: 'preload', href: config.public.fileBase + wallpaper?.value }],
+  // link: [{ rel: 'preload', href: config.public.fileBase + wallpaper?.value }],
   title: 'Log In - A.M.S. - Astro Research and Industrial Service Corporation',
 });
 
@@ -175,10 +182,7 @@ definePageMeta({
         </div>
       </code>
     </div>
-    <div
-      class="flex-wrap w-full max-h-screen min-h-screen px-4 mx-auto sm:flex bg-image"
-      :style="{ backgroundImage: `url(${$config.public.fileBase + wallpaper})` }"
-    >
+    <div class="flex-wrap w-full max-h-screen min-h-screen px-4 mx-auto sm:flex bg-image" :style="wallpaperBgStyle">
       <NuxtImg
         src="3090187e-6348-4290-a878-af1b2b48c114"
         :placeholder="[16, 16, 1, 5]"
