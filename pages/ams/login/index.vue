@@ -41,6 +41,18 @@ const wallpaper = computed(
 );
 
 const onSubmit = async (event: FormSubmitEvent<Schema>) => {
+  try {
+    await login(event.data.username + '@ariscorp.de', event.data.password);
+  } catch (e) {
+    console.error('There was an error:', e);
+    form.value.setErrors([
+      { path: 'username', message: 'Benutzername oder Passwort falsch!' },
+      { path: 'password', message: 'Benutzername oder Passwort falsch!' },
+    ]);
+  }
+};
+
+const onSubmitOld = async (event: FormSubmitEvent<Schema>) => {
   error.value = null;
   // console.log('e');
 
