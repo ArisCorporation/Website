@@ -55,7 +55,7 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
         password: event.data.password,
       }),
       onResponseError({ response }) {
-        throw new Error(response.status + ': ' + response._data.errors[0].message.toString());
+        throw new Error(response.status + ': ' + response._data);
       },
     });
 
@@ -65,22 +65,27 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
     event.data.username = '';
     event.data.password = '';
 
-    const errorCode = error?.message?.split(': ')[0];
+    // const errorCode = error?.message?.split(': ')[0];
     const errorMessage = error?.message?.split(': ')[1];
     console.error('There was an error:', error);
     console.error('There was an error:', errorMessage);
 
-    if (errorCode === '401' || errorCode === '400') {
-      form.value.setErrors([
-        { path: 'username', message: 'Benutzername oder Passwort falsch!' },
-        { path: 'password', message: 'Benutzername oder Passwort falsch!' },
-      ]);
-    } else {
-      form.value.setErrors([
-        { path: 'username', errorMessage: 'Error: ' + errorMessage },
-        { path: 'password', errorMessage: 'Error: ' + errorMessage },
-      ]);
-    }
+    form.value.setErrors([
+      { path: 'username', message: 'Benutzername oder Passwort falsch!' },
+      { path: 'password', message: 'Benutzername oder Passwort falsch!' },
+    ]);
+
+    // if (errorCode === '401' || errorCode === '400') {
+    //   form.value.setErrors([
+    //     { path: 'username', message: 'Benutzername oder Passwort falsch!' },
+    //     { path: 'password', message: 'Benutzername oder Passwort falsch!' },
+    //   ]);
+    // } else {
+    //   form.value.setErrors([
+    //     { path: 'username', errorMessage: 'Error: ' + errorMessage },
+    //     { path: 'password', errorMessage: 'Error: ' + errorMessage },
+    //   ]);
+    // }
   }
 };
 
