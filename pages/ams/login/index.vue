@@ -45,7 +45,11 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
   // console.log('e');
 
   try {
-    await $fetch(config.public.backendUrl + '/auth/login', {
+    console.info({
+      email: event.data.username + (!event.data.username.includes('@') ? '@ariscorp.de' : ''),
+      password: event.data.password,
+    });
+    await $fetch(config.public.directus.url + '/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -138,6 +142,7 @@ const wallpaperBgStyle = computed(() => {
 
 useHead({
   // link: [{ rel: 'preload', href: config.public.fileBase + wallpaper?.value }],
+  link: [{ rel: 'preload', href: img(wallpaper?.value) }],
   title: 'Log In - A.M.S. - Astro Research and Industrial Service Corporation',
 });
 
