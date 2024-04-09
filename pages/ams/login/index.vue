@@ -43,12 +43,17 @@ const wallpaper = computed(
 const onSubmit = async (event: FormSubmitEvent<Schema>) => {
   try {
     await login(event.data.username + '@ariscorp.de', event.data.password);
+    router.push(redirectUri.value);
   } catch (e) {
     console.error('There was an error:', e);
+
     form.value.setErrors([
       { path: 'username', message: 'Benutzername oder Passwort falsch!' },
       { path: 'password', message: 'Benutzername oder Passwort falsch!' },
     ]);
+
+    event.data.username = '';
+    event.data.password = '';
   }
 };
 
