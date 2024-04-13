@@ -70,7 +70,7 @@ function fullscreen_toggle() {
 
   fullscreen_state.value = !fullscreen_state.value;
 }
-
+// base: 'max-h-[calc(100dvh_-_300px)] sm:max-h-[calc(100dvh_-_250px)] xl:max-h-[calc(100dvh_-_200px)] overflow-y-scroll',
 onBeforeUnmount(() => {
   unref(editor).destroy();
 });
@@ -83,7 +83,7 @@ onBeforeUnmount(() => {
         :ui="{
           header: { background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
           body: {
-            base: 'max-h-[calc(100dvh_-_300px)] sm:max-h-[calc(100dvh_-_250px)] xl:max-h-[calc(100dvh_-_200px)] overflow-y-scroll',
+            base: 'max-h-[calc(100dvh_-_275px)] sm:max-h-[calc(100dvh_-_229px)] xl:max-h-[calc(100dvh_-_182px)] overflow-y-scroll',
           },
         }"
         class="overflow-clip"
