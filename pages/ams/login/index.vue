@@ -41,6 +41,7 @@ const wallpaper = computed(
 );
 
 const onSubmit = async (event: FormSubmitEvent<Schema>) => {
+  // TODO: Add complex error handling
   try {
     await login(event.data.username + '@ariscorp.de', event.data.password);
     router.push(redirectUri.value);

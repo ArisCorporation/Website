@@ -81,7 +81,7 @@ const changeTab = (index: number) => {
           class="w-full p-4 mx-auto xl:max-w-full"
           :class="{ 'prose max-w-none prose-invert': !tab.component }"
         >
-          <ContentRenderer v-if="markdown" :value="tab.content" />
+          <div v-if="markdown" :value="tab.content" />
           <div v-else-if="tab.content" class="text-center" v-html="tab.content" />
           <component :is="tab.component" v-else-if="tab.component" :data="tab.componentData" />
         </HeadlessTabPanel>
