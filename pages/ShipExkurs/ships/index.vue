@@ -2,6 +2,7 @@
 const { readAsyncItems } = useDirectusItems();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
+const { query } = useRoute();
 
 const hideShips = ref(false);
 // const hiddenShips = computed(() => hideShips.value || countPending.value || shipsPending.value);
@@ -88,6 +89,12 @@ defineShortcuts({
     },
   },
 });
+
+if (query) {
+  if (query.s) {
+    search.value = query.s.toString();
+  }
+}
 
 definePageMeta({
   layout: 'ship-exkurs',

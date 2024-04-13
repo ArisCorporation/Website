@@ -99,6 +99,10 @@ const tablist = computed(() => [
   ...(data.value.rating ? [{ id: '5', header: 'Wertung' }] : []),
 ]);
 
+const commercial_poster_url = computed(
+  () => `https://img.youtube.com/vi/${data.value.commercial_video_id}/maxresdefault.jpg`,
+);
+
 const {
   playing: commercial_playing,
   currentTime: commercial_current_time,
@@ -124,6 +128,64 @@ watch(commercial_playing, async () => {
   await setTimeout(() => {
     commercial_show_playing_overlay.value = false;
   }, 400);
+});
+
+defineShortcuts({
+  k: {
+    handler: () => {
+      commercial_playing.value = !commercial_playing.value;
+    },
+  },
+  j: {
+    handler: () => {
+      commercial_current_time.value -= 5;
+    },
+  },
+  l: {
+    handler: () => {
+      commercial_current_time.value += 5;
+    },
+  },
+  arrowleft: {
+    handler: () => {
+      commercial_current_time.value -= 5;
+    },
+  },
+  arrowright: {
+    handler: () => {
+      commercial_current_time.value += 5;
+    },
+  },
+  m: {
+    handler: () => {
+      commercial_muted.value = !commercial_muted.value;
+    },
+  },
+  ',': {
+    handler: () => {
+      commercial_volume.value = Math.max(0, Math.min(commercial_volume.value - 0.1, 1));
+    },
+  },
+  '.': {
+    handler: () => {
+      commercial_volume.value = Math.max(0, Math.min(commercial_volume.value + 0.1, 1));
+    },
+  },
+  arrowdown: {
+    handler: () => {
+      commercial_volume.value = Math.max(0, Math.min(commercial_volume.value - 0.1, 1));
+    },
+  },
+  arrowup: {
+    handler: () => {
+      commercial_volume.value = Math.max(0, Math.min(commercial_volume.value + 0.1, 1));
+    },
+  },
+  f: {
+    handler: () => {
+      commercial_fullscreen_toggle();
+    },
+  },
 });
 
 definePageMeta({
@@ -333,9 +395,13 @@ useHead({
                   </div>
                   <video
                     ref="commercial_video"
-                    :poster="`https://img.youtube.com/vi/${data.commercial_video_id}/maxresdefault.jpg`"
-                    class="object-cover w-full h-full"
-                    :class="[commercial_fullscreen_state ? 'max-h-[calc(100vh-82px)]' : 'max-h-[calc(100vh-8rem)]']"
+                    :poster="commercial_poster_url"
+                    class="w-full"
+                    :class="[
+                      commercial_fullscreen_state
+                        ? 'h-screen max-h-[calc(100vh-82px)]'
+                        : 'h-fit max-h-[calc(100vh-8rem)]',
+                    ]"
                     :style="{
                       aspectRatio: `${commercial_video?.videoWidth} / ${commercial_video?.videoHeight}`,
                     }"
@@ -428,3 +494,9 @@ useHead({
     </TabGroup>
   </div>
 </template>
+
+<style scoped>
+video[poster] {
+  object-fit: cover;
+}
+</style>

@@ -1009,7 +1009,7 @@ useHead({
                   color="success"
                   :disabled="!dataChanged"
                 >
-                  Speicherns
+                  Speichern
                 </ButtonDefault>
               </div>
             </template>

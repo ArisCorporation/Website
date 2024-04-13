@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import VueCropper from 'vue-cropperjs';
+import 'cropperjs/dist/cropper.css';
+
 const { readAsyncItem, readAsyncItems } = useDirectusItems();
+const modalStore = useModalStore();
 const route = useRoute();
 const user = transformUser(await useDirectusAuth().readMe());
 console.log(user);
@@ -69,21 +73,48 @@ const links = [
   ],
 ];
 
+// function setCropperImage(e: any) {
+//   const file = e.target.files[0];
+//   if (typeof FileReader === 'function') {
+//     const res = readAsDataURL(file);
+//     res.then((res: any) => {
+//       // const originImage = new Image();
+//       // originImage.src = res;
+//       // this.selectedFile = originImage.outerHTML;
+//       cropperFile.value = res;
+//       // this.$refs.cropper.replace(this.selectedFile);
+//     });
+//   } else {
+//     console.error('Sorry, FileReader API not supported');
+//   }
+// }
+
+const cropper = ref();
+
 function setCropperImage(e: any) {
   const file = e.target.files[0];
+  console.log(cropper);
+
+  if (file.type.indexOf('image/') === -1) {
+    alert('Please select an valid image file');
+    return;
+  }
+
   if (typeof FileReader === 'function') {
-    const res = readAsDataURL(file);
-    res.then((res: any) => {
-      // const originImage = new Image();
-      // originImage.src = res;
-      // this.selectedFile = originImage.outerHTML;
-      cropperFile.value = res;
-      // this.$refs.cropper.replace(this.selectedFile);
-    });
+    modalStore.openModal('Avatar ändern', { type: 'avatar-cropper', hideCloseButton: true });
+    const reader = new FileReader();
+
+    reader.onload = (event: any) => {
+      cropper.value.replace(event.target.result);
+    };
+
+    reader.readAsDataURL(file);
   } else {
-    console.error('Sorry, FileReader API not supported');
+    alert('Sorry, FileReader API not supported');
   }
 }
+
+async function saveAvatar() {}
 
 function readAsDataURL(file: any) {
   return new Promise((resolve, reject) => {
@@ -104,7 +135,44 @@ definePageMeta({
 
 <template>
   <NuxtLayout name="ams">
-    <template #modalContent> </template>
+    <template #modalContent>
+      <template v-if="modalStore.type === 'avatar-cropper'">
+        <div>
+          <div class="divide-y-2 divide-btertiary">
+            <!-- <UCard> -->
+            <div class="pb-4">
+              <DefaultPanel class="mx-auto w-fit">
+                <VueCropper
+                  ref="cropper"
+                  class="overflow-hidden aspect-[270/320] w-[270px] h-[320px]"
+                  :src="$config.public.fileBase + 'fb3b70b1-fce4-4131-bed7-11ed9c08c4d1'"
+                  :aspect-ratio="270 / 320"
+                  :toggle-drag-mode-on-dblclick="false"
+                  drag-mode="move"
+                  :highlight="false"
+                  :min-crop-box-width="270"
+                  :min-crop-box-height="320"
+                  :min-container-width="270"
+                  :min-container-height="320"
+                  :check-orientation="false"
+                  :crop-box-resizable="false"
+                >
+                </VueCropper>
+              </DefaultPanel>
+            </div>
+            <!-- <template #footer> -->
+            <div class="flex flex-wrap justify-center w-full pt-4 my-auto gap-x-[5.5rem]">
+              <ButtonDefault type="button" @click="modalStore.closeModal" class="w-1/3" color="danger">
+                Schließen
+              </ButtonDefault>
+              <ButtonDefault @click="saveAvatar" class="w-1/3" color="success"> Speichern </ButtonDefault>
+            </div>
+            <!-- </template> -->
+            <!-- </UCard> -->
+          </div>
+        </div>
+      </template>
+    </template>
     <div class="flex flex-col w-full divide-y divide-bsecondary">
       <!-- <div class="h-20">
       <p>Profil</p>
