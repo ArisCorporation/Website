@@ -77,6 +77,7 @@ export default defineNuxtConfig({
   },
 
   directus: {
+    url: process.env.NUXT_DIRECTUS_URL,
     authConfig: {
       refreshTokenCookieName: 'ams_refresh_token',
     },
