@@ -43,7 +43,7 @@ export default defineNuxtConfig({
     cmsToken: process.env.NUXT_CMS_TOKEN,
     public: {
       appVersion: version,
-      buildNumber: process.env.NUXT_PUBLIC_BUILD_NUMBER,
+      buildNumber: process.env.COMMIT_REF || process.env.NUXT_PUBLIC_BUILD_NUMBER,
       environment: process.env.NUXT_PUBLIC_ENV || process.env.NODE_ENV,
       url: process.env.NUXT_PUBLIC_URL,
       backendUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL,
