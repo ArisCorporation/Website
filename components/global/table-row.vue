@@ -5,7 +5,7 @@ defineProps({
     required: true,
   },
   content: {
-    type: String,
+    type: String || Number || Boolean,
     required: false,
     default: null,
   },
