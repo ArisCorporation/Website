@@ -20,6 +20,9 @@ export default defineNuxtPlugin((nuxtApp) => {
         maskAllText: false,
         blockAllMedia: false,
       }),
+      Sentry.feedbackIntegration({
+        colorScheme: 'system',
+      }),
     ],
 
     // Configure this whole part as you need it!
