@@ -73,7 +73,7 @@ export default defineNuxtConfig({
     plugins: [
       // Put the Sentry vite plugin after all other plugins
       sentryVitePlugin({
-        authToken: process.env.NUXT_SENTRY_AUTH_TOKEN,
+        authToken: process.env.SENTRY_AUTH_TOKEN,
         org: 'ariscorp',
         project: 'homepage',
       }),
