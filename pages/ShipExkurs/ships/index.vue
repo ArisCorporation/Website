@@ -2,12 +2,10 @@
 const { readAsyncItems } = useDirectusItems();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
-const { query } = useRoute();
 
 const hideShips = ref(false);
-// const hiddenShips = computed(() => hideShips.value || countPending.value || shipsPending.value);
 const search = ref('');
-const search_input = ref();
+const searchInput = ref();
 
 const debounceSearch = useDebounce(() => {
   hideShips.value = false;
@@ -20,14 +18,12 @@ function handleSearch() {
   debounceSearch();
 }
 
-// Data - Pagination
 const page = ref(1);
 const pageCount = ref(12);
 const pageTotal = ref(0);
 const pageFrom = computed(() => (page.value - 1) * pageCount.value + 1);
 const pageTo = computed(() => Math.min(page.value * pageCount.value, pageTotal.value));
 
-// Data Fetching
 const filter = computed(() => ({
   ...(search.value && {
     _or: [
@@ -39,11 +35,7 @@ const filter = computed(() => ({
   }),
 }));
 
-const {
-  data: count,
-  pending: countPending,
-  refresh: refreshCount,
-} = await readAsyncItems('ships', {
+const { data: count, pending: countPending } = await readAsyncItems('ships', {
   query: {
     limit: -1,
     fields: ['id'],
@@ -56,45 +48,33 @@ watch(
   [count],
   () => {
     if (count.value) {
-      pageTotal.value = count.value?.length;
+      pageTotal.value = count.value.length;
     }
   },
   { immediate: true },
 );
 
-const {
-  data: ships,
-  pending: shipsPending,
-  refresh: refreshShips,
-} = await readAsyncItems('ships', {
+const { data: ships, pending: shipsPending } = await readAsyncItems('ships', {
   query: {
     fields: ['id', 'name', 'slug', 'store_image', 'production_status', 'manufacturer.name', 'manufacturer.slug'],
     sort: ['name'],
     limit: pageCount,
-    page: page,
+    page,
     filter,
   },
   watch: [count],
   transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)),
 });
 
-watch([ships], () => {
-  console.log(ships.value);
-});
+useSearchQuery(search);
 
 defineShortcuts({
   s: {
     handler: () => {
-      search_input.value?.input.focus();
+      searchInput.value?.input.focus();
     },
   },
 });
-
-if (query) {
-  if (query.s) {
-    search.value = query.s.toString();
-  }
-}
 
 definePageMeta({
   layout: 'ship-exkurs',
@@ -111,19 +91,19 @@ useHead({
       <div class="flex flex-wrap justify-center mb-6 h-fit basis-full">
         <UFormGroup size="xl" class="w-full lg:w-[512px] mx-auto 2xl:mx-auto" label="Suchen">
           <UInput
-            size="2xl"
+            ref="searchInput"
             v-model="search"
-            ref="search_input"
-            @input="handleSearch"
+            size="2xl"
             class="my-auto"
             icon="i-heroicons-magnifying-glass-20-solid"
             placeholder="Modell, Hersteller..."
+            @input="handleSearch"
           />
           <button
             v-if="search !== ''"
-            @click="(search = '') + handleSearch()"
             type="button"
             class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+            @click="(search = '') + handleSearch()"
           >
             <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
           </button>
@@ -159,8 +139,8 @@ useHead({
           leave-to-class="opacity-0 -translate-y-0"
         >
           <ShipCard
-            v-if="!hideShips && !countPending && !shipsPending"
             v-for="item in ships"
+            v-if="!hideShips && !countPending && !shipsPending"
             :key="item.id"
             :ship-data="item"
             :detail-view="userSettings.se.shipDetailView"
