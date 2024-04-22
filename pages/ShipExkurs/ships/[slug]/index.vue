@@ -70,7 +70,8 @@ if (!data.value) {
 
 const handleShare = () => {
   try {
-    if (!clipboardIsSupported || !location?.href) throw 0;
+    if (!clipboardIsSupported || !location?.href)
+      throw new Error('clipboard is not supported or location.href is not set');
     copy(location.href);
     toast.add({ title: 'URL in Zwischenablage kopiert!' });
   } catch {
@@ -487,8 +488,8 @@ useHead({
   </div>
 </template>
 
-<style scoped>
+<!-- <style scoped>
 video[poster] {
   object-fit: cover;
 }
-</style>
+</style> -->
