@@ -6,7 +6,7 @@ const homepageTabsStore = useHomepageTabsStore();
 // const scrollMargin = ref('scroll-m-14');
 const scrollMargin = ref('scroll-m-0');
 
-const { data: home_data } = await readAsyncSingleton('home');
+const { data: homeData } = await readAsyncSingleton('home');
 
 const { data: users } = await readAsyncUsers({
   query: {
@@ -113,7 +113,7 @@ const { data: partners } = await readAsyncItems('partners', {
 // const partners = computed(() => partnersRes.map((partner: any) => transformPartner(partner)));
 
 if (
-  !home_data.value ||
+  !homeData.value ||
   !users.value ||
   !departments.value ||
   !userHangars.value ||
@@ -127,26 +127,26 @@ if (
   });
 }
 
-const aristabs = [
+const aristabs: ITab[] = [
   {
     header: 'Die ArisCorp',
-    content: home_data.value?.ariscorp_description,
+    content: homeData.value?.ariscorp_description,
   },
   {
     header: 'Geschichte',
-    content: home_data.value?.ariscorp_history,
+    content: homeData.value?.ariscorp_history,
   },
   {
     header: 'Manifest',
-    content: home_data.value?.ariscorp_manifest,
+    content: homeData.value?.ariscorp_manifest,
   },
   {
     header: 'Charter',
-    content: home_data.value?.ariscorp_charta,
+    content: homeData.value?.ariscorp_charta,
   },
 ];
 
-const ourtabs = [
+const ourtabs: ITab[] = [
   {
     header: 'Mitarbeiter',
     component: 'HomeSectionMembers',
@@ -204,13 +204,13 @@ definePageMeta({
       id="our"
       :class="scrollMargin"
       :store="homepageTabsStore.selectedOurTab"
-      :change="homepageTabsStore.setOurTab"
+      :change="(e) => homepageTabsStore.setOurTab(e)"
       :tablist="ourtabs"
       title="unsere"
       between
     />
     <HomeSectionCommLink id="comm-link" :class="scrollMargin" :data="commLinks" />
-    <HomeSectionRecruitment id="recruitment" :class="scrollMargin" :data="{ dcLink: home_data.discord_link }" />
+    <HomeSectionRecruitment id="recruitment" :class="scrollMargin" :data="{ dcLink: homeData.discord_link }" />
     <HomeSectionPartner id="partners" :class="scrollMargin" :data="partners" />
   </div>
 </template>
