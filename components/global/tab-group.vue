@@ -6,7 +6,7 @@ const props = defineProps({
     default: null,
   },
   tablist: {
-    type: Array as PropType<ITab>,
+    type: Array<ITab>,
     required: false,
     default: [],
   },
