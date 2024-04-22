@@ -1,22 +1,22 @@
 <script setup lang="ts">
 const footerLang = useState('footerLang', () => 'de');
-// const { readAsyncSingleton } = useDirectusItems();
+const { readAsyncSingleton } = useDirectusItems();
 
-// const { data: footer } = await readAsyncSingleton('footer', {
-//   query: {
-//     fields: ['translations.languages_code', 'translations.content'],
-//     status: { _eq: 'published' },
-//   },
-//   transform: (rawFooter: any) =>
-//     rawFooter.translations.map((rawLanguage: any) => ({
-//       code: rawLanguage.languages_code,
-//       content: rawLanguage.content,
-//     })),
-// });
-// // const footer = computed(() => footerRes?.translations?.map((e) => ({ code: e.languages_code, content: e.content })));
+const { data: footer } = await readAsyncSingleton('footer', {
+  query: {
+    fields: ['translations.languages_code', 'translations.content'],
+    status: { _eq: 'published' },
+  },
+  transform: (rawFooter: any) =>
+    rawFooter.translations.map((rawLanguage: any) => ({
+      code: rawLanguage.languages_code,
+      content: rawLanguage.content,
+    })),
+});
+// const footer = computed(() => footerRes?.translations?.map((e) => ({ code: e.languages_code, content: e.content })));
 
-// const de = footer.value?.find((e: any) => e.code === 'de-DE').content;
-// const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
+const de = footer.value?.find((e: any) => e.code === 'de-DE').content;
+const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
 </script>
 
 <template>
@@ -36,7 +36,7 @@ const footerLang = useState('footerLang', () => 'de');
       <div class="flex flex-wrap justify-center xl:justify-between xl:flex-nowrap">
         <div class="flex flex-col justify-between w-full xl:w-2/3">
           <div class="">
-            <!-- <template v-if="footer">
+            <template v-if="footer">
               <p v-if="footerLang == 'de'">
                 <MDC :value="de" />
               </p>
@@ -47,7 +47,7 @@ const footerLang = useState('footerLang', () => 'de');
             <template v-else>
               <p>FEHLER: DISCLAIMER KONNTE NICHT GELADEN WERDEN...</p>
               <p>ERROR: CANNOT LOAD DISCLAIMER...</p>
-            </template>-->
+            </template>
           </div>
           <p class="*:after:content-['_-_'] *:after:text-tbase">
             <span>&copy; ArisCorp - V{{ $config.public.appVersion }}</span>
