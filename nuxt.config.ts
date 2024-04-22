@@ -43,11 +43,11 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     authSecret: process.env.NUXT_AUTH_SECRET,
-    cmsToken: process.env.NUXT_CMS_TOKEN,
+    // cmsToken: process.env.NUXT_CMS_TOKEN,
     public: {
       appVersion: version,
       buildNumber: process.env.COMMIT_REF || process.env.NUXT_PUBLIC_BUILD_NUMBER,
-      environment: process.env.NUXT_PUBLIC_ENV || process.env.NODE_ENV,
+      environment: process.env.NUXT_PUBLIC_ENV,
       url: process.env.NUXT_PUBLIC_URL,
       backendUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,

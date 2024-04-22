@@ -8,11 +8,11 @@ const dataRes = await readSingleton('uee', {
 const data = computed(() => ({
   banner: dataRes.banner,
   content: dataRes.content,
-  tablist: dataRes.tabs.map((obj) => ({
+  tablist: dataRes.tabs.map((obj: any) => ({
     header: obj.title,
     content: obj.content,
   })),
-  holidayTablist: dataRes.holidays.map((obj) => ({
+  holidayTablist: dataRes.holidays.map((obj: any) => ({
     header: obj.name,
     date: obj.date,
     content: obj.content,
