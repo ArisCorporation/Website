@@ -148,6 +148,22 @@
     @apply italic leading-relaxed;
   }
 
+  #sentry-feedback {
+    --background: #111;
+    --background-hover: #222;
+    --foreground: #d1d5dd;
+    --error: #dc2626;
+    --success: #16a34a;
+    --border: 1.5px solid rgba(68, 68, 68, 1);
+    /* --inputOutlineFocus: #00ffe8; */
+    --input-outline-focus: #00ffe8;
+    --submit-background: #00ffe8;
+    --submit-background-hover: rgba(0, 255, 232, .5);
+    --submit-foreground-hover: #eee;
+    --submit-border: #444;
+    --submit-foreground: #222;
+  }
+
   .bg-image {
     @apply bg-center bg-no-repeat bg-cover bg-bsecondary;
   }
