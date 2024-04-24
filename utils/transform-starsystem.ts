@@ -21,11 +21,16 @@ export default function (obj: any) {
       ...(obj.orbit.filter((e) => e.collection === 'jumppoints') && {
         jumppoints: obj.orbit
           .filter((e) => e.collection === 'jumppoints')
-          .map((jumppoint: any) => ({
-            size: jumppoint.object.size,
-            systems: jumppoint.object.systems?.map((system: any) => transformStarsystem(system)),
-          })),
+          .map((jumppoint: any) => transformJumppoint(jumppoint.object)),
       }),
+      // ...(obj.orbit.filter((e) => e.collection === 'jumppoints') && {
+      //   jumppoints: obj.orbit
+      //     .filter((e) => e.collection === 'jumppoints')
+      //     .map((jumppoint: any) => ({
+      //       size: jumppoint.object.size,
+      //       systems: jumppoint.object.systems?.map((system: any) => transformStarsystem(system)),
+      //     })),
+      // }),
       ...(obj.orbit.filter((e) => e.collection === 'asteroid_belts') && {
         asteroid_belts: obj.orbit
           .filter((e) => e.collection === 'asteroid_belts')
