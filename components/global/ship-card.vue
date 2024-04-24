@@ -94,7 +94,7 @@ const handleEdit = () => {
 // border-danger text-danger border-success text-success
 </script>
 <template>
-  <div class="static block px-2 pb-3 basis-full md:basis-1/2 xl:basis-1/3 3xl:basis-1/4">
+  <div class="static block px-2 pb-3 basis-full md:basis-1/2 xl:basis-1/3 3xl:basis-1/4 animate-link">
     <DefaultPanel :color="color">
       <div class="relative h-fit">
         <NuxtLink
@@ -180,15 +180,15 @@ const handleEdit = () => {
             <div class="flex h-full pb-1 space-x-4 text-white/50">
               <Icon
                 v-if="!hideEdit"
-                @click="handleEdit"
                 name="heroicons:pencil"
                 class="w-5 h-5 my-auto transition cursor-pointer hover:text-primary"
+                @click="handleEdit"
               />
-              <UPopover :popper="{ placement: 'top-end' }" v-model:open="removePopover" class="w-5 h-5 my-auto">
+              <UPopover v-model:open="removePopover" :popper="{ placement: 'top-end' }" class="w-5 h-5 my-auto">
                 <Icon
-                  @click="$emit('removeOpen')"
                   name="heroicons:trash"
                   class="w-full h-full transition cursor-pointer hover:text-danger"
+                  @click="$emit('removeOpen')"
                 />
                 <template #panel>
                   <div class="p-4 text-xs">
@@ -206,7 +206,7 @@ const handleEdit = () => {
                           <span class="my-auto">Ja</span>
                         </div>
                       </ButtonDefault>
-                      <ButtonDefault @click="removePopover = false" color="success">
+                      <ButtonDefault color="success" @click="removePopover = false">
                         <div class="flex">
                           <span class="my-auto">Nein</span>
                         </div>
