@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { user } = useDirectusAuth();
 const config = useRuntimeConfig();
 
 useSeoMeta({
@@ -171,6 +172,16 @@ useHead({
     },
   ],
 });
+
+if (user.value) {
+  Sentry.setContext('Profile', {
+    ID: user.value.id,
+    'First Name': user.value.first_name,
+    'Last Name': user.value.last_name,
+    Email: user.value.email,
+    'Discord-Name': user.value.discord_name,
+  });
+}
 
 if (!useCookie('devtools').value) {
   useCookie('devtools').value = 'false';
