@@ -67,6 +67,20 @@ export default defineNuxtConfig({
     },
   },
 
+  imports: {
+    presets: [
+      {
+        from: '@sentry/vue',
+        imports: [
+          {
+            as: 'Sentry',
+            name: '*',
+          },
+        ],
+      },
+    ],
+  },
+
   // SENTRY CONFIG
   sourcemap: true,
   vite: {
