@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { transform } from 'typescript';
 import type { Data } from 'unified/lib';
 
 const route = useRoute();
@@ -17,30 +18,22 @@ const dataRes = await readItems('companies', {
     'founder',
     'famous_goods',
     'headquarter.collection',
-    'headquarter.headquarter.name',
-    'headquarter.headquarter.slug',
-    'headquarter.headquarter.planet.name',
-    'headquarter.headquarter.planet.slug',
-    'headquarter.headquarter.moon.name',
-    'headquarter.headquarter.moon.slug',
+    'headquarter.headquarter:systems.name',
+    'headquarter.headquarter:systems.slug',
+    'headquarter.headquarter:planets.name',
+    'headquarter.headquarter:planets.slug',
+    'headquarter.headquarter:moons.name',
+    'headquarter.headquarter:moons.slug',
+    'headquarter.headquarter:landing_zones.name',
+    'headquarter.headquarter:landing_zones.slug',
+    'headquarter.headquarter:space_stations.name',
+    'headquarter.headquarter:space_stations.slug',
   ],
   filter: {
     slug: { _eq: route.params.slug },
   },
   limit: 1,
 });
-
-// const test = await readItems('systems', {
-//   fields: ['name', 'orbit.object:planets.name'],
-//   filter: {
-//     orbit: {
-//       'object:planets': {
-//         name: { _eq: 'Crusader' },
-//       },
-//     },
-//   },
-//   limit: -1,
-// });
 
 if (!dataRes[0]) {
   throw createError({
@@ -58,7 +51,7 @@ if (
   data.value.headquarter?.collection === 'landing_zones'
 ) {
   const system = await readItems('systems', {
-    fields: ['name', 'orbit.object:planets.name'],
+    fields: ['name', 'slug'],
     filter: {
       orbit: data.value.headquarter.planet
         ? {
@@ -75,7 +68,7 @@ if (
     limit: 1,
   });
   if (system && system[0]) {
-    data.value.headquarter.system = { name: system[0].name, slug: system[0].slug };
+    data.value.headquarter.system = transformStarsystem(system[0]);
   }
 }
 
@@ -94,7 +87,6 @@ definePageMeta({
       <span class="text-primary"> {{ data?.name }}</span>
     </template>
     <div>
-      <!-- <DefaultPanel class="w-full mb-8 ml-12 xl:float-right xl:w-1/2"> -->
       <TableParent
         v-if="
           data.headquarter.name ||
@@ -109,7 +101,6 @@ definePageMeta({
         title="Infobox"
         class="w-full mb-8 xl:ml-12 xl:float-right xl:w-1/2"
       >
-        <!-- Stanton / ArcCorp / Area18 -->
         <TableRow
           v-if="data.headquarter.name || data.headquarter.system || data.headquarter.planet || data.headquarter.moon"
           title="Hauptsitz"
@@ -119,7 +110,7 @@ definePageMeta({
             <NuxtLink
               v-if="data.headquarter.system"
               :to="'/verseexkurs/starmap/' + data.headquarter.system.slug"
-              class="my-auto transition opacity-75 decoration-transparent hover:opacity-100 text-aris-400"
+              class="inline-block animate-link"
             >
               {{ data.headquarter.system.name }}
             </NuxtLink>
@@ -127,7 +118,7 @@ definePageMeta({
             <NuxtLink
               v-if="data.headquarter.planet"
               :to="'/verseexkurs/starmap/' + data.headquarter.system?.slug + '?planet=' + data.headquarter.planet.slug"
-              class="my-auto transition opacity-75 decoration-transparent hover:opacity-100 text-aris-400"
+              class="inline-block animate-link"
             >
               {{ data.headquarter.planet.name }}
             </NuxtLink>
@@ -142,7 +133,7 @@ definePageMeta({
                 '?landing_zones=' +
                 data.headquarter.slug
               "
-              class="my-auto transition opacity-75 decoration-transparent hover:opacity-100 text-aris-400"
+              class="inline-block animate-link text-aris-400"
             >
               {{ data.headquarter.name }}
             </NuxtLink>
@@ -153,7 +144,6 @@ definePageMeta({
         <TableRow v-if="data.category.name" title="Kategorie" :content="data?.category.name" full-width />
         <TableRow v-if="data.famous_goods" title="Bekannteste Waren" :content="data?.famous_goods" full-width />
       </TableParent>
-      <!-- </DefaultPanel> -->
       <div v-html="data?.content" />
       <hr />
       <h3>Waren der Firma {{ data?.name }}</h3>
