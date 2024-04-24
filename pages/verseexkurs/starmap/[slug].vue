@@ -4,6 +4,7 @@ const { params } = useRoute();
 const modalStore = useModalStore();
 const selectedMainTab = ref(0);
 const modalData = ref();
+const { query } = useRoute();
 
 // DATA
 const dataRes = await readItems('systems', {
@@ -24,6 +25,7 @@ const dataRes = await readItems('systems', {
     'orbit.object:stars.content',
     'orbit.object:planets.name',
     'orbit.object:planets.astronomical_designation',
+    'orbit.object:planets.slug',
     'orbit.object:planets.banner',
     'orbit.object:planets.size',
     'orbit.object:planets.age',
@@ -36,14 +38,23 @@ const dataRes = await readItems('systems', {
     'orbit.object:planets.economy',
     'orbit.object:planets.danger_level',
     'orbit.object:planets.content',
+    'orbit.object:planets.landing_zones.name',
+    'orbit.object:planets.landing_zones.slug',
+    'orbit.object:planets.landing_zones.banner',
+    'orbit.object:planets.landing_zones.content',
     'orbit.object:planets.orbit.collection',
     'orbit.object:planets.orbit.object.name',
+    'orbit.object:planets.orbit.object.slug',
     'orbit.object:planets.orbit.object.astronomical_designation',
     'orbit.object:planets.orbit.object.banner',
     'orbit.object:planets.orbit.object.type',
     'orbit.object:asteroid_belts.name',
+    'orbit.object:asteroid_belts.slug',
+    'orbit.object:asteroid_belts.banner',
+    'orbit.object:asteroid_belts.content',
     'orbit.object:jumppoints.size',
     'orbit.object:jumppoints.systems.systems_id.name',
+    'orbit.object:jumppoints.systems.systems_id.slug',
     'orbit.object:jumppoints.systems.systems_id.banner',
   ],
   filter: {
@@ -60,7 +71,6 @@ if (!dataRes[0]) {
     fatal: true,
   });
 }
-
 const data = computed(() => transformStarsystem(dataRes[0]));
 
 // Tabs - Planet
@@ -83,6 +93,120 @@ const openQuickView = (title: string, data?: any) => {
   modalStore.openModal(title, { big: true, hideCloseButton: true });
   modalData.value = data;
 };
+
+if (query.planet) {
+  selectedMainTab.value = 2;
+
+  try {
+    const obj = data.value.planets.find((e: any) => e.slug === query.planet);
+    if (!obj) throw new Error('Planet not found');
+
+    const label = `${obj.astronomical_designation}${obj.name ? ' - ' + obj.name : ''}`;
+    openQuickView(label, {
+      type: 'planet',
+      data: obj,
+    });
+  } catch (error) {
+    Sentry.captureException(error);
+    // console.log(error);
+    // throw new Error(error);
+  }
+}
+if (query.moon) {
+  selectedMainTab.value = 2;
+
+  try {
+    // console.log(data.value.orbit.find((e: any) => e.object?.orbit?.object?.slug === query.moon));
+    // const findMoonBySlug = (slug: string) => {
+    //   const moons = data.value.orbit.flatMap((planet: any) => planet.object?.orbit || []);
+    //   console.log(moons);
+    //   return moons.find((objects: any) => objects.object.slug === slug);
+    // };
+    // const obj = findMoonBySlug(String(query.moon));
+    const obj = data.value.orbit
+      .flatMap((planet: any) => planet.object?.orbit || [])
+      .find((objects: any) => objects.object.slug === query.moon)?.object;
+    if (!obj) throw new Error('Moon not found');
+
+    const label = `${obj.astronomical_designation}${obj.name ? ' - ' + obj.name : ''}`;
+    openQuickView(label, {
+      type: 'moon',
+      data: obj,
+    });
+    // const moonSlug = query.moon;
+    // if (moonSlug) {
+    //   selectedMainTab.value = 2;
+    //   try {
+    //     const moon = findMoonBySlug(moonSlug);
+    //     if (!moon) throw new Error('Moon not found');
+    //     const label = `${moon.astronomical_designation}${moon.name ? ' - ' + moon.name : ''}`;
+    //     openQuickView(label, {
+    //       type: 'moon',
+    //       data: moon,
+    //     });
+    //   } catch (error) {
+    //     Sentry.captureException(error);
+    //   }
+    // }
+    // if (!obj) throw new Error('Moon not found');
+    // const label = `${obj.astronomical_designation}${obj.name ? ' - ' + obj.name : ''}`;
+    // openQuickView(label, {
+    //   type: 'moon',
+    //   data: obj,
+    // });
+  } catch (error) {
+    Sentry.captureException(error);
+  }
+}
+if (query.ss) {
+  selectedMainTab.value = 2;
+
+  try {
+    const obj = data.value.orbit
+      .flatMap((planet: any) => planet.object?.orbit || [])
+      .find((objects: any) => objects.object.slug === query.ss)?.object;
+    if (!obj) throw new Error('Space-Station not found');
+
+    openQuickView(obj.name, {
+      type: 'station',
+      data: obj,
+    });
+  } catch (error) {
+    Sentry.captureException(error);
+  }
+}
+if (query.lz) {
+  selectedMainTab.value = 2;
+
+  try {
+    const obj = data.value.planets
+      .flatMap((planet: any) => planet?.landing_zones || [])
+      .find((objects: any) => objects.slug === query.lz);
+    if (!obj) throw new Error('Landing-Zone not found');
+
+    openQuickView(obj.name, {
+      type: 'landing_zone',
+      data: obj,
+    });
+  } catch (error) {
+    Sentry.captureException(error);
+  }
+}
+if (query.ab) {
+  selectedMainTab.value = 2;
+
+  try {
+    const obj = data.value.orbit.find((e: any) => e.object?.slug === query.ab)?.object;
+    if (!obj) throw new Error('Asteroid-Belt not found');
+
+    openQuickView(obj.name, {
+      type: 'asteroid_belt',
+      data: obj,
+    });
+  } catch (error) {
+    Sentry.captureException(error);
+  }
+}
 
 useHead({
   title: data.value.name,
@@ -145,6 +269,19 @@ definePageMeta({
           <div v-html="modalData.data.content" />
         </div>
       </template>
+      <template v-else-if="modalData.type === 'landing_zone'">
+        <DefaultPanel bg="bprimary">
+          <NuxtImg
+            :src="modalData.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+            :placeholder="[16, 16, 1, 5]"
+            class="w-full h-44"
+            :class="{ 'object-cover': modalData.data?.banner }"
+          />
+        </DefaultPanel>
+        <div class="min-h-[120px]">
+          <div v-html="modalData.data.content" />
+        </div>
+      </template>
       <template v-else-if="modalData.type === 'station'">
         <DefaultPanel bg="bprimary">
           <NuxtImg
@@ -181,6 +318,19 @@ definePageMeta({
           <TableParent title="Infobox" class="float-right w-full mt-6 mb-8 xl:ml-12 xl:float-right xl:w-1/2">
             <TableRow title="Größe" :content="modalData.data.size" />
           </TableParent>
+          <div v-html="modalData.data.content" />
+        </div>
+      </template>
+      <template v-else-if="modalData.type === 'asteroid_belt'">
+        <DefaultPanel bg="bprimary">
+          <NuxtImg
+            :src="modalData.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+            :placeholder="[16, 16, 1, 5]"
+            class="w-full h-44"
+            :class="{ 'object-cover': modalData.data?.banner }"
+          />
+        </DefaultPanel>
+        <div class="min-h-[120px]">
           <div v-html="modalData.data.content" />
         </div>
       </template>
@@ -268,16 +418,37 @@ definePageMeta({
                 variant="outline"
                 size="xl"
                 :items="[
-                  ...(data.stars[0] ? [{ label: 'Sterne', slot: 'sterne' }] : []),
-                  ...(data.planets[0] ? [{ label: 'Planeten', slot: 'planeten' }] : []),
-                  ...(data.jumppoints[0] ? [{ label: 'Sprungpunkte', slot: 'sprungpunkte' }] : []),
-                  ...(data.asteroid_belts[0] ? [{ label: 'Asteroidentürtel', slot: 'asteroidenguertel' }] : []),
+                  ...(data.stars[0]
+                    ? [{ label: 'Sterne', slot: 'sterne', defaultOpen: query.star ? true : false }]
+                    : []),
+                  ...(data.planets[0]
+                    ? [
+                        {
+                          label: 'Planeten',
+                          slot: 'planeten',
+                          defaultOpen: query.planet || query.moon || query.ss || query.lz,
+                        },
+                      ]
+                    : []),
+                  ...(data.jumppoints[0]
+                    ? [{ label: 'Sprungpunkte', slot: 'sprungpunkte', defaultOpen: query.jumppoint ? true : false }]
+                    : []),
+                  ...(data.asteroid_belts[0]
+                    ? [
+                        {
+                          label: 'Asteroidentürtel',
+                          slot: 'asteroidenguertel',
+                          defaultOpen: query.ab ? true : false,
+                        },
+                      ]
+                    : []),
                 ]"
               >
                 <template #sterne>
                   <div class="cards-grid">
                     <UCard
                       v-for="star in data.stars"
+                      :key="star.name"
                       :ui="{
                         strategy: 'override',
                         header: {
@@ -305,13 +476,13 @@ definePageMeta({
 
                       <template #footer>
                         <div
+                          class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                           @click="
                             openQuickView(star.name, {
                               type: 'star',
                               data: star,
                             })
                           "
-                          class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                         >
                           <p class="text-center">Quick View</p>
                         </div>
@@ -328,6 +499,14 @@ definePageMeta({
                       data.planets.map((obj: any, index: number) => ({
                         label: `${obj.astronomical_designation}${obj.name ? ' - ' + obj.name : ''}`,
                         data: obj,
+                        defaultOpen:
+                          query.planet === obj.slug || obj.landing_zones.find((e: any) => e.slug === query.lz)
+                            ? true
+                            : false || obj.moons.find((e: any) => e.slug === query.moon)
+                              ? true
+                              : false || obj.space_stations.find((e: any) => e.slug === query.ss)
+                                ? true
+                                : false,
                       }))
                     "
                     class="pl-8"
@@ -359,6 +538,7 @@ definePageMeta({
                         <UCard
                           :ui="{
                             strategy: 'override',
+                            base: 'overflow-clip',
                             header: {
                               padding: 'p-0',
                             },
@@ -382,13 +562,13 @@ definePageMeta({
 
                           <template #footer>
                             <div
+                              class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                               @click="
                                 openQuickView(planet.label, {
                                   type: 'planet',
                                   data: planet.data,
                                 })
                               "
-                              class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                             >
                               <p class="text-center">Quick View</p>
                             </div>
@@ -400,8 +580,13 @@ definePageMeta({
                         variant="outline"
                         size="xl"
                         :items="[
-                          ...(planet.data.moons[0] ? [{ label: 'Monde', slot: 'monde' }] : []),
-                          ...(planet.data.space_stations[0] ? [{ label: 'Raumstationen', slot: 'raumstationen' }] : []),
+                          ...(planet.data.landing_zones[0]
+                            ? [{ label: 'Landezonen', slot: 'landezonen', defaultOpen: query.lz }]
+                            : []),
+                          ...(planet.data.moons[0] ? [{ label: 'Monde', slot: 'monde', defaultOpen: query.moon }] : []),
+                          ...(planet.data.space_stations[0]
+                            ? [{ label: 'Raumstationen', slot: 'raumstationen', defaultOpen: query.ss }]
+                            : []),
                         ]"
                         class="pl-8"
                       >
@@ -418,12 +603,14 @@ definePageMeta({
                             </template>
                           </UButton>
                         </template>
-                        <template #monde>
+                        <template #landezonen>
                           <div class="cards-grid">
                             <UCard
-                              v-for="moon in planet.data.moons"
+                              v-for="landing_zone in planet.data.landing_zones"
+                              :key="landing_zone.name"
                               :ui="{
                                 strategy: 'override',
+                                base: 'overflow-clip',
                                 header: {
                                   padding: 'p-0',
                                 },
@@ -438,9 +625,55 @@ definePageMeta({
                             >
                               <template #header>
                                 <NuxtImg
-                                  :src="moon.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                                  :src="landing_zone?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
                                   class="w-full h-24"
-                                  :class="{ 'object-cover': moon.data?.banner }"
+                                  :class="{ 'object-cover': landing_zone?.banner }"
+                                />
+                              </template>
+
+                              <h4>{{ landing_zone.name }}</h4>
+
+                              <template #footer>
+                                <div
+                                  class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
+                                  @click="
+                                    openQuickView(landing_zone.name, {
+                                      type: 'landing_zone',
+                                      data: landing_zone,
+                                    })
+                                  "
+                                >
+                                  <p class="text-center">Quick View</p>
+                                </div>
+                              </template>
+                            </UCard>
+                          </div>
+                        </template>
+                        <template #monde>
+                          <div class="cards-grid">
+                            <UCard
+                              v-for="moon in planet.data.moons"
+                              :key="moon.name"
+                              :ui="{
+                                strategy: 'override',
+                                base: 'overflow-clip',
+                                header: {
+                                  padding: 'p-0',
+                                },
+                                body: {
+                                  padding: 'px-2 py-3 sm:px-4',
+                                },
+                                footer: {
+                                  padding: 'p-0',
+                                },
+                              }"
+                              class="flex flex-col w-full"
+                            >
+                              <template #header>
+                                <NuxtImg
+                                  :src="moon?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                                  class="w-full h-24"
+                                  :class="{ 'object-cover': moon?.banner }"
                                 />
                               </template>
 
@@ -448,6 +681,7 @@ definePageMeta({
 
                               <template #footer>
                                 <div
+                                  class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                                   @click="
                                     openQuickView(
                                       `${moon.astronomical_designation}${moon.name ? ' - ' + moon.name : ''}`,
@@ -457,7 +691,6 @@ definePageMeta({
                                       },
                                     )
                                   "
-                                  class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                                 >
                                   <p class="text-center">Quick View</p>
                                 </div>
@@ -469,8 +702,10 @@ definePageMeta({
                           <div class="cards-grid">
                             <UCard
                               v-for="station in planet.data.space_stations"
+                              :key="station.name"
                               :ui="{
                                 strategy: 'override',
+                                base: 'overflow-clip',
                                 header: {
                                   padding: 'p-0',
                                 },
@@ -485,9 +720,9 @@ definePageMeta({
                             >
                               <template #header>
                                 <NuxtImg
-                                  :src="station.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                                  :src="station?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
                                   class="w-full h-24"
-                                  :class="{ 'object-cover': station.data?.banner }"
+                                  :class="{ 'object-cover': station?.banner }"
                                 />
                               </template>
                               <h4>{{ station.name }}</h4>
@@ -497,13 +732,13 @@ definePageMeta({
 
                               <template #footer>
                                 <div
+                                  class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                                   @click="
-                                    openQuickView(station.label, {
+                                    openQuickView(station.name, {
                                       type: 'station',
                                       data: station,
                                     })
                                   "
-                                  class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                                 >
                                   <p class="text-center">Quick View</p>
                                 </div>
@@ -533,8 +768,10 @@ definePageMeta({
                   <div class="cards-grid">
                     <UCard
                       v-for="jumppoint in data.jumppoints"
+                      :key="jumppoint.id"
                       :ui="{
                         strategy: 'override',
+                        base: 'overflow-clip',
                         header: {
                           padding: 'p-0',
                         },
@@ -565,6 +802,7 @@ definePageMeta({
 
                       <template #footer>
                         <div
+                          class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                           @click="
                             openQuickView(
                               `Sprungpunkt zu: ${jumppoint.systems.find((e: any) => e.name !== data.name).name}`,
@@ -574,7 +812,6 @@ definePageMeta({
                               },
                             )
                           "
-                          class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                         >
                           <p class="text-center">Quick View</p>
                         </div>
@@ -586,8 +823,10 @@ definePageMeta({
                   <div class="cards-grid">
                     <UCard
                       v-for="asteroid_belt in data.asteroid_belts"
+                      :key="asteroid_belt.name"
                       :ui="{
                         strategy: 'override',
+                        base: 'overflow-clip',
                         header: {
                           padding: 'p-0',
                         },
@@ -613,13 +852,13 @@ definePageMeta({
 
                       <template #footer>
                         <div
+                          class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                           @click="
                             openQuickView(asteroid_belt.name, {
                               type: 'asteroid_belt',
                               data: asteroid_belt,
                             })
                           "
-                          class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
                         >
                           <p class="text-center">Quick View</p>
                         </div>
