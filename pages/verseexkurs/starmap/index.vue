@@ -32,7 +32,7 @@ const tabs = [
 const selectedTab = ref(0);
 const changeTab = (index: number) => {
   selectedTab.value = index;
-  starmapLoaded.value = false;
+  // starmapLoaded.value = false;
 };
 
 // DATA
@@ -57,13 +57,13 @@ const systems = await readItems('systems', {
 });
 
 // STARMAP
-const starmapIcons = reactive([
-  {
-    starmap_id: 'ayrka',
-    left: 3.12,
-    top: 8.12,
-  },
-]);
+// const starmapIcons = reactive([
+//   {
+//     starmap_id: 'ayrka',
+//     left: 3.12,
+//     top: 8.12,
+//   },
+// ]);
 
 definePageMeta({
   layout: false,
@@ -82,9 +82,10 @@ useHead({
         >
           <button
             v-for="tab in tabs"
-            @click="changeTab(tab.id)"
+            :key="tab.id"
             class="w-16 h-16 mx-auto transition sm:w-24 sm:h-24 md:w-32 md:h-32 animate-link"
             :class="[selectedTab === tab.id ? 'opacity-100' : 'opacity-50 hover:opacity-100']"
+            @click="changeTab(tab.id)"
           >
             <Icon :name="tab.icon" class="w-full h-full p-1" />
           </button>
@@ -102,12 +103,12 @@ useHead({
                 <NuxtImg
                   src="e3b8e2b3-5657-4112-ab8f-c0f1311e9a6b"
                   :placeholder="[16, 16, 1, 5]"
-                  @contextmenu.native="(e) => e.preventDefault()"
                   class="w-1/2 h-fit aspect-[637/160]"
                 />
-                <div @contextmenu.native="(e) => e.preventDefault()" class="relative w-full h-fit">
+                <div class="relative w-full h-fit">
                   <UPopover
                     v-for="system in systems.filter((e) => e.status === 'published')"
+                    :key="system.id"
                     :popper="{ placement: 'right' }"
                     mode="hover"
                     :style="{ left: `${system.starmap_position_left}%`, top: `${system.starmap_position_top}%` }"
@@ -117,7 +118,6 @@ useHead({
                       :to="system.status === 'published' && '/verseexkurs/starmap/' + system.slug"
                       class="w-full h-auto aspect-[1/1] group absolute top-0"
                     >
-                      <!-- class="absolute w-[1.65%] h-auto aspect-[1/1] group" -->
                       <Icon
                         :name="
                           'IconsNavigationStarmap' +
@@ -194,6 +194,7 @@ useHead({
                   </UPopover>
                   <div
                     v-for="system in systems.filter((e) => e.status !== 'published')"
+                    :key="system.id"
                     :style="{ left: `${system.starmap_position_left}%`, top: `${system.starmap_position_top}%` }"
                     class="absolute w-[1.65%] h-auto aspect-[1/1]"
                   >
@@ -209,67 +210,67 @@ useHead({
                   </div>
                   <div class="aspect-[3840/2655] w-full h-auto relative">
                     <NuxtImg
-                      src="fcbbe4f2-7bf2-49fc-828c-4037c47dafe3"
                       id="starmap-names-uee"
+                      src="fcbbe4f2-7bf2-49fc-828c-4037c47dafe3"
                       :placeholder="[16, 16, 1, 5]"
-                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
+                      @contextmenu.native="(e) => e.preventDefault()"
                     />
                     <NuxtImg
-                      src="b25ab791-24ae-47f0-aecb-96e770d3235f"
                       id="starmap-names-banu"
+                      src="b25ab791-24ae-47f0-aecb-96e770d3235f"
                       :placeholder="[16, 16, 1, 5]"
-                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
+                      @contextmenu.native="(e) => e.preventDefault()"
                     />
                     <NuxtImg
-                      src="7977fb47-9b37-4857-9f51-20d53680dfb5"
                       id="starmap-names-vanduul"
+                      src="7977fb47-9b37-4857-9f51-20d53680dfb5"
                       :placeholder="[16, 16, 1, 5]"
-                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
+                      @contextmenu.native="(e) => e.preventDefault()"
                     />
                     <NuxtImg
-                      src="852522cb-8df8-4c22-801f-879b8424a5ef"
                       id="starmap-names-xian"
+                      src="852522cb-8df8-4c22-801f-879b8424a5ef"
                       :placeholder="[16, 16, 1, 5]"
-                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
+                      @contextmenu.native="(e) => e.preventDefault()"
                     />
                     <NuxtImg
-                      src="b9b06b08-d3a4-4a24-8056-3425f3c85379"
                       id="starmap-names-unclaimed"
+                      src="b9b06b08-d3a4-4a24-8056-3425f3c85379"
                       :placeholder="[16, 16, 1, 5]"
-                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
+                      @contextmenu.native="(e) => e.preventDefault()"
                     />
                     <NuxtImg
-                      src="90bab722-42a9-4a83-b453-1552e7abda5d"
                       id="starmap-names-development"
+                      src="90bab722-42a9-4a83-b453-1552e7abda5d"
                       :placeholder="[16, 16, 1, 5]"
-                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
+                      @contextmenu.native="(e) => e.preventDefault()"
                     />
                     <NuxtImg
-                      src="fc7bd959-b2ff-466e-8445-2948e84735f3"
                       id="starmap-jumppoints-small"
+                      src="fc7bd959-b2ff-466e-8445-2948e84735f3"
                       :placeholder="[16, 16, 1, 5]"
-                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
+                      @contextmenu.native="(e) => e.preventDefault()"
                     />
                     <NuxtImg
-                      src="dd257e4a-36cd-4418-87d3-9465ab9c2f34"
                       id="starmap-jumppoints-medium"
+                      src="dd257e4a-36cd-4418-87d3-9465ab9c2f34"
                       :placeholder="[16, 16, 1, 5]"
-                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
+                      @contextmenu.native="(e) => e.preventDefault()"
                     />
                     <NuxtImg
-                      src="053d9d72-7519-461e-8a55-971f84927fd4"
                       id="starmap-jumppoints-large"
+                      src="053d9d72-7519-461e-8a55-971f84927fd4"
                       :placeholder="[16, 16, 1, 5]"
-                      @contextmenu.native="(e) => e.preventDefault()"
                       class="absolute top-0 left-0 pointer-events-none"
+                      @contextmenu.native="(e) => e.preventDefault()"
                     />
                   </div>
                 </div>
@@ -281,24 +282,24 @@ useHead({
           <div v-html="data.history_introduction" />
           <div class="relative w-full aspect-[1200/841] h-auto">
             <button
-              @click="historyIndex === 0 ? (historyIndex = data.history.length - 1) : (historyIndex -= 1)"
               class="absolute top-0 bottom-0 left-0 z-10 p-1 my-auto transition rounded-full opacity-75 cursor-pointer h-fit bg-bsecondary hover:opacity-100"
+              @click="historyIndex === 0 ? (historyIndex = data.history.length - 1) : (historyIndex -= 1)"
             >
               <Icon name="heroicons:chevron-left-16-solid" class="w-8 h-auto aspect-square" />
             </button>
             <button
-              @click="historyIndex === data.history.length - 1 ? (historyIndex = 0) : (historyIndex += 1)"
               class="absolute top-0 bottom-0 right-0 z-10 p-1 my-auto transition rounded-full opacity-75 cursor-pointer h-fit bg-bsecondary hover:opacity-100"
+              @click="historyIndex === data.history.length - 1 ? (historyIndex = 0) : (historyIndex += 1)"
             >
               <Icon name="heroicons:chevron-right-16-solid" class="w-8 h-auto aspect-square" />
             </button>
             <div class="absolute bottom-0 left-0 right-0 flex gap-2 mx-auto md:gap-4 w-fit h-fit">
               <div
                 v-for="(item, index) in data.history"
-                @click="historyIndex = index"
                 :key="index"
                 class="h-auto rounded-full cursor-pointer md:w-3 w-2 aspect-[1/1] hover:bg-aris-400/75"
                 :class="[historyIndex === index ? 'bg-aris-400' : 'bg-btertiary']"
+                @click="historyIndex = index"
               />
             </div>
             <NuxtImg

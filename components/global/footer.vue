@@ -37,10 +37,10 @@ const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
         <div class="flex flex-col justify-between w-full xl:w-2/3">
           <div class="">
             <template v-if="footer">
-              <p v-if="footerLang == 'de'">
+              <p v-if="footerLang === 'de'">
                 <MDC :value="de" />
               </p>
-              <p v-if="footerLang == 'en'">
+              <p v-if="footerLang === 'en'">
                 <MDC :value="en" />
               </p>
             </template>
