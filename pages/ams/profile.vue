@@ -2,53 +2,18 @@
 import VueCropper from 'vue-cropperjs';
 import 'cropperjs/dist/cropper.css';
 
-const { readAsyncItem, readAsyncItems } = useDirectusItems();
+const { updateMe } = useDirectusUsers();
 const modalStore = useModalStore();
-const route = useRoute();
-const user = transformUser(await useDirectusAuth().readMe());
-console.log(user);
-console.log(await useDirectusAuth().readMe());
+const user = ref(transformUser(await useDirectusAuth().readMe()));
+const { uploadFiles, deleteFile } = useDirectusFiles();
+const avatarUploadLoading = ref(false);
 
-const cropperFile = ref('');
-// const cropper = ref();
-
-// const { data: landing_zone_res } = await readAsyncItem('landing_zones', user?.current_residence, {
-//   query: {
-//     fields: ['id', 'name', 'slug', 'planet.id', 'planet.name', 'planet.slug', 'planet.astronomical_designation'],
-//     filter: {
-//       status: { _eq: 'published' },
-//     },
-//     limit: -1,
-//   },
-//   transform: (landing_zone: any[]) => transformLandingZone(landing_zone),
-// });
-// const { data: planets } = await readAsyncItems('planets', {
-//   query: {
-//     fields: ['id', 'name', 'astronomical_designation', 'slug'],
-//     filter: {
-//       status: { _eq: 'published' },
-//     },
-//     limit: -1,
-//   },
-//   transform: (planets: any[]) => planets.map((planet: any) => transformPlanet(planet)),
-// });
-// const { data: systems } = await readAsyncItems('systems', {
-//   query: {
-//     fields: ['id', 'name', 'slug', 'orbit.collection', 'orbit.object:planets.id', 'orbit.object:planets.name'],
-//     filter: {
-//       status: { _eq: 'published' },
-//     },
-//     limit: -1,
-//   },
-//   transform: (systems: any[]) => systems.map((system: any) => transformStarsystem(system)),
-// });
-
-const links = [
+const links = reactive([
   [
     {
       label: 'Profil',
       avatar: {
-        src: user.avatar_url,
+        src: user.value.avatar_url,
       },
       to: '/ams/profile',
       exact: true,
@@ -71,31 +36,14 @@ const links = [
       to: '/ams/profile/help',
     },
   ],
-];
-
-// function setCropperImage(e: any) {
-//   const file = e.target.files[0];
-//   if (typeof FileReader === 'function') {
-//     const res = readAsDataURL(file);
-//     res.then((res: any) => {
-//       // const originImage = new Image();
-//       // originImage.src = res;
-//       // this.selectedFile = originImage.outerHTML;
-//       cropperFile.value = res;
-//       // this.$refs.cropper.replace(this.selectedFile);
-//     });
-//   } else {
-//     console.error('Sorry, FileReader API not supported');
-//   }
-// }
+]);
 
 const cropper = ref();
 
 function setCropperImage(e: any) {
   const file = e.target.files[0];
-  console.log(cropper);
 
-  if (file.type.indexOf('image/') === -1) {
+  if (!file.type.includes('image/')) {
     alert('Please select an valid image file');
     return;
   }
@@ -114,7 +62,33 @@ function setCropperImage(e: any) {
   }
 }
 
-async function saveAvatar() {}
+async function saveAvatar() {
+  const old_avatar = user.value.avatar;
+  await cropper.value.getCroppedCanvas().toBlob(async (blob: Blob) => {
+    const formData = new FormData();
+
+    formData.append('title', `${user.value.full_name} - Avatar.png`);
+    formData.append('folder', '8658f40d-77d9-44c4-8f0d-af820855a3bc');
+    formData.append('file', blob, `${user.value.slug}-avatar.png`);
+
+    try {
+      avatarUploadLoading.value = true;
+      const new_avatar = await uploadFiles(formData);
+      await updateMe({ avatar: new_avatar.id }, { fields: ['id'] });
+      avatarUploadLoading.value = false;
+      modalStore.closeModal();
+
+      await deleteFile(old_avatar);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      user.value = transformUser(await useDirectusAuth().readMe());
+      if (links[0][0]?.avatar) {
+        links[0][0].avatar.src = user.value.avatar_url;
+      }
+    }
+  });
+}
 
 function readAsDataURL(file: any) {
   return new Promise((resolve, reject) => {
@@ -142,10 +116,18 @@ definePageMeta({
             <!-- <UCard> -->
             <div class="pb-4">
               <DefaultPanel class="mx-auto w-fit">
+                <!-- <div class="relative"> -->
+                <template v-if="avatarUploadLoading">
+                  <div class="absolute top-0 bottom-0 left-0 right-0 m-auto w-fit h-fit z-[9999]">
+                    <LoadingBasic class="w-10 h-10 text-white" />
+                  </div>
+                  <div
+                    class="absolute top-0 bottom-0 left-0 right-0 m-auto w-full h-full z-[9997] bg-black opacity-75"
+                  />
+                </template>
                 <VueCropper
                   ref="cropper"
                   class="overflow-hidden aspect-[270/320] w-[270px] h-[320px]"
-                  :src="$config.public.fileBase + 'fb3b70b1-fce4-4131-bed7-11ed9c08c4d1'"
                   :aspect-ratio="270 / 320"
                   :toggle-drag-mode-on-dblclick="false"
                   drag-mode="move"
@@ -158,14 +140,15 @@ definePageMeta({
                   :crop-box-resizable="false"
                 >
                 </VueCropper>
+                <!-- </div> -->
               </DefaultPanel>
             </div>
             <!-- <template #footer> -->
             <div class="flex flex-wrap justify-center w-full pt-4 my-auto gap-x-[5.5rem]">
-              <ButtonDefault type="button" @click="modalStore.closeModal" class="w-1/3" color="danger">
+              <ButtonDefault type="button" class="w-1/3" color="danger" @click="modalStore.closeModal">
                 Schließen
               </ButtonDefault>
-              <ButtonDefault @click="saveAvatar" class="w-1/3" color="success"> Speichern </ButtonDefault>
+              <ButtonDefault class="w-1/3" color="success" @click="saveAvatar"> Speichern </ButtonDefault>
             </div>
             <!-- </template> -->
             <!-- </UCard> -->
@@ -174,15 +157,12 @@ definePageMeta({
       </template>
     </template>
     <div class="flex flex-col w-full divide-y divide-bsecondary">
-      <!-- <div class="h-20">
-      <p>Profil</p>
-    </div> -->
       <div class="relative flex items-center p-5 mb-5 rounded-lg bg-bsecondary">
         <!-- TODO: ADD LOADING STATE TO AVATAR -->
         <div
           class="flex mr-6 relative overflow-hidden border-4 sm:border-[6px] border-primary rounded-full h-20 w-20 sm:h-36 sm:w-36 focus:outline-none group bg-white/5"
         >
-          <NuxtImg :src="user?.avatar" :placeholder="[16, 16, 1, 5]" class="z-10 object-cover w-full h-full" />
+          <NuxtImg :src="user?.avatar" class="z-10 object-cover w-full h-full" />
           <div class="absolute top-0 bottom-0 left-0 right-0 m-auto w-fit h-fit">
             <LoadingBasic class="w-10 h-10 text-white" />
           </div>
@@ -195,6 +175,7 @@ definePageMeta({
             <Icon name="heroicons:at-symbol-16-solid" class="relative inline-block w-[18px] h-[18px] my-auto" />
             <span class="my-auto">{{ user?.login_email }}</span>
           </p>
+          <!-- TODO: -->
           <!-- <p class="flex items-center p-0 space-x-1 text-btertiary">
           <template v-if="user?.current_residencee">
             <Icon name="heroicons:map-pin-16-solid" class="relative inline-block w-[18px] h-[18px] my-auto" />
@@ -249,15 +230,7 @@ definePageMeta({
         :links="links"
         class="relative flex flex-wrap items-center justify-between w-full no-list"
       />
-      <vue-cropper
-        v-if="cropperFile"
-        ref="cropper"
-        :src="cropperFile"
-        :view-mode="1"
-        :aspect-ratio="0.6"
-        alt="Avatar Image"
-      />
-      <NuxtPage @cropperInput="setCropperImage" />
+      <NuxtPage @cropper-input="setCropperImage" />
     </div>
   </NuxtLayout>
 </template>
