@@ -8,6 +8,7 @@ const commercialFullscreenState = ref(false);
 const config = useRuntimeConfig();
 const commercialShowPlayingOverlay = ref(false);
 const commercialShowOverlay = computed(() => commercialShowPlayingOverlay.value || commercialWaiting.value);
+const carousel = ref();
 
 const selectedTab = ref(0);
 const setTab = (index: number) => {
@@ -121,7 +122,9 @@ watch(commercialPlaying, async () => {
 defineShortcuts({
   k: {
     handler: () => {
-      commercialPlaying.value = !commercialPlaying.value;
+      if (selectedTab.value === tablist.value.findIndex((e) => e.id === '4')) {
+        commercialPlaying.value = !commercialPlaying.value;
+      }
     },
   },
   j: {
@@ -167,6 +170,16 @@ defineShortcuts({
   arrowup: {
     handler: () => {
       commercialVolume.value = Math.max(0, Math.min(commercialVolume.value + 0.1, 1));
+    },
+  },
+  arrowleft: {
+    handler: () => {
+      if (selectedTab.value === tablist.value.findIndex((e) => e.id === '3')) carousel.value.prev();
+    },
+  },
+  arrowright: {
+    handler: () => {
+      if (selectedTab.value === tablist.value.findIndex((e) => e.id === '3')) carousel.value.next();
     },
   },
   f: {
@@ -306,6 +319,7 @@ useHead({
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '3')">
           <DefaultPanel bg="bprimary" class="mx-auto mb-3 w-fit h-fit">
             <UCarousel
+              ref="carousel"
               :items="data.gallery"
               :ui="{ item: 'flex flex-none snap-center w-full aspect-[16/9]' }"
               class="max-h-[calc(100vh-4rem)] aspect-[16/9] w-auto relative"
