@@ -81,7 +81,14 @@ const props = defineProps({
     required: false,
     default: 'primary',
   },
+  onboarding: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
+
+defineExpose({ removePopover });
 
 const handleEdit = () => {
   const title = `Bearbeiten: ${props.hangarData.userData.name ? props.hangarData.userData.name + ' - ' : ''}${
@@ -94,7 +101,7 @@ const handleEdit = () => {
 // border-danger text-danger border-success text-success
 </script>
 <template>
-  <div class="static block px-2 pb-3 basis-full md:basis-1/2 xl:basis-1/3 3xl:basis-1/4 animate-link">
+  <div class="static block px-2 pb-3 basis-full md:basis-1/2 xl:basis-1/3 3xl:basis-1/4">
     <DefaultPanel :color="color">
       <div class="relative h-fit">
         <NuxtLink
@@ -107,6 +114,7 @@ const handleEdit = () => {
             :preload="preloadImages"
             height="500"
             class="absolute object-cover w-full h-full"
+            draggable="false"
           />
           <div
             v-if="displayProductionState || displayLoanerState"
@@ -135,6 +143,7 @@ const handleEdit = () => {
               :placeholder="[16, 16, 1, 5]"
               :preload="preloadImages"
               class="relative w-16 h-16 peer/departmentLogo text-secondary"
+              draggable="false"
             />
             <span
               class="px-1 my-auto mr-2 transition rounded opacity-0 cursor-pointer h-fit bg-bsecondary peer-hover/departmentLogo:opacity-100"
@@ -152,22 +161,24 @@ const handleEdit = () => {
             Geplant
           </div>
           <NuxtLink
-            :to="'/shipexkurs/' + shipData.slug"
+            :to="'/shipexkurs/ships/' + shipData.slug"
             class="m-0 transition hover:no-underline basis-full opacity-80 text-secondary hover:opacity-100"
           >
-            {{ shipData.name }}
-            <span v-if="displayName && hangarData.userData.name"> - &quot;{{ hangarData.userData.name }}&quot;</span>
+            <div class="animate-link w-fit">
+              {{ shipData.name }}
+              <span v-if="displayName && hangarData.userData.name"> - &quot;{{ hangarData.userData.name }}&quot;</span>
+            </div>
           </NuxtLink>
           <NuxtLink
             :to="'/verseexkurs/companies/' + shipData.manufacturer.slug"
-            class="z-20 min-w-0 min-h-0 mt-auto text-xs text-white opacity-50 w-fit h-fit transition-group hover:no-underline hover:opacity-100"
+            class="z-20 min-w-0 min-h-0 mt-auto text-xs text-white opacity-50 w-fit h-fit transition-group hover:no-underline hover:opacity-100 animate-link"
             :class="{ 'max-w-[calc(100%_-_60px)]': displayCrud }"
             >{{ shipData.manufacturer.name }}
           </NuxtLink>
           <NuxtLink
             v-if="displayOwner"
             :to="(internalBio ? '/ams/employees/' : '/') + 'biography/' + hangarData.userData.owner.slug"
-            class="z-20 block mt-auto ml-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100"
+            class="z-20 block mt-auto ml-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100 animate-link"
           >
             <span>
               <span :class="{ 'text-secondary': hangarData.userData.planned }">{{
@@ -178,23 +189,41 @@ const handleEdit = () => {
           </NuxtLink>
           <div v-if="displayCrud" class="absolute z-20 block h-full mt-auto ml-auto right-4">
             <div class="flex h-full pb-1 space-x-4 text-white/50">
-              <Icon
+              <button
                 v-if="!hideEdit"
-                name="heroicons:pencil"
-                class="w-5 h-5 my-auto transition cursor-pointer hover:text-primary"
+                :id="onboarding ? 'onboarding-edit-button' : null"
+                class="my-auto h-fit"
                 @click="handleEdit"
-              />
-              <UPopover v-model:open="removePopover" :popper="{ placement: 'top-end' }" class="w-5 h-5 my-auto">
+              >
                 <Icon
-                  name="heroicons:trash"
-                  class="w-full h-full transition cursor-pointer hover:text-danger"
-                  @click="$emit('removeOpen')"
+                  name="heroicons:pencil"
+                  class="w-5 h-5 transition cursor-pointer hover:text-primary animate-link"
                 />
+              </button>
+              <UPopover v-model:open="removePopover" :popper="{ placement: 'top-end' }" class="my-auto">
+                <button
+                  :id="onboarding ? 'onboarding-remove-button' : null"
+                  class="h-fit w-fit"
+                  @click="$emit('removeOpen')"
+                >
+                  <Icon
+                    name="heroicons:trash"
+                    class="w-5 h-5 transition cursor-pointer hover:text-danger animate-link"
+                  />
+                </button>
+                <!-- <UButton
+                  variant="link"
+                  color="gray"
+                  icon="i-heroicons-trash"
+                  class="w-5 h-5 my-auto transition cursor-pointer animate-link"
+                  @click="$emit('removeOpen')"
+                /> -->
                 <template #panel>
-                  <div class="p-4 text-xs">
+                  <div id="remove-popover" class="p-4 text-xs">
                     <p>Wollen sie das Schiff wirklich entfernen?</p>
                     <div class="flex mx-auto mt-2 gap-x-4 w-fit">
                       <ButtonDefault
+                        :id="onboarding ? 'onboarding-remove-confirm-button' : null"
                         color="danger"
                         @click="
                           removePopover = false;
