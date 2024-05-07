@@ -9,6 +9,6 @@ defineProps(['editor']);
     size="xs"
     :variant="editor?.isActive('video') ? 'solid' : 'ghost'"
     :color="editor?.isActive('video') ? 'primary' : 'white'"
-    @click="setVideo"
   />
+  <!-- @click="setVideo" -->
 </template>

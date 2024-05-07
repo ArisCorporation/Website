@@ -9,6 +9,6 @@ defineProps(['editor']);
     size="xs"
     :variant="editor?.isActive('image') ? 'solid' : 'ghost'"
     :color="editor?.isActive('image') ? 'primary' : 'white'"
-    @click="setImage"
   />
+  <!-- @click="setImage" -->
 </template>
