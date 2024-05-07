@@ -20,6 +20,14 @@ const handleCopy = () => {
     toast.add({ title: 'Es konnte leider nichts in die Zwischenablage kopiert werden.' });
   }
 };
+
+defineShortcuts({
+  d: {
+    handler: () => {
+      userSettingsStore.AMSToggleFleetDetailView();
+    },
+  },
+});
 </script>
 <template>
   <div>
