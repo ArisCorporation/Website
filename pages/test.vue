@@ -1,14 +1,17 @@
-<script setup>
-const config = useRuntimeConfig();
-console.log(config);
-function throwError() {
-  throw new Error('Sentry Error');
+<script setup lang="ts">
+interface Folder {
+  id: string;
+  parent: string;
+  name: string;
+  children: Folder;
 }
-</script>
 
+const active_folder = useState<Folder | null>('active_folder', () => null);
+</script>
 <template>
   <div>
-    <h1>TEST PAGE</h1>
-    <button @click="throwError">Throw error</button>
+    <h1>File-Library Test</h1>
+    <h1>{{ active_folder?.name || 'Dateien' }}</h1>
+    <FileLibrary :folder="active_folder?.id" @folder-select="(f: Folder) => (active_folder = f)" />
   </div>
 </template>
