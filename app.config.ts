@@ -116,7 +116,7 @@ export default defineAppConfig({
     slideover: {
       base: 'relative flex-1 flex flex-col w-full focus:outline-none',
       background: 'bg-bprimary',
-      width: 'w-screen max-w-[532px] xl:max-w-xl',
+      width: 'w-screen max-w-[532px] xl:max-w-2xl',
       overlay: {
         background: 'bg-black/50',
       },
