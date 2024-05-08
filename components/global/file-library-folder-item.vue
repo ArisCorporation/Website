@@ -26,7 +26,7 @@ const open = ref(false);
       class="flex justify-between max-w-full p-2 rounded cursor-pointer hover:bg-bsecondary has-[.folder-label:active]:animate-link"
       :class="{ 'bg-black': active_folder?.id == folder.id }"
     >
-      <div class="flex my-auto space-x-1 w-fit folder-label" @click="active_folder = folder">
+      <div class="flex flex-grow my-auto space-x-1 w-fit folder-label" @click="active_folder = folder">
         <UIcon name="i-heroicons-folder" class="my-auto size-5" />
         <p class="p-0">{{ folder.name }}</p>
       </div>
