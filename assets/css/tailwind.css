@@ -6,6 +6,9 @@
   html {
     @apply bg-bprimary text-tbase scroll-smooth font-nasa max-w-full text-base scrollbar;
   }
+  *:focus-visible {
+    @apply outline-aris-400
+  }
   ::selection {
     @apply bg-primary-400 text-bprimary;
   }
