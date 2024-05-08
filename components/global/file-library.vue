@@ -60,7 +60,7 @@ const open = ref(false);
             class="flex justify-between max-w-full p-2 rounded cursor-pointer hover:bg-bsecondary has-[.folder-label:active]:animate-link"
             :class="{ 'bg-black': active_folder === null }"
           >
-            <div class="flex my-auto space-x-1 w-fit folder-label" @click="active_folder = null">
+            <div class="flex flex-grow my-auto space-x-1 w-fit folder-label" @click="active_folder = null">
               <UIcon name="i-heroicons-folder" class="my-auto size-5" />
               <p class="p-0">Dateien</p>
             </div>
@@ -88,7 +88,7 @@ const open = ref(false);
             :class="{ 'bg-black': active_folder?.id === 'all' }"
           >
             <div
-              class="flex my-auto space-x-1 w-fit folder-label"
+              class="flex flex-grow my-auto space-x-1 w-fit folder-label"
               @click="active_folder = { id: 'all', parent: '', name: 'Alle Dateien', children: [] }"
             >
               <UIcon name="i-heroicons-folder" class="my-auto size-5" />
