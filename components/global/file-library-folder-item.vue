@@ -23,19 +23,21 @@ const open = ref(false);
 <template>
   <li class="p-0">
     <div
-      class="flex justify-between max-w-full p-2 rounded cursor-pointer hover:bg-bsecondary"
+      class="flex justify-between max-w-full p-2 rounded cursor-pointer hover:bg-bsecondary has-[.folder-label:active]:animate-link"
       :class="{ 'bg-black': active_folder?.id == folder.id }"
     >
-      <div class="flex my-auto space-x-1 w-fit" @click="active_folder = folder">
-        <UIcon name="i-heroicons-folder" class="w-5 h-5 my-auto" />
+      <div class="flex my-auto space-x-1 w-fit folder-label" @click="active_folder = folder">
+        <UIcon name="i-heroicons-folder" class="my-auto size-5" />
         <p class="p-0">{{ folder.name }}</p>
       </div>
-      <UIcon
-        name="i-heroicons-chevron-down-20-solid"
-        class="w-5 h-5 my-auto transition-transform duration-300"
-        :class="{ '-rotate-90': !open }"
-        @click="open = !open"
-      />
+      <div class="relative my-auto size-5 animate-link">
+        <UIcon
+          name="i-heroicons-chevron-down-20-solid"
+          class="w-full h-full transition-transform duration-300"
+          :class="{ '-rotate-90': !open }"
+          @click="open = !open"
+        />
+      </div>
     </div>
     <template v-if="folder.children && folder.children.length > 0">
       <ul v-if="open" class="pt-2 space-y-2 list-none">
