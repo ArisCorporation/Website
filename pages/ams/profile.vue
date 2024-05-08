@@ -7,6 +7,7 @@ const modalStore = useModalStore();
 const user = ref(transformUser(await useDirectusAuth().readMe()));
 const { uploadFiles, deleteFile } = useDirectusFiles();
 const avatarUploadLoading = ref(false);
+const { push } = useRouter();
 
 const links = reactive([
   [
@@ -101,6 +102,11 @@ function readAsDataURL(file: any) {
   });
 }
 
+defineShortcuts({
+  h: () => push('/ams/profile/help'),
+  '?': () => push('/ams/profile/help'),
+});
+
 definePageMeta({
   middleware: 'auth',
   layout: false,
@@ -153,6 +159,19 @@ definePageMeta({
             <!-- </template> -->
             <!-- </UCard> -->
           </div>
+        </div>
+      </template>
+      <template v-if="modalStore.type === 'cred-change'">
+        <div>
+          <h3>ACHTUNG!</h3>
+          <p>Du änderst deine Anmeldedaten!</p>
+          <p>Entweder dein Passwort oder dein Anmeldename ist danach anderst.</p>
+          <p v-if="modalStore.data.username">
+            Dein neuer Anmeldename ist nun: <code>&apos;{{ modalStore.data.username }}&apos;</code>
+          </p>
+          <p v-if="modalStore.data.password">
+            Dein neues Passwort ist nun: <code>&apos;{{ modalStore.data.password }}&apos;</code>
+          </p>
         </div>
       </template>
     </template>

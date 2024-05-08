@@ -2,6 +2,8 @@
 import { object, string, number, boolean, type InferType } from 'yup';
 import type { FormSubmitEvent } from '#ui/types';
 const { readAsyncItems } = useDirectusItems();
+const { updateUser } = useDirectusUsers();
+const modalStore = useModalStore();
 
 defineEmits(['cropperInput']);
 
@@ -59,7 +61,7 @@ const landing_zones = computed(() => {
         ...landing_zone,
         planet: {
           ...planet,
-          system: system,
+          system,
         },
         path_label: [system?.name, planet?.name, landing_zone.name].filter(Boolean).join(' / '),
       };
@@ -72,7 +74,6 @@ const landing_zones = computed(() => {
     );
 });
 
-// console.log(systems);
 console.log(user);
 console.log(landing_zones_res);
 console.log(landing_zones);
@@ -83,20 +84,51 @@ const birth_date_month = ref(user.birth_date?.split('-')[1] || null);
 const birth_date_year = ref(user.birth_date?.split('-')[0] || null);
 
 const form = ref();
-
 const schema = object({
   first_name: string().required('Du brauchst einen Vornamen!'),
   last_name: string().nullable(),
   title: string().nullable(),
   password: string().nullable(),
-  department: string().nullable(),
+  department: object({
+    id: string().required(),
+    name: string().required(),
+    logo: string().nullable(),
+  }).nullable(),
   contact_email: string().email('Keine gültige Email-Adresse angegeben!').nullable(),
   discord_name: string().nullable(),
   rsi_handle: string().nullable(),
   sex: string().required(),
-  current_residence: string().nullable(),
+  current_residence: object({
+    id: string(),
+    name: string(),
+    planet: object({
+      id: string(),
+      name: string(),
+      slug: string(),
+      system: object({
+        id: string(),
+        name: string(),
+        slug: string(),
+      }).nullable(),
+    }),
+    slug: string(),
+  }).nullable(),
   birth_date: string().nullable(),
-  birthplace: string().nullable(),
+  birthplace: object({
+    id: string(),
+    name: string(),
+    planet: object({
+      id: string(),
+      name: string(),
+      slug: string(),
+      system: object({
+        id: string(),
+        name: string(),
+        slug: string(),
+      }).nullable(),
+    }),
+    slug: string(),
+  }).nullable(),
   hair_color: string().nullable(),
   eye_color: string().nullable(),
   weight: number().nullable(),
@@ -199,14 +231,56 @@ watch(formdata, () => {
 const initialFormdata = reactive({ ...formdata });
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  // Do something with event.data
-  console.log(event.data);
+  const userId = user.id;
+  const updatedUser = {};
+
+  for (const key in formdata) {
+    if (formdata[key as keyof typeof formdata] !== initialFormdata[key as keyof typeof initialFormdata]) {
+      updatedUser[key as keyof typeof updatedUser] = formdata[key as keyof typeof formdata];
+    }
+  }
+
+  if (Object.keys(updatedUser).length === 0) {
+    return;
+  }
+
+  if (
+    updatedUser.hasOwnProperty('password') ||
+    updatedUser.hasOwnProperty('first_name') ||
+    updatedUser.hasOwnProperty('last_name')
+  ) {
+    modalStore.setData({
+      ...((updatedUser.hasOwnProperty('first_name') || updatedUser.hasOwnProperty('last_name')) && {
+        username: useSlugify(
+          formdata.first_name.trim() + (formdata.last_name ? ' ' + formdata.last_name.trim() : ''),
+          true,
+        ),
+      }),
+      ...(updatedUser.hasOwnProperty('password') && { password: updatedUser.password }),
+    });
+
+    modalStore.openModal('WARNUNG!!!', {
+      type: 'cred-change',
+    });
+  }
+
+  try {
+    await updateUser(userId, updatedUser, { limit: -1 });
+
+    for (const key in formdata) {
+      if (initialFormdata[key as keyof typeof initialFormdata] !== formdata[key as keyof typeof formdata]) {
+        initialFormdata[key as keyof typeof initialFormdata] = formdata[key as keyof typeof formdata];
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
 }
 </script>
 
 <template>
   <div>
-    <UForm :ref="form" :schema="schema" :state="formdata" @submit="onSubmit" validate-on="submit">
+    <UForm :ref="form" :schema="schema" :state="formdata" validate-on="submit" @submit="onSubmit">
       <div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
           <div class="flex flex-wrap items-center gap-1.5">
@@ -227,7 +301,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput placeholder="Chris" size="md" autocomplete="off" v-model="formdata.first_name" />
+          <UInput v-model="formdata.first_name" placeholder="Chris" size="md" autocomplete="off" />
         </UFormGroup>
         <UFormGroup
           label="Nachname"
@@ -236,41 +310,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            :icon="
-              formdata.last_name || initialFormdata.last_name
-                ? formdata.last_name === initialFormdata.last_name
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Roberts"
-            size="md"
-            autocomplete="off"
-            v-model="formdata.last_name"
-          />
-          <template v-if="formdata.last_name || initialFormdata.last_name">
-            <button
-              v-if="formdata.last_name === initialFormdata.last_name"
-              @click="formdata.last_name = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.last_name = initialFormdata.last_name"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.last_name"
+              :icon="
+                formdata.last_name || initialFormdata.last_name
+                  ? formdata.last_name === initialFormdata.last_name
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Roberts"
+              size="md"
+              autocomplete="off"
+            />
+            <template v-if="formdata.last_name || initialFormdata.last_name">
+              <button
+                v-if="formdata.last_name === initialFormdata.last_name"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.last_name = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.last_name = initialFormdata.last_name"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Benutzername"
@@ -316,8 +392,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           <UInput
             size="md"
             type="file"
-            @input="(e: any) => $emit('cropperInput', e)"
             accept="image/png, image/jpeg, image/webp"
+            @input="(e: any) => $emit('cropperInput', e)"
           />
         </UFormGroup>
         <UFormGroup
@@ -327,61 +403,63 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <USelectMenu
-            v-model="formdata.title"
-            :options="titleOptions"
-            :ui="
-              formdata.title || initialFormdata.title
-                ? {
-                    leading: {
-                      padding: {
-                        xl: 'ps-10',
+          <div class="relative">
+            <USelectMenu
+              v-model="formdata.title"
+              :options="titleOptions"
+              :ui="
+                formdata.title || initialFormdata.title
+                  ? {
+                      leading: {
+                        padding: {
+                          xl: 'ps-10',
+                        },
                       },
-                    },
-                  }
-                : { leading: { padding: { xl: 'hidden' } } }
-            "
-            :icon="
-              formdata.title || initialFormdata.title
-                ? formdata.title === initialFormdata.title
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            size="md"
-          >
-            <template v-if="formdata.title || initialFormdata.title" #leading />
-            <template #label>
-              <span v-if="formdata.title">{{ formdata.title }}</span>
-              <span v-else>Kein Titel ausgewählt</span>
-            </template>
-            <template #option="{ option }">
-              <span v-if="option">{{ option }}</span>
-              <span v-else>Kein Titel</span>
-            </template>
-          </USelectMenu>
-          <template v-if="formdata.title || initialFormdata.title">
-            <button
-              v-if="formdata.title === initialFormdata.title"
-              @click="formdata.title = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    }
+                  : { leading: { padding: { xl: 'hidden' } } }
+              "
+              :icon="
+                formdata.title || initialFormdata.title
+                  ? formdata.title === initialFormdata.title
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              size="md"
             >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.title = initialFormdata.title"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+              <template v-if="formdata.title || initialFormdata.title" #leading />
+              <template #label>
+                <span v-if="formdata.title">{{ formdata.title }}</span>
+                <span v-else>Kein Titel ausgewählt</span>
+              </template>
+              <template #option="{ option }">
+                <span v-if="option">{{ option }}</span>
+                <span v-else>Kein Titel</span>
+              </template>
+            </USelectMenu>
+            <template v-if="formdata.title || initialFormdata.title">
+              <button
+                v-if="formdata.title === initialFormdata.title"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.title = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.title = initialFormdata.title"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Passwort"
@@ -390,23 +468,27 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.password"
-            size="md"
-            autocomplete="off"
-            trailing
-            :icon="formdata.password !== '' && 'i-heroicons-x-mark-16-solid'"
-            placeholder="******"
-            type="password"
-          />
-          <button
-            v-if="formdata.password !== ''"
-            @click="formdata.password = ''"
-            type="button"
-            class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-          >
-            <UIcon name="i-heroicons-x-mark-16-solid" class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100" />
-          </button>
+          <div class="relative">
+            <UInput
+              v-model="formdata.password"
+              size="md"
+              autocomplete="off"
+              :icon="formdata.password !== '' && 'i-heroicons-x-mark-16-solid'"
+              placeholder="******"
+              type="password"
+            />
+            <button
+              v-if="formdata.password !== ''"
+              type="button"
+              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+              @click="formdata.password = ''"
+            >
+              <UIcon
+                name="i-heroicons-x-mark-16-solid"
+                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+              />
+            </button>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Rollen"
@@ -438,7 +520,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UCheckbox v-bind:model-value="user.head_of_department" disabled label="Abteilungsleiter" />
+          <UCheckbox :model-value="user.head_of_department" disabled label="Abteilungsleiter" />
         </UFormGroup>
         <UFormGroup
           label="Abteilung"
@@ -447,66 +529,68 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <USelectMenu
-            v-model="formdata.department"
-            :options="['', ...departments]"
-            option-attribute="name"
-            searchable
-            clear-search-on-close
-            searchable-placeholder="Suche..."
-            :search-attributes="['name']"
-            :ui="
-              formdata.department || initialFormdata.department
-                ? {
-                    leading: {
-                      padding: {
-                        xl: 'ps-10',
+          <div class="relative">
+            <USelectMenu
+              v-model="formdata.department"
+              :options="['', ...departments]"
+              option-attribute="name"
+              searchable
+              clear-search-on-close
+              searchable-placeholder="Suche..."
+              :search-attributes="['name']"
+              :ui="
+                formdata.department || initialFormdata.department
+                  ? {
+                      leading: {
+                        padding: {
+                          xl: 'ps-10',
+                        },
                       },
-                    },
-                  }
-                : { leading: { padding: { xl: 'hidden' } } }
-            "
-            :icon="
-              formdata.department || initialFormdata.department
-                ? formdata.department === initialFormdata.department
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            size="md"
-          >
-            <template v-if="formdata.department || initialFormdata.department" #leading />
-            <template #label>
-              <span v-if="formdata.department">{{ formdata.department.name }}</span>
-              <span class="text-[13.9px]" v-else>Keine Abteilung ausgewählt</span>
-            </template>
-            <template #option="{ option }">
-              <span v-if="option">{{ option.name }}</span>
-              <span v-else>Keine Abteilung</span>
-            </template>
-          </USelectMenu>
-          <template v-if="formdata.department || initialFormdata.department">
-            <button
-              v-if="formdata.department === initialFormdata.department"
-              @click="formdata.department = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    }
+                  : { leading: { padding: { xl: 'hidden' } } }
+              "
+              :icon="
+                formdata.department || initialFormdata.department
+                  ? formdata.department === initialFormdata.department
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              size="md"
             >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.department = initialFormdata.department"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+              <template v-if="formdata.department || initialFormdata.department" #leading />
+              <template #label>
+                <span v-if="formdata.department">{{ formdata.department.name }}</span>
+                <span v-else class="text-[13.9px]">Keine Abteilung ausgewählt</span>
+              </template>
+              <template #option="{ option }">
+                <span v-if="option">{{ option.name }}</span>
+                <span v-else>Keine Abteilung</span>
+              </template>
+            </USelectMenu>
+            <template v-if="formdata.department || initialFormdata.department">
+              <button
+                v-if="formdata.department === initialFormdata.department"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.department = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.department = initialFormdata.department"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Kontakt Email"
@@ -515,41 +599,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.contact_email"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.contact_email || initialFormdata.contact_email
-                ? formdata.contact_email === initialFormdata.contact_email
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="contact@email.com"
-          />
-          <template v-if="formdata.contact_email || initialFormdata.contact_email">
-            <button
-              v-if="formdata.contact_email === initialFormdata.contact_email"
-              @click="formdata.contact_email = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.contact_email = initialFormdata.contact_email"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.contact_email"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.contact_email || initialFormdata.contact_email
+                  ? formdata.contact_email === initialFormdata.contact_email
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="contact@email.com"
+            />
+            <template v-if="formdata.contact_email || initialFormdata.contact_email">
+              <button
+                v-if="formdata.contact_email === initialFormdata.contact_email"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.contact_email = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.contact_email = initialFormdata.contact_email"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Discord Benutzername"
@@ -558,41 +644,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.discord_name"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.discord_name || initialFormdata.discord_name
-                ? formdata.discord_name === initialFormdata.discord_name
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="user_name"
-          />
-          <template v-if="formdata.discord_name || initialFormdata.discord_name">
-            <button
-              v-if="formdata.discord_name === initialFormdata.discord_name"
-              @click="formdata.discord_name = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.discord_name = initialFormdata.discord_name"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.discord_name"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.discord_name || initialFormdata.discord_name
+                  ? formdata.discord_name === initialFormdata.discord_name
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="user_name"
+            />
+            <template v-if="formdata.discord_name || initialFormdata.discord_name">
+              <button
+                v-if="formdata.discord_name === initialFormdata.discord_name"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.discord_name = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.discord_name = initialFormdata.discord_name"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Discord ID"
@@ -622,41 +710,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.rsi_handle"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.rsi_handle || initialFormdata.rsi_handle
-                ? formdata.rsi_handle === initialFormdata.rsi_handle
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="chris_roberts"
-          />
-          <template v-if="formdata.rsi_handle || initialFormdata.rsi_handle">
-            <button
-              v-if="formdata.rsi_handle === initialFormdata.rsi_handle"
-              @click="formdata.rsi_handle = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.rsi_handle = initialFormdata.rsi_handle"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.rsi_handle"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.rsi_handle || initialFormdata.rsi_handle
+                  ? formdata.rsi_handle === initialFormdata.rsi_handle
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="chris_roberts"
+            />
+            <template v-if="formdata.rsi_handle || initialFormdata.rsi_handle">
+              <button
+                v-if="formdata.rsi_handle === initialFormdata.rsi_handle"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.rsi_handle = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.rsi_handle = initialFormdata.rsi_handle"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div class="flex items-start gap-4">
@@ -690,57 +780,59 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <USelectMenu
-            v-model="formdata.current_residence"
-            :options="['', ...landing_zones]"
-            option-attribute="name"
-            searchable
-            clear-search-on-close
-            searchable-placeholder="Suche..."
-            :search-attributes="['name']"
-            :icon="
-              formdata.current_residence || initialFormdata.current_residence
-                ? formdata.current_residence === initialFormdata.current_residence
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            size="md"
-          >
-            <template v-if="formdata.current_residence || initialFormdata.current_residence" #leading />
-            <template #label>
-              <span v-if="formdata.current_residence">{{
-                formdata.current_residence.path_label || formdata.current_residence.name
-              }}</span>
-              <span class="text-[13.9px]" v-else>Keine Landezone ausgewählt</span>
-            </template>
-            <template #option="{ option }">
-              <span v-if="option">{{ option.path_label || option.name }}</span>
-              <span v-else>Keine Landezone</span>
-            </template>
-          </USelectMenu>
-          <template v-if="formdata.current_residence || initialFormdata.current_residence">
-            <button
-              v-if="formdata.current_residence === initialFormdata.current_residence"
-              @click="formdata.current_residence = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+          <div class="relative">
+            <USelectMenu
+              v-model="formdata.current_residence"
+              :options="['', ...landing_zones]"
+              option-attribute="name"
+              searchable
+              clear-search-on-close
+              searchable-placeholder="Suche..."
+              :search-attributes="['name']"
+              :icon="
+                formdata.current_residence || initialFormdata.current_residence
+                  ? formdata.current_residence === initialFormdata.current_residence
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              size="md"
             >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.current_residence = initialFormdata.current_residence"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+              <template v-if="formdata.current_residence || initialFormdata.current_residence" #leading />
+              <template #label>
+                <span v-if="formdata.current_residence">{{
+                  formdata.current_residence.path_label || formdata.current_residence.name
+                }}</span>
+                <span v-else class="text-[13.9px]">Keine Landezone ausgewählt</span>
+              </template>
+              <template #option="{ option }">
+                <span v-if="option">{{ option.path_label || option.name }}</span>
+                <span v-else>Keine Landezone</span>
+              </template>
+            </USelectMenu>
+            <template v-if="formdata.current_residence || initialFormdata.current_residence">
+              <button
+                v-if="formdata.current_residence === initialFormdata.current_residence"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.current_residence = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.current_residence = initialFormdata.current_residence"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Geburtsdatum"
@@ -751,16 +843,16 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         >
           <div class="w-1/3">
             <USelectMenu
-              placeholder="Tag"
               v-model="birth_date_day"
+              placeholder="Tag"
               :options="Array.from({ length: 31 }, (_, index) => (index + 1).toString().padStart(2, '0'))"
               size="md"
             />
           </div>
           <div class="w-1/3">
             <USelectMenu
-              placeholder="Monat"
               v-model="birth_date_month"
+              placeholder="Monat"
               :options="[
                 { name: 'Januar', value: '01' },
                 { name: 'Februar', value: '02' },
@@ -799,55 +891,57 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <USelectMenu
-            v-model="formdata.birthplace"
-            :options="['', ...landing_zones]"
-            option-attribute="name"
-            searchable
-            clear-search-on-close
-            searchable-placeholder="Suche..."
-            :search-attributes="['name']"
-            :icon="
-              formdata.birthplace || initialFormdata.birthplace
-                ? formdata.birthplace === initialFormdata.birthplace
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            size="md"
-          >
-            <template v-if="formdata.birthplace || initialFormdata.birthplace" #leading />
-            <template #label>
-              <span v-if="formdata.birthplace">{{ formdata.birthplace.path_label || formdata.birthplace.name }}</span>
-              <span class="text-[13.9px]" v-else>Keine Landezone ausgewählt</span>
-            </template>
-            <template #option="{ option }">
-              <span v-if="option">{{ option.path_label || option.name }}</span>
-              <span v-else>Keine Landezone</span>
-            </template>
-          </USelectMenu>
-          <template v-if="formdata.birthplace || initialFormdata.birthplace">
-            <button
-              v-if="formdata.birthplace === initialFormdata.birthplace"
-              @click="formdata.birthplace = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+          <div class="relative">
+            <USelectMenu
+              v-model="formdata.birthplace"
+              :options="['', ...landing_zones]"
+              option-attribute="name"
+              searchable
+              clear-search-on-close
+              searchable-placeholder="Suche..."
+              :search-attributes="['name']"
+              :icon="
+                formdata.birthplace || initialFormdata.birthplace
+                  ? formdata.birthplace === initialFormdata.birthplace
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              size="md"
             >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.birthplace = initialFormdata.birthplace"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+              <template v-if="formdata.birthplace || initialFormdata.birthplace" #leading />
+              <template #label>
+                <span v-if="formdata.birthplace">{{ formdata.birthplace.path_label || formdata.birthplace.name }}</span>
+                <span v-else class="text-[13.9px]">Keine Landezone ausgewählt</span>
+              </template>
+              <template #option="{ option }">
+                <span v-if="option">{{ option.path_label || option.name }}</span>
+                <span v-else>Keine Landezone</span>
+              </template>
+            </USelectMenu>
+            <template v-if="formdata.birthplace || initialFormdata.birthplace">
+              <button
+                v-if="formdata.birthplace === initialFormdata.birthplace"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.birthplace = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.birthplace = initialFormdata.birthplace"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Haarfarbe"
@@ -856,41 +950,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="grid items-center gap-2 md:grid-cols-2"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.hair_color"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.hair_color || initialFormdata.hair_color
-                ? formdata.hair_color === initialFormdata.hair_color
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Schwarz"
-          />
-          <template v-if="formdata.hair_color || initialFormdata.hair_color">
-            <button
-              v-if="formdata.hair_color === initialFormdata.hair_color"
-              @click="formdata.hair_color = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.hair_color = initialFormdata.hair_color"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.hair_color"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.hair_color || initialFormdata.hair_color
+                  ? formdata.hair_color === initialFormdata.hair_color
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Schwarz"
+            />
+            <template v-if="formdata.hair_color || initialFormdata.hair_color">
+              <button
+                v-if="formdata.hair_color === initialFormdata.hair_color"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.hair_color = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.hair_color = initialFormdata.hair_color"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Augenfarbe"
@@ -899,41 +995,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.eye_color"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.eye_color || initialFormdata.eye_color
-                ? formdata.eye_color === initialFormdata.eye_color
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Blau / Grün"
-          />
-          <template v-if="formdata.eye_color || initialFormdata.eye_color">
-            <button
-              v-if="formdata.eye_color === initialFormdata.eye_color"
-              @click="formdata.eye_color = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.eye_color = initialFormdata.eye_color"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.eye_color"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.eye_color || initialFormdata.eye_color
+                  ? formdata.eye_color === initialFormdata.eye_color
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Blau / Grün"
+            />
+            <template v-if="formdata.eye_color || initialFormdata.eye_color">
+              <button
+                v-if="formdata.eye_color === initialFormdata.eye_color"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.eye_color = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.eye_color = initialFormdata.eye_color"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Gewicht"
@@ -942,43 +1040,45 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.weight"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.weight || initialFormdata.weight
-                ? formdata.weight === initialFormdata.weight
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            trailing-icon="i-mdi-weight-kilogram"
-            placeholder="82"
-            inputmode="numeric"
-          />
-          <template v-if="formdata.weight || initialFormdata.weight">
-            <button
-              v-if="formdata.weight === initialFormdata.weight"
-              @click="formdata.weight = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.weight = initialFormdata.weight"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.weight"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.weight || initialFormdata.weight
+                  ? formdata.weight === initialFormdata.weight
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              trailing-icon="i-mdi-weight-kilogram"
+              placeholder="82"
+              inputmode="numeric"
+            />
+            <template v-if="formdata.weight || initialFormdata.weight">
+              <button
+                v-if="formdata.weight === initialFormdata.weight"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.weight = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.weight = initialFormdata.weight"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Größe"
@@ -987,43 +1087,45 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.height"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.height || initialFormdata.height
-                ? formdata.height === initialFormdata.height
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            trailing-icon="i-mdi-human-male-height"
-            placeholder="192"
-            inputmode="numeric"
-          />
-          <template v-if="formdata.height || initialFormdata.height">
-            <button
-              v-if="formdata.height === initialFormdata.height"
-              @click="formdata.height = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.height = initialFormdata.height"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.height"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.height || initialFormdata.height
+                  ? formdata.height === initialFormdata.height
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              trailing-icon="i-mdi-human-male-height"
+              placeholder="192"
+              inputmode="numeric"
+            />
+            <template v-if="formdata.height || initialFormdata.height">
+              <button
+                v-if="formdata.height === initialFormdata.height"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.height = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.height = initialFormdata.height"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div class="flex items-start gap-4">
@@ -1122,40 +1224,42 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
               class="items-center grid-cols-2 gap-2 md:grid"
               :ui="{ container: 'relative' }"
             >
-              <UInput
-                v-model="formdata.duty_period"
-                size="md"
-                placeholder="01/2940 - 12/2950"
-                :icon="
-                  formdata.duty_period || initialFormdata.duty_period
-                    ? formdata.duty_period === initialFormdata.duty_period
-                      ? 'i-heroicons-x-mark-16-solid'
-                      : 'i-heroicons-arrow-uturn-left'
-                    : ''
-                "
-              />
-              <template v-if="formdata.duty_period || initialFormdata.duty_period">
-                <button
-                  v-if="formdata.duty_period === initialFormdata.duty_period"
-                  @click="formdata.duty_period = ''"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-x-mark-16-solid"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-                <button
-                  v-else
-                  @click="formdata.duty_period = initialFormdata.duty_period"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-arrow-uturn-left"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-              </template>
+              <div class="relative">
+                <UInput
+                  v-model="formdata.duty_period"
+                  size="md"
+                  placeholder="01/2940 - 12/2950"
+                  :icon="
+                    formdata.duty_period || initialFormdata.duty_period
+                      ? formdata.duty_period === initialFormdata.duty_period
+                        ? 'i-heroicons-x-mark-16-solid'
+                        : 'i-heroicons-arrow-uturn-left'
+                      : ''
+                  "
+                />
+                <template v-if="formdata.duty_period || initialFormdata.duty_period">
+                  <button
+                    v-if="formdata.duty_period === initialFormdata.duty_period"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.duty_period = ''"
+                  >
+                    <UIcon
+                      name="i-heroicons-x-mark-16-solid"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                  <button
+                    v-else
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.duty_period = initialFormdata.duty_period"
+                  >
+                    <UIcon
+                      name="i-heroicons-arrow-uturn-left"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                </template>
+              </div>
             </UFormGroup>
             <UFormGroup
               :required="formdata.duty_period"
@@ -1217,8 +1321,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 <template v-if="formdata.duty_division || initialFormdata.duty_division">
                   <button
                     v-if="formdata.duty_division === initialFormdata.duty_division"
-                    @click="formdata.duty_division = ''"
                     class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.duty_division = ''"
                   >
                     <UIcon
                       name="i-heroicons-x-mark-16-solid"
@@ -1227,8 +1331,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                   </button>
                   <button
                     v-else
-                    @click="formdata.duty_division = initialFormdata.duty_division"
                     class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.duty_division = initialFormdata.duty_division"
                   >
                     <UIcon
                       name="i-heroicons-arrow-uturn-left"
@@ -1256,40 +1360,42 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
               class="items-center grid-cols-2 gap-2 md:grid"
               :ui="{ container: 'relative' }"
             >
-              <UInput
-                v-model="formdata.education_name"
-                size="md"
-                placeholder="Medizinisches Studium"
-                :icon="
-                  formdata.education_name || initialFormdata.education_name
-                    ? formdata.education_name === initialFormdata.education_name
-                      ? 'i-heroicons-x-mark-16-solid'
-                      : 'i-heroicons-arrow-uturn-left'
-                    : ''
-                "
-              />
-              <template v-if="formdata.education_name || initialFormdata.education_name">
-                <button
-                  v-if="formdata.education_name === initialFormdata.education_name"
-                  @click="formdata.education_name = ''"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-x-mark-16-solid"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-                <button
-                  v-else
-                  @click="formdata.education_name = initialFormdata.education_name"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-arrow-uturn-left"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-              </template>
+              <div class="relative">
+                <UInput
+                  v-model="formdata.education_name"
+                  size="md"
+                  placeholder="Medizinisches Studium"
+                  :icon="
+                    formdata.education_name || initialFormdata.education_name
+                      ? formdata.education_name === initialFormdata.education_name
+                        ? 'i-heroicons-x-mark-16-solid'
+                        : 'i-heroicons-arrow-uturn-left'
+                      : ''
+                  "
+                />
+                <template v-if="formdata.education_name || initialFormdata.education_name">
+                  <button
+                    v-if="formdata.education_name === initialFormdata.education_name"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.education_name = ''"
+                  >
+                    <UIcon
+                      name="i-heroicons-x-mark-16-solid"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                  <button
+                    v-else
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.education_name = initialFormdata.education_name"
+                  >
+                    <UIcon
+                      name="i-heroicons-arrow-uturn-left"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                </template>
+              </div>
             </UFormGroup>
             <UFormGroup
               :required="formdata.education_period"
@@ -1298,40 +1404,42 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
               class="items-center grid-cols-2 gap-2 md:grid"
               :ui="{ container: 'relative' }"
             >
-              <UInput
-                v-model="formdata.education_period"
-                size="md"
-                placeholder="01/2940 - 12/2950"
-                :icon="
-                  formdata.education_period || initialFormdata.education_period
-                    ? formdata.education_period === initialFormdata.education_period
-                      ? 'i-heroicons-x-mark-16-solid'
-                      : 'i-heroicons-arrow-uturn-left'
-                    : ''
-                "
-              />
-              <template v-if="formdata.education_period || initialFormdata.education_period">
-                <button
-                  v-if="formdata.education_period === initialFormdata.education_period"
-                  @click="formdata.education_period = ''"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-x-mark-16-solid"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-                <button
-                  v-else
-                  @click="formdata.education_period = initialFormdata.education_period"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-arrow-uturn-left"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-              </template>
+              <div class="relative">
+                <UInput
+                  v-model="formdata.education_period"
+                  size="md"
+                  placeholder="01/2940 - 12/2950"
+                  :icon="
+                    formdata.education_period || initialFormdata.education_period
+                      ? formdata.education_period === initialFormdata.education_period
+                        ? 'i-heroicons-x-mark-16-solid'
+                        : 'i-heroicons-arrow-uturn-left'
+                      : ''
+                  "
+                />
+                <template v-if="formdata.education_period || initialFormdata.education_period">
+                  <button
+                    v-if="formdata.education_period === initialFormdata.education_period"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.education_period = ''"
+                  >
+                    <UIcon
+                      name="i-heroicons-x-mark-16-solid"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                  <button
+                    v-else
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.education_period = initialFormdata.education_period"
+                  >
+                    <UIcon
+                      name="i-heroicons-arrow-uturn-left"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                </template>
+              </div>
             </UFormGroup>
             <UFormGroup
               :required="formdata.education_state"
@@ -1371,8 +1479,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 <template v-if="formdata.education_place || initialFormdata.education_place">
                   <button
                     v-if="formdata.education_place === initialFormdata.education_place"
-                    @click="formdata.education_place = ''"
                     class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.education_place = ''"
                   >
                     <UIcon
                       name="i-heroicons-x-mark-16-solid"
@@ -1381,8 +1489,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                   </button>
                   <button
                     v-else
-                    @click="formdata.duty_diveducation_placeision = initialFormdata.education_place"
                     class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.duty_diveducation_placeision = initialFormdata.education_place"
                   >
                     <UIcon
                       name="i-heroicons-arrow-uturn-left"
@@ -1409,41 +1517,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.hobbies"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.hobbies || initialFormdata.hobbies
-                ? formdata.hobbies === initialFormdata.hobbies
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Sport, Fliegen, Schrauben, ..."
-          />
-          <template v-if="formdata.hobbies || initialFormdata.hobbies">
-            <button
-              v-if="formdata.hobbies === initialFormdata.hobbies"
-              @click="formdata.hobbies = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.hobbies = initialFormdata.hobbies"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.hobbies"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.hobbies || initialFormdata.hobbies
+                  ? formdata.hobbies === initialFormdata.hobbies
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Sport, Fliegen, Schrauben, ..."
+            />
+            <template v-if="formdata.hobbies || initialFormdata.hobbies">
+              <button
+                v-if="formdata.hobbies === initialFormdata.hobbies"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.hobbies = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.hobbies = initialFormdata.hobbies"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Freizeitgestaltung"
@@ -1452,41 +1562,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.activities"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.activities || initialFormdata.activities
-                ? formdata.activities === initialFormdata.activities
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Fischen, Kochen, ..."
-          />
-          <template v-if="formdata.activities || initialFormdata.activities">
-            <button
-              v-if="formdata.activities === initialFormdata.activities"
-              @click="formdata.activities = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.activities = initialFormdata.activities"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.activities"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.activities || initialFormdata.activities
+                  ? formdata.activities === initialFormdata.activities
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Fischen, Kochen, ..."
+            />
+            <template v-if="formdata.activities || initialFormdata.activities">
+              <button
+                v-if="formdata.activities === initialFormdata.activities"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.activities = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.activities = initialFormdata.activities"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Talente"
@@ -1495,41 +1607,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.talents"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.talents || initialFormdata.talents
-                ? formdata.talents === initialFormdata.talents
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Spricht Sprache X, Handwerklich begabt, ..."
-          />
-          <template v-if="formdata.talents || initialFormdata.talents">
-            <button
-              v-if="formdata.talents === initialFormdata.talents"
-              @click="formdata.talents = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.talents = initialFormdata.talents"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.talents"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.talents || initialFormdata.talents
+                  ? formdata.talents === initialFormdata.talents
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Spricht Sprache X, Handwerklich begabt, ..."
+            />
+            <template v-if="formdata.talents || initialFormdata.talents">
+              <button
+                v-if="formdata.talents === initialFormdata.talents"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.talents = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.talents = initialFormdata.talents"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Angewohnheiten"
@@ -1538,41 +1652,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.habits"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.habits || initialFormdata.habits
-                ? formdata.habits === initialFormdata.habits
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Überspielt Unsicherheit mit Humor, ..."
-          />
-          <template v-if="formdata.habits || initialFormdata.habits">
-            <button
-              v-if="formdata.habits === initialFormdata.habits"
-              @click="formdata.habits = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.habits = initialFormdata.habits"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.habits"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.habits || initialFormdata.habits
+                  ? formdata.habits === initialFormdata.habits
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Überspielt Unsicherheit mit Humor, ..."
+            />
+            <template v-if="formdata.habits || initialFormdata.habits">
+              <button
+                v-if="formdata.habits === initialFormdata.habits"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.habits = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.habits = initialFormdata.habits"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Tics & Marotten"
@@ -1581,41 +1697,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.tics"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.tics || initialFormdata.tics
-                ? formdata.tics === initialFormdata.tics
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Hat fragwürdigen Humor, ..."
-          />
-          <template v-if="formdata.tics || initialFormdata.tics">
-            <button
-              v-if="formdata.tics === initialFormdata.tics"
-              @click="formdata.tics = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.tics = initialFormdata.tics"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.tics"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.tics || initialFormdata.tics
+                  ? formdata.tics === initialFormdata.tics
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Hat fragwürdigen Humor, ..."
+            />
+            <template v-if="formdata.tics || initialFormdata.tics">
+              <button
+                v-if="formdata.tics === initialFormdata.tics"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.tics = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.tics = initialFormdata.tics"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Ängste"
@@ -1624,41 +1742,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.fears"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.fears || initialFormdata.fears
-                ? formdata.fears === initialFormdata.fears
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Hat fragwürdigen Humor, ..."
-          />
-          <template v-if="formdata.fears || initialFormdata.fears">
-            <button
-              v-if="formdata.fears === initialFormdata.fears"
-              @click="formdata.fears = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.fears = initialFormdata.fears"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.fears"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.fears || initialFormdata.fears
+                  ? formdata.fears === initialFormdata.fears
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Hat fragwürdigen Humor, ..."
+            />
+            <template v-if="formdata.fears || initialFormdata.fears">
+              <button
+                v-if="formdata.fears === initialFormdata.fears"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.fears = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.fears = initialFormdata.fears"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Hervorstechender Charakterzug"
@@ -1667,41 +1787,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.character"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.character || initialFormdata.character
-                ? formdata.character === initialFormdata.character
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Ist sehr loyal, ..."
-          />
-          <template v-if="formdata.character || initialFormdata.character">
-            <button
-              v-if="formdata.character === initialFormdata.character"
-              @click="formdata.character = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.character = initialFormdata.character"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.character"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.character || initialFormdata.character
+                  ? formdata.character === initialFormdata.character
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Ist sehr loyal, ..."
+            />
+            <template v-if="formdata.character || initialFormdata.character">
+              <button
+                v-if="formdata.character === initialFormdata.character"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.character = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.character = initialFormdata.character"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Rästelhafte Züge"
@@ -1710,41 +1832,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.mysterious"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.mysterious || initialFormdata.mysterious
-                ? formdata.mysterious === initialFormdata.mysterious
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Spricht ungern über Ereignis X, ..."
-          />
-          <template v-if="formdata.mysterious || initialFormdata.mysterious">
-            <button
-              v-if="formdata.mysterious === initialFormdata.mysterious"
-              @click="formdata.mysterious = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.mysterious = initialFormdata.mysterious"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.mysterious"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.mysterious || initialFormdata.mysterious
+                  ? formdata.mysterious === initialFormdata.mysterious
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Spricht ungern über Ereignis X, ..."
+            />
+            <template v-if="formdata.mysterious || initialFormdata.mysterious">
+              <button
+                v-if="formdata.mysterious === initialFormdata.mysterious"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.mysterious = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.mysterious = initialFormdata.mysterious"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Musik"
@@ -1753,41 +1877,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.music"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.music || initialFormdata.music
-                ? formdata.music === initialFormdata.music
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Rock Musik, EDM, Metal, ..."
-          />
-          <template v-if="formdata.music || initialFormdata.music">
-            <button
-              v-if="formdata.music === initialFormdata.music"
-              @click="formdata.music = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.music = initialFormdata.music"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.music"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.music || initialFormdata.music
+                  ? formdata.music === initialFormdata.music
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Rock Musik, EDM, Metal, ..."
+            />
+            <template v-if="formdata.music || initialFormdata.music">
+              <button
+                v-if="formdata.music === initialFormdata.music"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.music = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.music = initialFormdata.music"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Filme"
@@ -1796,41 +1922,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.movies"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.movies || initialFormdata.movies
-                ? formdata.movies === initialFormdata.movies
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Star Trek, Star Wars, ..."
-          />
-          <template v-if="formdata.movies || initialFormdata.movies">
-            <button
-              v-if="formdata.movies === initialFormdata.movies"
-              @click="formdata.movies = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.movies = initialFormdata.movies"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.movies"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.movies || initialFormdata.movies
+                  ? formdata.movies === initialFormdata.movies
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Star Trek, Star Wars, ..."
+            />
+            <template v-if="formdata.movies || initialFormdata.movies">
+              <button
+                v-if="formdata.movies === initialFormdata.movies"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.movies = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.movies = initialFormdata.movies"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Bücher"
@@ -1839,41 +1967,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.books"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.books || initialFormdata.books
-                ? formdata.books === initialFormdata.books
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Broschüren von Hersteller X, ..."
-          />
-          <template v-if="formdata.books || initialFormdata.books">
-            <button
-              v-if="formdata.books === initialFormdata.books"
-              @click="formdata.books = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.books = initialFormdata.books"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.books"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.books || initialFormdata.books
+                  ? formdata.books === initialFormdata.books
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Broschüren von Hersteller X, ..."
+            />
+            <template v-if="formdata.books || initialFormdata.books">
+              <button
+                v-if="formdata.books === initialFormdata.books"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.books = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.books = initialFormdata.books"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Kleidung"
@@ -1882,41 +2012,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.clothing"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.clothing || initialFormdata.clothing
-                ? formdata.clothing === initialFormdata.clothing
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Lederjacken, ..."
-          />
-          <template v-if="formdata.clothing || initialFormdata.clothing">
-            <button
-              v-if="formdata.clothing === initialFormdata.clothing"
-              @click="formdata.clothing = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.clothing = initialFormdata.clothing"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.clothing"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.clothing || initialFormdata.clothing
+                  ? formdata.clothing === initialFormdata.clothing
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Lederjacken, ..."
+            />
+            <template v-if="formdata.clothing || initialFormdata.clothing">
+              <button
+                v-if="formdata.clothing === initialFormdata.clothing"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.clothing = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.clothing = initialFormdata.clothing"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Speisen"
@@ -1925,41 +2057,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.food"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.food || initialFormdata.food
-                ? formdata.food === initialFormdata.food
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Big Bennys Nudeln, ..."
-          />
-          <template v-if="formdata.food || initialFormdata.food">
-            <button
-              v-if="formdata.food === initialFormdata.food"
-              @click="formdata.food = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.food = initialFormdata.food"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.food"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.food || initialFormdata.food
+                  ? formdata.food === initialFormdata.food
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Big Bennys Nudeln, ..."
+            />
+            <template v-if="formdata.food || initialFormdata.food">
+              <button
+                v-if="formdata.food === initialFormdata.food"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.food = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.food = initialFormdata.food"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Getränke"
@@ -1968,41 +2102,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.drink"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.drink || initialFormdata.drink
-                ? formdata.drink === initialFormdata.drink
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Vestal Wasser, ..."
-          />
-          <template v-if="formdata.drink || initialFormdata.drink">
-            <button
-              v-if="formdata.drink === initialFormdata.drink"
-              @click="formdata.drink = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.drink = initialFormdata.drink"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.drink"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.drink || initialFormdata.drink
+                  ? formdata.drink === initialFormdata.drink
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Vestal Wasser, ..."
+            />
+            <template v-if="formdata.drink || initialFormdata.drink">
+              <button
+                v-if="formdata.drink === initialFormdata.drink"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.drink = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.drink = initialFormdata.drink"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Alkohol"
@@ -2011,41 +2147,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.alcohol"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.alcohol || initialFormdata.alcohol
-                ? formdata.alcohol === initialFormdata.alcohol
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Schmolz Bier, ..."
-          />
-          <template v-if="formdata.alcohol || initialFormdata.alcohol">
-            <button
-              v-if="formdata.alcohol === initialFormdata.alcohol"
-              @click="formdata.alcohol = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.alcohol = initialFormdata.alcohol"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.alcohol"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.alcohol || initialFormdata.alcohol
+                  ? formdata.alcohol === initialFormdata.alcohol
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Schmolz Bier, ..."
+            />
+            <template v-if="formdata.alcohol || initialFormdata.alcohol">
+              <button
+                v-if="formdata.alcohol === initialFormdata.alcohol"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.alcohol = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.alcohol = initialFormdata.alcohol"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Farben"
@@ -2054,41 +2192,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.colors"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.colors || initialFormdata.colors
-                ? formdata.colors === initialFormdata.colors
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Schwarz, Blau, ..."
-          />
-          <template v-if="formdata.colors || initialFormdata.colors">
-            <button
-              v-if="formdata.colors === initialFormdata.colors"
-              @click="formdata.colors = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.colors = initialFormdata.colors"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.colors"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.colors || initialFormdata.colors
+                  ? formdata.colors === initialFormdata.colors
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Schwarz, Blau, ..."
+            />
+            <template v-if="formdata.colors || initialFormdata.colors">
+              <button
+                v-if="formdata.colors === initialFormdata.colors"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.colors = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.colors = initialFormdata.colors"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           :label="formdata.sex === 'female' ? 'Sie' : 'Er' + ' liebt...'"
@@ -2097,41 +2237,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.loves"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.loves || initialFormdata.loves
-                ? formdata.loves === initialFormdata.loves
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Hochwertige Schiffe, ..."
-          />
-          <template v-if="formdata.loves || initialFormdata.loves">
-            <button
-              v-if="formdata.loves === initialFormdata.loves"
-              @click="formdata.loves = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.loves = initialFormdata.loves"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.loves"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.loves || initialFormdata.loves
+                  ? formdata.loves === initialFormdata.loves
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Hochwertige Schiffe, ..."
+            />
+            <template v-if="formdata.loves || initialFormdata.loves">
+              <button
+                v-if="formdata.loves === initialFormdata.loves"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.loves = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.loves = initialFormdata.loves"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           :label="formdata.sex === 'female' ? 'Sie' : 'Er' + ' hasst...'"
@@ -2140,41 +2282,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
-          <UInput
-            v-model="formdata.hates"
-            size="md"
-            autocomplete="off"
-            :icon="
-              formdata.hates || initialFormdata.hates
-                ? formdata.hates === initialFormdata.hates
-                  ? 'i-heroicons-x-mark-16-solid'
-                  : 'i-heroicons-arrow-uturn-left'
-                : ''
-            "
-            placeholder="Drake, ..."
-          />
-          <template v-if="formdata.hates || initialFormdata.hates">
-            <button
-              v-if="formdata.hates === initialFormdata.hates"
-              @click="formdata.hates = ''"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-x-mark-16-solid"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-            <button
-              v-else
-              @click="formdata.hates = initialFormdata.hates"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-            >
-              <UIcon
-                name="i-heroicons-arrow-uturn-left"
-                class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-              />
-            </button>
-          </template>
+          <div class="relative">
+            <UInput
+              v-model="formdata.hates"
+              size="md"
+              autocomplete="off"
+              :icon="
+                formdata.hates || initialFormdata.hates
+                  ? formdata.hates === initialFormdata.hates
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="Drake, ..."
+            />
+            <template v-if="formdata.hates || initialFormdata.hates">
+              <button
+                v-if="formdata.hates === initialFormdata.hates"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.hates = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.hates = initialFormdata.hates"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </div>
         </UFormGroup>
         <UFormGroup
           label="Medizinisch Relevantes"
