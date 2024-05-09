@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { FormSubmitEvent } from '#ui/types';
 import { object, string, type InferType } from 'yup';
+import type { FormSubmitEvent } from '#ui/types';
 const { login } = useDirectusAuth();
 const { readFiles } = useDirectusFiles();
 const error = ref();
@@ -55,59 +55,6 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
 
     event.data.username = '';
     event.data.password = '';
-  }
-};
-
-const onSubmitOld = async (event: FormSubmitEvent<Schema>) => {
-  error.value = null;
-  // console.log('e');
-
-  try {
-    console.info({
-      email: event.data.username + (!event.data.username.includes('@') ? '@ariscorp.de' : ''),
-      password: event.data.password,
-    });
-    await $fetch(config.public.directus.url + '/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: event.data.username + (!event.data.username.includes('@') ? '@ariscorp.de' : ''),
-        password: event.data.password,
-      }),
-      onResponseError({ response }) {
-        throw new Error(response.status + ': ' + response._data);
-      },
-    });
-
-    await login(event.data.username + (!event.data.username.includes('@') ? '@ariscorp.de' : ''), event.data.password);
-    router.push(redirectUri.value);
-  } catch (error: any) {
-    event.data.username = '';
-    event.data.password = '';
-
-    // const errorCode = error?.message?.split(': ')[0];
-    const errorMessage = error?.message?.split(': ')[1];
-    console.error('There was an error:', error);
-    console.error('There was an error:', errorMessage);
-
-    form.value.setErrors([
-      { path: 'username', message: 'Benutzername oder Passwort falsch!' },
-      { path: 'password', message: 'Benutzername oder Passwort falsch!' },
-    ]);
-
-    // if (errorCode === '401' || errorCode === '400') {
-    //   form.value.setErrors([
-    //     { path: 'username', message: 'Benutzername oder Passwort falsch!' },
-    //     { path: 'password', message: 'Benutzername oder Passwort falsch!' },
-    //   ]);
-    // } else {
-    //   form.value.setErrors([
-    //     { path: 'username', errorMessage: 'Error: ' + errorMessage },
-    //     { path: 'password', errorMessage: 'Error: ' + errorMessage },
-    //   ]);
-    // }
   }
 };
 
@@ -200,12 +147,12 @@ definePageMeta({
         <div class="flex justify-between space-x-6">
           <NuxtImg
             v-for="item in wallpaperList"
-            @click="() => (selectedWallpaper = item)"
             :key="item"
             :src="item"
             :placeholder="[16, 16, 1, 5]"
             class="aspect[16/9] min-w-0 flex-1 cursor-pointer object-cover"
             :class="{ 'border-primary border-2': wallpaper === item }"
+            @click="() => (selectedWallpaper = item)"
           />
         </div>
       </code>
