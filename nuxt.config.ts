@@ -21,7 +21,6 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css', '~/assets/css/tailwind.css'],
 
   modules: [
-    // '@nuxtjs/tailwindcss',
     '@vueuse/nuxt',
     '@nuxt/image',
     'nuxt-icon',
@@ -32,10 +31,13 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     // '@vueuse/motion/nuxt',
     '@pinia-plugin-persistedstate/nuxt',
-    'dayjs-nuxt',
+    '@vue-email/nuxt',
+    // '@nuxtjs/tailwindcss',
     '@nuxt/ui',
+    'dayjs-nuxt',
     'nuxt-lodash',
     'nuxt-tiptap-editor',
+    'nuxt-resend',
     // '@nuxt/test-utils/module',
     // 'nuxt-markdown-render',
   ],
@@ -148,5 +150,10 @@ export default defineNuxtConfig({
 
   tiptap: {
     prefix: 'Tiptap', // prefix for Tiptap imports, composables not included
+  },
+
+  vueEmail: {
+    baseUrl: process.env.NUXT_PUBLIC_FILE_BASE,
+    autoImport: true,
   },
 });

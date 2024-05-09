@@ -105,7 +105,7 @@ const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
   </footer>
 </template>
 
-<style scoped lang="postcss">
+<style scoped>
 .footer-icon {
   @apply w-16 h-16 animate-link;
 }
