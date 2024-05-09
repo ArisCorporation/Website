@@ -100,7 +100,7 @@ const onPwSubmit = async (event: FormSubmitEvent<pw_Schema>) => {
 };
 
 onMounted(() => {
-  if (user.value?.temporary_password) {
+  if (user.value && user.value?.temporary_password) {
     modalStore.openModal('Temoräres Password', {
       type: 'temporary-pw',
       hideCloseButton: true,
@@ -140,10 +140,10 @@ useHead({
 
 <template>
   <div class="lg:grid lg:grid-cols-[16rem,_1fr]">
-    <TheModal :locked="user?.temporary_password ? false : false">
+    <TheModal :locked="user?.temporary_password ? true : false">
       <template #content>
         <slot name="modalContent" />
-        <template v-if="user?.temporary_password">
+        <template v-if="user && user?.temporary_password">
           <h4>Achtung! Du hast ein Standart-Passwort und musst es ändern bevor du das AMS nutzen kannst.</h4>
           <UForm :schema="pw_schema" :state="pw_formdata" validate-on="submit" @submit="onPwSubmit">
             <UFormGroup
@@ -234,7 +234,7 @@ useHead({
       </slot>
     </USlideover>
     <div
-      v-if="!modalStore.isModalOpen && user.temporary_password"
+      v-if="!modalStore.isModalOpen && user?.temporary_password"
       class="w-full h-full absolute top-0 left-0 z-[9999] bg-black opacity-50"
     />
     <Sidebar
