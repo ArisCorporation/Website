@@ -1,8 +1,15 @@
 <script setup lang="ts">
+import * as yup from 'yup';
+import YupPassword from 'yup-password';
+import type { FormSubmitEvent } from '#ui/types';
 const config = useRuntimeConfig();
 const SidebarStore = useSidebarStore();
-const { user, logout } = useDirectusAuth();
+const { user, logout, refresh: refreshUser, readMe } = useDirectusAuth();
 const router = useRouter();
+const modalStore = useModalStore();
+const { updateUser } = useDirectusUsers();
+
+YupPassword(yup);
 
 const handleLogout = async () => {
   await logout();
@@ -59,6 +66,49 @@ const sidebarUserItems = [
   },
 ];
 
+const pw_schema = yup.object({
+  password: yup
+    .string()
+    .required('Bitte gib dein Passwort ein.')
+    .min(8, 'Dein Passwort muss mindestens 8 Zeichen lang sein.')
+    .minLowercase(1, 'Dein Passwort muss mindestens einen Kleinbuchstaben enthalten.')
+    .minUppercase(1, 'Dein Passwort muss mindestens einen Großbuchstaben enthalten.')
+    .minNumbers(1, 'Dein Passwort muss mindestens eine Zahl enthalten.')
+    .minSymbols(1, 'Dein Passwort muss mindestens ein Sonderzeichen enthalten.'),
+  confirm_pw: yup
+    .string()
+    .required('Bitte bestätige dein Passwort.')
+    .oneOf([yup.ref('password'), null], 'Passwörter stimmen nicht überein.'),
+});
+
+type pw_Schema = yup.InferType<typeof pw_schema>;
+
+const pw_formdata = reactive({
+  password: '',
+  confirm_pw: '',
+});
+
+const onPwSubmit = async (event: FormSubmitEvent<pw_Schema>) => {
+  try {
+    await updateUser(user.value.id, { password: pw_formdata.password, temporary_password: false }, {});
+    await refreshUser();
+    if (!user.value.temporary_password) modalStore.unlockModal();
+    modalStore.closeModal();
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+onMounted(() => {
+  if (user.value?.temporary_password) {
+    modalStore.openModal('Temoräres Password', {
+      type: 'temporary-pw',
+      hideCloseButton: true,
+      locked: true,
+    });
+  }
+});
+
 defineShortcuts({
   dead: {
     usingInput: true,
@@ -90,12 +140,76 @@ useHead({
 
 <template>
   <div class="lg:grid lg:grid-cols-[16rem,_1fr]">
-    <TheModal>
+    <TheModal :locked="user?.temporary_password ? false : false">
       <template #content>
         <slot name="modalContent" />
+        <template v-if="user?.temporary_password">
+          <h4>Achtung! Du hast ein Standart-Passwort und musst es ändern bevor du das AMS nutzen kannst.</h4>
+          <UForm :schema="pw_schema" :state="pw_formdata" validate-on="submit" @submit="onPwSubmit">
+            <UFormGroup
+              label="Passwort"
+              name="password"
+              description="Hier kannst du dein Passwort ganz einfach ändern."
+              class="items-center grid-cols-2 gap-2 md:grid"
+              :ui="{ container: 'relative' }"
+            >
+              <div class="relative">
+                <UInput
+                  v-model="pw_formdata.password"
+                  size="md"
+                  autocomplete="off"
+                  :icon="pw_formdata.password !== '' && 'i-heroicons-x-mark-16-solid'"
+                  placeholder="******"
+                  type="password"
+                />
+                <button
+                  v-if="pw_formdata.password !== ''"
+                  type="button"
+                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                  @click="pw_formdata.password = ''"
+                >
+                  <UIcon
+                    name="i-heroicons-x-mark-16-solid"
+                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                  />
+                </button>
+              </div>
+            </UFormGroup>
+            <UFormGroup
+              label="Passwort bestätigen"
+              name="confirm_pw"
+              description="Hier kannst du dein Passwort ganz einfach ändern."
+              class="items-center grid-cols-2 gap-2 md:grid"
+              :ui="{ container: 'relative' }"
+            >
+              <div class="relative">
+                <UInput
+                  v-model="pw_formdata.confirm_pw"
+                  size="md"
+                  autocomplete="off"
+                  :icon="pw_formdata.confirm_pw !== '' && 'i-heroicons-x-mark-16-solid'"
+                  placeholder="******"
+                  type="password"
+                />
+                <button
+                  v-if="pw_formdata.confirm_pw !== ''"
+                  type="button"
+                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                  @click="pw_formdata.confirm_pw = ''"
+                >
+                  <UIcon
+                    name="i-heroicons-x-mark-16-solid"
+                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                  />
+                </button>
+              </div>
+            </UFormGroup>
+            <ButtonDefault type="submit"><p class="px-6 py-0">Speichern</p></ButtonDefault>
+          </UForm>
+        </template>
       </template>
     </TheModal>
-    <USlideover v-model="useModalStore().isSlideOpen">
+    <USlideover v-model="modalStore.isSlideOpen">
       <!-- <div class="flex-1 p-4 scrollbar-gray-thin"> -->
       <slot name="slideCard">
         <div class="flex-1 overflow-y-scroll">
@@ -119,6 +233,10 @@ useHead({
         </div>
       </slot>
     </USlideover>
+    <div
+      v-if="!modalStore.isModalOpen && user.temporary_password"
+      class="w-full h-full absolute top-0 left-0 z-[9999] bg-black opacity-50"
+    />
     <Sidebar
       banner="IconsLogosAmsBanner"
       base-url="/ams"
