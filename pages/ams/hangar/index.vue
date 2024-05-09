@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { object, string, type InferType, boolean } from 'yup';
+// import 'shepherd.js/dist/css/shepherd.css
+import Shepherd from 'shepherd.js';
+import { offset } from '@floating-ui/dom';
 import type { FormSubmitEvent } from '#ui/types';
 
 const { readAsyncItems, updateItem, deleteItems, createItems } = useDirectusItems();
-const { readAsyncUsers } = useDirectusUsers();
+const { readAsyncUsers, updateUser } = useDirectusUsers();
 const { params, path } = useRoute();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
@@ -22,6 +25,8 @@ const dataChanged = ref(false);
 const form = ref();
 const selectedDepartment = ref({ name: 'Alle' });
 const selectedMember = ref({ full_name: 'Alle' });
+const hangarRefreshPending = ref(false);
+const onboardingShip = ref();
 
 const { data: user } = await readAsyncUsers({
   query: {
@@ -53,6 +58,7 @@ const { data: hangarItems, refresh: refreshHangarItems } = await readAsyncItems(
     },
     fields: [
       'id',
+      'date_created',
       'name',
       'planned',
       'serial',
@@ -339,7 +345,7 @@ if (!ships.value || !departments.value || !shipList.value) {
 
 // if (!data.value) {
 // }
-/////*
+/// //*
 const schema = object({
   name: string().nullable(),
   serial: string().nullable(),
@@ -358,12 +364,14 @@ const currentHangar = ref();
 const currentFilteredHangar = ref();
 
 const refreshHangar = async () => {
+  hangarRefreshPending.value = true;
   await refreshData();
   await updateHangar();
+  hangarRefreshPending.value = false;
 };
 
 const updateHangar = () => {
-  let hangar = ships.value;
+  const hangar = ships.value;
   let liveHangar = [];
 
   // if (path.startsWith('/ams/fleet')) {
@@ -425,7 +433,7 @@ const formdata = reactive({
 });
 
 const initialFormdata: Schema = reactive({ ...formdata });
-/////*
+/// //*
 const setFormData = (data: IHangarItem) => {
   formdata.name = data.userData.name ?? '';
   formdata.serial = data.userData.serial ?? '';
@@ -584,6 +592,406 @@ defineShortcuts({
       search_input.value?.input.focus();
     },
   },
+  d: {
+    handler: () => {
+      if (path.startsWith('/ams/fleet')) {
+        userSettingsStore.AMSToggleFleetDetailView();
+      } else {
+        userSettingsStore.AMSToggleHangarDetailView();
+      }
+    },
+  },
+});
+
+const latestShip = computed(() => ships.value.sort((a: any, b: any) => b.id + a.id)[0]);
+
+const tour: any = new Shepherd.Tour({
+  useModalOverlay: true,
+  defaultStepOptions: {
+    classes: 'shadow-md bg-purple-dark',
+    scrollTo: true,
+  },
+  steps: [
+    {
+      id: 'hangar-tabs',
+      text: 'Hier kannst du zwischen deinem Hangar und deiner Wunschliste wechseln.',
+      attachTo: {
+        element: '#hangar-tabs',
+        on: 'top',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 12, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'add-button',
+      text: 'Hier kannst du Schiffe zu deinem Hangar hinzufügen.',
+      attachTo: {
+        element: '#add-button',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            modalStore.setData([]);
+            modalStore.openModal('Hangar: Schiffe hinzufügen', {
+              hideCloseButton: true,
+              hideXButton: true,
+              type: 'addShips',
+            });
+
+            const interval = setInterval(() => {
+              if (modalStore.isModalOpen) {
+                clearInterval(interval);
+                return this.next();
+              }
+            }, 100);
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+      options: {
+        title: 'test',
+        when: {
+          show() {
+            const currentStep = Shepherd.activeTour?.getCurrentStep();
+            const currentStepElement = currentStep?.getElement();
+            const header = currentStepElement?.querySelector('.shepherd-header');
+            const progress = document.createElement('span');
+            progress.style['margin-right'] = '315px';
+            progress.innerText = `${Shepherd.activeTour?.steps.indexOf(currentStep) + 1}/${Shepherd.activeTour?.steps.length}`;
+            header?.insertBefore(progress, currentStepElement.querySelector('.shepherd-cancel-icon'));
+          },
+        },
+      },
+    },
+    {
+      id: 'ship-select',
+      text: 'In diesem Dropdown kannst du jegliche Schiffe auswählen.',
+      attachTo: {
+        element: '#ship-select',
+        on: 'bottom',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            modalStore.data = [shipList.value[0]];
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'add-submit-button',
+      text: 'Jetzt fügen wir alle ausgewählten Schiffe zu deinem Hangar hinzu.',
+      attachTo: {
+        element: '#add-submit-button',
+        on: 'bottom',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            hangarRefreshPending.value = true;
+            onAddSubmit(modalStore.type, modalStore.data);
+            const interval = setInterval(() => {
+              if (!hangarRefreshPending.value) {
+                clearInterval(interval);
+                return this.next();
+              }
+            }, 100);
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'edit-button',
+      text: 'Nun kannst du dein Schiff bearbeiten.',
+      attachTo: {
+        element: '#onboarding-edit-button',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            const id = latestShip.value.id;
+            const title = `Bearbeiten: ${ships.value.find((e) => e.id === id).userData.name ? ships.value.find((e) => e.id === id).userData.name + ' - ' : ''}${
+              ships.value.find((e) => e.id === id).ship.manufacturer.code
+            } ${ships.value.find((e) => e.id === id).ship.name}`;
+
+            handleEdit(
+              title,
+              ships.value.find((e) => e.id === id),
+            );
+
+            const interval = setInterval(() => {
+              if (modalStore.isSlideOpen) {
+                clearInterval(interval);
+                return this.next();
+              }
+            }, 100);
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'ship-edit-base',
+      text: 'Hier kannst den Namen und die Seriennummer deines Schiffes angeben.',
+      attachTo: {
+        element: '#ship-edit-base',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'ship-edit-division',
+      text: 'Hier geht es darum, wie du dein Schiff einteilen möchtest. Willst du es in die Flotte der ArisCorp Einteilen, eventuell sogar einer speziellen Abteilung oder gehört es doch nur in deinen privaten Hangar?',
+      attachTo: {
+        element: '#ship-edit-division',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'ship-edit-visibility',
+      text: 'Hier geht es darum, wer dein Schiff sehen darf. Du kannst einstellen, ob es für alle, Mitglieder oder nur dich sichtbar sein soll und ob der Name öffentlich sichtbar sein soll.',
+      attachTo: {
+        element: '#ship-edit-division',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'ship-edit-other',
+      text: 'In diesem Abschnitt kannst du alles andere einstellen. Zum Beispiel ob dein Schiff erst noch (fest) geplant ist, oder eventuell welches Modul du ausgerüstet hast.',
+      attachTo: {
+        element: '#ship-edit-other',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'ship-edit-buttons',
+      text: 'Danach kannst du deine Änderungen speichern oder sie verwerfen.',
+      attachTo: {
+        element: '#ship-edit-buttons',
+        on: 'top',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            modalStore.closeSlide();
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'onboarding-remove-button',
+      text: 'In diesem Abschnitt kannst du alles andere einstellen. Zum Beispiel ob dein Schiff erst noch (fest) geplant ist, oder eventuell welches Modul du ausgerüstet hast.',
+      attachTo: {
+        element: '#onboarding-remove-button',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            onboardingShip.value[0].removePopover = true;
+            setTimeout(() => {
+              return this.next();
+            }, 200);
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'onboarding-remove-confirm-button',
+      text: 'Zu guter letzt kannst du Schiffe noch entfernen.',
+      attachTo: {
+        element: '#onboarding-remove-confirm-button',
+        on: 'top',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Fertig stellen',
+          action(): any {
+            onRemoveSubmit(latestShip.value);
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+  ],
+});
+
+const updateOnboarding = async () => {
+  const onboardings = Array.isArray(user.value.onboardings) ? user.value.onboardings : [];
+  await updateUser(user.value.id, { onboardings: [...onboardings, 'hangar'] }, {});
+};
+
+tour.on('complete', () => {
+  updateOnboarding();
+});
+
+onMounted(() => {
+  if (!useDirectusAuth().user.value.onboardings?.find((e: string) => e === 'hangar')) tour.start();
 });
 
 watch(
@@ -623,20 +1031,20 @@ useHead({
       <template v-if="modalStore.type === 'addShips' || modalStore.type === 'addWishlist'">
         <div class="mt-6 space-y-4 text-left">
           <ul>
-            <li v-for="(ship, index) in modalStore.data">
+            <li v-for="(ship, index) in modalStore.data" :key="index">
               <div class="relative grid grid-cols-2 pr-10">
                 <span class="text-tbase">{{ ship.manufacturer.name }}: </span>
                 <span class="text-primary">{{ ship.name }}</span>
                 <div class="absolute flex items-center h-full right-4 gap-x-2">
                   <button
-                    @click="modalStore.data = [...modalStore.data, ship]"
                     class="flex w-5 h-5 transition text-dark-gray hover:text-white"
+                    @click="modalStore.data = [...modalStore.data, ship]"
                   >
                     <Icon name="heroicons:plus-circle" class="w-full h-full" />
                   </button>
                   <button
-                    @click="modalStore.data.splice(index, 1)"
                     class="flex w-5 h-5 transition text-dark-gray hover:text-white"
+                    @click="modalStore.data.splice(index, 1)"
                   >
                     <Icon name="heroicons:x-circle" class="w-full h-full" />
                   </button>
@@ -645,6 +1053,7 @@ useHead({
             </li>
           </ul>
           <USelectMenu
+            id="ship-select"
             v-model="modalStore.data"
             :options="shipList"
             multiple
@@ -666,15 +1075,16 @@ useHead({
             </template>
           </USelectMenu>
           <div class="flex flex-wrap justify-between w-full px-8 mt-6">
-            <ButtonDefault type="button" @click="modalStore.closeModal" class="w-1/3" color="danger"
+            <ButtonDefault type="button" class="w-1/3" color="danger" @click="modalStore.closeModal"
               >Schließen</ButtonDefault
             >
             <ButtonDefault
-              @click="onAddSubmit(modalStore.type, modalStore.data)"
+              id="add-submit-button"
               type="submit"
               class="w-1/3"
               color="success"
               :class="{ grayscale: modalStore.data.length < 1 }"
+              @click="onAddSubmit(modalStore.type, modalStore.data)"
               >Speichern</ButtonDefault
             >
           </div>
@@ -684,7 +1094,16 @@ useHead({
     <template #slideCard>
       <div class="flex-1">
         <UForm ref="form" :schema="schema" :state="formdata" @submit="onEditSubmit">
-          <UCard class="flex flex-col flex-1 h-screen scrollbar-gray-thin">
+          <UCard
+            class="flex flex-col flex-1 h-screen scrollbar-gray-thin"
+            :ui="{
+              body: {
+                base: 'flex-1 overflow-auto',
+                background: '',
+                padding: 'px-4 py-6',
+              },
+            }"
+          >
             <template #header>
               <NuxtImg
                 :src="modalStore.data?.ship.store_image"
@@ -692,315 +1111,323 @@ useHead({
                 class="object-cover w-full mx-auto rounded-lg shadow-xl max-h-36"
               />
             </template>
-            <TableHr><span class="flex items-center text-lg">Basisdaten</span></TableHr>
-            <UFormGroup
-              label="Schiffsname"
-              name="name"
-              description="Hier kannst du den Namen deines Schiffes eingeben."
-              class="items-center grid-cols-2 gap-2 md:grid"
-              :ui="{ container: 'relative' }"
-            >
-              <!-- TODO: Modellübergreifend einzigartig machen -->
-              <UInput
-                :icon="
-                  formdata.name || initialFormdata.name
-                    ? formdata.name === initialFormdata.name
-                      ? 'i-heroicons-x-mark-16-solid'
-                      : 'i-heroicons-arrow-uturn-left'
-                    : ''
-                "
-                placeholder="UEE Stanton"
-                size="md"
-                autocomplete="off"
-                v-model="formdata.name"
-              />
-              <!-- <template #description> -->
-              <!-- <p class="px-0">Hier kannst du den Namen deines Schiffes eingeben.</p> -->
-              <!-- <p class="px-0">
+            <div id="ship-edit-base" class="px-2">
+              <TableHr><span class="flex items-center text-lg">Basisdaten</span></TableHr>
+              <UFormGroup
+                label="Schiffsname"
+                name="name"
+                description="Hier kannst du den Namen deines Schiffes eingeben."
+                class="items-center grid-cols-2 gap-2 md:grid"
+                :ui="{ container: 'relative' }"
+              >
+                <!-- TODO: Modellübergreifend einzigartig machen -->
+                <UInput
+                  v-model="formdata.name"
+                  :icon="
+                    formdata.name || initialFormdata.name
+                      ? formdata.name === initialFormdata.name
+                        ? 'i-heroicons-x-mark-16-solid'
+                        : 'i-heroicons-arrow-uturn-left'
+                      : ''
+                  "
+                  placeholder="UEE Stanton"
+                  size="md"
+                  autocomplete="off"
+                />
+                <!-- <template #description> -->
+                <!-- <p class="px-0">Hier kannst du den Namen deines Schiffes eingeben.</p> -->
+                <!-- <p class="px-0">
                   Falls du Inspiration brauchst, schau dich mal
                   <NuxtLink target="_blank" to="https://www.fantasynamegenerators.com/spaceship-names.php"
                     >hier</NuxtLink
                   >
                   um.
                 </p> -->
-              <!-- </template> -->
-              <template v-if="formdata.name || initialFormdata.name">
-                <button
-                  v-if="formdata.name === initialFormdata.name"
-                  @click="formdata.name = ''"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-x-mark-16-solid"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-                <button
-                  v-else
-                  @click="formdata.name = initialFormdata.name"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-arrow-uturn-left"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-              </template>
-            </UFormGroup>
-            <UFormGroup
-              label="Seriennummer"
-              name="serial"
-              description="Hier kannst du die Seriennummer deines Schiffes eingeben"
-              class="items-center grid-cols-2 gap-2 md:grid"
-              :ui="{ container: 'relative' }"
-            >
-              <UInput
-                :icon="
-                  formdata.serial || initialFormdata.serial
-                    ? formdata.serial === initialFormdata.serial
-                      ? 'i-heroicons-x-mark-16-solid'
-                      : 'i-heroicons-arrow-uturn-left'
-                    : ''
-                "
-                placeholder="R40"
-                size="md"
-                autocomplete="off"
-                v-model="formdata.serial"
-              />
-              <template v-if="formdata.serial || initialFormdata.serial">
-                <button
-                  v-if="formdata.serial === initialFormdata.serial"
-                  @click="formdata.serial = ''"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-x-mark-16-solid"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-                <button
-                  v-else
-                  @click="formdata.serial = initialFormdata.serial"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-arrow-uturn-left"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-              </template>
-            </UFormGroup>
-            <TableHr><span class="flex items-center text-lg">Einteilung</span></TableHr>
-            <UFormGroup
-              label="Einteilung"
-              name="group"
-              description="Hier kannst du dein Schiff der ArisCorp oder deiner privaten Flotte zuweisen."
-              class="items-center grid-cols-2 gap-2 md:grid"
-              :ui="{ container: 'relative' }"
-            >
-              <URadioGroup
-                v-model="formdata.group"
-                :options="[
-                  {
-                    value: 'private',
-                    label: 'Privat',
-                    color: 'secondary',
-                  },
-                  {
-                    value: 'ariscorp',
-                    label: 'ArisCorp',
-                    color: 'primary',
-                  },
-                ]"
-              />
-            </UFormGroup>
-
-            <UFormGroup
-              label="Abteilung"
-              name="department"
-              description="Wenn du willst, kannst du dein Schiff hier einer beliebigen Abteilung zuweisen."
-              class="items-center grid-cols-2 gap-2 md:grid"
-              :ui="{ container: 'relative' }"
-            >
-              <USelectMenu
-                v-model="formdata.department"
-                :disabled="formdata.group !== 'ariscorp'"
-                :options="['', ...departments]"
-                option-attribute="name"
-                searchable
-                clear-search-on-close
-                searchable-placeholder="Suche..."
-                :search-attributes="['name']"
-                :ui="
-                  formdata.department || initialFormdata.department
-                    ? {
-                        leading: {
-                          padding: {
-                            xl: 'ps-10',
-                          },
-                        },
-                      }
-                    : { leading: { padding: { xl: 'hidden' } } }
-                "
-                :icon="
-                  formdata.department || initialFormdata.department
-                    ? formdata.department === initialFormdata.department
-                      ? 'i-heroicons-x-mark-16-solid'
-                      : 'i-heroicons-arrow-uturn-left'
-                    : ''
-                "
-                size="md"
+                <!-- </template> -->
+                <template v-if="formdata.name || initialFormdata.name">
+                  <button
+                    v-if="formdata.name === initialFormdata.name"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.name = ''"
+                  >
+                    <UIcon
+                      name="i-heroicons-x-mark-16-solid"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                  <button
+                    v-else
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.name = initialFormdata.name"
+                  >
+                    <UIcon
+                      name="i-heroicons-arrow-uturn-left"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                </template>
+              </UFormGroup>
+              <UFormGroup
+                label="Seriennummer"
+                name="serial"
+                description="Hier kannst du die Seriennummer deines Schiffes eingeben"
+                class="items-center grid-cols-2 gap-2 md:grid"
+                :ui="{ container: 'relative' }"
               >
-                <template v-if="formdata.department || initialFormdata.department" #leading />
-                <template #label>
-                  <span v-if="formdata.department">{{ formdata.department.name }}</span>
-                  <span class="text-[13.9px]" v-else>Keine Abteilung ausgewählt</span>
+                <UInput
+                  v-model="formdata.serial"
+                  :icon="
+                    formdata.serial || initialFormdata.serial
+                      ? formdata.serial === initialFormdata.serial
+                        ? 'i-heroicons-x-mark-16-solid'
+                        : 'i-heroicons-arrow-uturn-left'
+                      : ''
+                  "
+                  placeholder="R40"
+                  size="md"
+                  autocomplete="off"
+                />
+                <template v-if="formdata.serial || initialFormdata.serial">
+                  <button
+                    v-if="formdata.serial === initialFormdata.serial"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.serial = ''"
+                  >
+                    <UIcon
+                      name="i-heroicons-x-mark-16-solid"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                  <button
+                    v-else
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.serial = initialFormdata.serial"
+                  >
+                    <UIcon
+                      name="i-heroicons-arrow-uturn-left"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
                 </template>
-                <template #option="{ option }">
-                  <span v-if="option">{{ option.name }}</span>
-                  <span v-else>Keine Abteilung</span>
+              </UFormGroup>
+            </div>
+            <div id="ship-edit-division" class="px-2">
+              <TableHr><span class="flex items-center text-lg">Einteilung</span></TableHr>
+              <UFormGroup
+                label="Einteilung"
+                name="group"
+                description="Hier kannst du dein Schiff der ArisCorp oder deiner privaten Flotte zuweisen."
+                class="items-center grid-cols-2 gap-2 md:grid"
+                :ui="{ container: 'relative' }"
+              >
+                <URadioGroup
+                  v-model="formdata.group"
+                  :options="[
+                    {
+                      value: 'private',
+                      label: 'Privat',
+                      color: 'secondary',
+                    },
+                    {
+                      value: 'ariscorp',
+                      label: 'ArisCorp',
+                      color: 'primary',
+                    },
+                  ]"
+                />
+              </UFormGroup>
+
+              <UFormGroup
+                label="Abteilung"
+                name="department"
+                description="Wenn du willst, kannst du dein Schiff hier einer beliebigen Abteilung zuweisen."
+                class="items-center grid-cols-2 gap-2 md:grid"
+                :ui="{ container: 'relative' }"
+              >
+                <USelectMenu
+                  v-model="formdata.department"
+                  :disabled="formdata.group !== 'ariscorp'"
+                  :options="['', ...departments]"
+                  option-attribute="name"
+                  searchable
+                  clear-search-on-close
+                  searchable-placeholder="Suche..."
+                  :search-attributes="['name']"
+                  :ui="
+                    formdata.department || initialFormdata.department
+                      ? {
+                          leading: {
+                            padding: {
+                              xl: 'ps-10',
+                            },
+                          },
+                        }
+                      : { leading: { padding: { xl: 'hidden' } } }
+                  "
+                  :icon="
+                    formdata.department || initialFormdata.department
+                      ? formdata.department === initialFormdata.department
+                        ? 'i-heroicons-x-mark-16-solid'
+                        : 'i-heroicons-arrow-uturn-left'
+                      : ''
+                  "
+                  size="md"
+                >
+                  <template v-if="formdata.department || initialFormdata.department" #leading />
+                  <template #label>
+                    <span v-if="formdata.department">{{ formdata.department.name }}</span>
+                    <span v-else class="text-[13.9px]">Keine Abteilung ausgewählt</span>
+                  </template>
+                  <template #option="{ option }">
+                    <span v-if="option">{{ option.name }}</span>
+                    <span v-else>Keine Abteilung</span>
+                  </template>
+                </USelectMenu>
+                <template v-if="formdata.department || initialFormdata.department">
+                  <button
+                    v-if="formdata.department === initialFormdata.department"
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.department = ''"
+                  >
+                    <UIcon
+                      name="i-heroicons-x-mark-16-solid"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
+                  <button
+                    v-else
+                    class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                    @click="formdata.department = initialFormdata.department"
+                  >
+                    <UIcon
+                      name="i-heroicons-arrow-uturn-left"
+                      class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                    />
+                  </button>
                 </template>
-              </USelectMenu>
-              <template v-if="formdata.department || initialFormdata.department">
-                <button
-                  v-if="formdata.department === initialFormdata.department"
-                  @click="formdata.department = ''"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-x-mark-16-solid"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-                <button
-                  v-else
-                  @click="formdata.department = initialFormdata.department"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                >
-                  <UIcon
-                    name="i-heroicons-arrow-uturn-left"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-              </template>
-            </UFormGroup>
-            <TableHr><span class="flex items-center text-lg">Sichtbarkeit</span></TableHr>
-            <UFormGroup
-              label="Allgemeine Sichtbarkeit"
-              name="visibility"
-              description="Die Allgemeine Sichtbarkeit bezieht sich auf das gesamte Schiff."
-              class="items-center grid-cols-2 gap-2 md:grid"
-              :ui="{ container: 'relative' }"
-            >
-              <URadioGroup
-                v-model="formdata.visibility"
-                :options="[
-                  {
-                    value: 'public',
-                    label: 'Öffentlich',
-                    color: 'success',
-                  },
-                  {
-                    value: 'internal',
-                    label: 'Nur intern',
-                    color: 'primary',
-                  },
-                  {
-                    value: 'hidden',
-                    label: 'Versteckt',
-                    color: 'secondary',
-                  },
-                ]"
-              />
-              <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="text-xs whitespace-break-spaces">
-                      <p class="text-white">Erklärung:</p>
-                      <p>
-                        <span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner öffentlichen
-                        Biografie & internen Hangar
-                      </p>
-                      <p>
-                        <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
-                        Biografie & Hangar
-                      </p>
-                      <p><span class="text-secondary">Versteckt</span>: In deinem privaten Hangar</p>
-                    </div>
-                  </template>
-                </UPopover>
-              </template>
-            </UFormGroup>
-            <UFormGroup
-              label="Schiffsnamen"
-              name="show_name"
-              description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
-              class="items-center grid-cols-2 gap-2 md:grid"
-              :ui="{ container: 'relative' }"
-            >
-              <URadioGroup
-                v-model="formdata.show_name"
-                :options="[
-                  {
-                    value: true,
-                    label: 'Öffentlich',
-                    color: 'success',
-                  },
-                  {
-                    value: false,
-                    label: 'Nur intern',
-                    color: 'primary',
-                  },
-                ]"
-              />
-              <template #hint>
-                <UPopover mode="hover">
-                  <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
-                  <template #panel>
-                    <div class="text-xs whitespace-break-spaces">
-                      <p class="text-white">Erklärung:</p>
-                      <p>
-                        <span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner öffentlichen
-                        Biografie & internen Hangar
-                      </p>
-                      <p>
-                        <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
-                        Biografie & Hangar
-                      </p>
-                    </div>
-                  </template>
-                </UPopover>
-              </template>
-            </UFormGroup>
-            <TableHr><span class="flex items-center text-lg">Andere Daten</span></TableHr>
-            <UFormGroup
-              label="Kaufstatus"
-              name="planned"
-              description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
-              class="items-center grid-cols-2 gap-2 md:grid"
-              :ui="{ container: 'relative' }"
-            >
-              <URadioGroup
-                v-model="formdata.planned"
-                :options="[
-                  {
-                    value: false,
-                    label: 'Gekauft',
-                    color: 'primary',
-                  },
-                  {
-                    value: true,
-                    label: 'Geplant',
-                    color: 'secondary',
-                  },
-                ]"
-              />
-            </UFormGroup>
+              </UFormGroup>
+            </div>
+            <div id="ship-edit-visibility" class="px-2">
+              <TableHr><span class="flex items-center text-lg">Sichtbarkeit</span></TableHr>
+              <UFormGroup
+                label="Allgemeine Sichtbarkeit"
+                name="visibility"
+                description="Die Allgemeine Sichtbarkeit bezieht sich auf das gesamte Schiff."
+                class="items-center grid-cols-2 gap-2 md:grid"
+                :ui="{ container: 'relative' }"
+              >
+                <URadioGroup
+                  v-model="formdata.visibility"
+                  :options="[
+                    {
+                      value: 'public',
+                      label: 'Öffentlich',
+                      color: 'success',
+                    },
+                    {
+                      value: 'internal',
+                      label: 'Nur intern',
+                      color: 'primary',
+                    },
+                    {
+                      value: 'hidden',
+                      label: 'Versteckt',
+                      color: 'secondary',
+                    },
+                  ]"
+                />
+                <template #hint>
+                  <UPopover mode="hover">
+                    <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                    <template #panel>
+                      <div class="text-xs whitespace-break-spaces">
+                        <p class="text-white">Erklärung:</p>
+                        <p>
+                          <span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner
+                          öffentlichen Biografie & internen Hangar
+                        </p>
+                        <p>
+                          <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
+                          Biografie & Hangar
+                        </p>
+                        <p><span class="text-secondary">Versteckt</span>: In deinem privaten Hangar</p>
+                      </div>
+                    </template>
+                  </UPopover>
+                </template>
+              </UFormGroup>
+              <UFormGroup
+                label="Schiffsnamen"
+                name="show_name"
+                description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
+                class="items-center grid-cols-2 gap-2 md:grid"
+                :ui="{ container: 'relative' }"
+              >
+                <URadioGroup
+                  v-model="formdata.show_name"
+                  :options="[
+                    {
+                      value: true,
+                      label: 'Öffentlich',
+                      color: 'success',
+                    },
+                    {
+                      value: false,
+                      label: 'Nur intern',
+                      color: 'primary',
+                    },
+                  ]"
+                />
+                <template #hint>
+                  <UPopover mode="hover">
+                    <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                    <template #panel>
+                      <div class="text-xs whitespace-break-spaces">
+                        <p class="text-white">Erklärung:</p>
+                        <p>
+                          <span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner
+                          öffentlichen Biografie & internen Hangar
+                        </p>
+                        <p>
+                          <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
+                          Biografie & Hangar
+                        </p>
+                      </div>
+                    </template>
+                  </UPopover>
+                </template>
+              </UFormGroup>
+            </div>
+            <div id="ship-edit-other" class="px-2">
+              <TableHr><span class="flex items-center text-lg">Andere Daten</span></TableHr>
+              <UFormGroup
+                label="Kaufstatus"
+                name="planned"
+                description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
+                class="items-center grid-cols-2 gap-2 md:grid"
+                :ui="{ container: 'relative' }"
+              >
+                <URadioGroup
+                  v-model="formdata.planned"
+                  :options="[
+                    {
+                      value: false,
+                      label: 'Gekauft',
+                      color: 'primary',
+                    },
+                    {
+                      value: true,
+                      label: 'Geplant',
+                      color: 'secondary',
+                    },
+                  ]"
+                />
+              </UFormGroup>
+            </div>
 
             <template #footer>
-              <div class="flex flex-wrap justify-between w-full px-8 my-auto">
-                <ButtonDefault type="button" @click="modalStore.closeSlide" class="w-1/3" color="danger">
+              <div id="ship-edit-buttons" class="flex flex-wrap justify-between w-full px-8 my-auto">
+                <ButtonDefault type="button" class="w-1/3" color="danger" @click="modalStore.closeSlide">
                   Schließen
                 </ButtonDefault>
                 <ButtonDefault
@@ -1358,19 +1785,19 @@ useHead({
           <UFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-96" label="Suchen">
             <UInput
               id="test"
-              size="2xl"
-              v-model="search"
               ref="search_input"
-              @input="handleSearch"
+              v-model="search"
+              size="2xl"
               class="my-auto"
               icon="i-heroicons-magnifying-glass-20-solid"
               :placeholder="`${selectedTab === 0 ? 'Schiffsname, ' : ''}Modell, Hersteller...`"
+              @input="handleSearch"
             />
             <button
               v-if="search !== ''"
-              @click="(search = '') + handleSearch()"
               type="button"
               class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              @click="(search = '') + handleSearch()"
             >
               <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
             </button>
@@ -1424,8 +1851,8 @@ useHead({
             </USelectMenu>
             <button
               v-if="selectedDepartment?.name !== 'Alle'"
-              @click="selectedDepartment = { name: 'Alle' }"
               class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+              @click="selectedDepartment = { name: 'Alle' }"
             >
               <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
             </button>
@@ -1472,8 +1899,8 @@ useHead({
             </USelectMenu>
             <button
               v-if="selectedMember?.full_name !== 'Alle'"
-              @click="selectedMember = { full_name: 'Alle' }"
               class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+              @click="selectedMember = { full_name: 'Alle' }"
             >
               <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
             </button>
@@ -1552,8 +1979,8 @@ useHead({
           leave-to-class="-translate-y-4 opacity-0"
         >
           <ShipCard
-            v-if="!hideHangar"
             v-for="item in currentFilteredHangar"
+            v-if="!hideHangar"
             :key="item.id"
             :ship-data="item.ship"
             :hangar-data="item"
@@ -1566,6 +1993,7 @@ useHead({
             display-loaner-state
             display-owner
             display-planned-states
+            @toggle-detail-view="() => console.log('test')"
           />
         </TransitionGroup>
         <Transition
@@ -1579,10 +2007,10 @@ useHead({
         >
           <div
             v-if="!currentHangar[0] && !hideHangar"
+            key="errorMsg"
             :initial="{ opacity: 0 }"
             :animate="{ opacity: 1 }"
             :exit="{ opacity: 0 }"
-            key="errorMsg"
             class="mx-auto"
           >
             <h2 class="text-center text-secondary">
@@ -1603,8 +2031,11 @@ useHead({
     >
       <template #tablist>
         <div class="flex flex-wrap items-center justify-between w-full">
-          <div class="flex flex-wrap">
-            <HeadlessTab v-slot="{ selected }" class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none">
+          <div id="hangar-tabs" class="flex flex-wrap">
+            <HeadlessTab
+              v-slot="{ selected }"
+              class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none animate-link"
+            >
               <h1
                 class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
                 :class="{ 'text-primary-400': selected, 'opacity-50': !selected }"
@@ -1612,7 +2043,10 @@ useHead({
                 Hangar
               </h1>
             </HeadlessTab>
-            <HeadlessTab v-slot="{ selected }" class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none">
+            <HeadlessTab
+              v-slot="{ selected }"
+              class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none animate-link"
+            >
               <h1
                 class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
                 :class="{ 'text-primary-400': selected, 'opacity-50': !selected }"
@@ -1621,7 +2055,7 @@ useHead({
               </h1>
             </HeadlessTab>
           </div>
-          <ButtonDefault @click="openAddModal" class="h-fit">Schiffe hinzufügen</ButtonDefault>
+          <ButtonDefault id="add-button" class="h-fit" @click="openAddModal">Schiffe hinzufügen</ButtonDefault>
         </div>
       </template>
       <template #tabcontent>
@@ -1639,15 +2073,15 @@ useHead({
                 leave-to-class="opacity-0 -translate-y-0"
               >
                 <ShipCard
-                  v-if="!hideHangar"
                   v-for="item in currentFilteredHangar"
+                  v-if="!hideHangar"
                   :key="item.id"
+                  :ref="item.id === latestShip.id ? 'onboardingShip' : null"
                   :ship-data="item.ship"
                   :hangar-data="item"
                   :detail-view="userSettings.ams.hangarDetailView"
                   :color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
-                  @edit="handleEdit"
-                  @remove-confirm="onRemoveSubmit"
+                  :onboarding="item.id === latestShip.id"
                   preload-images
                   display-crud
                   internal-bio
@@ -1657,6 +2091,8 @@ useHead({
                   display-loaner-state
                   display-hidden-state
                   display-planned-state
+                  @edit="handleEdit"
+                  @remove-confirm="onRemoveSubmit"
                 />
               </TransitionGroup>
               <Transition
@@ -1670,10 +2106,10 @@ useHead({
               >
                 <div
                   v-if="!currentHangar[0] && !hideHangar"
+                  key="errorMsg"
                   :initial="{ opacity: 0 }"
                   :animate="{ opacity: 1 }"
                   :exit="{ opacity: 0 }"
-                  key="errorMsg"
                   class="mx-auto"
                 >
                   <h2 class="text-center text-secondary">
@@ -1744,8 +2180,8 @@ useHead({
           leave-to-class="-translate-y-4 opacity-0"
         >
           <ShipCard
-            v-if="!hideHangar"
             v-for="item in currentFilteredHangar"
+            v-if="!hideHangar"
             :key="item.id"
             :ship-data="item.ship"
             :hangar-data="item"
@@ -1771,10 +2207,10 @@ useHead({
         >
           <div
             v-if="!currentHangar[0] && !hideHangar"
+            key="errorMsg"
             :initial="{ opacity: 0 }"
             :animate="{ opacity: 1 }"
             :exit="{ opacity: 0 }"
-            key="errorMsg"
             class="mx-auto"
           >
             <h2 class="text-center text-secondary">
@@ -1800,10 +2236,10 @@ useHead({
       <!-- <Presence> -->
       <div
         v-if="!currentHangar[0]"
+        key="errorMsg"
         :initial="{ opacity: 0 }"
         :animate="{ opacity: 1 }"
         :exit="{ opacity: 0 }"
-        key="errorMsg"
         class="mx-auto"
       >
         <h2 class="text-center text-secondary">Ganz schön leer hier...</h2>
@@ -1822,3 +2258,162 @@ useHead({
     </div>
   </NuxtLayout>
 </template>
+
+<style lang="postcss">
+.shepherd-button {
+  @apply relative inline-block after:absolute after:bg-btertiary after:left-4 after:right-4 before:absolute before:bg-btertiary before:box-border before:left-4 before:right-4 bg-bprimary text-tbase p-2 rounded-[10px] border-2 after:h-0.5 before:h-0.5 before:-top-0.5 after:-bottom-0.5 cursor-pointer border-green-600 animate-link;
+}
+
+.shepherd-button:not(:disabled):hover {
+  @apply bg-bsecondary;
+}
+
+.shepherd-button.shepherd-button-secondary {
+  @apply border-red-600;
+}
+
+.shepherd-button.shepherd-button-secondary:not(:disabled):hover {
+  @apply bg-bsecondary;
+}
+
+.shepherd-button:disabled {
+  @apply cursor-not-allowed;
+}
+
+.shepherd-footer {
+  @apply rounded-b flex justify-end p-3 pt-0 space-x-4;
+}
+
+.shepherd-footer .shepherd-button:last-child {
+  @apply mr-0;
+}
+
+.shepherd-cancel-icon {
+  @apply bg-transparent border-none text-[#808080] text-opacity-75 cursor-pointer text-[2em] font-normal m-0 p-0 transition-colors duration-500;
+}
+
+.shepherd-cancel-icon:hover {
+  @apply text-black text-opacity-75;
+}
+
+.shepherd-has-title .shepherd-content .shepherd-cancel-icon {
+  @apply text-[#808080] text-opacity-75;
+}
+
+.shepherd-has-title .shepherd-content .shepherd-cancel-icon:hover {
+  @apply text-black text-opacity-75;
+}
+
+.shepherd-title {
+  @apply text-black text-opacity-75 flex flex-grow flex-auto text-base font-normal m-0 p-0;
+}
+
+.shepherd-header {
+  @apply items-center border-t-4 flex justify-end leading-8 px-3 pt-3;
+}
+
+.shepherd-has-title .shepherd-content .shepherd-header {
+  @apply bg-tbase p-4;
+}
+
+.shepherd-text {
+  @apply text-tbase text-base leading-5 p-3;
+}
+
+.shepherd-text p {
+  @apply mt-0;
+}
+
+.shepherd-text p:last-child {
+  @apply mt-0;
+}
+
+.shepherd-content {
+  @apply rounded outline-none p-0;
+}
+
+.shepherd-element {
+  @apply bg-bsecondary rounded max-w-[400px] opacity-0 outline-none transition-opacity duration-300 invisible w-full z-[9999] [box-shadow:_0_1px_4px_rgba(0,_0,_0,_0.2)] border border-btertiary;
+}
+
+.shepherd-enabled.shepherd-element {
+  @apply opacity-100 visible;
+}
+
+.shepherd-element[data-popper-reference-hidden]:not(.shepherd-centered) {
+  @apply opacity-0 pointer-events-none invisible;
+}
+
+.shepherd-element,
+.shepherd-element *,
+.shepherd-element :after,
+.shepherd-element :before {
+  @apply box-border;
+}
+
+.shepherd-arrow,
+.shepherd-arrow:before {
+  @apply h-4 absolute w-4 -z-10;
+}
+
+.shepherd-arrow:before {
+  @apply bg-bsecondary rotate-45 content-[''];
+}
+
+.shepherd-element[data-popper-placement='top'] .shepherd-arrow:before {
+  @apply border-b border-r border-btertiary;
+}
+
+.shepherd-element[data-popper-placement='bottom'] .shepherd-arrow:before {
+  @apply border-t border-l border-btertiary;
+}
+
+.shepherd-element[data-popper-placement='left'] .shepherd-arrow:before {
+  @apply border-t border-r border-btertiary;
+}
+
+.shepherd-element[data-popper-placement='right'] .shepherd-arrow:before {
+  @apply border-b border-l border-btertiary;
+}
+
+.shepherd-element[data-popper-placement^='top'] > .shepherd-arrow {
+  @apply -bottom-[8.6px];
+}
+
+.shepherd-element[data-popper-placement^='bottom'] > .shepherd-arrow {
+  @apply -top-2;
+}
+
+.shepherd-element[data-popper-placement^='left'] > .shepherd-arrow {
+  @apply -right-2;
+}
+
+.shepherd-element[data-popper-placement^='right'] > .shepherd-arrow {
+  @apply -left-2;
+}
+
+.shepherd-element.shepherd-centered > .shepherd-arrow {
+  @apply opacity-0;
+}
+
+.shepherd-element.shepherd-has-title[data-popper-placement^='bottom'] > .shepherd-arrow:before {
+  @apply bg-tbase;
+}
+
+.shepherd-target-click-disabled.shepherd-enabled.shepherd-target,
+.shepherd-target-click-disabled.shepherd-enabled.shepherd-target * {
+  @apply pointer-events-none;
+}
+
+.shepherd-modal-overlay-container {
+  @apply h-0 left-0 opacity-0 overflow-hidden pointer-events-none fixed top-0 transition-all ease-out duration-300 w-full z-[9997];
+}
+
+.shepherd-modal-overlay-container.shepherd-modal-is-visible {
+  @apply h-screen opacity-50 transition-all ease-out duration-300;
+}
+
+.shepherd-modal-overlay-container.shepherd-modal-is-visible path {
+  @apply pointer-events-auto;
+}
+</style>
