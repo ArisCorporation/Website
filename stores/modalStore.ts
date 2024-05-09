@@ -10,6 +10,7 @@ export const useModalStore = defineStore({
     hideCloseButton: false,
     agreeAction: null,
     big: false,
+    locked: false,
   }),
   actions: {
     setData(newData: any) {
@@ -23,6 +24,7 @@ export const useModalStore = defineStore({
         hideCloseButton?: boolean;
         agreeAction?: any;
         big?: boolean;
+        locked?: boolean;
       },
     ) {
       const {
@@ -31,6 +33,7 @@ export const useModalStore = defineStore({
         hideCloseButton: propHideCloseButton = false,
         agreeAction: propAgreeAction = null,
         big: propBig = false,
+        locked: propLocked = false,
       } = options;
 
       this.isModalOpen = true;
@@ -40,6 +43,7 @@ export const useModalStore = defineStore({
       this.hideCloseButton = propHideCloseButton;
       this.agreeAction = propAgreeAction;
       this.big = propBig;
+      this.locked = propLocked;
     },
     openSlide(options: {
       type?: string;
@@ -55,16 +59,22 @@ export const useModalStore = defineStore({
       this.big = propBig;
     },
     closeModal() {
-      this.isModalOpen = false;
-      setTimeout(() => {
-        this.title = '';
-        this.data = null;
-        this.type = '';
-        this.hideXButton = false;
-        this.hideCloseButton = false;
-        this.agreeAction = null;
-        this.big = false;
-      }, 600);
+      if (!this.locked) {
+        this.isModalOpen = false;
+        setTimeout(() => {
+          this.title = '';
+          this.data = null;
+          this.type = '';
+          this.hideXButton = false;
+          this.hideCloseButton = false;
+          this.agreeAction = null;
+          this.big = false;
+          this.locked = false;
+        }, 600);
+      }
+    },
+    unlockModal() {
+      this.locked = false;
     },
     closeSlide() {
       this.isSlideOpen = false;

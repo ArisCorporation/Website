@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
   padding: {
     type: Boolean,
     required: false,
@@ -7,7 +7,7 @@ defineProps({
   },
 });
 const modalStore = useModalStore();
-const { isModalOpen, title, hideCloseButton, hideXButton, agreeAction, big } = storeToRefs(modalStore);
+const { isModalOpen, title, hideCloseButton, hideXButton, agreeAction, big, locked } = storeToRefs(modalStore);
 
 const closeModal = () => {
   modalStore.closeModal();
