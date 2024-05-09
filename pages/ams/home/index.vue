@@ -75,7 +75,7 @@ const indexItems = [
   },
   {
     name: 'Administration',
-    link: '/admin',
+    link: '/administration',
     icon: '096e2ade-9486-4103-8317-e9f463fe84b0',
     released: true,
     level: 4,

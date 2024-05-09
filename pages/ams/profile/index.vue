@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { object, string, number, boolean, type InferType } from 'yup';
+import * as yup from 'yup';
+import YupPassword from 'yup-password';
 import type { FormSubmitEvent } from '#ui/types';
 const { readAsyncItems } = useDirectusItems();
 const { updateUser } = useDirectusUsers();
 const modalStore = useModalStore();
+
+YupPassword(yup);
 
 defineEmits(['cropperInput']);
 
@@ -74,9 +78,6 @@ const landing_zones = computed(() => {
     );
 });
 
-console.log(user);
-console.log(landing_zones_res);
-console.log(landing_zones);
 const titleOptions = ['', 'Dr.', 'Dr. Med.', 'Prof. Med.', 'Dipl. Ing.'];
 
 const birth_date_day = ref(user.birth_date?.split('-')[2] || null);
@@ -88,7 +89,13 @@ const schema = object({
   first_name: string().required('Du brauchst einen Vornamen!'),
   last_name: string().nullable(),
   title: string().nullable(),
-  password: string().nullable(),
+  password: string()
+    .min(8, 'Dein Passwort muss mindestens 8 Zeichen lang sein.')
+    .minLowercase(1, 'Dein Passwort muss mindestens einen Kleinbuchstaben enthalten.')
+    .minUppercase(1, 'Dein Passwort muss mindestens einen Großbuchstaben enthalten.')
+    .minNumbers(1, 'Dein Passwort muss mindestens eine Zahl enthalten.')
+    .minSymbols(1, 'Dein Passwort muss mindestens ein Sonderzeichen enthalten.')
+    .nullable(),
   department: object({
     id: string().required(),
     name: string().required(),
@@ -272,6 +279,9 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         initialFormdata[key as keyof typeof initialFormdata] = formdata[key as keyof typeof formdata];
       }
     }
+
+    formdata.password = '';
+    initialFormdata.password = '';
   } catch (e) {
     console.error(e);
   }
