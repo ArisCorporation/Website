@@ -21,11 +21,13 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
 
     const fullPath = to.path + (queryString ? `?${queryString}` : '');
 
-    return navigateTo({
-      path: '/ams/login',
-      query: {
-        redirect: encodeURIComponent(fullPath),
-      },
-    });
+    if (to.path !== '/login') {
+      return navigateTo({
+        path: '/ams/login',
+        query: {
+          redirect: encodeURIComponent(fullPath),
+        },
+      });
+    }
   }
 });
