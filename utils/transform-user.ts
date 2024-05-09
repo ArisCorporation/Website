@@ -173,5 +173,6 @@ export default function (obj: any) {
     ...(obj.slug && { biography_link: `/biography/${obj.slug}` }),
     ...(obj.slug && { biography_ams_link: `/ams/employees/biography/${obj.slug}` }),
     ...(obj.hangar_items && { hangar: obj.hangar_items.map((item: any) => transformHangarItem(item)) }),
+    ...(obj.onboardings && { onboardings: obj.onboardings }),
   };
 }

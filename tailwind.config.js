@@ -110,19 +110,6 @@ export default {
       tbase: '#d1d5dd',
       'light-gray': '#c7c7c7',
       'dark-gray': '#6f6f6f',
-      red: {
-        50: '#fef2f2',
-        100: '#fee2e2',
-        200: '#fecaca',
-        300: '#fca5a5',
-        400: '#f87171',
-        500: '#ef4444',
-        600: '#dc2626',
-        700: '#b91c1c',
-        800: '#991b1b',
-        900: '#7f1d1d',
-        950: '#450a0a',
-      },
       green: {
         50: '#f0fdf5',
         100: '#dcfce8',
@@ -170,5 +157,19 @@ export default {
       },
     },
   },
-  plugins: [require('@tailwindcss/typography'), require('@headlessui/tailwindcss')({ prefix: 'ui' })],
+  plugins: [
+    require('@tailwindcss/typography'),
+    require('@headlessui/tailwindcss')({ prefix: 'ui' }),
+    function ({ addUtilities }) {
+      addUtilities({
+        '.animate-link': {
+          '@apply active:scale-95 [transition:_opacity_.5s_ease-in-out,filter_.2s_ease-in-out,transform_.05s_ease-in-out,outline_.2s_ease-in-out]':
+            {},
+        },
+        '.transition-group': {
+          '@apply transition-all duration-200 group-hover:duration-300': {},
+        },
+      });
+    },
+  ],
 };

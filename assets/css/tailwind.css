@@ -86,10 +86,6 @@
     @apply opacity-50 transition hover:opacity-100;
   }
 
-  .animate-link {
-    @apply active:scale-95 [transition:_opacity_.5s_ease-in-out,filter_.2s_ease-in-out,transform_.05s_ease-in-out,outline_.2s_ease-in-out];
-  }
-
   hr {
     @apply bg-secondary h-[2px] w-full my-5 border-none;
   }
@@ -176,9 +172,6 @@
   }
   .transition {
     @apply transition-all duration-200 hover:duration-300;
-  }
-  .transition-group {
-    @apply transition-all duration-200 group-hover:duration-300;
   }
   .transition-peer {
     @apply transition-all duration-200 peer-hover:duration-300;
@@ -558,3 +551,9 @@
     }
   }
 }
+/* 
+@layer components {
+  .animate-link {
+    @apply ;
+  }
+} */
