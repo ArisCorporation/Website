@@ -7,16 +7,16 @@ export default defineEventHandler(async (event: any) => {
     props: {
       username: body.username,
       token: body.token,
-      datetime: body.datetime,
+      datetime: new Date().toString(),
     },
   });
 
-  await emails.send({
+  const response = await emails.send({
     from: 'ArisCorp Management System <ams@ariscorp.de>',
     to: body.to,
     subject: 'Passwort zurücksetzen',
     html: template.html,
   });
 
-  return { email: 'sent' };
+  return response;
 });
