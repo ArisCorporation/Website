@@ -30,10 +30,10 @@ expireDate.setHours(expireDate.getHours() + 24);
           font-family="Nasalization"
           fallback-font-family="Helvetica"
           :web-font="{
-            url: 'https://cms.ariscorp.de/assets/5fb636c3-f937-4375-a478-9a362d8c9968.otf',
-            format: 'opentype',
+            url: 'https://cms.ariscorp.de/assets/0d4228c9-07eb-4815-a897-70064880a405.woff',
+            format: 'woff',
           }"
-          font-weight="400"
+          :font-weight="400"
           font-style="normal"
         />
       </EHead>
@@ -91,8 +91,9 @@ expireDate.setHours(expireDate.getHours() + 24);
                 </strong>
                 gestellt und läuft am
                 <strong class="text-white">
-                  {{ expireDate.toLocaleDateString('de-DE') }} um {{ expireDate.toLocaleTimeString('de-DE') }} Uhr ab.
+                  {{ expireDate.toLocaleDateString('de-DE') }} um {{ expireDate.toLocaleTimeString('de-DE') }} Uhr
                 </strong>
+                ab.
               </span>
             </EText>
           </ESection>
