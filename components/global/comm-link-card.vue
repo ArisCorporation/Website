@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps({
+const props = defineProps({
   data: {
     type: Object as PropType<ICommLink>,
     required: true,
@@ -10,6 +10,7 @@ defineProps({
     default: 3,
   },
 });
+console.log(props.data);
 </script>
 
 <template>
@@ -21,6 +22,7 @@ defineProps({
       'md:col-span-2 lg:col-span-3 md:mx-0': size == 3,
     }"
   >
+    <!-- <h1 class="absolute top-0 bottom-0 left-0 right-0 m-auto">{{ data.title }}</h1> -->
     <div
       class="absolute top-0 left-0 z-20 w-full h-full p-3 text-center opacity-0 group-hover:opacity-100 transition-group"
     >
@@ -80,7 +82,7 @@ defineProps({
       }"
     >
       <h1
-        class="absolute bottom-0 text-base uppercase"
+        class="absolute text-base uppercase"
         :class="{ 'lg:m-auto lg:text-5xl lg:static': size == 2, 'md:m-auto md:text-5xl md:static': size == 3 }"
       >
         {{ data.title }}

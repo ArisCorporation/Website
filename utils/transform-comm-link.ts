@@ -43,7 +43,7 @@ export default function (obj: any, array?: ICommLink[]) {
 
   return {
     ...(obj.id && { id: obj.id }),
-    ...(obj.titel && { titel: obj.titel }),
+    ...(obj.name && { title: obj.name }),
     ...(obj.slug && { slug: obj.slug }),
     ...(obj.user_created && { author: getAuthor() }),
     ...(obj.banner && { banner: obj.banner }),
