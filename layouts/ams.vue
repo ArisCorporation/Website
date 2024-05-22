@@ -100,12 +100,37 @@ const onPwSubmit = async (event: FormSubmitEvent<pw_Schema>) => {
 };
 
 onMounted(() => {
+  const toast = useToast();
+
   if (user.value && user.value?.temporary_password) {
     modalStore.openModal('Temoräres Password', {
       type: 'temporary-pw',
       hideCloseButton: true,
       locked: true,
     });
+  }
+
+  if (user.value && !user.value?.contact_email && !user.value?.discord_id) {
+    toast.clear();
+    toast.add({
+      title: 'Benachrichtigungen nicht möglich!',
+      description:
+        'Bitte füge eine Kontakt E-Mail oder Discord ID hinzu. Um Benachrichtigungen zu erhalten oder dein Passwort zurücksetzen zu können.',
+      icon: 'i-ic-baseline-error-outline',
+      actions: [
+        {
+          label: 'Profil bearbeiten',
+          click: () =>
+            router.push({
+              path: '/ams/profile/notifications',
+            }),
+        },
+      ],
+      color: 'red',
+      timeout: 20000,
+    });
+  } else if (user.value && (user.value?.contact_email || user.value?.discord_id)) {
+    toast.clear();
   }
 });
 
