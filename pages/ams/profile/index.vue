@@ -101,10 +101,8 @@ const schema = object({
     name: string().required(),
     logo: string().nullable(),
   }).nullable(),
-  contact_email: string().email('Keine gültige Email-Adresse angegeben!').nullable(),
-  discord_name: string().nullable(),
   rsi_handle: string().nullable(),
-  sex: string().required(),
+  sex: string().oneOf(['male', 'female'], 'Geschlecht ist erforderlich').required('Geschlecht ist erforderlich'),
   current_residence: object({
     id: string(),
     name: string(),
@@ -179,10 +177,8 @@ const formdata = reactive({
   first_name: user.first_name,
   last_name: user.last_name || '',
   title: user.title || '',
-  password: '',
+  password: null,
   department: departments.value.find((e: any) => e.id === user.department_id) || '',
-  contact_email: user.contact_email || '',
-  discord_name: user.discord_name || '',
   rsi_handle: user.rsi_handle || '',
   sex: user.sex || '',
   current_residence: landing_zones.value?.find((e: any) => e.id === user.current_residence_value) || '',
@@ -280,8 +276,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       }
     }
 
-    formdata.password = '';
-    initialFormdata.password = '';
+    formdata.password = null;
+    initialFormdata.password = null;
   } catch (e) {
     console.error(e);
   }
@@ -293,7 +289,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     <UForm :ref="form" :schema="schema" :state="formdata" validate-on="submit" @submit="onSubmit">
       <div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
-          <div class="flex flex-wrap items-center gap-1.5">
+          <div class="flex items-center gap-1.5">
             <div>
               <p class="p-0 font-semibold text-white">Profil</p>
               <p class="p-0 mt-1 text-sm text-tbase/50">
@@ -483,15 +479,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
               v-model="formdata.password"
               size="md"
               autocomplete="off"
-              :icon="formdata.password !== '' && 'i-heroicons-x-mark-16-solid'"
+              :icon="formdata.password !== null && 'i-heroicons-x-mark-16-solid'"
               placeholder="******"
               type="password"
             />
             <button
-              v-if="formdata.password !== ''"
+              v-if="formdata.password !== null"
               type="button"
               class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-              @click="formdata.password = ''"
+              @click="formdata.password = null"
             >
               <UIcon
                 name="i-heroicons-x-mark-16-solid"
@@ -601,117 +597,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
               </button>
             </template>
           </div>
-        </UFormGroup>
-        <UFormGroup
-          label="Kontakt Email"
-          name="contact_email"
-          description="Für das A.M.S. Benachrichtigungssystem (coming-soon) kannst du eine Kontakt Email angeben."
-          class="items-center grid-cols-2 gap-2 md:grid"
-          :ui="{ container: 'relative' }"
-        >
-          <div class="relative">
-            <UInput
-              v-model="formdata.contact_email"
-              size="md"
-              autocomplete="off"
-              :icon="
-                formdata.contact_email || initialFormdata.contact_email
-                  ? formdata.contact_email === initialFormdata.contact_email
-                    ? 'i-heroicons-x-mark-16-solid'
-                    : 'i-heroicons-arrow-uturn-left'
-                  : ''
-              "
-              placeholder="contact@email.com"
-            />
-            <template v-if="formdata.contact_email || initialFormdata.contact_email">
-              <button
-                v-if="formdata.contact_email === initialFormdata.contact_email"
-                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                @click="formdata.contact_email = ''"
-              >
-                <UIcon
-                  name="i-heroicons-x-mark-16-solid"
-                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                />
-              </button>
-              <button
-                v-else
-                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                @click="formdata.contact_email = initialFormdata.contact_email"
-              >
-                <UIcon
-                  name="i-heroicons-arrow-uturn-left"
-                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                />
-              </button>
-            </template>
-          </div>
-        </UFormGroup>
-        <UFormGroup
-          label="Discord Benutzername"
-          name="discord_name"
-          description="Für das A.M.S. Benachrichtigungssystem (coming-soon) kannst du einen Discord Benutzernamen angeben."
-          class="items-center grid-cols-2 gap-2 md:grid"
-          :ui="{ container: 'relative' }"
-        >
-          <div class="relative">
-            <UInput
-              v-model="formdata.discord_name"
-              size="md"
-              autocomplete="off"
-              :icon="
-                formdata.discord_name || initialFormdata.discord_name
-                  ? formdata.discord_name === initialFormdata.discord_name
-                    ? 'i-heroicons-x-mark-16-solid'
-                    : 'i-heroicons-arrow-uturn-left'
-                  : ''
-              "
-              placeholder="user_name"
-            />
-            <template v-if="formdata.discord_name || initialFormdata.discord_name">
-              <button
-                v-if="formdata.discord_name === initialFormdata.discord_name"
-                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                @click="formdata.discord_name = ''"
-              >
-                <UIcon
-                  name="i-heroicons-x-mark-16-solid"
-                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                />
-              </button>
-              <button
-                v-else
-                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                @click="formdata.discord_name = initialFormdata.discord_name"
-              >
-                <UIcon
-                  name="i-heroicons-arrow-uturn-left"
-                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                />
-              </button>
-            </template>
-          </div>
-        </UFormGroup>
-        <UFormGroup
-          label="Discord ID"
-          name="discord_id"
-          description="Hier ist deine Discord ID. Diese wird generiert sobald du einen Benutzernamen angibst und es speicherst."
-          class="items-center grid-cols-2 gap-2 md:grid"
-          :ui="{ container: 'relative' }"
-        >
-          <UInput
-            size="md"
-            disabled
-            autocomplete="off"
-            trailing
-            placeholder="xxxxxxxxxxxxx"
-            :model-value="user.discord_id"
-            :ui="{ leading: { padding: { md: 'ps-24' } } }"
-          >
-            <template #leading>
-              <span class="text-sm text-dark-gray">Discord-ID:</span>
-            </template>
-          </UInput>
         </UFormGroup>
         <UFormGroup
           label="RSI Handle"
