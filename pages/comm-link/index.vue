@@ -5,7 +5,7 @@ const search = ref('');
 
 const { data: commLinks } = await readAsyncItems('comm_links', {
   query: {
-    fields: ['id', 'titel', 'banner', 'description', 'channel.name', 'channel.description', 'date_created'],
+    fields: ['id', 'name', 'banner', 'description', 'channel.name', 'channel.description', 'date_created'],
     filter: {
       status: { _eq: 'published' },
     },
@@ -72,14 +72,17 @@ if (!commLinks.value || !channels.value) {
   });
 }
 
+useSearchQuery(search);
+
 const filterData = computed(() =>
   commLinks.value.filter((e) =>
     selectedChannel.value !== 'Alle' ? e.comm_link_channel?.channel === selectedChannel.value : e,
   ),
 );
+
 const filteredCommLinks = computed(() => {
   return filterData.value
-    ?.filter((e: any) => (search.value ? e.comm_link_titel.toLowerCase().includes(search.value.toLowerCase()) : e))
+    ?.filter((e: any) => (search.value ? e.name.toLowerCase().includes(search.value.toLowerCase()) : e))
     .map((obj: any) => transformCommLink(obj, filterData.value));
 });
 

@@ -88,7 +88,7 @@ const { data: userHangars } = await readAsyncItems('user_hangars', {
 
 const { data: commLinks } = await readAsyncItems('comm_links', {
   query: {
-    fields: ['id', 'title', 'banner', 'description', 'channel.name', 'channel.description', 'date_created'],
+    fields: ['id', 'name', 'banner', 'description', 'channel.name', 'channel.description', 'date_created'],
     filter: {
       status: { _eq: 'published' },
     },
