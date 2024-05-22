@@ -7,5 +7,8 @@ export const useSidebarStore = defineStore({
     toggleMobileSidebar() {
       this.MobileSidebar = !this.MobileSidebar;
     },
+    mobileSidebarOff() {
+      this.MobileSidebar = false;
+    },
   },
 });
