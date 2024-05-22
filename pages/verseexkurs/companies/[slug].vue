@@ -26,6 +26,8 @@ const dataRes = await readItems('companies', {
     'headquarter.headquarter:moons.slug',
     'headquarter.headquarter:landing_zones.name',
     'headquarter.headquarter:landing_zones.slug',
+    'headquarter.headquarter:landing_zones.planet.name',
+    'headquarter.headquarter:landing_zones.planet.slug',
     'headquarter.headquarter:space_stations.name',
     'headquarter.headquarter:space_stations.slug',
   ],
@@ -124,16 +126,9 @@ definePageMeta({
             </NuxtLink>
             <template v-if="data.headquarter.planet && data.headquarter.name"> / </template>
             <NuxtLink
-              v-if="data.headquarter.name"
-              :to="
-                '/verseexkurs/starmap/' +
-                data.headquarter.system.slug +
-                '?planet=' +
-                data.headquarter.planet.slug +
-                '?landing_zones=' +
-                data.headquarter.slug
-              "
-              class="inline-block animate-link text-aris-400"
+              v-if="data.headquarter.system && data.headquarter.planet && data.headquarter.name"
+              :to="'/verseexkurs/starmap/' + data.headquarter.system.slug + '?lz=' + data.headquarter.slug"
+              class="inline-block animate-link"
             >
               {{ data.headquarter.name }}
             </NuxtLink>
