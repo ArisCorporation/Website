@@ -114,7 +114,7 @@ useHead({
 definePageMeta({
   layout: false,
   middleware: async function (to, _from) {
-    const { user } = useDirectusAuth();
+    const { user } = await useDirectusAuth();
     if (user.value) {
       return navigateTo(to.query.redirect ? decodeURIComponent(to.query.redirect as string) : '/ams');
     }
@@ -209,9 +209,12 @@ definePageMeta({
 
           <div>
             <ButtonDefault class="w-full mt-8 mb-2"> Log In </ButtonDefault>
-            <span class="text-secondary"
-              >Noch kein Mitglied? <NuxtLink to="/ams/recruitment" class="text-primary">Bewerben!</NuxtLink></span
-            >
+            <div class="text-secondary">
+              Passwort <NuxtLink to="/ams/login/pw-reset" class="text-primary animate-link">vergessen?</NuxtLink>
+            </div>
+            <div class="text-secondary">
+              Noch kein Mitglied? <NuxtLink to="/ams/recruitment" class="text-primary animate-link">Bewerben!</NuxtLink>
+            </div>
           </div>
         </UForm>
       </div>
