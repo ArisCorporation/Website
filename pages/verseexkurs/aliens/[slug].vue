@@ -41,6 +41,7 @@ definePageMeta({
       :tablist="data?.tabs"
       :store="selectedTab"
       :change="(index: number) => (selectedTab = index)"
+      between
     >
       <template #tabcontent>
         <div v-html="data?.tabs[selectedTab].content" />
