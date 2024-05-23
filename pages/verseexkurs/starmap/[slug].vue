@@ -461,7 +461,7 @@ definePageMeta({
                           padding: 'p-0',
                         },
                       }"
-                      class="flex flex-col w-full"
+                      class="flex flex-col w-full overflow-clip"
                     >
                       <template #header>
                         <NuxtImg
@@ -549,7 +549,7 @@ definePageMeta({
                               padding: 'p-0',
                             },
                           }"
-                          class="flex flex-col w-full"
+                          class="flex flex-col w-full overflow-clip"
                         >
                           <template #header>
                             <NuxtImg
@@ -621,7 +621,7 @@ definePageMeta({
                                   padding: 'p-0',
                                 },
                               }"
-                              class="flex flex-col w-full"
+                              class="flex flex-col w-full overflow-clip"
                             >
                               <template #header>
                                 <NuxtImg
@@ -667,7 +667,7 @@ definePageMeta({
                                   padding: 'p-0',
                                 },
                               }"
-                              class="flex flex-col w-full"
+                              class="flex flex-col w-full overflow-clip"
                             >
                               <template #header>
                                 <NuxtImg
@@ -716,7 +716,7 @@ definePageMeta({
                                   padding: 'p-0',
                                 },
                               }"
-                              class="flex flex-col w-full"
+                              class="flex flex-col w-full overflow-clip"
                             >
                               <template #header>
                                 <NuxtImg
@@ -782,7 +782,7 @@ definePageMeta({
                           padding: 'p-0',
                         },
                       }"
-                      class="flex flex-col w-full"
+                      class="flex flex-col w-full overflow-clip"
                     >
                       <template #header>
                         <NuxtImg
@@ -837,7 +837,7 @@ definePageMeta({
                           padding: 'p-0',
                         },
                       }"
-                      class="flex flex-col w-full"
+                      class="flex flex-col w-full overflow-clip"
                     >
                       <template #header>
                         <NuxtImg

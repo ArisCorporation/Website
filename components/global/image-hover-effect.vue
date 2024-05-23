@@ -30,7 +30,7 @@ defineProps({
 
 <!-- filter: invert(100%) invert(95%) sepia(67%) saturate(2509%) hue-rotate(89deg) brightness(107%) contrast(101%); -->
 <!-- before: blur(5px) -->
-<style scoped lang="postcss">
+<style scoped>
 .img-primary {
   filter: invert(100%) invert(77%) sepia(100%) saturate(699%) hue-rotate(98deg) brightness(104%) contrast(101%)
     blur(8px);
