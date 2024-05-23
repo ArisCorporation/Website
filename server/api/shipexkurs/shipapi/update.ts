@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 interface Ship {
   id?: string;
   status?: string;
@@ -66,10 +68,8 @@ interface Ship {
 
 const sm_url = 'https://robertsspaceindustries.com/ship-matrix/index';
 const fl_url = 'https://api.fleetyards.net/v1/';
-const p4k_url = 'https://raw.githubusercontent.com/ArisCorporation/p4k/main/latest/json/v2/';
+const p4k_url = 'https://raw.githubusercontent.com/ArisCorporation/p4k/main/3.23.0/json/v2/';
 const cms_url = 'https://cms.ariscorp.de/';
-
-import axios from 'axios';
 
 // Function to fetch the ship list from sm_url
 async function fetchShipList(): Promise<any[]> {
@@ -77,7 +77,7 @@ async function fetchShipList(): Promise<any[]> {
     const response: any = await $fetch(sm_url);
     return response.data;
   } catch (error) {
-    throw Error('Error fetching ship list: ' + error);
+    throw new Error('Error fetching ship list: ' + error);
   }
 }
 
@@ -87,7 +87,7 @@ async function fetchP4kShipList(): Promise<any[]> {
     const response: any = await $fetch(p4k_url + 'ships.json');
     return JSON.parse(response as string);
   } catch (error) {
-    throw Error('Error fetching p4k ship list: ' + error);
+    throw new Error('Error fetching p4k ship list: ' + error);
   }
 }
 
@@ -97,7 +97,7 @@ async function fetchP4kShipPorts(id: string): Promise<any> {
     const response: any = await $fetch(p4k_url + 'ships/' + id + '-ports.json');
     return JSON.parse(response as string);
   } catch (error) {
-    throw Error('Error fetching p4k ship ports: ' + error);
+    throw new Error('Error fetching p4k ship ports: ' + error);
   }
 }
 
@@ -107,7 +107,7 @@ async function fetchLiveShipList(): Promise<any[]> {
     const response = $fetch(cms_url + 'items/ships?limit=-1').then((res: any) => res.data || []);
     return response;
   } catch (error) {
-    throw Error('Error fetching live ship list: ' + error);
+    throw new Error('Error fetching live ship list: ' + error);
   }
 }
 
@@ -131,7 +131,7 @@ async function fetchFlShipList(): Promise<any[]> {
 
     return allData;
   } catch (error) {
-    throw Error('Error fetching FL ship list: ' + error);
+    throw new Error('Error fetching FL ship list: ' + error);
   }
 }
 
@@ -141,7 +141,7 @@ async function fetchCompanies(): Promise<any[]> {
     const response: any = await $fetch(cms_url + 'items/companies?limit=-1&fields=id,name,code');
     return response.data;
   } catch (error) {
-    throw Error('Error fetching companies: ' + error);
+    throw new Error('Error fetching companies: ' + error);
   }
 }
 
@@ -234,7 +234,7 @@ async function createShipObject(
     test: p4kId,
     status: 'published',
     name: shipData.name.trim(),
-    p4k_mode: p4kData ? true : false,
+    p4k_mode: !!p4kData,
     p4k_id: p4kData ? p4kData.ClassName : p4kId,
     p4k_name: p4kData ? p4kData.Name : null,
     manufacturer:
@@ -258,7 +258,7 @@ async function createShipObject(
     height: p4kData ? p4kData.Height : shipData.height,
     mass: p4kData ? p4kData.Mass : shipData.mass,
     on_sale: flData.onSale,
-    cargo: p4kData ? p4kData.Inventory?.SCU : shipData.cargocapacity,
+    cargo: p4kData ? Math.floor(p4kData.Inventory?.SCU) : Math.floor(shipData.cargocapacity),
     store_image_url: shipData.media[0].source_url.startsWith('https')
       ? shipData.media[0].source_url.replace('\\', '')
       : 'https://robertsspaceindustries.com' + shipData.media[0].source_url.replace('\\', ''),
@@ -399,11 +399,23 @@ async function updateOrCreateShips(ships: Ship[], shipList: any[]) {
             existingShip.data[field as keyof Ship] = ship[field];
           }
         }
+
+        delete existingShip.data.description;
+
         // Update the ship on cms_url
-        await axios.patch(
-          `${cms_url}items/ships/${existingShip.data.id}?access_token=-_XrBWIxuJyxZ-WhHgIFZAZs_7pxA0MY`,
-          existingShip.data,
-        );
+        // await axios.patch(
+        //   `${cms_url}items/ships/${existingShip.data.id}?access_token=-_XrBWIxuJyxZ-WhHgIFZAZs_7pxA0MY`,
+        //   existingShip.data,
+        // );
+        try {
+          await $fetch(`${cms_url}items/ships/${existingShip.data.id}?access_token=-_XrBWIxuJyxZ-WhHgIFZAZs_7pxA0MY`, {
+            method: 'PATCH',
+            body: existingShip.data,
+          });
+        } catch (error) {
+          console.error('Error updating ship:', error);
+          console.error(existingShip.data);
+        }
       } else {
         // console.log(ship.store_image_url);
         const store_image_id = ship.store_image_url
@@ -426,8 +438,8 @@ async function importImage(image: string, title: string, folder: string): Promis
   const response = await axios.post(`${cms_url}files/import?access_token=-_XrBWIxuJyxZ-WhHgIFZAZs_7pxA0MY`, {
     url: image,
     data: {
-      title: title,
-      folder: folder,
+      title,
+      folder,
     },
   });
 
