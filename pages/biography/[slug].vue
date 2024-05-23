@@ -1,6 +1,8 @@
 <script setup lang="ts">
-const { readAsyncUsers, readUser } = useDirectusUsers();
-const { readAsyncItems, readItems } = useDirectusItems();
+import { useMouse, useWindowScroll } from '@vueuse/core';
+
+const { readAsyncUsers } = useDirectusUsers();
+const { readAsyncItems } = useDirectusItems();
 const { path, params } = useRoute();
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
 const toast = useToast();
@@ -8,10 +10,27 @@ const homepageTabsStore = useHomepageTabsStore();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
 
+const { x, y } = useMouse();
+const { y: windowY } = useWindowScroll();
+
+const contextIsOpen = ref(false);
+const virtualElement = ref({ getBoundingClientRect: () => ({}) });
+
+function onContextMenu() {
+  const top = unref(y) - unref(windowY);
+  const left = unref(x);
+
+  virtualElement.value.getBoundingClientRect = () => ({
+    width: 0,
+    height: 0,
+    top,
+    left,
+  });
+
+  contextIsOpen.value = true;
+}
+
 const selectedTab = ref(0);
-const setTab = (index: number) => {
-  selectedTab.value = index;
-};
 
 const { data } = await readAsyncUsers({
   query: {
@@ -123,8 +142,8 @@ const { data: places } = await readAsyncItems('systems', {
         'object:planets': {
           id: {
             _in: [
-              ...(data.value?.birthplace && [data.value.birthplace.planet.id]),
-              ...(data.value?.current_residence && [data.value.current_residence.planet.id]),
+              ...(data.value?.birthplace?.planet ? [data.value.birthplace?.planet?.id] : []),
+              ...(data.value?.current_residence?.planet ? [data.value.current_residence?.planet?.id] : []),
             ],
           },
         },
@@ -135,12 +154,14 @@ const { data: places } = await readAsyncItems('systems', {
   transform: (rawSystems: any[]) => rawSystems.map((rawSystem: any) => transformStarsystem(rawSystem)),
 });
 
-data.value.birthplace.planet.system = places.value.find((e) =>
-  e.planets.find((p) => p.id === data.value.birthplace.planet.id),
-);
-data.value.current_residence.planet.system = places.value.find((e) =>
-  e.planets.find((p) => p.id === data.value.current_residence.planet.id),
-);
+if (data.value.birthplace) {
+  data.value.birthplace.planet.system = places.value.find((e) =>
+    e.planets.find((p) => p.id === data.value.birthplace?.planet?.id),
+  );
+  data.value.current_residence.planet.system = places.value.find((e) =>
+    e.planets.find((p) => p.id === data.value.current_residence?.planet?.id),
+  );
+}
 // data.value.current_residence.planet.system = birthplace_data.value;
 
 // console.log(data.value);
@@ -185,7 +206,13 @@ const handleDepartmentLink = () => {
   homepageTabsStore.setOurTab(2);
   homepageTabsStore.setOurDepartmentTab(data.value?.department.tabId);
 };
-console.log(data.value);
+
+defineShortcuts({
+  d: {
+    handler: () => userSettingsStore.AMSToggleHangarDetailView(),
+  },
+});
+
 definePageMeta({
   alias: '/ams/employees/biography/:slug()',
   middleware: 'biography',
@@ -219,11 +246,12 @@ useHead({
             <NuxtImg :src="data.avatar" class="h-[300px] lg:h-[600px] xl:h-[700px] w-full object-cover" />
           </DefaultPanel>
         </div>
-        <ButtonDefault @click="handleShare" class="w-full">
+        <ButtonDefault class="w-full" @click="handleShare">
           <UIcon name="i-heroicons-share" class="flex w-4 h-4 m-auto" />
         </ButtonDefault>
         <TableParent title="ArisCorp">
           <TableRow
+            v-if="data.department || data.leading_department"
             full-width
             :title="data.head_of_department ? 'Abteilungsleiter in' : 'Arbeitet in der Abteilung'"
             :content="data.department.name"
@@ -253,7 +281,7 @@ useHead({
           />
           <TableHr />
           <TableRow title="Geburtsort">
-            <template v-if="data.birthplace">
+            <!-- <template v-if="data.birthplace">
               <p class="p-0">
                 <NuxtLink :to="'/verseexkurs/starmap/' + data.birthplace.planet.system.slug">
                   <span class="inline-block animate-link">{{ data.birthplace.planet.system.name }}</span>
@@ -276,10 +304,10 @@ useHead({
                   <span class="inline-block animate-link">{{ data.birthplace.name }}</span>
                 </NuxtLink>
               </p>
-            </template>
+            </template> -->
           </TableRow>
           <TableRow title="Aktueller Wohnort">
-            <template v-if="data.current_residence">
+            <!-- <template v-if="data.current_residence">
               <p class="p-0">
                 <NuxtLink :to="'/verseexkurs/starmap/' + data.current_residence.planet.system.slug">
                   <span class="inline-block animate-link">{{ data.current_residence.planet.system.name }}</span>
@@ -307,7 +335,7 @@ useHead({
                   <span class="inline-block animate-link">{{ data.current_residence.name }}</span>
                 </NuxtLink>
               </p>
-            </template>
+            </template> -->
           </TableRow>
           <TableHr />
           <TableRow title="Körpergröße" :content="data.height" suffix="cm" />
@@ -398,9 +426,10 @@ useHead({
                   leave-to-class="-translate-y-4 opacity-0"
                 >
                   <ShipCard
-                    v-if="data.hangar[0]"
                     v-for="item in data.hangar"
+                    v-if="data.hangar[0]"
                     :key="item.id"
+                    v-model="contextIsOpen"
                     :ship-data="item.ship"
                     :hangar-data="item"
                     :detail-view="userSettings.ams.hangarDetailView"
@@ -410,6 +439,8 @@ useHead({
                     display-department
                     :display-name="item.userData.show_name"
                     display-production-state
+                    :virtual-element="virtualElement"
+                    @contextmenu.prevent="onContextMenu"
                   />
                 </TransitionGroup>
                 <Transition
