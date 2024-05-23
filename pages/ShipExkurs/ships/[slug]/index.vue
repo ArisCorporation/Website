@@ -108,8 +108,22 @@ function commercialFullscreenToggle() {
 
   if (!commercialFullscreenState.value) fullscreen.requestFullscreen();
   else document.exitFullscreen();
+}
 
-  commercialFullscreenState.value = !commercialFullscreenState.value;
+function fullscreenchanged(event) {
+  // document.fullscreenElement will point to the element that
+  // is in fullscreen mode if there is one. If there isn't one,
+  // the value of the property is null.
+  if (document.fullscreenElement) {
+    commercialFullscreenState.value = true;
+  } else {
+    commercialFullscreenState.value = false;
+  }
+}
+document.addEventListener('fullscreenchange', fullscreenchanged);
+
+function formatDuration(seconds: number) {
+  return new Date(1000 * seconds).toISOString().slice(14, 19);
 }
 
 watch(commercialPlaying, async () => {
@@ -183,11 +197,6 @@ defineShortcuts({
     },
   },
   f: {
-    handler: () => {
-      commercialFullscreenToggle();
-    },
-  },
-  escape: {
     handler: () => {
       commercialFullscreenToggle();
     },
@@ -468,18 +477,7 @@ useHead({
                         :step="0.001"
                         class="w-32"
                       />
-                      <div>
-                        {{
-                          String(Math.round((commercialCurrentTime / 60 + Number.EPSILON) * 100) / 100).replace(
-                            '.',
-                            ':',
-                          )
-                        }}
-                        /
-                        {{
-                          String(Math.round((commercialDuration / 60 + Number.EPSILON) * 100) / 100).replace('.', ':')
-                        }}
-                      </div>
+                      <div>{{ formatDuration(commercialCurrentTime) }} / {{ formatDuration(commercialDuration) }}</div>
                     </div>
                     <div class="flex items-center gap-x-2">
                       <UButton
