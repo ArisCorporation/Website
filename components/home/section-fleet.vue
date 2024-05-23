@@ -118,7 +118,6 @@ defineShortcuts({
                   :hangar-data="item"
                   :detail-view="userSettings.ams.fleetDetailView"
                   preload-images
-                  internal-bio
                   display-department
                   :display-name="item.userData.show_name"
                   display-production-state
@@ -173,7 +172,6 @@ defineShortcuts({
                   :hangar-data="item"
                   :detail-view="userSettings.ams.fleetDetailView"
                   preload-images
-                  internal-bio
                   display-department
                   :display-name="item.userData.show_name"
                   display-production-state
