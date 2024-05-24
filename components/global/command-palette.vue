@@ -3,8 +3,8 @@ const isOpen = ref(false);
 const router = useRouter();
 const toast = useToast();
 // const { metaSymbol } = useShortcuts();
-const { readUsers } = useDirectusUsers();
-const { readItems } = useDirectusItems();
+const { search: search_ships, result: results_ships } = useMeiliSearch('ships');
+const { search: search_users, result: results_users } = useMeiliSearch('users');
 
 // const commandPaletteRef = ref();
 
@@ -119,9 +119,8 @@ const groups = computed(() => [
         return [];
       }
 
-      // const users = await $fetch<any[]>('https://jsonplaceholder.typicode.com/users', { params: { q } });
-      const users = await readUsers({
-        fields: [
+      const users = await search_users(q, {
+        attributesToRetrieve: [
           'id',
           'title',
           'first_name',
@@ -132,22 +131,9 @@ const groups = computed(() => [
           'head_of_department',
           'slug',
         ],
-        filter: {
-          _or: q
-            .split(' ')
-            .map((word) => [
-              { title: { _icontains: word } },
-              { first_name: { _icontains: word } },
-              { last_name: { _icontains: word } },
-              { leading_department: { name: { _icontains: word } } },
-              { department: { name: { _icontains: word } } },
-              { role: { label: { _icontains: word } } },
-            ])
-            .flat(),
-        },
       });
 
-      return users.map((user) => ({
+      return users.hits.map((user) => ({
         id: user.id,
         label: `${user.title ? user.title + ' ' : ''}${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`,
         suffix: `${user.leading_department ? user.leading_department.name : user.department.name} (${user.head_of_department ? 'Abteilungsleiter' : 'Mitarbeiter'})`,
@@ -166,22 +152,11 @@ const groups = computed(() => [
         return [];
       }
 
-      // const users = await $fetch<any[]>('https://jsonplaceholder.typicode.com/users', { params: { q } });
-      const ships = await readItems('ships', {
-        fields: ['id', 'name', 'manufacturer.name', 'manufacturer.logo', 'store_image', 'slug'],
-        filter: {
-          _or: q
-            .split(' ')
-            .map((word) => [
-              { name: { _icontains: q } },
-              { manufacturer: { name: { _icontains: q } } },
-              { manufacturer: { code: { _icontains: q } } },
-            ])
-            .flat(),
-        },
+      const ships = await search_ships(q, {
+        attributesToRetrieve: ['id', 'name', 'manufacturer.name', 'manufacturer.logo', 'store_image', 'slug'],
       });
 
-      return ships.map((ship) => ({
+      return ships.hits.map((ship) => ({
         id: ship.id,
         label: ship.name,
         suffix: ship.manufacturer.name,
