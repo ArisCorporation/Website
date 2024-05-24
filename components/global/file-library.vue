@@ -98,7 +98,7 @@ const open = ref(false);
         </li>
       </ul>
     </div>
-    <div class="flex-grow w-auto h-full p-4 ml-2">
+    <div class="flex-grow w-auto p-4 ml-2 min-h-max">
       <div class="grid grid-cols-6 gap-4">
         <div
           v-for="file in files"
