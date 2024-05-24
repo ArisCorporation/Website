@@ -1,7 +1,7 @@
-import { createDirectus, rest, uploadFiles, authentication, updateItem } from '@directus/sdk';
 import fs from 'node:fs';
-import ytdl from 'ytdl-core';
 import cp from 'child_process';
+import { createDirectus, rest, uploadFiles, authentication, updateItem } from '@directus/sdk';
+import ytdl from 'ytdl-core';
 import ffmpeg from 'ffmpeg-static';
 const videoId = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
 
@@ -185,7 +185,7 @@ async function downloadVideo(video_id: string, ship_id: string) {
     const args = {};
     for (const l of lines) {
       const [key, value] = l.split('=');
-      args[key.trim()] = value.trim();
+      args[key] = value.trim();
     }
     // tracker.merged = args;
   });
@@ -198,7 +198,7 @@ async function downloadVideo(video_id: string, ship_id: string) {
 async function uploadVideo(file_name: string, ship_id: string) {
   try {
     const file_path = file_name + '.webm';
-    const client = createDirectus('http://10.1.1.7:8055').with(authentication()).with(rest());
+    const client = createDirectus('https://cms.ariscorp.de').with(authentication()).with(rest());
     await client.setToken('-_XrBWIxuJyxZ-WhHgIFZAZs_7pxA0MY');
     // const formData = new FormData();
     // formData.append('file_1_property', 'Value');
@@ -236,8 +236,6 @@ async function uploadVideo(file_name: string, ship_id: string) {
 
     await client.request(updateItem('ships', ship_id, { commercial: String(result.id) }));
     console.log('Ship Updated!');
-
-    return;
   } catch (error) {
     console.error('Error:', error);
   }
