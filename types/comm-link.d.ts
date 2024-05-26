@@ -3,7 +3,7 @@ export { ICommLink };
 declare global {
   interface ICommLink {
     id: String;
-    title: String;
+    name: String;
     slug: String;
     author: IMember;
     storeImage: String;
