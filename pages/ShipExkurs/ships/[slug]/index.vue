@@ -3,11 +3,7 @@ const { readAsyncItems } = useDirectusItems();
 const { params } = useRoute();
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
 const toast = useToast();
-const commercialVideo = ref();
-const commercialFullscreenState = ref(false);
 const config = useRuntimeConfig();
-const commercialShowPlayingOverlay = ref(false);
-const commercialShowOverlay = computed(() => commercialShowPlayingOverlay.value || commercialWaiting.value);
 const carousel = ref();
 
 const selectedTab = ref(0);
@@ -52,7 +48,12 @@ const { data } = await readAsyncItems('ships', {
       'manufacturer.logo',
       'gallery.directus_files_id',
       'commercial_video_id',
-      'commercial',
+      'commercials.commercial_id.id',
+      'commercials.commercial_id.type',
+      'brochure',
+      'store_url',
+      'sales_url',
+      'on_sale',
     ],
     filter: {
       slug: { _eq: params.slug },
@@ -69,6 +70,23 @@ if (!data.value) {
   });
 }
 
+const commercialSources = data.value.commercials[0]
+  ? [
+      {
+        type: 'video/webm',
+        src:
+          config.public.fileBase +
+          data.value.commercials.find((e: { id: string; type: string }) => e.type === 'video/webm').id,
+      },
+      {
+        type: 'video/mp4',
+        src:
+          config.public.fileBase +
+          data.value.commercials.find((e: { id: string; type: string }) => e.type === 'video/mp4').id,
+      },
+    ]
+  : [];
+
 const handleShare = () => {
   try {
     if (!clipboardIsSupported || !location?.href)
@@ -84,124 +102,9 @@ const tablist = computed<ITab[]>(() => [
   ...(data.value?.nothing ? [{ id: '1', header: 'Austattung' }] : []),
   ...(data.value.history ? [{ id: '2', header: 'Geschichte' }] : []),
   ...(data.value.gallery[0] ? [{ id: '3', header: 'Gallerie' }] : []),
-  ...(data.value.commercial_video_id && data.value.commercial ? [{ id: '4', header: 'Commercial' }] : []),
+  ...(data.value.commercial_video_id && data.value.commercials[0] ? [{ id: '4', header: 'Commercial' }] : []),
   ...(data.value.rating ? [{ id: '5', header: 'Wertung' }] : []),
 ]);
-
-const commercialPosterUrl = computed(
-  () => `https://img.youtube.com/vi/${data.value.commercial_video_id}/maxresdefault.jpg`,
-);
-
-const {
-  playing: commercialPlaying,
-  currentTime: commercialCurrentTime,
-  duration: commercialDuration,
-  waiting: commercialWaiting,
-  volume: commercialVolume,
-  muted: commercialMuted,
-} = useMediaControls(commercialVideo, {
-  src: config.public.fileBase + data.value.commercial,
-});
-
-function commercialFullscreenToggle() {
-  const fullscreen = document.querySelector('#commercial_container');
-
-  if (!commercialFullscreenState.value) fullscreen.requestFullscreen();
-  else document.exitFullscreen();
-}
-
-function fullscreenchanged(event) {
-  // document.fullscreenElement will point to the element that
-  // is in fullscreen mode if there is one. If there isn't one,
-  // the value of the property is null.
-  if (document.fullscreenElement) {
-    commercialFullscreenState.value = true;
-  } else {
-    commercialFullscreenState.value = false;
-  }
-}
-document.addEventListener('fullscreenchange', fullscreenchanged);
-
-function formatDuration(seconds: number) {
-  return new Date(1000 * seconds).toISOString().slice(14, 19);
-}
-
-watch(commercialPlaying, async () => {
-  commercialShowPlayingOverlay.value = true;
-  await setTimeout(() => {
-    commercialShowPlayingOverlay.value = false;
-  }, 400);
-});
-
-defineShortcuts({
-  k: {
-    handler: () => {
-      if (selectedTab.value === tablist.value.findIndex((e) => e.id === '4')) {
-        commercialPlaying.value = !commercialPlaying.value;
-      }
-    },
-  },
-  j: {
-    handler: () => {
-      commercialCurrentTime.value -= 5;
-    },
-  },
-  l: {
-    handler: () => {
-      commercialCurrentTime.value += 5;
-    },
-  },
-  arrowleft: {
-    handler: () => {
-      commercialCurrentTime.value -= 5;
-    },
-  },
-  arrowright: {
-    handler: () => {
-      commercialCurrentTime.value += 5;
-    },
-  },
-  m: {
-    handler: () => {
-      commercialMuted.value = !commercialMuted.value;
-    },
-  },
-  ',': {
-    handler: () => {
-      commercialVolume.value = Math.max(0, Math.min(commercialVolume.value - 0.1, 1));
-    },
-  },
-  '.': {
-    handler: () => {
-      commercialVolume.value = Math.max(0, Math.min(commercialVolume.value + 0.1, 1));
-    },
-  },
-  arrowdown: {
-    handler: () => {
-      commercialVolume.value = Math.max(0, Math.min(commercialVolume.value - 0.1, 1));
-    },
-  },
-  arrowup: {
-    handler: () => {
-      commercialVolume.value = Math.max(0, Math.min(commercialVolume.value + 0.1, 1));
-    },
-  },
-  arrowleft: {
-    handler: () => {
-      if (selectedTab.value === tablist.value.findIndex((e) => e.id === '3')) carousel.value.prev();
-    },
-  },
-  arrowright: {
-    handler: () => {
-      if (selectedTab.value === tablist.value.findIndex((e) => e.id === '3')) carousel.value.next();
-    },
-  },
-  f: {
-    handler: () => {
-      commercialFullscreenToggle();
-    },
-  },
-});
 
 definePageMeta({
   layout: 'ship-exkurs',
@@ -216,7 +119,9 @@ useHead({
   <div>
     <div class="flex flex-wrap justify-between">
       <div class="mt-auto">
-        <h1 class="mb-0 text-industrial-400">{{ data.name }}</h1>
+        <h1 class="mb-0 text-industrial-400">
+          <span class="text-tbase">{{ data.manufacturer.name }}</span> {{ data.name }}
+        </h1>
         <h4 class="mb-0 text-xs uppercase md:text-lg">
           <span class="text-dark-gray">Status: </span
           ><span class="italic text-light-gray">{{ data.production_status }}</span>
@@ -224,21 +129,19 @@ useHead({
       </div>
       <div>
         <NuxtLink :to="`/verseexkurs/companies/${data.manufacturer.slug}`">
-          <NuxtImg :src="data.manufacturer.logo" class="h-20 -mb-4 md:-mb-8 md:h-40 w-fit" />
+          <NuxtImg :src="data.manufacturer.logo" class="h-20 md:h-40 w-fit" />
         </NuxtLink>
       </div>
     </div>
     <hr class="my-3" />
     <div class="grid grid-cols-3 gap-4">
       <div class="col-span-3 space-y-4 xl:col-span-2">
-        <div class="w-full">
-          <DefaultPanel>
-            <NuxtImg :src="data.store_image" class="h-[300px] lg:h-[600px] xl:h-[700px] w-full object-cover" />
-          </DefaultPanel>
-          <DefaultPanel bg="bprimary">
-            <Editor v-model="data.description" render-mode />
-          </DefaultPanel>
-        </div>
+        <DefaultPanel>
+          <NuxtImg :src="data.store_image" class="h-[300px] lg:h-[600px] xl:h-[700px] w-full object-cover" />
+        </DefaultPanel>
+        <DefaultPanel bg="bprimary">
+          <Editor v-model="data.description" render-mode />
+        </DefaultPanel>
       </div>
       <div class="col-span-3 space-y-4 xl:col-span-1">
         <TableParent title="Basis">
@@ -310,9 +213,60 @@ useHead({
           <TableRow title="Besch. Zeit" :content="data.insurance_expedited_time" suffix="Minuten" />
           <TableRow title="Besch. Preis" :content="data.insurance_expedited_cost" suffix="aUEC" />
         </TableParent>
-        <ButtonDefault class="w-full" @click="handleShare">
-          <UIcon name="i-heroicons-share" class="flex w-4 h-4 m-auto" />
-        </ButtonDefault>
+        <div class="flex max-w-full gap-x-2">
+          <NuxtLink :to="data.store_url" external class="flex-grow text-tbase">
+            <ButtonDefault class="w-full text-sm">
+              <p v-if="data.on_sale" class="p-0">Aktuell zu verkaufen für: $ {{ data.pledge_price || 'N/A' }}</p>
+              <p v-else class="p-0">RSI Seite</p>
+            </ButtonDefault>
+          </NuxtLink>
+          <ButtonDefault @click="handleShare">
+            <UIcon name="i-heroicons-share" class="flex m-auto size-5" />
+          </ButtonDefault>
+          <UDropdown
+            :items="[
+              [
+                ...(data.sales_url
+                  ? [
+                      {
+                        label: 'RSI Promoseite',
+                        icon: 'i-heroicons-presentation-chart-line',
+                        to: data.sales_url,
+                        external: true,
+                        target: '_blank',
+                      },
+                    ]
+                  : []),
+                ...(data.brochure
+                  ? [
+                      {
+                        label: 'Brochure',
+                        icon: 'i-heroicons-book-open',
+                        to: $config.public.fileBase + data.brochure,
+                        external: true,
+                        target: '_blank',
+                      },
+                    ]
+                  : []),
+                ...(!data.sales_url && !data.brochure
+                  ? [
+                      {
+                        label: 'Keine Links vorhanden',
+                        icon: 'i-heroicons-x-mark',
+                        disabled: true,
+                      },
+                    ]
+                  : []),
+              ],
+            ]"
+            :popper="{ placement: 'bottom-start' }"
+            :ui="{ width: 'w-56' }"
+          >
+            <ButtonDefault>
+              <UIcon name="i-mdi-dots-vertical" class="flex m-auto size-5" />
+            </ButtonDefault>
+          </UDropdown>
+        </div>
       </div>
     </div>
     <TabGroup :tablist="tablist" :store="selectedTab" :change="(i) => (selectedTab = i)" between>
@@ -371,125 +325,10 @@ useHead({
         </template>
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '4')">
           <div id="commercial_container" class="my-auto">
-            <DefaultPanel bg="bprimary" class="mb-3">
-              <div>
-                <div class="relative w-full h-fit" @click="commercialPlaying = !commercialPlaying">
-                  <div
-                    class="absolute z-10 flex items-center justify-center w-full h-full transition-all duration-500 bg-black"
-                    :class="[commercialShowOverlay ? 'opacity-50' : 'opacity-0']"
-                  >
-                    <Transition
-                      appear
-                      enter-active-class="transition-all duration-500"
-                      leave-active-class=""
-                      enter-from-class="scale-0 opacity-0"
-                      enter-to-class="scale-125 opacity-100"
-                      leave-from-class="scale-0 opacity-100"
-                      leave-to-class="scale-0 opacity-0"
-                    >
-                      <UIcon
-                        v-if="commercialShowPlayingOverlay"
-                        :name="commercialPlaying ? 'i-heroicons-play' : 'i-heroicons-pause'"
-                        class="w-14 h-auto aspect-[1/1] absolute"
-                      />
-                    </Transition>
-                    <Transition
-                      appear
-                      enter-active-class="transition-all duration-500"
-                      leave-active-class=""
-                      enter-from-class="opacity-0"
-                      enter-to-class="opacity-100"
-                      leave-from-class="opacity-100"
-                      leave-to-class="opacity-0"
-                    >
-                      <UIcon
-                        v-if="commercialWaiting"
-                        name="i-svg-spinners-90-ring-with-bg"
-                        class="w-14 h-auto aspect-[1/1] absolute"
-                      />
-                    </Transition>
-                  </div>
-                  <video
-                    ref="commercialVideo"
-                    :poster="commercialPosterUrl"
-                    class="w-full"
-                    :class="[
-                      commercialFullscreenState
-                        ? 'h-screen max-h-[calc(100vh-82px)]'
-                        : 'h-fit max-h-[calc(100vh-8rem)]',
-                    ]"
-                    :style="{
-                      aspectRatio: `${commercialVideo?.videoWidth} / ${commercialVideo?.videoHeight}`,
-                    }"
-                  />
-                </div>
-                <div class="w-full px-2 pb-2 mt-1 space-y-2">
-                  <URange
-                    v-model="commercialCurrentTime"
-                    :max="commercialDuration"
-                    :step="0.1"
-                    :animation="commercialWaiting && 'carousel'"
-                  />
-                  <div class="flex justify-between w-full h-full">
-                    <div class="flex items-center gap-x-2">
-                      <UButton color="inverted" @click="commercialPlaying = !commercialPlaying">
-                        <Transition
-                          appear
-                          enter-active-class="transition-all duration-500"
-                          leave-active-class="absolute transition-all duration-500"
-                          enter-from-class="opacity-0"
-                          enter-to-class="opacity-100"
-                          leave-from-class="opacity-100"
-                          leave-to-class="opacity-0"
-                        >
-                          <UIcon
-                            v-if="!commercialPlaying"
-                            :name="commercialPlaying ? 'i-heroicons-pause' : 'i-heroicons-play'"
-                            class="w-5 aspect-[1/1] h-auto"
-                          />
-                        </Transition>
-                        <Transition
-                          appear
-                          enter-active-class="transition-all duration-500"
-                          leave-active-class="absolute transition-all duration-500"
-                          enter-from-class="opacity-0"
-                          enter-to-class="opacity-100"
-                          leave-from-class="opacity-100"
-                          leave-to-class="opacity-0"
-                        >
-                          <UIcon
-                            v-if="commercialPlaying"
-                            :name="commercialPlaying ? 'i-heroicons-pause' : 'i-heroicons-play'"
-                            class="w-5 aspect-[1/1] h-auto"
-                          />
-                        </Transition>
-                      </UButton>
-                      <UButton
-                        color="inverted"
-                        :icon="commercialMuted ? 'i-heroicons-speaker-x-mark' : 'i-heroicons-speaker-wave'"
-                        @click="commercialMuted = !commercialMuted"
-                      />
-                      <URange
-                        v-model="commercialVolume"
-                        :disabled="commercialMuted"
-                        :min="0"
-                        :max="1"
-                        :step="0.001"
-                        class="w-32"
-                      />
-                      <div>{{ formatDuration(commercialCurrentTime) }} / {{ formatDuration(commercialDuration) }}</div>
-                    </div>
-                    <div class="flex items-center gap-x-2">
-                      <UButton
-                        color="inverted"
-                        :icon="commercialFullscreenState ? 'i-mdi-fullscreen-exit' : 'i-mdi-fullscreen'"
-                        @click="() => commercialFullscreenToggle()"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </DefaultPanel>
+            <ArisCorpVideoplayer
+              :src="commercialSources"
+              :poster-url="`https://img.youtube.com/vi/${data.commercial_video_id}/maxresdefault.jpg`"
+            />
           </div>
         </template>
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '5')">
@@ -499,9 +338,3 @@ useHead({
     </TabGroup>
   </div>
 </template>
-
-<!-- <style scoped>
-video[poster] {
-  object-fit: cover;
-}
-</style> -->
