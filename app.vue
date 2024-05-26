@@ -2,19 +2,19 @@
 const { user } = useDirectusAuth();
 const config = useRuntimeConfig();
 
-useSeoMeta({
-  description:
-    'Das hier, ist die Homepage der Astro Research and Industrial Service Corporation. Die Astro Research and Industrial Service Corporation (oder kurz: ArisCorp) ist eine fiktive Organisation in dem Universum des Spiels "Star Citizen".',
-  ogTitle: 'Astro Research and Industrial Service Corporation',
-  ogDescription:
-    'Das hier, ist die Homepage der Astro Research and Industrial Service Corporation. Die Astro Research and Industrial Service Corporation (oder kurz: ArisCorp) ist eine fiktive Organisation in dem Universum des Spiels "Star Citizen".',
-  ogImage: config.public.fileBase + '61f8ed26-978a-4d66-a59d-92e8db4fdcb5',
-  ogUrl: config.public.url,
-  twitterDescription:
-    'Das hier, ist die Homepage der Astro Research and Industrial Service Corporation. Die Astro Research and Industrial Service Corporation (oder kurz: ArisCorp) ist eine fiktive Organisation in dem Universum des Spiels "Star Citizen".',
-  twitterImage: config.public.fileBase + '61f8ed26-978a-4d66-a59d-92e8db4fdcb5',
-  twitterCard: 'summary_large_image',
-});
+// useSeoMeta({
+//   description:
+//     'Das hier, ist die Homepage der Astro Research and Industrial Service Corporation. Die Astro Research and Industrial Service Corporation (oder kurz: ArisCorp) ist eine fiktive Organisation in dem Universum des Spiels "Star Citizen".',
+//   ogTitle: 'Astro Research and Industrial Service Corporation',
+//   ogDescription:
+//     'Das hier, ist die Homepage der Astro Research and Industrial Service Corporation. Die Astro Research and Industrial Service Corporation (oder kurz: ArisCorp) ist eine fiktive Organisation in dem Universum des Spiels "Star Citizen".',
+//   ogImage: config.public.fileBase + '61f8ed26-978a-4d66-a59d-92e8db4fdcb5',
+//   ogUrl: config.public.url,
+//   twitterDescription:
+//     'Das hier, ist die Homepage der Astro Research and Industrial Service Corporation. Die Astro Research and Industrial Service Corporation (oder kurz: ArisCorp) ist eine fiktive Organisation in dem Universum des Spiels "Star Citizen".',
+//   twitterImage: config.public.fileBase + '61f8ed26-978a-4d66-a59d-92e8db4fdcb5',
+//   twitterCard: 'summary_large_image',
+// });
 
 useHead({
   titleTemplate: (titleChunk) => {

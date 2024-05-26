@@ -214,11 +214,15 @@ defineShortcuts({
 });
 
 definePageMeta({
+  // title: 'test ' + data.value?.full_name + ' - Biografie',
   alias: '/ams/employees/biography/:slug()',
   middleware: 'biography',
 });
-useHead({
-  title: data.value?.full_name + ' - Biografie',
+// useHead({
+//   title: data.value?.full_name + ' - Biografie',
+// });
+defineOgImage({
+  component: 'OgImageArisCorp',
 });
 </script>
 
