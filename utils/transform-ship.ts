@@ -63,14 +63,14 @@ export default function transformShip(obj: any, shipList?: any) {
         ',' +
         obj.price.split('.')[1].slice(0, 2),
     }),
-    ...(obj.pledgePrice && {
-      pledgePrice:
-        obj.pledgePrice
+    ...(obj.pledge_price && {
+      pledge_price:
+        obj.pledge_price
           .split('.')[0]
           ?.toString()
           .replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.') +
         ',' +
-        obj.pledgePrice.split('.')[1].slice(0, 2),
+        obj.pledge_price.split('.')[1].slice(0, 2),
     }),
     ...(obj.on_sale && { on_sale: obj.on_sale }),
     ...(obj.production_status && {
@@ -127,7 +127,9 @@ export default function transformShip(obj: any, shipList?: any) {
     ...(obj.store_image && { store_image: obj.store_image }),
     ...(obj.gallery && { gallery: obj.gallery.map((obj: any) => obj.directus_files_id) }),
     ...(obj.commercial_video_id && { commercial_video_id: obj.commercial_video_id }),
-    ...(obj.commercial && { commercial: obj.commercial }),
+    ...(obj.commercials && obj.commercials[0]
+      ? { commercials: obj.commercials.map((obj) => ({ id: obj.commercial_id.id, type: obj.commercial_id.type })) }
+      : {}),
     // tags: obj.tags,
     // groundVehicle: getGroundVehicle(),
     // role: obj.role,

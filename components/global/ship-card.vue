@@ -1,4 +1,14 @@
 <script setup lang="ts">
+// defineProps({
+//   contextMenu: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+// });
+
+const contextMenu = defineModel();
+
 const removePopover = ref(false);
 const emit = defineEmits(['edit', 'removeOpen', 'removeConfirm']);
 const props = defineProps({
@@ -85,6 +95,10 @@ const props = defineProps({
     type: Boolean,
     required: false,
     default: false,
+  },
+  virtualElement: {
+    type: null,
+    required: false,
   },
 });
 
@@ -278,6 +292,70 @@ const handleEdit = () => {
         </div>
       </Transition>
     </DefaultPanel>
+    <UContextMenu
+      v-model="contextMenu"
+      :virtual-element="virtualElement"
+      :ui="{ background: 'bg-bprimary bg-opacity-25 backdrop-blur-xl' }"
+    >
+      <ul class="p-2 list-none divide-y divide-dark-gray">
+        <li class="flex-wrap px-0 py-1">
+          <div class="block">
+            <UButton
+              class="w-full"
+              variant="ghost"
+              color="contextmenu"
+              icon="i-heroicons-share"
+              label="Link kopieren"
+              size="xs"
+            />
+          </div>
+        </li>
+        <li class="flex-wrap px-0 py-1">
+          <div class="block">
+            <UButton
+              class="w-full"
+              variant="ghost"
+              color="contextmenu"
+              icon="i-heroicons-link"
+              label="RSI Seite"
+              size="xs"
+            />
+          </div>
+          <div class="block">
+            <UButton
+              class="w-full"
+              variant="ghost"
+              color="contextmenu"
+              icon="i-heroicons-presentation-chart-line"
+              label="Promotion Seite"
+              size="xs"
+            />
+          </div>
+          <div class="block">
+            <UButton
+              class="w-full"
+              variant="ghost"
+              color="contextmenu"
+              icon="i-heroicons-book-open"
+              label="Broschüre"
+              size="xs"
+            />
+          </div>
+        </li>
+        <li class="px-0 py-1">
+          <div class="block">
+            <UButton
+              class="w-full"
+              variant="ghost"
+              color="contextmenu"
+              icon="i-heroicons-document-plus"
+              label="Schiff zu Hangar hinzufügen"
+              size="xs"
+            />
+          </div>
+        </li>
+      </ul>
+    </UContextMenu>
   </div>
 </template>
 
