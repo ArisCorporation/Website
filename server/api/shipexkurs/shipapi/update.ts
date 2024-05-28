@@ -401,6 +401,7 @@ async function updateOrCreateShips(ships: Ship[], shipList: any[]) {
         }
 
         delete existingShip.data.description;
+        delete existingShip.data.commercial_video_id;
 
         // Update the ship on cms_url
         // await axios.patch(
