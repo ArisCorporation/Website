@@ -70,7 +70,7 @@ if (!data.value) {
   });
 }
 
-const commercialSources = data.value.commercials[0]
+const commercialSources = data.value.commercials
   ? [
       {
         type: 'video/webm',
