@@ -116,7 +116,7 @@ const handleEdit = () => {
 </script>
 <template>
   <div class="static block px-2 pb-3 basis-full md:basis-1/2 xl:basis-1/3 3xl:basis-1/4">
-    <DefaultPanel :color="color">
+    <DefaultPanel :color="color" :class="{ 'animate-link': !displayCrud }">
       <div class="relative h-fit">
         <NuxtLink
           :to="'/shipexkurs/ships/' + shipData.slug"
