@@ -40,7 +40,6 @@ export default defineNuxtConfig({
     'nuxt-resend',
     // '@nuxt/test-utils/module',
     // 'nuxt-markdown-render',
-    'nuxt-meilisearch',
   ],
   // plugins: ['~/plugins/vue-cropper.ts'],
 
@@ -156,12 +155,5 @@ export default defineNuxtConfig({
   vueEmail: {
     baseUrl: process.env.NUXT_PUBLIC_FILE_BASE,
     autoImport: true,
-  },
-
-  meilisearch: {
-    hostUrl: 'https://meilisearch.ariscorp.de',
-    searchApiKey: '21fb181a3b5fa5554ba4fab50d8ad1464700424f2f9d76c5cb9ed37071107f64', // required
-    adminApiKey: '4qfZcbdDsCJ34gFLDvowwuwQfDtYRoGZT3yBHkrpRKcNWoDyhFzHBd4w9e2k9MrAaaxFexJAUvb4vHUj9xrgno9bUgyTotLLJARs', // optional
-    serverSideUsage: true,
   },
 });

@@ -3,8 +3,8 @@ const isOpen = ref(false);
 const router = useRouter();
 const toast = useToast();
 // const { metaSymbol } = useShortcuts();
-const { search: search_ships, result: results_ships } = useMeiliSearch('ships');
-const { search: search_users, result: results_users } = useMeiliSearch('users');
+const { readItems } = useDirectusItems();
+const { readUsers } = useDirectusUsers();
 
 // const commandPaletteRef = ref();
 
@@ -110,7 +110,7 @@ const groups = computed(() => [
     label: 'Aktionen',
     commands,
   },
-  useDirectusAuth().user && { key: 'ams_commands', commands: ams_commands, label: 'A.M.S. Aktionen' },
+  ...(useDirectusAuth().user.value ? [{ key: 'amsCommands', commands: ams_commands, label: 'A.M.S. Aktionen' }] : []),
   {
     key: 'employees',
     label: (q) => q && `Mitarbeiter passend zu “${q}”...`,
@@ -119,8 +119,11 @@ const groups = computed(() => [
         return [];
       }
 
-      const users = await search_users(q, {
-        attributesToRetrieve: [
+      const users = await readUsers({
+        filter: {
+          ...useDirectusSearch(q, ['title', 'first_name', 'last_name', 'department.name', 'leading_department.name']),
+        },
+        fields: [
           'id',
           'title',
           'first_name',
@@ -131,17 +134,29 @@ const groups = computed(() => [
           'head_of_department',
           'slug',
         ],
+        limit: 4,
       });
 
-      return users.hits.map((user) => ({
-        id: user.id,
-        label: `${user.title ? user.title + ' ' : ''}${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`,
-        suffix: `${user.leading_department ? user.leading_department.name : user.department.name} (${user.head_of_department ? 'Abteilungsleiter' : 'Mitarbeiter'})`,
-        avatar: {
-          src: useRuntimeConfig().public.fileBase + user.avatar,
-        },
-        to: '/biography/' + user.slug,
-      }));
+      return users.map(
+        (user: {
+          id: string;
+          title: string;
+          first_name: string;
+          last_name: string;
+          slug: string;
+          avatar: string;
+          department: { name: string };
+          leading_department: { name: string };
+        }) => ({
+          id: user.id,
+          label: `${user.title ? user.title + ' ' : ''}${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`,
+          suffix: `${user.leading_department ? user.leading_department.name : user.department.name} (${user.head_of_department ? 'Abteilungsleiter' : 'Mitarbeiter'})`,
+          avatar: {
+            src: useRuntimeConfig().public.fileBase + user.avatar,
+          },
+          to: '/biography/' + user.slug,
+        }),
+      );
     },
   },
   {
@@ -152,24 +167,262 @@ const groups = computed(() => [
         return [];
       }
 
-      const ships = await search_ships(q, {
-        attributesToRetrieve: ['id', 'name', 'manufacturer.name', 'manufacturer.logo', 'store_image', 'slug'],
+      const ships = await readItems('ships', {
+        filter: {
+          ...useDirectusSearch(q, ['name', 'slug', 'manufacturer.name']),
+        },
+        fields: ['id', 'name', 'slug', 'store_image', 'manufacturer.name', 'manufacturer.logo'],
+        limit: 4,
       });
 
-      return ships.hits.map((ship) => ({
-        id: ship.id,
-        label: ship.name,
-        suffix: ship.manufacturer.name,
-        avatar: {
-          src: useRuntimeConfig().public.fileBase + ship.manufacturer.logo,
+      return ships.map(
+        (ship: {
+          id: string;
+          name: string;
+          slug: string;
+          store_image: string;
+          manufacturer: { name: string; logo: string };
+        }) => ({
+          id: ship.id,
+          label: ship.name,
+          suffix: ship.manufacturer.name,
+          avatar: {
+            src: useRuntimeConfig().public.fileBase + ship.manufacturer.logo,
+          },
+          to: '/shipexkurs/ships/' + ship.slug,
+        }),
+      );
+    },
+  },
+  {
+    key: 'companies',
+    label: (q) => q && `Firmen passend zu “${q}”...`,
+    search: async (q) => {
+      if (!q) {
+        return [];
+      }
+
+      const companies = await readItems('companies', {
+        filter: {
+          ...useDirectusSearch(q, ['name', 'code', 'slug']),
         },
-        to: '/shipexkurs/ships/' + ship.slug,
+        fields: ['id', 'name', 'code', 'slug', 'logo'],
+        limit: 4,
+      });
+
+      return companies.map((company: { id: string; name: string; code: string; slug: string; logo: string }) => ({
+        id: company.id,
+        label: company.name,
+        suffix: company.code,
+        to: '/verseexkurs/companies/' + company.slug,
+        avatar: {
+          src: useRuntimeConfig().public.fileBase + company.logo,
+        },
+      }));
+    },
+  },
+  {
+    key: 'fractions',
+    label: (q) => q && `Fraktionen passend zu “${q}”...`,
+    search: async (q) => {
+      if (!q) {
+        return [];
+      }
+
+      const fractions = await readItems('fractions', {
+        filter: {
+          ...useDirectusSearch(q, ['name', 'code', 'slug']),
+        },
+        fields: ['id', 'name', 'code', 'slug', 'logo'],
+        limit: 4,
+      });
+
+      return fractions.map((fraction: { id: string; name: string; code: string; slug: string; logo: string }) => ({
+        id: fraction.id,
+        label: fraction.name,
+        suffix: fraction.code,
+        to: '/verseexkurs/fractions/' + fraction.slug,
+        avatar: {
+          src: useRuntimeConfig().public.fileBase + fraction.logo,
+        },
+      }));
+    },
+  },
+  {
+    key: 'aliens',
+    label: (q) => q && `Alienrassen passend zu “${q}”...`,
+    search: async (q) => {
+      if (!q) {
+        return [];
+      }
+
+      const aliens = await readItems('aliens', {
+        filter: {
+          ...useDirectusSearch(q, ['name', 'slug']),
+        },
+        fields: ['id', 'name', 'slug', 'banner'],
+        limit: 4,
+      });
+
+      return aliens.map((alien: { id: string; name: string; slug: string; banner: string }) => ({
+        id: alien.id,
+        label: alien.name,
+        to: '/verseexkurs/aliens/' + alien.slug,
+        avatar: {
+          src: useRuntimeConfig().public.fileBase + alien.banner,
+        },
+      }));
+    },
+  },
+  {
+    key: 'fauna',
+    label: (q) => q && `Fauna passend zu “${q}”...`,
+    search: async (q) => {
+      if (!q) {
+        return [];
+      }
+
+      const faunas = await readItems('fauna', {
+        filter: {
+          ...useDirectusSearch(q, ['name', 'slug']),
+        },
+        fields: ['id', 'name', 'slug', 'banner'],
+        limit: 4,
+      });
+
+      return faunas.map((fauna: { id: string; name: string; slug: string; banner: string }) => ({
+        id: fauna.id,
+        label: fauna.name,
+        to: '/verseexkurs/aliens/fauna?open=' + fauna.slug,
+        avatar: {
+          src: useRuntimeConfig().public.fileBase + fauna.banner,
+        },
+      }));
+    },
+  },
+  {
+    key: 'flora',
+    label: (q) => q && `Flora passend zu “${q}”...`,
+    search: async (q) => {
+      if (!q) {
+        return [];
+      }
+
+      const floras = await readItems('flora', {
+        filter: {
+          ...useDirectusSearch(q, ['name', 'slug']),
+        },
+        fields: ['id', 'name', 'slug', 'banner'],
+        limit: 4,
+      });
+
+      return floras.map((flora: { id: string; name: string; slug: string; banner: string }) => ({
+        id: flora.id,
+        label: flora.name,
+        to: '/verseexkurs/aliens/flora?open=' + flora.slug,
+        avatar: {
+          src: useRuntimeConfig().public.fileBase + flora.banner,
+        },
+      }));
+    },
+  },
+  {
+    key: 'systeme',
+    label: (q) => q && `Sternensysteme passend zu “${q}”...`,
+    search: async (q) => {
+      if (!q) {
+        return [];
+      }
+
+      const systems = await readItems('systems', {
+        filter: {
+          ...useDirectusSearch(q, [
+            'name',
+            'orbit.object:stars.name',
+            'orbit.object:planets.name',
+            'orbit.object:planets.astronomical_designation',
+            'orbit.object:planets.landing_zones.name',
+            'orbit.object:asteroid_belts.name',
+          ]),
+        },
+        fields: ['id', 'name', 'slug', 'affiliation'],
+        limit: 4,
+      });
+
+      return systems.map((system: { id: string; name: string; slug: string; affiliation: string }) => ({
+        id: system.id,
+        label: system.name,
+        suffix:
+          system.affiliation === 'uee'
+            ? 'UEE'
+            : system.affiliation === 'in_development'
+              ? 'In Entwicklung'
+              : system.affiliation === 'unclaimed'
+                ? 'Nicht Beansprucht'
+                : system.affiliation === 'banu'
+                  ? 'Banu'
+                  : system.affiliation === 'xian'
+                    ? `Xi'An`
+                    : system.affiliation === 'vanduul' && 'Vanduul',
+        to: '/verseexkurs/starmap/' + system.slug,
+      }));
+    },
+  },
+  {
+    key: 'spectrum_categories',
+    label: (q) => q && `Spectrum-Kategorien passend zu “${q}”...`,
+    search: async (q) => {
+      if (!q) {
+        return [];
+      }
+
+      const categories = await readItems('spectrum_categories', {
+        filter: {
+          ...useDirectusSearch(q, ['name', 'slug']),
+        },
+        fields: ['id', 'name', 'slug', 'banner'],
+        limit: 4,
+      });
+
+      return categories.map((category: { id: string; name: string; slug: string; banner: string }) => ({
+        id: category.id,
+        label: category.name,
+        to: '/verseexkurs/spectrum/' + category.slug,
+        avatar: {
+          src: useRuntimeConfig().public.fileBase + category.banner,
+        },
+      }));
+    },
+  },
+  {
+    key: 'spectrum_threads',
+    label: (q) => q && `Spectrum-Beiträge passend zu “${q}”...`,
+    search: async (q) => {
+      if (!q) {
+        return [];
+      }
+
+      const threads = await readItems('spectrum_threads', {
+        filter: {
+          ...useDirectusSearch(q, ['name', 'slug', 'category.name']),
+        },
+        fields: ['id', 'name', 'slug', 'category.slug', 'category.banner'],
+        limit: 4,
+      });
+
+      return threads.map((thread: { id: string; name: string; slug: string; category: { banner: string } }) => ({
+        id: thread.id,
+        label: thread.name,
+        to: '/verseexkurs/spectrum/' + thread.category.slug + '/' + thread.slug,
+        avatar: {
+          src: useRuntimeConfig().public.fileBase + thread.category.banner,
+        },
       }));
     },
   },
 ]);
 
-function onSelect(option) {
+function onSelect(option: any) {
   if (!option) return;
 
   if (option.click) {
