@@ -10,12 +10,11 @@ const { readAsyncUsers, updateUser } = useDirectusUsers();
 const { params, path } = useRoute();
 const userSettingsStore = useUserSettingsStore();
 const { userSettings } = storeToRefs(userSettingsStore);
-const loanerView = computed(() =>
-  path.startsWith('/ams/fleet') ? userSettings.value.ams.fleetLoanerView : userSettings.value.ams.hangarLoanerView,
-);
+const loanerView = computed(() => userSettings.value.ams.hangarLoanerView);
 const hideHangar = ref(false);
 const search = ref('');
 const search_input = ref();
+const search_input_value = ref('');
 const selectedTab = ref(0);
 const setTab = (index: number) => {
   selectedTab.value = index;
@@ -28,34 +27,24 @@ const selectedMember = ref({ full_name: 'Alle' });
 const hangarRefreshPending = ref(false);
 const onboardingShip = ref();
 
+useDebouncedSearchQuery(search, search_input_value, { debounceAction: getCurrentFilteredHangar, useQuery: false });
+
 const { data: user } = await readAsyncUsers({
   query: {
     filter: {
       ...(path.startsWith('/ams/hangar') && { id: useDirectusAuth().user.value?.id }),
       ...(path.startsWith('/ams/employees') && { slug: params?.slug }),
-      ...(path.startsWith('/ams/fleet') && { id: 'none' }),
-      // ...(path.startsWith('/ams/fleet') && { status: { _eq: 'none' } }),
     },
   },
   transform: (users: IRawUser[]) => transformUser(users[0]),
 });
 
-const { data: users } = await readAsyncUsers({
-  query: {
-    filter: {
-      ...(path.startsWith('/ams/fleet') ? { status: { _eq: 'active' } } : { id: { _eq: 'none' } }),
-    },
-  },
-  transform: (users: IRawUser[]) => users.map((user: IRawUser) => transformUser(user)),
-});
-
 const { data: hangarItems, refresh: refreshHangarItems } = await readAsyncItems('user_hangars', {
   query: {
     filter: {
-      ...(!path.startsWith('/ams/fleet') && { user_id: { _eq: user.value?.id } }),
-      ...(path.startsWith('/ams/fleet') && { group: { _eq: 'ariscorp' } }),
-      ...(!path.startsWith('/ams/hangar') && { visibility: { _neq: 'hidden' } }),
+      user_id: { _eq: user.value?.id },
       ship_id: { _nnull: true },
+      ...(!path.startsWith('/ams/hangar') && { visibility: { _neq: 'hidden' } }),
     },
     fields: [
       'id',
@@ -216,9 +205,7 @@ const ships = computed(() => hangarItems.value?.map((obj: any) => transformHanga
 if (!ships.value || !departments.value || !shipList.value) {
   throw createError({
     statusCode: 500,
-    statusMessage: path.startsWith('/ams/fleet')
-      ? 'Die Übertragung des Flottenprotokolls konnte nicht vollständig empfangen werden!'
-      : 'Die Übertragung des Hangarprotokolls konnte nicht vollständig empfangen werden!',
+    statusMessage: 'Die Übertragung des Hangarprotokolls konnte nicht vollständig empfangen werden!',
     fatal: true,
   });
 }
@@ -547,16 +534,6 @@ const onAddSubmit = async (type: string, data: IShip[]) => {
   }
 };
 
-const debounceSearch = useDebounce(() => {
-  getCurrentFilteredHangar();
-  hideHangar.value = false;
-}, 500);
-
-function handleSearch() {
-  hideHangar.value = true;
-  debounceSearch();
-}
-
 function getCurrentFilteredHangar() {
   currentFilteredHangar.value = currentHangar.value
     .filter(
@@ -596,11 +573,7 @@ defineShortcuts({
   },
   d: {
     handler: () => {
-      if (path.startsWith('/ams/fleet')) {
-        userSettingsStore.AMSToggleFleetDetailView();
-      } else {
-        userSettingsStore.AMSToggleHangarDetailView();
-      }
+      userSettingsStore.AMSToggleHangarDetailView();
     },
   },
 });
@@ -1013,17 +986,13 @@ watch(
 );
 
 definePageMeta({
-  alias: ['/ams/employees/hangar/:slug', '/ams/fleet'],
+  alias: '/ams/employees/hangar/:slug',
   middleware: 'auth',
   layout: false,
 });
 
 useHead({
-  title: path.startsWith('/ams/fleet')
-    ? 'ArisCorp-Flotte'
-    : path.startsWith('/ams/employees')
-      ? 'Hangar von ' + user.value.full_name
-      : 'Mein Hangar',
+  title: path.startsWith('/ams/employees') ? 'Hangar von ' + user.value.full_name : 'Mein Hangar',
 });
 </script>
 
@@ -1776,133 +1745,22 @@ useHead({
       </div>
     </template>
     <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
-      <div
-        :class="{ 'basis-full mb-6': path.startsWith('/ams/fleet') }"
-        class="flex flex-wrap justify-center mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal"
-      >
-        <div
-          :class="{ 'lg:basis-auto': !path.startsWith('/ams/fleet') }"
-          class="flex mx-auto sm:mx-0 sm:pr-4 basis-full lg:block lg:p-0"
-        >
+      <div class="flex flex-wrap justify-center mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
+        <div class="flex mx-auto sm:mx-0 sm:pr-4 basis-full lg:block lg:p-0">
           <UFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-96" label="Suchen">
             <UInput
-              id="test"
               ref="search_input"
-              v-model="search"
+              v-model="search_input_value"
               size="2xl"
               class="my-auto"
               icon="i-heroicons-magnifying-glass-20-solid"
               :placeholder="`${selectedTab === 0 ? 'Schiffsname, ' : ''}Modell, Hersteller...`"
-              @input="handleSearch"
             />
             <button
-              v-if="search !== ''"
+              v-if="search_input_value !== '' && !search_input_value"
               type="button"
               class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
-              @click="(search = '') + handleSearch()"
-            >
-              <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
-            </button>
-          </UFormGroup>
-        </div>
-      </div>
-      <div
-        v-if="path.startsWith('/ams/fleet')"
-        class="flex flex-wrap justify-center w-full mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal"
-      >
-        <div class="flex mx-auto sm:mx-0 sm:pr-4 basis-full sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <ArisUFormGroup class="w-full lg:w-80" label="Abteilung">
-            <USelectMenu
-              id="departmentSelect"
-              v-model="selectedDepartment"
-              searchable
-              clear-search-on-close
-              searchable-placeholder="Suche..."
-              :search-attributes="['name']"
-              name="Abteilung"
-              placeholder="Abteilung filtern"
-              :options="[{ name: 'Alle' }, ...departments]"
-              size="xl"
-              :ui="{
-                leading: {
-                  padding: {
-                    xl: 'ps-10',
-                  },
-                },
-              }"
-            >
-              <template v-if="selectedDepartment?.name !== 'Alle'" #leading />
-              <template #label>
-                <UAvatar
-                  img-class="object-cover object-top"
-                  :src="
-                    selectedDepartment.logo ? $config.public.fileBase + selectedDepartment.logo + '?format=webp' : null
-                  "
-                  :alt="selectedDepartment.name || 'Alle'"
-                />
-                <span>{{ selectedDepartment.name }}</span>
-              </template>
-              <template #option="{ option: department }">
-                <UAvatar
-                  img-class="object-cover object-top"
-                  :src="department.logo ? $config.public.fileBase + department.logo + '?format=webp' : null"
-                  :alt="department.name"
-                />
-                <span>{{ department.name }}</span>
-              </template>
-            </USelectMenu>
-            <button
-              v-if="selectedDepartment?.name !== 'Alle'"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-              @click="selectedDepartment = { name: 'Alle' }"
-            >
-              <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
-            </button>
-          </ArisUFormGroup>
-        </div>
-        <div class="flex mx-auto mt-2 sm:mx-0 sm:pl-4 basis-full sm:mt-0 sm:basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <UFormGroup class="w-full lg:w-80" label="Mitarbeiter">
-            <USelectMenu
-              id="memberSelect"
-              v-model="selectedMember"
-              searchable
-              clear-search-on-close
-              searchable-placeholder="Suche..."
-              :search-attributes="['first_name', 'last_name', 'title']"
-              name="Mitarbeiter"
-              placeholder="Mitarbeiter filtern"
-              :options="[{ full_name: 'Alle' }, ...users]"
-              size="xl"
-              :ui="{
-                leading: {
-                  padding: {
-                    xl: 'ps-10',
-                  },
-                },
-              }"
-            >
-              <template v-if="selectedMember?.full_name !== 'Alle'" #leading />
-              <template #label>
-                <UAvatar
-                  img-class="object-cover object-top"
-                  :src="selectedMember.avatar ? $config.public.fileBase + selectedMember.avatar + '?format=webp' : null"
-                  :alt="selectedMember.full_name || 'Alle'"
-                />
-                <span>{{ selectedMember.full_name }}</span>
-              </template>
-              <template #option="{ option: member }">
-                <UAvatar
-                  img-class="object-cover object-top"
-                  :src="member.avatar ? $config.public.fileBase + member.avatar + '?format=webp' : null"
-                  :alt="member.full_name"
-                />
-                <span>{{ member.full_name }}</span>
-              </template>
-            </USelectMenu>
-            <button
-              v-if="selectedMember?.full_name !== 'Alle'"
-              class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-              @click="selectedMember = { full_name: 'Alle' }"
+              @click="search_input_value = ''"
             >
               <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
             </button>
@@ -1915,34 +1773,16 @@ useHead({
         <div class="flex mt-6 sm:pr-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
           <ButtonDefault
             class="mx-auto sm:mr-0 sm:ml-auto"
-            @click="
-              () =>
-                path.startsWith('/ams/fleet')
-                  ? userSettingsStore.AMSToggleFleetDetailView()
-                  : userSettingsStore.AMSToggleHangarDetailView()
-            "
+            @click="() => userSettingsStore.AMSToggleHangarDetailView()"
           >
             Detail Ansicht:
-            {{
-              path.startsWith('/ams/fleet')
-                ? userSettings.ams.fleetDetailView
-                  ? 'Ausschalten'
-                  : 'Anschalten'
-                : userSettings.ams.hangarDetailView
-                  ? 'Ausschalten'
-                  : 'Anschalten'
-            }}
+            {{ userSettings.ams.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
         <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
           <ButtonDefault
             class="mx-auto sm:ml-0 sm:mr-auto"
-            @click="
-              () =>
-                path.startsWith('/ams/fleet')
-                  ? userSettingsStore.AMSToggleFleetLoanerView()
-                  : userSettingsStore.AMSToggleHangarLoanerView()
-            "
+            @click="() => userSettingsStore.AMSToggleHangarLoanerView()"
           >
             Leihschiff-Ansicht: {{ loanerView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
@@ -1969,59 +1809,6 @@ useHead({
         </div>
       </div>
     </div> -->
-    <div v-if="path.startsWith('/ams/fleet')" class="flex flex-wrap">
-      <ClientOnly>
-        <TransitionGroup
-          appear
-          enter-active-class="transition-all duration-500"
-          leave-active-class="transition-all duration-500"
-          enter-from-class="-translate-y-4 opacity-0"
-          enter-to-class="translate-y-0 opacity-100"
-          leave-from-class="translate-y-0 opacity-100"
-          leave-to-class="-translate-y-4 opacity-0"
-        >
-          <ShipCard
-            v-for="item in currentFilteredHangar"
-            v-if="!hideHangar"
-            :key="item.id"
-            :ship-data="item.ship"
-            :hangar-data="item"
-            :detail-view="userSettings.ams.fleetDetailView"
-            preload-images
-            internal-bio
-            display-department
-            display-name
-            display-production-state
-            display-loaner-state
-            display-owner
-            display-planned-states
-            @toggle-detail-view="() => console.log('test')"
-          />
-        </TransitionGroup>
-        <Transition
-          appear
-          enter-active-class="transition-all duration-500"
-          leave-active-class="transition-all duration-500"
-          enter-from-class="opacity-0"
-          enter-to-class="opacity-100"
-          leave-from-class="opacity-100"
-          leave-to-class="opacity-0"
-        >
-          <div
-            v-if="!currentHangar[0] && !hideHangar"
-            key="errorMsg"
-            :initial="{ opacity: 0 }"
-            :animate="{ opacity: 1 }"
-            :exit="{ opacity: 0 }"
-            class="mx-auto"
-          >
-            <h2 class="text-center text-secondary">
-              Es gibt keine Schiffe der ArisCorp-Flotte, die deinen Filterkriterien entsprechen...
-            </h2>
-          </div>
-        </Transition>
-      </ClientOnly>
-    </div>
     <TabGroup
       v-if="path.startsWith('/ams/hangar')"
       :tablist="[
