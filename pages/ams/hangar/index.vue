@@ -55,6 +55,7 @@ const { data: hangarItems, refresh: refreshHangarItems } = await readAsyncItems(
       ...(!path.startsWith('/ams/fleet') && { user_id: { _eq: user.value?.id } }),
       ...(path.startsWith('/ams/fleet') && { group: { _eq: 'ariscorp' } }),
       ...(!path.startsWith('/ams/hangar') && { visibility: { _neq: 'hidden' } }),
+      ship_id: { _nnull: true },
     },
     fields: [
       'id',
@@ -89,6 +90,7 @@ const { data: hangarItems, refresh: refreshHangarItems } = await readAsyncItems(
       'ship_id.loaners',
       'ship_id.modules.id',
       'ship_id.modules.name',
+      'ship_id.production_status',
       'department.id',
       'department.name',
       'department.logo',
@@ -158,7 +160,7 @@ let loanerData: any = [];
 const getLoaners = async () => {
   const loanerIds: string[] = [];
   hangarItems.value
-    .filter((e: any) => e.ship_id.production_status_value !== 'flight-ready')
+    .filter((e: any) => e.ship_id?.production_status_value !== 'flight-ready')
     .forEach((obj: any) => obj.ship_id.loaners?.forEach((i: any) => !loanerIds.includes(i.id) && loanerIds.push(i.id)));
   loanerData = [];
 
@@ -385,10 +387,10 @@ const updateHangar = () => {
 
   filteredHangar.value = hangar;
 
-  liveHangar = [...hangar.filter((e) => e.ship.production_status_value === 'flight-ready')];
+  liveHangar = [...hangar.filter((e) => e.ship?.production_status_value === 'flight-ready')];
 
   hangar
-    .filter((e) => e.ship.production_status_value !== 'flight-ready')
+    .filter((e) => e.ship?.production_status_value !== 'flight-ready')
     .forEach((hangarItem) => {
       hangarItem.ship.loaners?.map((loaner, index) => {
         liveHangar.push({
