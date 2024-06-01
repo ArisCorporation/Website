@@ -77,7 +77,7 @@ if (
     data.value.headquarter.system = transformStarsystem(system[0]);
   }
 }
-
+console.log(data.value);
 useHead({
   title: data.value.name,
 });
@@ -95,10 +95,10 @@ definePageMeta({
     <div>
       <TableParent
         v-if="
-          data.headquarter.name ||
-          data.headquarter.system ||
-          data.headquarter.planet ||
-          data.headquarter.moon ||
+          data.headquarter?.name ||
+          data.headquarter?.system ||
+          data.headquarter?.planet ||
+          data.headquarter?.moon ||
           data.founded ||
           data.founder ||
           data.category.name ||
@@ -108,7 +108,9 @@ definePageMeta({
         class="w-full mb-8 xl:ml-12 xl:float-right xl:w-1/2"
       >
         <TableRow
-          v-if="data.headquarter.name || data.headquarter.system || data.headquarter.planet || data.headquarter.moon"
+          v-if="
+            data.headquarter?.name || data.headquarter?.system || data.headquarter?.planet || data.headquarter?.moon
+          "
           title="Hauptsitz"
           full-width
         >
