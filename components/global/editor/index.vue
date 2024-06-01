@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
       </UCard>
     </div>
     <div v-else-if="editor && readOnly">
-      <TiptapEditorContent :editor="editor" class="" />
+      <TiptapEditorContent :editor="editor" />
     </div>
   </ClientOnly>
 </template>
