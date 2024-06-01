@@ -56,7 +56,9 @@ const { data: ships, pending: shipsPending } = await readAsyncItems('ships', {
   transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)),
 });
 
-useDebouncedSearchQuery(search, search_input_value, {
+useSearch(search, search_input_value, {
+  debounce: true,
+  query: true,
   typingAction: () => (hideShips.value = true),
   debounceAction: () => (hideShips.value = false),
 });

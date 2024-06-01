@@ -27,7 +27,7 @@ const selectedMember = ref({ full_name: 'Alle' });
 const hangarRefreshPending = ref(false);
 const onboardingShip = ref();
 
-useDebouncedSearchQuery(search, search_input_value, { debounceAction: getCurrentFilteredHangar, useQuery: false });
+useSearch(search, search_input_value, { debounce: true, query: false, debounceAction: getCurrentFilteredHangar });
 
 const { data: users } = await readAsyncUsers({
   query: {
