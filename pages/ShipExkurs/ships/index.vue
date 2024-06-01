@@ -5,18 +5,8 @@ const { userSettings } = storeToRefs(userSettingsStore);
 
 const hideShips = ref(false);
 const search = ref('');
+const search_input_value = ref('');
 const searchInput = ref();
-
-const debounceSearch = useDebounce(() => {
-  hideShips.value = false;
-}, 500);
-
-function handleSearch() {
-  hideShips.value = true;
-  page.value = 1;
-
-  debounceSearch();
-}
 
 const page = ref(1);
 const pageCount = ref(12);
@@ -66,7 +56,7 @@ const { data: ships, pending: shipsPending } = await readAsyncItems('ships', {
   transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)),
 });
 
-useSearchQuery(search);
+useDebouncedSearchQuery(search, search_input_value);
 
 defineShortcuts({
   s: {
@@ -92,12 +82,11 @@ useHead({
         <UFormGroup size="xl" class="w-full lg:w-[512px] mx-auto 2xl:mx-auto" label="Suchen">
           <UInput
             ref="searchInput"
-            v-model="search"
+            v-model="search_input_value"
             size="2xl"
             class="my-auto"
             icon="i-heroicons-magnifying-glass-20-solid"
             placeholder="Modell, Hersteller..."
-            @input="handleSearch"
           />
           <button
             v-if="search !== ''"
