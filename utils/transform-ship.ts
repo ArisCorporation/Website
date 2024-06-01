@@ -35,6 +35,57 @@ export default function transformShip(obj: any, shipList?: any) {
     if (obj.productionStatus === 'flight-ready') return 'Flugfertig';
   };
 
+  const getRating = () => {
+    const score = obj.rating.ratings.reduce(
+      (total: number, rating: any) =>
+        total +
+        (rating.grade === 'bad'
+          ? 5
+          : rating.grade === 'medium'
+            ? 10
+            : rating.grade === 'good'
+              ? 15
+              : rating.grade === 'very_good'
+                ? 20
+                : 0),
+      0,
+    );
+    return {
+      rating: {
+        ...obj.rating,
+        ...(obj.rating.user_created && { user_created: transformUser(obj.rating.user_created) }),
+        ...(obj.rating.ratings && {
+          ratings: obj.rating.ratings.map((rating: any) => ({
+            category: rating.category,
+            reason: rating.reason,
+            grade: rating.grade,
+            grade_points:
+              rating.grade === 'bad'
+                ? 5
+                : rating.grade === 'medium'
+                  ? 10
+                  : rating.grade === 'good'
+                    ? 15
+                    : rating.grade === 'very_good'
+                      ? 20
+                      : 0,
+            grade_label:
+              rating.grade === 'bad'
+                ? 'Schlecht'
+                : rating.grade === 'medium'
+                  ? 'Mittel'
+                  : rating.grade === 'good'
+                    ? 'Gut'
+                    : rating.grade === 'very_good'
+                      ? 'Sehr Gut'
+                      : 'Unbekannt',
+          })),
+          score,
+        }),
+      },
+    };
+  };
+
   return {
     ...(obj.id && { id: obj.id }),
     ...(obj.erkul_id && { erkul_id: obj.erkul_id }),
@@ -130,6 +181,7 @@ export default function transformShip(obj: any, shipList?: any) {
     ...(obj.commercials && obj.commercials[0]
       ? { commercials: obj.commercials.map((obj) => ({ id: obj.commercial_id.id, type: obj.commercial_id.type })) }
       : {}),
+    ...(obj.rating && getRating()),
     // tags: obj.tags,
     // groundVehicle: getGroundVehicle(),
     // role: obj.role,

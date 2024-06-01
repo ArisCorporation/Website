@@ -54,9 +54,22 @@ const { data } = await readAsyncItems('ships', {
       'store_url',
       'sales_url',
       'on_sale',
+      'rating.user_created',
+      'rating.introduction',
+      'rating.ratings',
+      'rating.strengths_and_weaknesses',
     ],
     filter: {
       slug: { _eq: params.slug },
+    },
+    deep: {
+      rating: {
+        _filter: {
+          status: {
+            _eq: 'published',
+          },
+        },
+      },
     },
   },
   transform: (rawShips: any[]) => transformShip(rawShips[0]),
@@ -69,23 +82,10 @@ if (!data.value) {
     fatal: true,
   });
 }
-
-const commercialSources = data.value.commercials
-  ? [
-      {
-        type: 'video/webm',
-        src:
-          config.public.fileBase +
-          data.value.commercials.find((e: { id: string; type: string }) => e.type === 'video/webm').id,
-      },
-      {
-        type: 'video/mp4',
-        src:
-          config.public.fileBase +
-          data.value.commercials.find((e: { id: string; type: string }) => e.type === 'video/mp4').id,
-      },
-    ]
-  : [];
+const commercialSources = data.value.commercials?.map((obj: { id: string; type: string }) => ({
+  type: obj.type,
+  src: config.public.fileBase + obj.id,
+}));
 
 const handleShare = () => {
   try {
@@ -101,8 +101,10 @@ const handleShare = () => {
 const tablist = computed<ITab[]>(() => [
   ...(data.value?.nothing ? [{ id: '1', header: 'Austattung' }] : []),
   ...(data.value.history ? [{ id: '2', header: 'Geschichte' }] : []),
-  ...(data.value.gallery[0] ? [{ id: '3', header: 'Gallerie' }] : []),
-  ...(data.value.commercial_video_id && data.value.commercials[0] ? [{ id: '4', header: 'Commercial' }] : []),
+  ...(Array.isArray(data.value.gallery) && data.value.gallery.length ? [{ id: '3', header: 'Gallerie' }] : []),
+  ...(data.value.commercial_video_id && Array.isArray(data.value.commercials) && data.value.commercials.length
+    ? [{ id: '4', header: 'Commercial' }]
+    : []),
   ...(data.value.rating ? [{ id: '5', header: 'Wertung' }] : []),
 ]);
 
@@ -140,7 +142,7 @@ useHead({
           <NuxtImg :src="data.store_image" class="h-[300px] lg:h-[600px] xl:h-[700px] w-full object-cover" />
         </DefaultPanel>
         <DefaultPanel bg="bprimary">
-          <Editor v-model="data.description" render-mode />
+          <Editor v-model="data.description" read-only />
         </DefaultPanel>
       </div>
       <div class="col-span-3 space-y-4 xl:col-span-1">
@@ -216,8 +218,8 @@ useHead({
         <div class="flex max-w-full gap-x-2">
           <NuxtLink :to="data.store_url" external class="flex-grow text-tbase">
             <ButtonDefault class="w-full text-sm">
-              <p v-if="data.on_sale" class="p-0">Aktuell zu verkaufen für: $ {{ data.pledge_price || 'N/A' }}</p>
-              <p v-else class="p-0">RSI Seite</p>
+              <p v-if="!data.on_sale" class="p-0">RSI Seite</p>
+              <p v-else-if="data.on_sale" class="p-0">Aktuell zu verkaufen für: $ {{ data.pledge_price || 'N/A' }}</p>
             </ButtonDefault>
           </NuxtLink>
           <ButtonDefault @click="handleShare">
@@ -275,7 +277,7 @@ useHead({
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '2')">
           <DefaultPanel bg="bprimary" class="mb-3">
             <div class="px-8">
-              <Editor v-if="data.history" v-model="data.history" render-mode />
+              <Editor v-if="data.history" v-model="data.history" read-only />
             </div>
           </DefaultPanel>
         </template>
@@ -332,7 +334,84 @@ useHead({
           </div>
         </template>
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '5')">
-          <DefaultPanel bg="bprimary" class="mb-3"> Wertung </DefaultPanel>
+          <DefaultPanel bg="bprimary" class="mb-3">
+            <div class="flex flex-wrap px-2">
+              <div class="flex flex-col basis-full md:basis-1/2">
+                <h2 class="mt-4"><span class="text-aris-400">ArisCorp</span> Wertung</h2>
+                <ul>
+                  <li
+                    v-for="(item, index) in data.rating.strengths_and_weaknesses"
+                    :key="index"
+                    class="pl-2"
+                    :class="[
+                      item.category === 'weakness'
+                        ? `marker:text-red-600 marker:content-['-']`
+                        : `marker:text-green-600 marker:content-['+']`,
+                    ]"
+                  >
+                    {{ item.name }}
+                  </li>
+                </ul>
+              </div>
+              <div class="basis-full md:basis-1/2">
+                <h2 class="mt-4 text-aris-400">Unsere Einschätzung</h2>
+                <div class="pl-2">
+                  <p class="pt-0 pl-0 text-industrial-400">
+                    Kampfpotenzial -
+                    {{ data.rating.ratings.find((e) => e.category === 'combat_potential').grade_label }}
+                  </p>
+                  <p class="py-0 pl-4">
+                    {{ data.rating.ratings.find((e) => e.category === 'combat_potential').reason }}
+                  </p>
+                  <p class="pl-0 text-industrial-400">
+                    Wirtschaftliches Potenzial -
+                    {{ data.rating.ratings.find((e) => e.category === 'economic_potential')?.grade_label }}
+                  </p>
+                  <p class="py-0 pl-4">
+                    {{ data.rating.ratings.find((e) => e.category === 'economic_potential')?.reason }}
+                  </p>
+                  <p class="pl-0 text-industrial-400">
+                    Benutzungspotenzial -
+                    {{ data.rating.ratings.find((e) => e.category === 'usage_potential')?.grade_label }}
+                  </p>
+                  <p class="py-0 pl-4">
+                    {{ data.rating.ratings.find((e) => e.category === 'usage_potential')?.reason }}
+                  </p>
+                  <p class="pl-0 text-industrial-400">
+                    Preis-Leistungsverhältnis -
+                    {{ data.rating.ratings.find((e) => e.category === 'p-p_ratio')?.grade_label }}
+                  </p>
+                  <p class="py-0 pl-4">{{ data.rating.ratings.find((e) => e.category === 'p-p_ratio')?.reason }}</p>
+                  <p class="pl-0 text-industrial-400">
+                    Schlussfolgerung - {{ data.rating.ratings.find((e) => e.category === 'conclusion')?.grade_label }}
+                  </p>
+                  <p class="py-0 pl-4">{{ data.rating.ratings.find((e) => e.category === 'conclusion')?.reason }}</p>
+                </div>
+              </div>
+              <div class="flex basis-full">
+                <div class="flex items-center mx-auto mt-8 mb-4">
+                  <div class="mr-4">
+                    <p class="p-0 text-xl text-white fon-bold">{{ data.name }}</p>
+                    <p class="p-0">Erreichte eine Punktzahl von:</p>
+                  </div>
+
+                  <ArcCounter
+                    width="6rem"
+                    height="6rem"
+                    :text="data.rating.score + '%'"
+                    :dash-count="10"
+                    :active-count="10 * (data.rating.score / 100)"
+                  />
+                </div>
+              </div>
+              <hr class="mx-4 my-4" />
+              <div class="flex px-6 pb-2 basis-full">
+                <div class="mx-auto">
+                  <Editor v-model="data.rating.introduction" read-only />
+                </div>
+              </div>
+            </div>
+          </DefaultPanel>
         </template>
       </template>
     </TabGroup>
