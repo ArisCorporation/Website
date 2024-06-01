@@ -56,7 +56,7 @@ const sidebarUserItems = [
   },
   {
     name: 'Mein Profil',
-    icon: 'heroicons:user-20-solid',
+    avatar: config.public.fileBase + user.value.avatar,
     link: '/profile',
   },
   {
