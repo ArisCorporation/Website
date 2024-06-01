@@ -16,13 +16,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@algolia/events@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "@algolia/events@npm:4.0.1"
-  checksum: 10c0/f398d815c6ed21ac08f6caadf1e9155add74ac05d99430191c3b1f1335fd91deaf468c6b304e6225c9885d3d44c06037c53def101e33d9c22daff175b2a65ca9
-  languageName: node
-  linkType: hard
-
 "@alloc/quick-lru@npm:^5.2.0":
   version: 5.2.0
   resolution: "@alloc/quick-lru@npm:5.2.0"
@@ -436,7 +429,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.24.1":
+"@babel/runtime@npm:^7.24.1":
   version: 7.24.6
   resolution: "@babel/runtime@npm:7.24.6"
   dependencies:
@@ -1399,15 +1392,6 @@ __metadata:
   bin:
     node-pre-gyp: bin/node-pre-gyp
   checksum: 10c0/2b24b93c31beca1c91336fa3b3769fda98e202fb7f9771f0f4062588d36dcc30fcf8118c36aa747fa7f7610d8cf601872bdaaf62ce7822bb08b545d1bbe086cc
-  languageName: node
-  linkType: hard
-
-"@meilisearch/instant-meilisearch@npm:0.18.1":
-  version: 0.18.1
-  resolution: "@meilisearch/instant-meilisearch@npm:0.18.1"
-  dependencies:
-    meilisearch: "npm:^0.40.0"
-  checksum: 10c0/84654fd348f7811d23c6732a014ac59416bc32a9b302ce4cde5eb5173ce4627686a68ac454e1c54a7c05c503824695b316198653d23d8f965e0afba6ea83b9a8
   languageName: node
   linkType: hard
 
@@ -3768,13 +3752,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/dom-speech-recognition@npm:^0.0.1":
-  version: 0.0.1
-  resolution: "@types/dom-speech-recognition@npm:0.0.1"
-  checksum: 10c0/1df9283e40476f82b15cc7691c2f1177a185bf98af63d068f9333fbf4e334d2584b70babe2b9c69fcbe3c74293fcc0d47ce98c5717d8db361e70d88a8fbf9490
-  languageName: node
-  linkType: hard
-
 "@types/dompurify@npm:^3.0.5":
   version: 3.0.5
   resolution: "@types/dompurify@npm:3.0.5"
@@ -3835,26 +3812,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/google.maps@npm:^3.45.3":
-  version: 3.55.9
-  resolution: "@types/google.maps@npm:3.55.9"
-  checksum: 10c0/327119433db1563a8c2fe72d7d99a220fa47f833e02e7c54fd51ecf0f0fc251974c6a848e56210c6a3acf9c545fe33feca65ffc1e760db925fb45edfcabcc3ed
-  languageName: node
-  linkType: hard
-
 "@types/hast@npm:^3.0.0, @types/hast@npm:^3.0.4":
   version: 3.0.4
   resolution: "@types/hast@npm:3.0.4"
   dependencies:
     "@types/unist": "npm:*"
   checksum: 10c0/3249781a511b38f1d330fd1e3344eed3c4e7ea8eff82e835d35da78e637480d36fad37a78be5a7aed8465d237ad0446abc1150859d0fde395354ea634decf9f7
-  languageName: node
-  linkType: hard
-
-"@types/hogan.js@npm:^3.0.0":
-  version: 3.0.5
-  resolution: "@types/hogan.js@npm:3.0.5"
-  checksum: 10c0/04c569884e3bb9a9225a0e94b3be9644d693518bf6a1931fe097407674fe653d8a1755a33f46a981d2bdcac2a83ef042c074f29e107f931b4cf3de3c58467173
   languageName: node
   linkType: hard
 
@@ -3982,7 +3945,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/qs@npm:*, @types/qs@npm:^6.5.3":
+"@types/qs@npm:*":
   version: 6.9.15
   resolution: "@types/qs@npm:6.9.15"
   checksum: 10c0/49c5ff75ca3adb18a1939310042d273c9fc55920861bd8e5100c8a923b3cda90d759e1a95e18334092da1c8f7b820084687770c83a1ccef04fb2c6908117c823
@@ -5690,17 +5653,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"algoliasearch-helper@npm:3.19.0":
-  version: 3.19.0
-  resolution: "algoliasearch-helper@npm:3.19.0"
-  dependencies:
-    "@algolia/events": "npm:^4.0.1"
-  peerDependencies:
-    algoliasearch: ">= 3.1 < 6"
-  checksum: 10c0/43107e22259cfce9bd3c8a4c8f93c42bc053f888566c07cdfd337ac9ee010ff16edb7c248646433eee73d8f95917cb442361530d32f120acd1e7bd289e40638d
-  languageName: node
-  linkType: hard
-
 "ansi-colors@npm:^4.1.3":
   version: 4.1.3
   resolution: "ansi-colors@npm:4.1.3"
@@ -5930,7 +5882,6 @@ __metadata:
     nuxt-headlessui: "npm:^1.1.4"
     nuxt-icon: "npm:^0.6.6"
     nuxt-lodash: "npm:^2.5.3"
-    nuxt-meilisearch: "npm:^1.3.8"
     nuxt-resend: "npm:^0.0.2"
     nuxt-tiptap-editor: "npm:^1.1.0"
     pinia-plugin-persistedstate: "npm:^3.2.1"
@@ -7337,15 +7288,6 @@ __metadata:
   version: 1.6.2
   resolution: "cropperjs@npm:1.6.2"
   checksum: 10c0/5002e0cc3a491ceb8a104b2cb7a7c335a03e109fe590653f3aeefa27ca7115466edae62afc8ba21105bbaad4134583f5057ebbf5e8d843c7b2c1c1f0779630e9
-  languageName: node
-  linkType: hard
-
-"cross-fetch@npm:^3.1.6":
-  version: 3.1.8
-  resolution: "cross-fetch@npm:3.1.8"
-  dependencies:
-    node-fetch: "npm:^2.6.12"
-  checksum: 10c0/4c5e022ffe6abdf380faa6e2373c0c4ed7ef75e105c95c972b6f627c3f083170b6886f19fb488a7fa93971f4f69dcc890f122b0d97f0bf5f41ca1d9a8f58c8af
   languageName: node
   linkType: hard
 
@@ -10464,18 +10406,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hogan.js@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "hogan.js@npm:3.0.2"
-  dependencies:
-    mkdirp: "npm:0.3.0"
-    nopt: "npm:1.0.10"
-  bin:
-    hulk: ./bin/hulk
-  checksum: 10c0/fa5c9d2eaf3fa712e72e67cce5e3435a1c5823282b81051514aefdca7d4b706cc4dbef7a34be19ee320c6ebaf3687d5781f12bc0aac04d3d902aa26861493679
-  languageName: node
-  linkType: hard
-
 "hookable@npm:^5.5.3":
   version: 5.5.3
   resolution: "hookable@npm:5.5.3"
@@ -10508,13 +10438,6 @@ __metadata:
     readable-stream: "npm:^2.0.1"
     wbuf: "npm:^1.1.0"
   checksum: 10c0/55b9e824430bab82a19d079cb6e33042d7d0640325678c9917fcc020c61d8a08ca671b6c942c7f0aae9bb6e4b67ffb50734a72f9e21d66407c3138c1983b70f0
-  languageName: node
-  linkType: hard
-
-"htm@npm:^3.0.0":
-  version: 3.1.1
-  resolution: "htm@npm:3.1.1"
-  checksum: 10c0/0de4c8fff2b8e76c162235ae80dbf93ca5eef1575bd50596a06ce9bebf1a6da5efc467417c53034a9ffa2ab9ecff819cbec041dc9087894b2b900ad4de26c7e7
   languageName: node
   linkType: hard
 
@@ -10953,44 +10876,6 @@ __metadata:
   version: 1.3.8
   resolution: "ini@npm:1.3.8"
   checksum: 10c0/ec93838d2328b619532e4f1ff05df7909760b6f66d9c9e2ded11e5c1897d6f2f9980c54dd638f88654b00919ce31e827040631eab0a3969e4d1abefa0719516a
-  languageName: node
-  linkType: hard
-
-"instantsearch-ui-components@npm:0.5.0":
-  version: 0.5.0
-  resolution: "instantsearch-ui-components@npm:0.5.0"
-  dependencies:
-    "@babel/runtime": "npm:^7.1.2"
-  checksum: 10c0/58d5e61decabbc3e7344272777d2b50f3e3b69439935a3138be5309303c7a034721ffbcc3e85a05eae35a05536202e31ee7eda77653894e379d567b47c9e8b80
-  languageName: node
-  linkType: hard
-
-"instantsearch.css@npm:8.1.0":
-  version: 8.1.0
-  resolution: "instantsearch.css@npm:8.1.0"
-  checksum: 10c0/2f6d0a7f0f3121773f902a38c35c84edf6f8323c19b390d7761e6a5abb0b18ac11fb796dcead2dbf280329965e9c25d9a21ae41f9d529626212ebdf869d92053
-  languageName: node
-  linkType: hard
-
-"instantsearch.js@npm:4.68.1":
-  version: 4.68.1
-  resolution: "instantsearch.js@npm:4.68.1"
-  dependencies:
-    "@algolia/events": "npm:^4.0.1"
-    "@types/dom-speech-recognition": "npm:^0.0.1"
-    "@types/google.maps": "npm:^3.45.3"
-    "@types/hogan.js": "npm:^3.0.0"
-    "@types/qs": "npm:^6.5.3"
-    algoliasearch-helper: "npm:3.19.0"
-    hogan.js: "npm:^3.0.2"
-    htm: "npm:^3.0.0"
-    instantsearch-ui-components: "npm:0.5.0"
-    preact: "npm:^10.10.0"
-    qs: "npm:^6.5.1 < 6.10"
-    search-insights: "npm:^2.13.0"
-  peerDependencies:
-    algoliasearch: ">= 3.1 < 6"
-  checksum: 10c0/4330761f9d27d66c236943a9a229691ac3f09a51beef7deab4dea7616bbe2fe1e78e763cbea7727a76912101ac895b63fba14932afdd0d75e6ffe86f57af0fd9
   languageName: node
   linkType: hard
 
@@ -12734,15 +12619,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"meilisearch@npm:0.40.0, meilisearch@npm:^0.40.0":
-  version: 0.40.0
-  resolution: "meilisearch@npm:0.40.0"
-  dependencies:
-    cross-fetch: "npm:^3.1.6"
-  checksum: 10c0/f032dc271ab3d68e7d396aa86cd72a0550f785f971fa8a35f908bad3bfd4b40bdf10ce25be80c7cd921d36b1af85d12e0d6a951c34baadbf6f76e07792b3024b
-  languageName: node
-  linkType: hard
-
 "memfs@npm:^3.4.3":
   version: 3.5.3
   resolution: "memfs@npm:3.5.3"
@@ -13424,13 +13300,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mkdirp@npm:0.3.0":
-  version: 0.3.0
-  resolution: "mkdirp@npm:0.3.0"
-  checksum: 10c0/cd9e54878490571df79770de1cdceba48ab6682c004616666d23a38315feaf5822d443aeb500ac298a12d7f6f5e11dc05cea3207d500e547d938218bf22d8629
-  languageName: node
-  linkType: hard
-
 "mkdirp@npm:^0.5.6":
   version: 0.5.6
   resolution: "mkdirp@npm:0.5.6"
@@ -13751,7 +13620,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.6.12, node-fetch@npm:^2.6.7":
+"node-fetch@npm:^2.6.7":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
   dependencies:
@@ -13807,17 +13676,6 @@ __metadata:
   version: 2.0.14
   resolution: "node-releases@npm:2.0.14"
   checksum: 10c0/199fc93773ae70ec9969bc6d5ac5b2bbd6eb986ed1907d751f411fef3ede0e4bfdb45ceb43711f8078bea237b6036db8b1bf208f6ff2b70c7d615afd157f3ab9
-  languageName: node
-  linkType: hard
-
-"nopt@npm:1.0.10":
-  version: 1.0.10
-  resolution: "nopt@npm:1.0.10"
-  dependencies:
-    abbrev: "npm:1"
-  bin:
-    nopt: ./bin/nopt.js
-  checksum: 10c0/ddfbd892116a125fd68849ef564dd5b1f0a5ba0dbbf18782e9499e2efad8f4d3790635b47c6b5d3f7e014069e7b3ce5b8112687e9ae093fcd2678188c866fe28
   languageName: node
   linkType: hard
 
@@ -14107,19 +13965,6 @@ __metadata:
     "@types/lodash-es": "npm:^4.17.10"
     lodash-es: "npm:^4.17.21"
   checksum: 10c0/ec572a179960c98bb510c2a9c90e4175f2e07e0aa9b6ee6bd5a33e26b639c9495da9448c7c23f09853c1e023a57f9a438ea25d106568bea511d7d979e1200268
-  languageName: node
-  linkType: hard
-
-"nuxt-meilisearch@npm:^1.3.8":
-  version: 1.3.8
-  resolution: "nuxt-meilisearch@npm:1.3.8"
-  dependencies:
-    "@meilisearch/instant-meilisearch": "npm:0.18.1"
-    "@nuxt/kit": "npm:3.11.2"
-    instantsearch.css: "npm:8.1.0"
-    meilisearch: "npm:0.40.0"
-    vue-instantsearch: "npm:4.16.2"
-  checksum: 10c0/734d15778abc8d52dd3f680a25cc0ef25cef8c6aa067c8791d1393d8277828973f531a2fe88c1cc4bd3837893c4965359a64759bc8d07d0f89b53890f7edd57f
   languageName: node
   linkType: hard
 
@@ -15925,13 +15770,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"preact@npm:^10.10.0":
-  version: 10.22.0
-  resolution: "preact@npm:10.22.0"
-  checksum: 10c0/dc5466c5968c56997e917580c00983cec2f6486a89ea9ba29f1bb88dcfd2f9ff67c8d561a69a1b3acdab17f2bb36b311fef0c348b62e89c332d00c674f7871f0
-  languageName: node
-  linkType: hard
-
 "prebuild-install@npm:^7.1.1":
   version: 7.1.2
   resolution: "prebuild-install@npm:7.1.2"
@@ -16384,13 +16222,6 @@ __metadata:
   dependencies:
     side-channel: "npm:^1.0.4"
   checksum: 10c0/4e4875e4d7c7c31c233d07a448e7e4650f456178b9dd3766b7cfa13158fdb24ecb8c4f059fa91e820dc6ab9f2d243721d071c9c0378892dcdad86e9e9a27c68f
-  languageName: node
-  linkType: hard
-
-"qs@npm:^6.5.1 < 6.10":
-  version: 6.9.7
-  resolution: "qs@npm:6.9.7"
-  checksum: 10c0/d0274b3c2daa9e7b350fb695fc4b5f7a1e65e266d5798a07936975f0848bdca6d7ad41cded19ad4af6a6253b97e43b497e988e728eab7a286f277b6dddfbade4
   languageName: node
   linkType: hard
 
@@ -17244,13 +17075,6 @@ __metadata:
   version: 1.3.0
   resolution: "scule@npm:1.3.0"
   checksum: 10c0/5d1736daa10622c420f2aa74e60d3c722e756bfb139fa784ae5c66669fdfe92932d30ed5072e4ce3107f9c3053e35ad73b2461cb18de45b867e1d4dea63f8823
-  languageName: node
-  linkType: hard
-
-"search-insights@npm:^2.13.0":
-  version: 2.14.0
-  resolution: "search-insights@npm:2.14.0"
-  checksum: 10c0/2b404fa30fbd962e1e4831c595801aa97cac3b00047f2f351f7c3baa7b5d701f0c22f61d3e0de12037273fc8b52abf543a9e82a91303c1a5fa5c05395ceece1a
   languageName: node
   linkType: hard
 
@@ -19830,27 +19654,6 @@ __metadata:
   peerDependencies:
     vue: ^3.0.0
   checksum: 10c0/ffe8d9cdad8a5f1c93d0088c7b4368711b8370bafd7b3145bbd908a8b6ebc2c56f78765795a105892a90a3f2a9be3d473106e8f00ec6864b8649afeadf6e05d5
-  languageName: node
-  linkType: hard
-
-"vue-instantsearch@npm:4.16.2":
-  version: 4.16.2
-  resolution: "vue-instantsearch@npm:4.16.2"
-  dependencies:
-    instantsearch-ui-components: "npm:0.5.0"
-    instantsearch.js: "npm:4.68.1"
-    mitt: "npm:^2.1.0"
-  peerDependencies:
-    "@vue/server-renderer": ^3.1.2
-    algoliasearch: ">= 3.32.0 < 5"
-    vue: ^2.6.0 || >=3.0.0-rc.0
-    vue-server-renderer: ^2.6.11
-  peerDependenciesMeta:
-    "@vue/server-renderer":
-      optional: true
-    vue-server-renderer:
-      optional: true
-  checksum: 10c0/d2f256ce3c7712344a123ede63cb3e4c705fc116381e106c709dc68eba1af6e3f87b9b5b54b474272cfba33a703370bb831491f79c1b092aea87990fe1919e20
   languageName: node
   linkType: hard
 
