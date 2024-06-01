@@ -164,8 +164,8 @@ definePageMeta({
       <template v-if="modalStore.type === 'cred-change'">
         <div>
           <h3>ACHTUNG!</h3>
-          <p>Du änderst deine Anmeldedaten!</p>
-          <p>Entweder dein Passwort oder dein Anmeldename ist danach anderst.</p>
+          <p>Du hast deine Anmeldedaten geändert!</p>
+          <p>Dein Passwort und/oder dein Anmeldename ist nun anders.</p>
           <p v-if="modalStore.data.username">
             Dein neuer Anmeldename ist nun: <code>&apos;{{ modalStore.data.username }}&apos;</code>
           </p>
