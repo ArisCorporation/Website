@@ -119,7 +119,7 @@ useHead({
 
 <template>
   <div>
-    <div class="flex flex-wrap justify-between">
+    <div class="flex flex-wrap-reverse justify-between">
       <div class="mt-auto">
         <h1 class="mb-0 text-industrial-400">
           <span class="text-tbase">{{ data.manufacturer.name }}</span> {{ data.name }}
@@ -129,7 +129,7 @@ useHead({
           ><span class="italic text-light-gray">{{ data.production_status }}</span>
         </h4>
       </div>
-      <div>
+      <div class="ml-auto">
         <NuxtLink :to="`/verseexkurs/companies/${data.manufacturer.slug}`">
           <NuxtImg :src="data.manufacturer.logo" class="h-20 md:h-40 w-fit" />
         </NuxtLink>
