@@ -43,9 +43,11 @@ const { data } = await readAsyncUsers({
       'roles',
       'department.name',
       'department.slug',
+      'department.tab_id',
       'head_of_department',
       'leading_department.name',
       'leading_department.slug',
+      'leading_department.tab_id',
       'role.id',
       'role.label',
       'birthdate',
@@ -204,7 +206,7 @@ const handleShare = () => {
 };
 const handleDepartmentLink = () => {
   homepageTabsStore.setOurTab(2);
-  homepageTabsStore.setOurDepartmentTab(data.value?.department.tabId);
+  homepageTabsStore.setOurDepartmentTab(data.value?.department.tab_id);
 };
 
 defineShortcuts({
@@ -255,6 +257,8 @@ useHead({
             full-width
             :title="data.head_of_department ? 'Abteilungsleiter in' : 'Arbeitet in der Abteilung'"
             :content="data.department.name"
+            link="/#our"
+            :click="handleDepartmentLink"
           />
           <TableRow full-width title="Position" :content="data.position.name" />
           <TableRow full-width title="Rollen innerhalb der ArisCorp" :content="data.roles.join(', ')" />
@@ -281,7 +285,7 @@ useHead({
           />
           <TableHr />
           <TableRow title="Geburtsort">
-            <!-- <template v-if="data.birthplace">
+            <template v-if="data.birthplace">
               <p class="p-0">
                 <NuxtLink :to="'/verseexkurs/starmap/' + data.birthplace.planet.system.slug">
                   <span class="inline-block animate-link">{{ data.birthplace.planet.system.name }}</span>
@@ -304,10 +308,10 @@ useHead({
                   <span class="inline-block animate-link">{{ data.birthplace.name }}</span>
                 </NuxtLink>
               </p>
-            </template> -->
+            </template>
           </TableRow>
           <TableRow title="Aktueller Wohnort">
-            <!-- <template v-if="data.current_residence">
+            <template v-if="data.current_residence">
               <p class="p-0">
                 <NuxtLink :to="'/verseexkurs/starmap/' + data.current_residence.planet.system.slug">
                   <span class="inline-block animate-link">{{ data.current_residence.planet.system.name }}</span>
@@ -335,7 +339,7 @@ useHead({
                   <span class="inline-block animate-link">{{ data.current_residence.name }}</span>
                 </NuxtLink>
               </p>
-            </template> -->
+            </template>
           </TableRow>
           <TableHr />
           <TableRow title="Körpergröße" :content="data.height" suffix="cm" />

@@ -39,6 +39,11 @@ defineProps({
     required: false,
     default: false,
   },
+  click: {
+    type: Function,
+    required: false,
+    default: null,
+  },
 });
 </script>
 <template>
@@ -47,14 +52,19 @@ defineProps({
     <slot>
       <template v-if="content">
         <ul v-if="isList" className="p-0 pl-6">
-          <li v-for="(item, index) in content.split(', ')" :key="index" class="marker:text-secondary text-primary-400">
+          <li
+            v-for="(item, index) in content.split(', ')"
+            :key="index"
+            class="marker:text-secondary text-primary-400"
+            @click="click"
+          >
             {{ item }}
           </li>
         </ul>
-        <NuxtLink v-else-if="link" :to="link">
+        <NuxtLink v-else-if="link" :to="link" @click="click">
           <p>{{ prefix }} {{ content }} {{ suffix }}</p>
         </NuxtLink>
-        <p v-else class="text-primary-400">{{ prefix }} {{ content }} {{ suffix }}</p>
+        <p v-else class="text-primary-400" @click="click">{{ prefix }} {{ content }} {{ suffix }}</p>
       </template>
       <p v-else class="text-primary-400">N/A</p>
     </slot>
