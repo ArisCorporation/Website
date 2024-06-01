@@ -57,49 +57,10 @@ defineProps({
       </div>
       <ul class="p-0 font-medium list-none basis-full">
         <li v-for="(item, i) in sidebarItems" :key="i" class="pb-0">
-          <template v-if="item.name !== 'Mein Hangar' && item.name !== 'Flotte'">
-            <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
-            <NuxtLink
-              v-if="permissionControl ? user.position.access_level >= item.level : true"
-              :to="baseUrl + item.link"
-              class="relative flex items-center p-2 mx-3 transition-colors duration-200 rounded-lg animate-link hover:no-underline group before:transition-default w-fit"
-              :class="[
-                (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
-                  ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
-                  : 'text-tbase/75 hover:text-white',
-              ]"
-              @click="SidebarStore.mobileSidebarOff"
-            >
-              <Icon
-                v-if="item.icon"
-                :name="item.icon"
-                class="w-6 h-6 transition-colors duration-200"
-                :class="[
-                  (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
-                    ? 'text-white'
-                    : 'text-tbase/75 group-hover:text-white',
-                ]"
-              />
-              <UAvatar
-                v-if="item.avatar"
-                :src="$config.fileBase && item.avatar"
-                class="w-6 h-6 transition-colors duration-200"
-              />
-              <span class="ms-3">{{ item.name }}</span>
-              <!-- <span
-                class="inline-flex items-center justify-center px-2 text-sm font-medium text-gray-800 bg-gray-100 rounded-full ms-3 dark:bg-gray-700 dark:text-gray-300"
-                >Pro</span
-              > -->
-              <!-- <span
-                class="inline-flex items-center justify-center w-3 h-3 p-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full ms-3 dark:bg-blue-900 dark:text-blue-300"
-                >3</span
-              > -->
-            </NuxtLink>
-          </template>
-          <template v-else>
-            <!-- <a
+          <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
+          <NuxtLink
             v-if="permissionControl ? user.position.access_level >= item.level : true"
-            :href="baseUrl + item.link"
+            :to="baseUrl + item.link"
             class="relative flex items-center p-2 mx-3 transition-colors duration-200 rounded-lg animate-link hover:no-underline group before:transition-default w-fit"
             :class="[
               (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
@@ -109,6 +70,7 @@ defineProps({
             @click="SidebarStore.mobileSidebarOff"
           >
             <Icon
+              v-if="item.icon"
               :name="item.icon"
               class="w-6 h-6 transition-colors duration-200"
               :class="[
@@ -117,93 +79,58 @@ defineProps({
                   : 'text-tbase/75 group-hover:text-white',
               ]"
             />
+            <UAvatar
+              v-if="item.avatar"
+              :src="$config.fileBase && item.avatar"
+              class="w-6 h-6 transition-colors duration-200"
+            />
             <span class="ms-3">{{ item.name }}</span>
-          </a> -->
-            <button
-              v-if="permissionControl ? user.position.access_level >= item.level : true"
-              class="relative flex items-center p-2 mx-3 transition-colors duration-200 rounded-lg animate-link hover:no-underline group before:transition-default w-fit"
-              :class="[
-                (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
-                  ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
-                  : 'text-tbase/75 hover:text-white',
-              ]"
-              @click="() => useRouter().replace(baseUrl + item.link + '/r')"
-            >
-              <Icon
-                :name="item.icon"
-                class="w-6 h-6 transition-colors duration-200"
-                :class="[
-                  (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
-                    ? 'text-white'
-                    : 'text-tbase/75 group-hover:text-white',
-                ]"
-              />
-              <span class="ms-3">{{ item.name }}z</span>
-            </button>
-          </template>
+            <!-- <span
+                class="inline-flex items-center justify-center px-2 text-sm font-medium text-gray-800 bg-gray-100 rounded-full ms-3 dark:bg-gray-700 dark:text-gray-300"
+                >Pro</span
+              > -->
+            <!-- <span
+                class="inline-flex items-center justify-center w-3 h-3 p-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full ms-3 dark:bg-blue-900 dark:text-blue-300"
+                >3</span
+              > -->
+          </NuxtLink>
         </li>
       </ul>
       <ul class="absolute bottom-0 p-0 mt-auto space-y-2 font-medium list-none basis-full">
         <li v-for="(item, i) in userSidebarItems" :key="i" class="pb-0">
-          <template v-if="item.name !== 'Mein Hangar' && item.name !== 'Flotte'">
-            <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
-            <NuxtLink
-              v-if="item.link"
-              :to="baseUrl + item.link"
-              class="relative flex items-center p-2 mx-3 transition-colors duration-200 rounded-lg animate-link hover:no-underline group before:transition-default w-fit"
+          <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
+          <NuxtLink
+            v-if="item.link"
+            :to="baseUrl + item.link"
+            class="relative flex items-center p-2 mx-3 transition-colors duration-200 rounded-lg animate-link hover:no-underline group before:transition-default w-fit"
+            :class="[
+              (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
+                ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
+                : 'text-tbase/75 hover:text-white',
+            ]"
+            @click="SidebarStore.mobileSidebarOff"
+          >
+            <Icon
+              v-if="item.icon"
+              :name="item.icon"
+              class="w-6 h-6 transition-group"
               :class="[
                 (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
-                  ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
-                  : 'text-tbase/75 hover:text-white',
+                  ? 'text-white'
+                  : 'text-tbase/75 group-hover:text-white',
               ]"
-              @click="SidebarStore.mobileSidebarOff"
-            >
-              <Icon
-                v-if="item.icon"
-                :name="item.icon"
-                class="w-6 h-6 transition-group"
-                :class="[
-                  (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
-                    ? 'text-white'
-                    : 'text-tbase/75 group-hover:text-white',
-                ]"
-              />
-              <UAvatar v-else-if="item.avatar" :src="item.avatar" size="xs" class="transition-colors duration-200" />
-              <span class="ms-3">{{ item.name }}</span>
-            </NuxtLink>
-            <button
-              v-else
-              class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group text-tbase/75 hover:text-white"
-              @click="item.action"
-            >
-              <Icon :name="item.icon" class="w-6 h-6 transition-group text-tbase/75 group-hover:text-white" />
-              <span class="ms-3">{{ item.name }}</span>
-            </button>
-          </template>
-          <template v-else>
-            <a
-              v-if="permissionControl ? user.position.access_level >= item.level : true"
-              :href="baseUrl + item.link"
-              class="relative flex items-center p-2 mx-3 transition-colors duration-200 rounded-lg animate-link hover:no-underline group before:transition-default w-fit"
-              :class="[
-                (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
-                  ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
-                  : 'text-tbase/75 hover:text-white',
-              ]"
-              @click="SidebarStore.mobileSidebarOff"
-            >
-              <Icon
-                :name="item.icon"
-                class="w-6 h-6 transition-colors duration-200"
-                :class="[
-                  (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
-                    ? 'text-white'
-                    : 'text-tbase/75 group-hover:text-white',
-                ]"
-              />
-              <span class="ms-3">{{ item.name }}</span>
-            </a>
-          </template>
+            />
+            <UAvatar v-else-if="item.avatar" :src="item.avatar" size="xs" class="transition-colors duration-200" />
+            <span class="ms-3">{{ item.name }}</span>
+          </NuxtLink>
+          <button
+            v-else
+            class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group text-tbase/75 hover:text-white"
+            @click="item.action"
+          >
+            <Icon :name="item.icon" class="w-6 h-6 transition-group text-tbase/75 group-hover:text-white" />
+            <span class="ms-3">{{ item.name }}</span>
+          </button>
         </li>
         <li>
           <NuxtLink
