@@ -51,6 +51,7 @@ const { data: departments } = await readAsyncItems('departments', {
       'head_of_department.slug',
       'head_of_department.avatar',
     ],
+    sort: ['name'],
   },
   transform: (rawDepartments: any[]) => rawDepartments.map((rawDepartment: any) => transformDepartment(rawDepartment)),
 });

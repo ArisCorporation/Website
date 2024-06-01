@@ -60,7 +60,7 @@ const props = defineProps({
             </DefaultPanel>
           </div>
         </div>
-        <div v-html="department.description" class="text-center" />
+        <div class="text-center" v-html="department.description" />
         <div class="mt-4 text-center" v-html="department.text" />
         <hr />
         <div class="justify-between w-full lg:flex">
