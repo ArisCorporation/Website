@@ -30,13 +30,17 @@ const dataRes = await readItems('companies', {
     'headquarter.headquarter:landing_zones.planet.slug',
     'headquarter.headquarter:space_stations.name',
     'headquarter.headquarter:space_stations.slug',
+    'ships.store_image',
+    'ships.name',
+    'ships.slug',
+    'ships.manufacturer.name',
+    'ships.manufacturer.slug',
   ],
   filter: {
     slug: { _eq: route.params.slug },
   },
   limit: 1,
 });
-
 if (!dataRes[0]) {
   throw createError({
     statusCode: 404,
@@ -140,64 +144,75 @@ definePageMeta({
         <TableRow v-if="data.famous_goods" title="Bekannteste Waren" :content="data?.famous_goods" full-width />
       </TableParent>
       <div v-html="data?.content" />
-      <hr />
-      <h3>Waren der Firma {{ data?.name }}</h3>
-      <!-- <Disclosure v-if="data.ships[0]">
-        <template #title>
-          Schiffe von <span class="text-primary-400">{{ data.name }}</span>
-        </template>
-        <div class="flex flex-wrap">
-          <ShipCard
-            v-for="ship in data?.ships"
-            :key="ship.id"
-            :ship-data="ship.ship"
-            display-department
-            preload-images
-          />
-        </div>
-      </Disclosure>
-      <Disclosure v-if="data.modules[0]">
-        <template #title>
-          Schiffsmodule von <span class="text-primary-400">{{ data.name }}</span>
-        </template>
-        <div class="flex flex-wrap">
-          <ShipCard
-            v-for="ship in data?.modules"
-            :key="ship.id"
-            :ship-data="ship.ship"
-            display-department
-            preload-images
-          />
-        </div>
-      </Disclosure>
-      <Disclosure v-if="data.weapons[0]">
-        <template #title>
-          Waffen von <span class="text-primary-400">{{ data.name }}</span>
-        </template>
-        <div class="flex flex-wrap">
-          <ShipCard
-            v-for="ship in data?.weapons"
-            :key="ship.id"
-            :ship-data="ship.ship"
-            display-department
-            preload-images
-          />
-        </div>
-      </Disclosure>
-      <Disclosure v-if="data.weapon_attachments[0]">
-        <template #title>
-          Waffenaufsätze von <span class="text-primary-400">{{ data.name }}</span>
-        </template>
-        <div class="flex flex-wrap">
-          <ShipCard
-            v-for="ship in data?.weapon_attachments"
-            :key="ship.id"
-            :ship-data="ship.ship"
-            display-department
-            preload-images
-          />
-        </div>
-      </Disclosure> -->
+      <template
+        v-if="
+          (data?.ships && data.ships[0]) ||
+          (data?.ship_modules && data?.ship_modules[0]) ||
+          (data?.weapons && data.weapons[0]) ||
+          (data?.weapon_mods && data.weapon_mods[0])
+        "
+      >
+        <hr />
+        <h3>Waren der Firma {{ data?.name }}</h3>
+        <UAccordion
+          :items="[
+            ...(data?.ships && data.ships[0]
+              ? [
+                  {
+                    label: 'Schiffe von ',
+                    defaultOpen: false,
+                    slot: 'ships',
+                  },
+                ]
+              : []),
+            ...(data?.ship_modules && data.ship_modules[0]
+              ? [
+                  {
+                    label: 'Schiffsmodule von ',
+                    defaultOpen: false,
+                    slot: 'shipmodules',
+                  },
+                ]
+              : []),
+            ...(data?.weapons && data.weapons[0]
+              ? [
+                  {
+                    label: 'Waffen von ',
+                    defaultOpen: false,
+                    slot: 'weapons',
+                  },
+                ]
+              : []),
+            ...(obj?.weapon_mods && obj.weapon_mods[0]
+              ? [
+                  {
+                    label: 'Waffenaufsätze von ',
+                    defaultOpen: false,
+                    slot: 'weaponmods',
+                  },
+                ]
+              : []),
+          ]"
+        >
+          <template #default="{ item, index, open }">
+            <h4 class="flex p-1 m-0 my-2 border rounded bg-bsecondary border-btertiary">
+              <span class="pl-1">
+                {{ item.label }} <span class="text-primary-400">{{ data.name }}</span>
+              </span>
+              <UIcon
+                name="i-heroicons-chevron-right-20-solid"
+                class="my-auto ml-auto transition-transform duration-200 transform size-6 ms-auto"
+                :class="[open && 'rotate-90']"
+              />
+            </h4>
+          </template>
+          <template #ships>
+            <div class="flex flex-wrap">
+              <ShipCard v-for="ship in data?.ships" :key="ship.id" :ship-data="ship" preload-images />
+            </div>
+          </template>
+        </UAccordion>
+      </template>
     </div>
   </VerseExkursBaseArticle>
 </template>
