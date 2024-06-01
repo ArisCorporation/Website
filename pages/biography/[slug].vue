@@ -399,7 +399,7 @@ useHead({
         <template v-if="selectedTab === 0">
           <DefaultPanel bg="bprimary" class="mb-3">
             <div class="px-8">
-              <Editor v-if="data.biography" v-model="data.biography" render-mode />
+              <Editor v-if="data.biography" v-model="data.biography" read-only />
               <div v-else className="flex justify-center my-6">
                 <h1 className="text-xl sm:text-2xl md:text-4xl redacted m-0" data-text="[ REDACTED ]">[ REDACTED ]</h1>
               </div>
