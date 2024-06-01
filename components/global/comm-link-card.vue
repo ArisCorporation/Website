@@ -82,7 +82,7 @@ console.log(props.data);
       }"
     >
       <h1
-        class="absolute text-base uppercase"
+        class="absolute text-base uppercase text-stroke"
         :class="{ 'lg:m-auto lg:text-5xl lg:static': size == 2, 'md:m-auto md:text-5xl md:static': size == 3 }"
       >
         {{ data.title }}
