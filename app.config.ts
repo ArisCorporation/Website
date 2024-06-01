@@ -126,10 +126,12 @@ export default defineAppConfig({
       },
     },
     card: {
+      base: 'flex flex-col',
       body: { base: 'flex-1 overflow-auto' },
       background: 'bg-bprimary',
       ring: 'ring-1 ring-btertiary',
       divide: 'divide-y divide-btertiary',
+      rounded: 'rounded-lg overflow-clip',
     },
     table: {
       divide: 'divide-y divide-btertiary',
