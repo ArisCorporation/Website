@@ -56,7 +56,10 @@ const { data: ships, pending: shipsPending } = await readAsyncItems('ships', {
   transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)),
 });
 
-useDebouncedSearchQuery(search, search_input_value);
+useDebouncedSearchQuery(search, search_input_value, {
+  typingAction: () => (hideShips.value = true),
+  debounceAction: () => (hideShips.value = false),
+});
 
 defineShortcuts({
   s: {
@@ -89,10 +92,10 @@ useHead({
             placeholder="Modell, Hersteller..."
           />
           <button
-            v-if="search !== ''"
+            v-if="search_input_value !== '' && !search_input_value"
             type="button"
             class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
-            @click="(search = '') + handleSearch()"
+            @click="search_input_value = ''"
           >
             <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
           </button>
