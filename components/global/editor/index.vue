@@ -2,24 +2,13 @@
 import { TiptapArisCorpPanel, TiptapArisCorpPanelWithBg } from '~/composables/tiptapExt';
 const fullscreen_state = ref(false);
 
-const props = defineProps({
-  modelValue: {
-    type: String,
-    required: true,
-  },
-  renderMode: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-});
+const props = defineProps<{ modelValue: string; readOnly?: boolean }>();
+const { modelValue, readOnly } = toRefs(props);
 const emit = defineEmits(['update:modelValue']);
 
-// const modelValue = defineModel();
-
 const editor = useEditor({
-  editable: !props.renderMode,
-  content: props.modelValue,
+  editable: !readOnly.value,
+  content: modelValue.value,
   extensions: [
     TiptapStarterKit,
     TiptapTextAlign.configure({
@@ -52,33 +41,37 @@ const editor = useEditor({
   },
 });
 
-// const html = computed(() => unref(editor)?.getHTML());
-
-// watch(
-//   () => html.value,
-//   () => {
-//     emit('update:modelValue', html.value);
-//     console.log(html.value);
-//   },
-// );
-
-function fullscreen_toggle() {
-  const fullscreen = document.querySelector('#editor_container');
-
-  if (!fullscreen_state.value) fullscreen.requestFullscreen();
-  else document.exitFullscreen();
-
-  fullscreen_state.value = !fullscreen_state.value;
+function fullscreenchanged(event) {
+  // document.fullscreenElement will point to the element that
+  // is in fullscreen mode if there is one. If there isn't one,
+  // the value of the property is null.
+  if (document.fullscreenElement) {
+    fullscreen_state.value = true;
+  } else {
+    fullscreen_state.value = false;
+  }
 }
+function toggleFullscreen() {
+  const fullscreen = document.querySelector('#editor_container');
+  if (!fullscreen_state.value) {
+    fullscreen?.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
 // base: 'max-h-[calc(100dvh_-_300px)] sm:max-h-[calc(100dvh_-_250px)] xl:max-h-[calc(100dvh_-_200px)] overflow-y-scroll',
+onMounted(() => {
+  document.addEventListener('fullscreenchange', fullscreenchanged);
+});
 onBeforeUnmount(() => {
   unref(editor).destroy();
 });
 </script>
 
 <template>
-  <ClientOnly fallback-tag="span" :fallback="renderMode ? 'Loading content...' : 'Loading editor...'">
-    <div v-if="editor && !renderMode" id="editor_container">
+  <ClientOnly fallback-tag="span" :fallback="readOnly ? 'Loading content...' : 'Loading editor...'">
+    <div v-if="editor && !readOnly" id="editor_container">
       <UCard
         :ui="{
           header: { background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
@@ -94,7 +87,7 @@ onBeforeUnmount(() => {
             <div class="flex flex-row gap-x-2">
               <EditorButtonUndo :editor="editor" />
               <EditorButtonRedo :editor="editor" />
-              <EditorButtonFullscreen :fullscreen_toggle="fullscreen_toggle" :fullscreen_state="fullscreen_state" />
+              <EditorButtonFullscreen :fullscreen_toggle="toggleFullscreen" :fullscreen_state="fullscreen_state" />
             </div>
           </div>
           <div class="flex -mx-2.5">
@@ -121,8 +114,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex -mx-2.5">
               <hr
-                @click="editor.chain().focus().setColor"
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+                @click="editor.chain().focus().setColor"
               />
             </div>
             <div class="flex flex-row py-2 gap-x-6">
@@ -321,7 +314,7 @@ onBeforeUnmount(() => {
         </template>
       </UCard>
     </div>
-    <div v-else-if="editor && renderMode">
+    <div v-else-if="editor && readOnly">
       <TiptapEditorContent :editor="editor" class="" />
     </div>
   </ClientOnly>
