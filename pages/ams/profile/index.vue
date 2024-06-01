@@ -80,9 +80,9 @@ const landing_zones = computed(() => {
 
 const titleOptions = ['', 'Dr.', 'Dr. Med.', 'Prof. Med.', 'Dipl. Ing.'];
 
-const birth_date_day = ref(user.birth_date?.split('-')[2] || null);
-const birth_date_month = ref(user.birth_date?.split('-')[1] || null);
-const birth_date_year = ref(user.birth_date?.split('-')[0] || null);
+const birthdate_day = ref(user.birthdate?.split('-')[2] || null);
+const birthdate_month = ref(user.birthdate?.split('-')[1] || null);
+const birthdate_year = ref(user.birthdate?.split('-')[0] || null);
 
 const form = ref();
 const schema = object({
@@ -118,7 +118,7 @@ const schema = object({
     }),
     slug: string(),
   }).nullable(),
-  birth_date: string().nullable(),
+  birthdate: string().nullable(),
   birthplace: object({
     id: string(),
     name: string(),
@@ -180,22 +180,22 @@ const formdata = reactive({
   password: null,
   department: departments.value.find((e: any) => e.id === user.department_id) || '',
   rsi_handle: user.rsi_handle || '',
-  sex: user.sex || '',
+  sex: user.sex_value || '',
   current_residence: landing_zones.value?.find((e: any) => e.id === user.current_residence_value) || '',
-  birth_date: computed(() => `${birth_date_year.value}-${birth_date_month.value}-${birth_date_day.value}`),
+  birthdate: computed(() => `${birthdate_year.value}-${birthdate_month.value}-${birthdate_day.value}`),
   birthplace: landing_zones.value?.find((e: any) => e.id === user.birthplace_value) || '' || '',
   hair_color: user.hair_color || '',
   eye_color: user.eye_color || '',
   weight: user.weight || null,
   height: user.height || null,
   citizen: user.citizen_state || false,
-  citizen_reason: user.citizen_reason || '',
+  citizen_reason: user.citizen_reason_value || '',
   duty_state: user.duty_state || false,
   education_state: user.education_state || false,
   social_state: user.social_state || false,
   duty_period: user.duty?.period || '',
-  duty_end: user.duty?.end || '',
-  duty_division: user.duty?.division || '',
+  duty_end: user.duty?.end_value || '',
+  duty_division: user.duty?.division_value || '',
   education_name: user.education?.name || '',
   education_period: user.education?.period || '',
   education_place: user.education?.place || '',
@@ -247,26 +247,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     return;
   }
 
-  if (
-    updatedUser.hasOwnProperty('password') ||
-    updatedUser.hasOwnProperty('first_name') ||
-    updatedUser.hasOwnProperty('last_name')
-  ) {
-    modalStore.setData({
-      ...((updatedUser.hasOwnProperty('first_name') || updatedUser.hasOwnProperty('last_name')) && {
-        username: useSlugify(
-          formdata.first_name.trim() + (formdata.last_name ? ' ' + formdata.last_name.trim() : ''),
-          true,
-        ),
-      }),
-      ...(updatedUser.hasOwnProperty('password') && { password: updatedUser.password }),
-    });
-
-    modalStore.openModal('WARNUNG!!!', {
-      type: 'cred-change',
-    });
-  }
-
   try {
     await updateUser(userId, updatedUser, { limit: -1 });
 
@@ -278,6 +258,26 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
     formdata.password = null;
     initialFormdata.password = null;
+
+    if (
+      updatedUser.hasOwnProperty('password') ||
+      updatedUser.hasOwnProperty('first_name') ||
+      updatedUser.hasOwnProperty('last_name')
+    ) {
+      modalStore.setData({
+        ...((updatedUser.hasOwnProperty('first_name') || updatedUser.hasOwnProperty('last_name')) && {
+          username: useSlugify(
+            formdata.first_name.trim() + (formdata.last_name ? ' ' + formdata.last_name.trim() : ''),
+            true,
+          ),
+        }),
+        ...(updatedUser.hasOwnProperty('password') && { password: updatedUser.password }),
+      });
+
+      modalStore.openModal('WARNUNG!!!', {
+        type: 'cred-change',
+      });
+    }
   } catch (e) {
     console.error(e);
   }
@@ -286,7 +286,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 <template>
   <div>
-    <UForm :ref="form" :schema="schema" :state="formdata" validate-on="submit" @submit="onSubmit">
+    <UForm ref="form" :schema="schema" :state="formdata" validate-on="submit" @submit="onSubmit">
       <div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
           <div class="flex items-center gap-1.5">
@@ -297,7 +297,17 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
               </p>
             </div>
           </div>
-          <UButton color="green" type="submit">Speichern</UButton>
+          <UButton :color="form?.errors?.length ? 'red' : 'green'" type="submit">Speichern</UButton>
+          <div v-if="form?.errors?.length" class="flex items-center gap-1.5 basis-full">
+            <div>
+              <p class="p-0 font-semibold text-red-600">Fehler</p>
+              <p class="p-0 mt-1 text-sm text-tbase">
+                Du kannst nicht speichern, da {{ form?.errors?.length > 1 ? 'mehrere Felder' : 'ein Feld' }} nicht
+                korrekt ausgefüllt {{ form?.errors?.length > 1 ? 'sind' : 'ist' }}, oder noch ausgefüllt werden
+                {{ form?.errors?.length > 1 ? 'müssen' : 'muss' }}.
+              </p>
+            </div>
+          </div>
         </div>
         <UFormGroup
           label="Vorname"
@@ -731,14 +741,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         </UFormGroup>
         <UFormGroup
           label="Geburtsdatum"
-          name="birth_date"
-          description="Hier ist deine Discord ID. Diese wird generiert sobald du einen Benutzernamen angibst und es speicherst."
+          name="birthdate"
+          description="TBD"
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative flex pb-4 gap-x-4' }"
         >
           <div class="w-1/3">
             <USelectMenu
-              v-model="birth_date_day"
+              v-model="birthdate_day"
               placeholder="Tag"
               :options="Array.from({ length: 31 }, (_, index) => (index + 1).toString().padStart(2, '0'))"
               size="md"
@@ -746,7 +756,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           </div>
           <div class="w-1/3">
             <USelectMenu
-              v-model="birth_date_month"
+              v-model="birthdate_month"
               placeholder="Monat"
               :options="[
                 { name: 'Januar', value: '01' },
@@ -768,7 +778,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             />
           </div>
           <UInput
-            v-model="birth_date_year"
+            v-model="birthdate_year"
             class="w-1/3"
             placeholder="Jahr"
             inputmode="numeric"
@@ -776,7 +786,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
             size="md"
           />
           <div class="absolute bottom-0 right-0 text-xs italic text-light-gray w-fit">
-            <span>Alter: {{ $dayjs().add(930, 'years').diff(formdata.birth_date, 'year') }} Jahre</span>
+            <span>Alter: {{ $dayjs().add(930, 'years').diff(formdata.birthdate, 'year') }} Jahre</span>
           </div>
         </UFormGroup>
         <UFormGroup
@@ -1203,9 +1213,16 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                         : 'i-heroicons-arrow-uturn-left'
                       : ''
                   "
+                  value-attribute="value"
                 >
                   <template #label>
-                    <span v-if="formdata.duty_division">{{ formdata.duty_division?.name }}</span>
+                    <span v-if="formdata.duty_division">{{
+                      [
+                        { name: 'UEE Army', value: 'army' },
+                        { name: 'UEE Marine', value: 'marines' },
+                        { name: 'UEE Navy', value: 'navy' },
+                      ].find((e) => formdata.duty_division === e.value)?.name
+                    }}</span>
                     <span v-else>Keine Division ausgewählt</span>
                   </template>
                   <template #option="{ option }">
