@@ -11,6 +11,14 @@ const { data } = await readAsyncItems('spectrum_threads', {
   transform: (data) => data[0],
 });
 
+if (!data) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
+    fatal: true,
+  });
+}
+
 useHead({
   title: `Spectrum - ${data.value.category.name}: ${data.value.name}`,
 });
