@@ -5,7 +5,16 @@ const { data } = await readAsyncItems('spectrum_categories', {
   query: {
     fields: ['id', 'name', 'slug', 'banner', 'content', 'threads.id'],
   },
+  sort: ['name'],
 });
+
+if (!data) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
+    fatal: true,
+  });
+}
 
 useHead({
   title: 'Spectrum',

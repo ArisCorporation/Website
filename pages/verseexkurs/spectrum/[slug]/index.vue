@@ -3,19 +3,14 @@ const { readAsyncItems } = useDirectusItems();
 
 const { data } = await readAsyncItems('spectrum_categories', {
   query: {
-    fields: [
-      'id',
-      'name',
-      'slug',
-      'banner',
-      'threads.id',
-      'threads.name',
-      'threads.slug',
-      'threads.banner',
-      'threads.content',
-    ],
+    fields: ['id', 'name', 'slug', 'banner', 'threads.id', 'threads.name', 'threads.slug', 'threads.content'],
     filter: {
       slug: { _eq: useRoute().params.slug },
+    },
+    deep: {
+      threads: {
+        sort: ['chapter'],
+      },
     },
   },
   transform: (data: any[]) => {
