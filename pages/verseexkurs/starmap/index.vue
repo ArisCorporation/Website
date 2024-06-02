@@ -279,7 +279,7 @@ useHead({
           </div>
         </template>
         <template v-if="selectedTab === 1">
-          <div v-html="data.history_introduction" />
+          <Editor :model-value="data.history_introduction" read-only />
           <div class="relative w-full aspect-[1200/841] h-auto">
             <button
               class="absolute top-0 bottom-0 left-0 z-10 p-1 my-auto transition rounded-full opacity-75 cursor-pointer h-fit bg-bsecondary hover:opacity-100"
@@ -315,16 +315,16 @@ useHead({
             <span class="text-aris-400">{{ data.history[historyIndex].year }}</span
             >{{ data.history[historyIndex].title ? ': ' + data.history[historyIndex].title : '' }}
           </h2>
-          <div v-html="data.history[historyIndex].description" />
+          <Editor :model-value="data.history[historyIndex].description" />
         </template>
         <template v-if="selectedTab === 2">
-          <div v-html="data.distances" />
+          <Editor :model-value="data.distances" />
         </template>
         <template v-if="selectedTab === 3">
-          <div v-html="data.jumppoint_connections" />
+          <Editor :model-value="data.jumppoint_connections" />
         </template>
         <template v-if="selectedTab === 4">
-          <div v-html="data.borders" />
+          <Editor :model-value="data.borders" />
         </template>
       </template>
     </TabGroup>

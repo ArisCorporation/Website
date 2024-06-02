@@ -24,5 +24,5 @@ useHead({
 </script>
 
 <template>
-  <div v-html="credits" />
+  <Editor :model-value="credits" read-only />
 </template>

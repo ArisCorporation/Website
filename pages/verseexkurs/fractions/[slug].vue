@@ -35,6 +35,6 @@ definePageMeta({
       Fraktion:
       <span class="text-primary"> {{ data?.name }}</span>
     </template>
-    <div v-html="data?.content" />
+    <Editor :model-value="data?.content" read-only />
   </VerseExkursBaseArticle>
 </template>

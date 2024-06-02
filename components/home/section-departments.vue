@@ -60,8 +60,8 @@ const props = defineProps({
             </DefaultPanel>
           </div>
         </div>
-        <div class="text-center" v-html="department.description" />
-        <div class="mt-4 text-center" v-html="department.text" />
+        <Editor :model-value="department.description" read-only />
+        <Editor :model-value="department.text" read-only class="mt-4" />
         <hr />
         <div class="justify-between w-full lg:flex">
           <div class="flex mb-4 lg:mb-0">

@@ -43,13 +43,14 @@ definePageMeta({
       Alles über das <span class="text-aris-400">United Empire of Earth</span>
       <NuxtImg :src="data?.banner" :placeholder="[16, 16, 1, 5]" class="mx-auto" />
     </template>
-    <div v-html="data?.content" />
+    <Editor :model-value="data?.content" read-only />
     <TabGroup :tablist="data?.tablist" small-header :store="VeTabs.selectedUeeTab" :change="VeTabs.setUeeTab">
       <template #tabcontent>
         <div>
-          <div
+          <Editor
             v-if="data?.tablist[VeTabs.selectedUeeTab].header !== 'Feiertage & Events'"
-            v-html="data?.tablist[VeTabs.selectedUeeTab]?.content"
+            :model-value="data?.tablist[VeTabs.selectedUeeTab]?.content"
+            read-only
           />
           <div v-else>
             <TabGroupVertical

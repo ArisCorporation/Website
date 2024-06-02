@@ -13,7 +13,7 @@ definePageMeta({
 
 <template>
   <VerseExkursBaseArticle>
-    <div class="prose prose-invert" v-html="data.content" />
+    <Editor :model-value="data.content" read-only />
     <div class="mb-4">
       <ul class="divide-y divide-btertiary">
         <li v-for="link in data.ve_links" :key="link.name" class="p-0 list-none">

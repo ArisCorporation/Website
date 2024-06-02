@@ -25,7 +25,7 @@ definePageMeta({
 </script>
 
 <template>
-  <VerseExkursBaseArticle banner="6e633dd2-1512-405d-92e0-fb3907de86a1">
+  <VerseExkursBaseArticle banner="93f3722e-943d-491e-85d5-2b15ef82107d">
     <template #title> Literatur </template>
     <template #default>
       <div class="grid text-sm sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-x-4 gap-y-6">
