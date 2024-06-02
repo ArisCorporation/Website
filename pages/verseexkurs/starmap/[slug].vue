@@ -232,7 +232,7 @@ definePageMeta({
             <TableRow title="Typ" :content="modalData.data.type" />
             <TableRow title="Größe" :content="modalData.data.size" />
           </TableParent>
-          <div v-html="modalData.data.content" />
+          <Editor :model-value="modalData.data.content" read-only />
         </div>
       </template>
       <template v-else-if="modalData.type === 'planet' || modalData.type === 'moon'">
@@ -266,7 +266,7 @@ definePageMeta({
               :content="modalData.data.danger_level ? modalData.data.economy + ' / 10' : ''"
             />
           </TableParent>
-          <div v-html="modalData.data.content" />
+          <Editor :model-value="modalData.data.content" read-only />
         </div>
       </template>
       <template v-else-if="modalData.type === 'landing_zone'">
@@ -279,7 +279,7 @@ definePageMeta({
           />
         </DefaultPanel>
         <div class="min-h-[120px]">
-          <div v-html="modalData.data.content" />
+          <Editor :model-value="modalData.data.content" read-only />
         </div>
       </template>
       <template v-else-if="modalData.type === 'station'">
@@ -295,7 +295,7 @@ definePageMeta({
           <TableParent title="Infobox" class="float-right w-full mt-6 mb-8 xl:ml-12 xl:float-right xl:w-1/2">
             <TableRow title="Typ" :content="modalData.data.type" />
           </TableParent>
-          <div v-html="modalData.data.content" />
+          <Editor :model-value="modalData.data.content" read-only />
         </div>
       </template>
       <template v-else-if="modalData.type === 'jumppoint'">
@@ -318,7 +318,7 @@ definePageMeta({
           <TableParent title="Infobox" class="float-right w-full mt-6 mb-8 xl:ml-12 xl:float-right xl:w-1/2">
             <TableRow title="Größe" :content="modalData.data.size" />
           </TableParent>
-          <div v-html="modalData.data.content" />
+          <Editor :model-value="modalData.data.content" read-only />
         </div>
       </template>
       <template v-else-if="modalData.type === 'asteroid_belt'">
@@ -331,7 +331,7 @@ definePageMeta({
           />
         </DefaultPanel>
         <div class="min-h-[120px]">
-          <div v-html="modalData.data.content" />
+          <Editor :model-value="modalData.data.content" read-only />
         </div>
       </template>
       <template v-else>
@@ -343,7 +343,7 @@ definePageMeta({
             :class="{ 'object-cover': modalData.data?.banner }"
           />
         </DefaultPanel>
-        <div v-html="modalData.data.content" />
+        <Editor :model-value="modalData.data.content" read-only />
       </template>
     </template>
     <VerseExkursBaseArticle :banner="data?.banner">
@@ -402,7 +402,7 @@ definePageMeta({
                 full-width
               />
             </TableParent>
-            <div v-html="data.content" />
+            <Editor :model-value="data.content" />
           </div>
           <div v-else-if="selectedMainTab === 1">
             <p class="text-aris-400">

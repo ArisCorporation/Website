@@ -73,6 +73,5 @@ useHead({
       </div>
     </div>
     <Editor v-model="data.content" read-only />
-    <!-- <div class="mt-8" v-html="data?.content" /> -->
   </div>
 </template>

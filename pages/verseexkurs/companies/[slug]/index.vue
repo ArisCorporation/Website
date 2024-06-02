@@ -145,7 +145,7 @@ definePageMeta({
         <TableRow v-if="data.category.name" title="Kategorie" :content="data?.category.name" full-width />
         <TableRow v-if="data.famous_goods" title="Bekannteste Waren" :content="data?.famous_goods" full-width />
       </TableParent>
-      <div v-html="data?.content" />
+      <Editor :model-value="data?.content" read-only />
       <template
         v-if="
           (data?.ships && data.ships[0]) ||

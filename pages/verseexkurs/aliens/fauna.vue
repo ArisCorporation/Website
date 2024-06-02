@@ -44,7 +44,7 @@ definePageMeta({
       <h2 class="mt-4 mb-0 text-center">{{ selectedItem.name }}</h2>
     </template>
     <template #slideContent>
-      <div v-html="selectedItem.content" />
+      <Editor :model-value="selectedItem.content" read-only />
     </template>
     <VerseExkursBaseArticle banner="f82676ac-eaf8-40e1-aab2-d455f5ad9f48">
       <template #title>
@@ -53,7 +53,7 @@ definePageMeta({
       <h4>Dieses Biestarium ist nur ein kleiner Teil der Tierwelt im Verse und wird noch erweitert !</h4>
       <hr />
       <div class="grid grid-cols-3 gap-6 px-8 md:grid-cols-4 lg:gap-8 lg:grid-cols-5 xl:gap-12">
-        <div v-for="item in data" @click="openModal(item)" class="w-full group hover:cursor-pointer">
+        <div v-for="item in data" class="w-full group hover:cursor-pointer" @click="openModal(item)">
           <NuxtImg :src="item.banner" :placeholder="[16, 16, 1, 5]" class="object-cover w-full aspect-[1/1]" />
           <p class="p-0 mt-2 text-sm text-center transition sm:text-base group-hover:text-industrial-400">
             {{ item.name }}

@@ -40,7 +40,7 @@ const changeTab = (index: number) => {
       <slot name="tabcontent">
         <HeadlessTabPanel v-for="tab in tablist" :key="tab.header" class="px-4 xl:px-0">
           <h3>{{ tab.header }}</h3>
-          <div class="prose prose-invert xl:max-w-[90%]" v-html="tab.content" />
+          <Editor :model-value="tab.content" read-only class="xl:max-w-[90%]" />
         </HeadlessTabPanel>
       </slot>
     </HeadlessTabPanels>

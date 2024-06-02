@@ -49,13 +49,13 @@ definePageMeta({
       <h2 class="mt-4 mb-0 text-center">{{ selectedItem.name }}</h2>
     </template>
     <template #slideContent>
-      <div v-html="selectedItem.content" />
+      <Editor :model-value="selectedItem.content" read-only />
     </template>
     <VerseExkursBaseArticle banner="1b43af1c-7c25-4b2e-9e16-fc495a8520b1">
       <template #title>
         <span class="text-primary">Flora</span>
       </template>
-      <div v-html="introduction.content" />
+      <Editor :model-value="introduction.content" read-only />
       <TabGroup
         small-header
         between
@@ -71,8 +71,8 @@ definePageMeta({
                   ? e.category !== null
                   : e.category === (selectedTab === 1 ? 'plant' : selectedTab === 2 && 'collectible'),
               )"
-              @click="openModal(item)"
               class="w-full group hover:cursor-pointer"
+              @click="openModal(item)"
             >
               <NuxtImg :src="item.banner" :placeholder="[16, 16, 1, 5]" class="object-cover w-full aspect-[1/1]" />
               <p class="p-0 mt-2 text-sm text-center transition sm:text-base group-hover:text-industrial-400">

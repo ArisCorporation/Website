@@ -20,6 +20,7 @@ if (!dataRes[0]) {
 }
 
 const data = computed(() => transformAlien(dataRes[0]));
+const current_content = computed(() => data.value.tabs[selectedTab.value]?.content);
 
 useHead({
   title: data.value.name,
@@ -35,7 +36,9 @@ definePageMeta({
       Alienrasse:
       <span class="text-primary"> {{ data?.name }}</span>
     </template>
-    <div class="mt-8" v-html="data?.content" />
+    <div class="mt-8">
+      <Editor :model-value="data?.content" read-only />
+    </div>
     <TabGroup
       small-header
       :tablist="data?.tabs"
@@ -44,7 +47,7 @@ definePageMeta({
       between
     >
       <template #tabcontent>
-        <div v-html="data?.tabs[selectedTab].content" />
+        <Editor :model-value="current_content" read-only />
       </template>
     </TabGroup>
   </VerseExkursBaseArticle>
