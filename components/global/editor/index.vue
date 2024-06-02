@@ -30,6 +30,9 @@ const editor = useEditor({
     TiptapColor.configure({
       types: ['textStyle'],
     }),
+    TiptapImage.configure({
+      inline: true,
+    }),
     TiptapArisCorpPanel,
     TiptapArisCorpPanelWithBg,
     // TODO: USER MENTIONS
@@ -59,6 +62,20 @@ function toggleFullscreen() {
     document.exitFullscreen();
   }
 }
+
+watch(modelValue, (value) => {
+  // HTML
+  const isSame = editor?.value?.getHTML() === value;
+
+  // JSON
+  // const isSame = JSON.stringify(this.editor.getJSON()) === JSON.stringify(value)
+
+  if (isSame) {
+    return;
+  }
+
+  editor?.value?.commands.setContent(value, false);
+});
 
 // base: 'max-h-[calc(100dvh_-_300px)] sm:max-h-[calc(100dvh_-_250px)] xl:max-h-[calc(100dvh_-_200px)] overflow-y-scroll',
 onMounted(() => {
