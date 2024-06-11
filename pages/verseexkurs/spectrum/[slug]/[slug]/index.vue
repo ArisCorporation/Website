@@ -29,7 +29,10 @@ definePageMeta({
 
 <template>
   <VerseExkursBaseArticle :banner="data.category.banner">
-    <template #title> Spectrum - {{ data.category.name }}: {{ data.name }} </template>
+    <template #title>
+      Spectrum - <span class="text-aris-400">{{ data.category.name }}</span
+      >: {{ data.name }}
+    </template>
     <template #default>
       <div>
         <Editor v-model="data.content" read-only />

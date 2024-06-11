@@ -4,8 +4,8 @@ const { readAsyncItems } = useDirectusItems();
 const { data } = await readAsyncItems('spectrum_categories', {
   query: {
     fields: ['id', 'name', 'slug', 'banner', 'content', 'threads.id'],
+    sort: ['name'],
   },
-  sort: ['name'],
 });
 
 if (!data) {

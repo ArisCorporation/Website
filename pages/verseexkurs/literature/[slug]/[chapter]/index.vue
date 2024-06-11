@@ -33,8 +33,9 @@ definePageMeta({
 <template>
   <VerseExkursBaseArticle :banner="data.category.banner">
     <template #title>
-      Literatur - <span class="text-aris-400">{{ data.category.name }}:</span>: Teil {{ data.chapter }} /
-      {{ data.category.books.length }}
+      Literatur -
+      <span class="text-aris-400">{{ data.category.name }}</span
+      >: Teil {{ data.chapter }} / {{ data.category.books.length }}
     </template>
     <template #default>
       <div>

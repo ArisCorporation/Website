@@ -15,7 +15,7 @@ if (!data) {
     fatal: true,
   });
 }
-console.log(data.value);
+
 useHead({
   title: 'Literatur',
 });
