@@ -231,7 +231,7 @@ useHead({
         <h1 class="mb-0">{{ data.full_name }}</h1>
         <h4 class="mb-0 text-xs md:text-lg">
           <span class="text-dark-gray">Rollen: </span
-          ><span class="italic text-light-gray">{{ data.roles.join(', ') }}</span>
+          ><span class="italic text-light-gray">{{ data.roles?.join(', ') || 'N/A' }}</span>
         </h4>
       </div>
       <div>
@@ -261,7 +261,7 @@ useHead({
             :click="handleDepartmentLink"
           />
           <TableRow full-width title="Position" :content="data.position.name" />
-          <TableRow full-width title="Rollen innerhalb der ArisCorp" :content="data.roles.join(', ')" />
+          <TableRow full-width title="Rollen innerhalb der ArisCorp" :content="data.roles?.join(', ')" />
         </TableParent>
       </div>
       <div class="col-span-3 space-y-4 xl:col-span-2">
