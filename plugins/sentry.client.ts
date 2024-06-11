@@ -45,7 +45,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
     // Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
     tracePropagationTargets: [
-      'localhost',
+      'http://localhost:3000',
       'https://staging.ariscorp.de',
       'https://ptu.ariscorp.de',
       /^https:\/\/(www\.)?ariscorp\.de$/,
