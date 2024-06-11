@@ -244,6 +244,12 @@ function handleEdit(title: string, data: IHangarItem) {
 
 function getCurrentFilteredHangar() {
   currentFilteredHangar.value = currentHangar.value
+    .filter((e: any) =>
+      selectedDepartment.value.name === 'Alle' ? true : e.userData.department?.id === selectedDepartment.value.id,
+    )
+    .filter((e: any) =>
+      selectedMember.value.full_name === 'Alle' ? true : e.userData.owner.id === selectedMember.value.id,
+    )
     .filter(
       (e: any) =>
         (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
@@ -459,7 +465,7 @@ useHead({
           leave-to-class="opacity-0"
         >
           <div
-            v-if="!currentHangar[0] && !hideHangar"
+            v-if="!currentFilteredHangar[0] && !hideHangar"
             key="errorMsg"
             :initial="{ opacity: 0 }"
             :animate="{ opacity: 1 }"
