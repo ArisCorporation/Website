@@ -17,16 +17,17 @@ export default function transformShip(obj: any, shipList?: any) {
     return variants;
   };
   const getLoaners = () => {
-    if (!shipList || !obj.loaners || obj.production_status === 'flight-ready') return;
-    const loaners = [];
-    const loanerData = [];
-    obj.loaners.forEach((rawLoaner) => {
-      if (!loaners.includes(rawLoaner.id)) {
-        loaners.push(rawLoaner.id);
-        loanerData.push(transformShip(shipList.find((e) => e.id === rawLoaner.id)));
-      }
-    });
-    return loanerData;
+    if (!obj.loaners || obj.production_status === 'flight-ready') return;
+    return obj.loaners.map((loaner: any) => transformShip(loaner.loaner_id));
+    // const loaners = [];
+    // const loanerData = [];
+    // obj.loaners.forEach((rawLoaner) => {
+    //   if (!loaners.includes(rawLoaner.id)) {
+    //     loaners.push(rawLoaner.id);
+    //     loanerData.push(transformShip(shipList.find((e) => e.id === rawLoaner.id)));
+    //   }
+    // });
+    // return loanerData;
   };
   const getManufacturer = () => (obj.manufacturer ? transformCompany(obj.manufacturer) : null);
   const getProductionState = () => {
@@ -156,7 +157,7 @@ export default function transformShip(obj: any, shipList?: any) {
     ...(obj.holo && { holo: obj.holo }),
     ...(obj.holoColored && { holoColored: obj.holoColored }),
     // variants: getVariants(),
-    ...(obj.loaners && { loaners: getLoaners() }),
+    ...(obj.loaners && obj.loaners[0] && { loaners: getLoaners() }),
     // loaners: shipList,
     // paints: obj.paints,
     // classification: obj.classification,

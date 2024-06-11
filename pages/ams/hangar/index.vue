@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { object, string, type InferType, boolean } from 'yup';
-// import 'shepherd.js/dist/css/shepherd.css
 import Shepherd from 'shepherd.js';
 import { offset } from '@floating-ui/dom';
 import type { FormSubmitEvent } from '#ui/types';
@@ -23,9 +22,9 @@ const modalStore = useModalStore();
 const dataChanged = ref(false);
 const form = ref();
 const selectedDepartment = ref({ name: 'Alle' });
-const selectedMember = ref({ full_name: 'Alle' });
 const hangarRefreshPending = ref(false);
 const onboardingShip = ref();
+const loanerViewClasses = ref();
 
 useSearch(search, search_input_value, { debounce: true, query: false, debounceAction: getCurrentFilteredHangar });
 
@@ -76,10 +75,26 @@ const { data: hangarItems, refresh: refreshHangarItems } = await readAsyncItems(
       'ship_id.maxCrew',
       'ship_id.price',
       'ship_id.cargo',
-      'ship_id.loaners',
+      'ship_id.production_status',
       'ship_id.modules.id',
       'ship_id.modules.name',
-      'ship_id.production_status',
+      'ship_id.loaners.loaner_id.id',
+      'ship_id.loaners.loaner_id.name',
+      'ship_id.loaners.loaner_id.slug',
+      'ship_id.loaners.loaner_id.store_image',
+      'ship_id.loaners.loaner_id.manufacturer.name',
+      'ship_id.loaners.loaner_id.manufacturer.code',
+      'ship_id.loaners.loaner_id.manufacturer.slug',
+      'ship_id.loaners.loaner_id.production_status',
+      'ship_id.loaners.loaner_id.length',
+      'ship_id.loaners.loaner_id.height',
+      'ship_id.loaners.loaner_id.beam',
+      'ship_id.loaners.loaner_id.classification',
+      'ship_id.loaners.loaner_id.minCrew',
+      'ship_id.loaners.loaner_id.maxCrew',
+      'ship_id.loaners.loaner_id.price',
+      'ship_id.loaners.loaner_id.cargo',
+      'ship_id.loaners.loaner_id.production_status',
       'department.id',
       'department.name',
       'department.logo',
@@ -145,59 +160,14 @@ const { data: shipList } = await readAsyncItems('ships', {
   transform: (ships: any[]) => ships.map((ship: any) => transformShip(ship)),
 });
 
-let loanerData: any = [];
-const getLoaners = async () => {
-  const loanerIds: string[] = [];
-  hangarItems.value
-    .filter((e: any) => e.ship_id?.production_status_value !== 'flight-ready')
-    .forEach((obj: any) => obj.ship_id.loaners?.forEach((i: any) => !loanerIds.includes(i.id) && loanerIds.push(i.id)));
-  loanerData = [];
-
-  if (loanerIds.length > 0) {
-    const { data: loanerList } = await readAsyncItems('ships', {
-      query: {
-        fields: [
-          'id',
-          'name',
-          'slug',
-          'store_image',
-          'manufacturer.name',
-          'manufacturer.code',
-          'manufacturer.slug',
-          'production_status',
-          'length',
-          'height',
-          'beam',
-          'classification',
-          'minCrew',
-          'maxCrew',
-          'price',
-          'cargo',
-        ],
-        filter: {
-          id: { _in: loanerIds },
-        },
-        sort: ['name'],
-        limit: -1,
-      },
-    });
-
-    if (!loanerList.value) {
-      loanerData = [];
-    } else {
-      loanerData = loanerList.value;
-    }
-  }
-};
-await getLoaners();
+const loanerData: any = [];
 
 const refreshData = async () => {
   await refreshHangarItems();
   // await refreshNuxtData();
-  await getLoaners();
 };
 
-const ships = computed(() => hangarItems.value?.map((obj: any) => transformHangarItem(obj, loanerData)));
+const ships = computed(() => hangarItems.value?.map((obj: any) => transformHangarItem(obj)));
 // const wishlist = computed(
 //   () => path.startsWith('/ams/hangar') && wishlistItems.value?.map((obj) => transformHangarItem(obj)),
 // );
@@ -210,131 +180,6 @@ if (!ships.value || !departments.value || !shipList.value) {
   });
 }
 
-// const { data, refresh: refreshDataOld } = await useAsyncData('hangar-data', async () => {
-//   const [hangarItems, wishlistItems, departments, shipList] = await Promise.all([
-//     // getItems({
-//     //   collection: 'member_ships',
-//     //   params: {
-//     //     filter: {
-//     //       user_id: { _eq: user?.id },
-//     //       ...(!path.startsWith('/ams/hangar') && { visibility: { _neq: 'hidden' } }),
-//     //     },
-//     //     fields: [
-//     //       'id',
-//     //       'name',
-//     //       'planned',
-//     //       'serial',
-//     //       'visibility',
-//     //       'group',
-//     //       'name_public',
-//     //       'user_id.id',
-//     //       'user_id.first_name',
-//     //       'user_id.last_name',
-//     //       'user_id.title',
-//     //       'user_id.slug',
-//     //       'ship_id.id',
-//     //       'ship_id.name',
-//     //       'ship_id.slug',
-//     //       'ship_id.store_image',
-//     //       'ship_id.manufacturer.name',
-//     //       'ship_id.manufacturer.code',
-//     //       'ship_id.manufacturer.slug',
-//     //       'ship_id.production_status',
-//     //       'ship_id.length',
-//     //       'ship_id.height',
-//     //       'ship_id.beam',
-//     //       'ship_id.classification',
-//     //       'ship_id.minCrew',
-//     //       'ship_id.maxCrew',
-//     //       'ship_id.price',
-//     //       'ship_id.cargo',
-//     //       'ship_id.loaners',
-//     //       'ship_id.modules.id',
-//     //       'ship_id.modules.name',
-//     //       'department.id',
-//     //       'department.name',
-//     //       'department.logo',
-//     //       'active_module.id',
-//     //       'active_module.name',
-//     //     ],
-//     //     limit: -1,
-//     //     sort: ['ship_id.name'],
-//     //   },
-//     // }),
-//     // getItems({
-//     //   collection: 'member_wishlist',
-//     //   params: {
-//     //     filter: {
-//     //       user_id: { _eq: user?.id },
-//     //     },
-//     //     fields: [
-//     //       'id',
-//     //       'user_id.id',
-//     //       'user_id.first_name',
-//     //       'user_id.last_name',
-//     //       'user_id.title',
-//     //       'user_id.slug',
-//     //       'ship_id.id',
-//     //       'ship_id.name',
-//     //       'ship_id.slug',
-//     //       'ship_id.store_image',
-//     //       'ship_id.manufacturer.name',
-//     //       'ship_id.manufacturer.slug',
-//     //       'ship_id.production_status',
-//     //       'ship_id.length',
-//     //       'ship_id.height',
-//     //       'ship_id.beam',
-//     //       'ship_id.classification',
-//     //       'ship_id.minCrew',
-//     //       'ship_id.maxCrew',
-//     //       'ship_id.price',
-//     //       'ship_id.cargo',
-//     //     ],
-//     //     limit: -1,
-//     //     sort: ['ship_id.name'],
-//     //   },
-//     // }),
-//     // getItems({
-//     //   collection: 'gameplays',
-//     //   params: {
-//     //     fields: ['id', 'name', 'logo'],
-//     //     filter: {
-//     //       status: { _eq: 'published' },
-//     //     },
-//     //     limit: -1,
-//     //     sort: ['name'],
-//     //   },
-//     // }),
-//     // getItems({
-//     //   collection: 'ships',
-//     //   params: {
-//     //     fields: ['id', 'name', 'slug', 'manufacturer.name', 'manufacturer.slug', 'manufacturer.code'],
-//     //     sort: ['name'],
-//     //     limit: -1,
-//     //   },
-//     // }),
-//   ]);
-
-//   // return true;
-//   return {
-//     ships: hangarItems.map((obj) => transformHangarItem(obj, loanerData)),
-//     shipList: shipList.map((obj) => transformShip(obj)),
-//     wishlist: path.startsWith('/ams/hangar') && wishlistItems.map((obj) => transformHangarItem(obj)),
-//     departments: departments.map((obj) => transformDepartment(obj)),
-//   };
-// });
-
-// if (data) {
-//   throw createError({
-//     statusCode: 500,
-//     statusMessage: JSON.stringify(data.value),
-//     fatal: true,
-//   });
-// }
-
-// if (!data.value) {
-// }
-/// //*
 const schema = object({
   name: string().nullable(),
   serial: string().nullable(),
@@ -379,7 +224,8 @@ const updateHangar = () => {
   hangar
     .filter((e) => e.ship?.production_status_value !== 'flight-ready')
     .forEach((hangarItem) => {
-      hangarItem.ship.loaners?.map((loaner, index) => {
+      hangarItem.ship.loaners?.forEach((loaner, index) => {
+        console.log('loaner', loaner, hangarItem.ship);
         liveHangar.push({
           ...hangarItem,
           id: hangarItem.id + '#loaner-' + index,
@@ -400,12 +246,14 @@ const updateHangar = () => {
   }
 };
 
-watch([loanerView, selectedDepartment, selectedMember], async () => {
+watch([loanerView, selectedDepartment], async () => {
   hideHangar.value = true;
+  loanerViewClasses.value = true;
   await setTimeout(async () => {
     await updateHangar();
 
     hideHangar.value = false;
+    loanerViewClasses.value = false;
   }, 500);
 });
 updateHangar();
@@ -580,7 +428,7 @@ defineShortcuts({
 
 const latestShip = computed(() => ships.value.sort((a: any, b: any) => b.id + a.id)[0]);
 
-const tour: any = new Shepherd.Tour({
+const tour = new Shepherd.Tour({
   useModalOverlay: true,
   defaultStepOptions: {
     classes: 'shadow-md bg-purple-dark',
@@ -961,12 +809,12 @@ const updateOnboarding = async () => {
   await updateUser(user.value.id, { onboardings: [...onboardings, 'hangar'] }, {});
 };
 
-tour.on('complete', () => {
-  updateOnboarding();
-});
-
 onMounted(() => {
   if (!useDirectusAuth().user.value.onboardings?.find((e: string) => e === 'hangar')) tour.start();
+
+  tour.on('complete', () => {
+    updateOnboarding();
+  });
 });
 
 watch(
@@ -1854,12 +1702,16 @@ useHead({
               <TransitionGroup
                 appear
                 enter-active-class="transition-all duration-500"
-                leave-active-class="absolute w-full transition-all duration-500 md:w-1/2 xl:w-1/3 3xl:w-1/4"
-                move-class="transition-all duration-500 delay-0"
+                :leave-active-class="
+                  loanerViewClasses
+                    ? 'w-full transition-all duration-500'
+                    : 'absolute w-full transition-all duration-500 md:w-1/2 xl:w-1/3 3xl:w-1/4'
+                "
+                :move-class="loanerViewClasses ? null : 'transition-all duration-500 delay-0'"
                 enter-from-class="-translate-y-4 opacity-0"
                 enter-to-class="translate-y-0 opacity-100"
                 leave-from-class="translate-y-0 opacity-100"
-                leave-to-class="opacity-0 -translate-y-0"
+                :leave-to-class="loanerViewClasses ? 'opacity-0 -translate-y-4' : 'opacity-0 -translate-y-0'"
               >
                 <ShipCard
                   v-for="item in currentFilteredHangar"
@@ -1872,7 +1724,7 @@ useHead({
                   :color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
                   :onboarding="item.id === latestShip.id"
                   preload-images
-                  display-crud
+                  :display-crud="!loanerView"
                   internal-bio
                   display-department
                   display-name
