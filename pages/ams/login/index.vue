@@ -210,7 +210,8 @@ definePageMeta({
           <div>
             <ButtonDefault class="w-full mt-8 mb-2"> Log In </ButtonDefault>
             <div class="text-secondary">
-              Passwort <NuxtLink to="/ams/login/pw-reset" class="text-primary animate-link">vergessen?</NuxtLink>
+              Passwort vergessen?
+              <NuxtLink to="/ams/login/pw-reset" class="text-primary animate-link">Zurücksetzen!</NuxtLink>
             </div>
             <div class="text-secondary">
               Noch kein Mitglied? <NuxtLink to="/ams/recruitment" class="text-primary animate-link">Bewerben!</NuxtLink>
