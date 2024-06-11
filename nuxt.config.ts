@@ -125,6 +125,13 @@ export default defineNuxtConfig({
     authConfig: {
       refreshTokenCookieName: 'ams_refresh_token',
     },
+    moduleConfig: {
+      autoRefresh: {
+        enableMiddleware: false,
+        redirectTo: '/ams/login',
+        to: ['/ams'],
+      },
+    },
     // cookieNameToken: 'ams_token',
     // cookieNameRefreshToken: 'ams_refresh_token',
   },
