@@ -86,6 +86,8 @@ export default function transformShip(obj: any, shipList?: any) {
 
   return {
     ...(obj.id && { id: obj.id }),
+    ...(obj.date_created && { date_created: obj.date_created }),
+    ...(obj.date_updated && { date_updated: obj.date_updated }),
     ...(obj.erkul_id && { erkul_id: obj.erkul_id }),
     ...(obj.p4k_id && { p4k_id: obj.p4k_id }),
     ...(obj.fl_id && { fl_id: obj.fl_id }),
@@ -176,7 +178,7 @@ export default function transformShip(obj: any, shipList?: any) {
     ...(obj.store_image && { store_image: obj.store_image }),
     ...(obj.gallery && { gallery: obj.gallery.map((obj: any) => obj.directus_files_id) }),
     ...(obj.commercial_video_id && { commercial_video_id: obj.commercial_video_id }),
-    ...(obj.commercials && typeof obj.commercials[0] === 'object'
+    ...(obj.commercials && typeof obj.commercials[0] === 'object' && obj.commercials[0].commercial_id
       ? { commercials: obj.commercials.map((obj) => ({ id: obj.commercial_id.id, type: obj.commercial_id.type })) }
       : {}),
     ...(obj.rating && typeof obj.rating === 'object' ? { rating: getRating() } : {}),

@@ -15,6 +15,9 @@ const { data } = await readAsyncItems('ships', {
   query: {
     fields: [
       'id',
+      'date_updated',
+      'p4k_mode',
+      'p4k_version',
       'name',
       'slug',
       'store_image',
@@ -82,6 +85,7 @@ if (!data.value) {
     fatal: true,
   });
 }
+
 const commercialSources = data.value.commercials?.map((obj: { id: string; type: string }) => ({
   type: obj.type,
   src: config.public.fileBase + obj.id,
@@ -214,6 +218,18 @@ useHead({
           <TableRow title="Zeit" :content="data.insurance_claim_time" suffix="Minuten" />
           <TableRow title="Besch. Zeit" :content="data.insurance_expedited_time" suffix="Minuten" />
           <TableRow title="Besch. Preis" :content="data.insurance_expedited_cost" suffix="aUEC" />
+        </TableParent>
+        <TableParent title="API Statistiken">
+          <TableRow
+            title="Letztes Update der Daten"
+            :content="data.date_updated ? new Date(data.date_updated).toLocaleDateString('de-DE') : null"
+            full-width
+          />
+          <TableRow
+            title="P4K-Daten"
+            :content="data.p4k_mode === true ? 'Aktiviert' : data.p4k_mode === false ? 'Deaktiviert' : null"
+          />
+          <TableRow title="P4K-Daten Version" :content="data.p4k_version" />
         </TableParent>
         <div class="flex max-w-full gap-x-2">
           <NuxtLink :to="data.store_url" external class="flex-grow text-tbase">
