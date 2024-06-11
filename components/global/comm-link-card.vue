@@ -10,7 +10,6 @@ const props = defineProps({
     default: 3,
   },
 });
-console.log(props.data);
 </script>
 
 <template>

@@ -3,7 +3,6 @@ const { readSingleton } = useDirectusItems();
 const data = await readSingleton('verse_exkurs', {
   fields: ['content', 've_links', 'sources'],
 });
-console.log(data);
 
 definePageMeta({
   path: '/verseexkurs',
