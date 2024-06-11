@@ -1,14 +1,31 @@
 <script setup lang="ts">
-import { TiptapArisCorpPanel, TiptapArisCorpPanelWithBg } from '~/composables/tiptapExt';
+import cheerio from 'cheerio';
+import { TiptapArisCorpPanel, TiptapArisCorpPanelWithBg, TiptapVideo } from '~/composables/tiptapExt';
+
 const fullscreen_state = ref(false);
 
 const props = defineProps<{ modelValue: string; readOnly?: boolean }>();
 const { modelValue, readOnly } = toRefs(props);
 const emit = defineEmits(['update:modelValue']);
 
+function removeParagraphsAroundVideos(htmlString) {
+  // if (!htmlString) return htmlString;
+
+  const $ = cheerio.load(htmlString);
+
+  $('p > video').each((_, el) => {
+    const video = $(el);
+    const parent = video.parent();
+    parent.before(video);
+    parent.remove();
+  });
+
+  return $.html();
+}
+
 const editor = useEditor({
   editable: !readOnly.value,
-  content: modelValue.value,
+  content: removeParagraphsAroundVideos(modelValue.value || ''),
   extensions: [
     TiptapStarterKit,
     TiptapTextAlign.configure({
@@ -35,6 +52,7 @@ const editor = useEditor({
     }),
     TiptapArisCorpPanel,
     TiptapArisCorpPanelWithBg,
+    TiptapVideo,
     // TODO: USER MENTIONS
     // TODO: AI
   ],
@@ -87,7 +105,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <ClientOnly fallback-tag="span" :fallback="readOnly ? 'Loading content...' : 'Loading editor...'">
+  <div>
     <div v-if="editor && !readOnly" id="editor_container">
       <UCard
         :ui="{
@@ -334,7 +352,7 @@ onBeforeUnmount(() => {
     <div v-else-if="editor && readOnly">
       <TiptapEditorContent :editor="editor" />
     </div>
-  </ClientOnly>
+  </div>
 </template>
 
 <style>

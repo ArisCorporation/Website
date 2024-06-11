@@ -10,3 +10,4 @@ export { TextStyle as TiptapTextStyle } from '@tiptap/extension-text-style';
 export { Color as TiptapColor } from '@tiptap/extension-color';
 export { default as TiptapArisCorpPanel } from './tiptap/ariscorp-panel-extension';
 export { default as TiptapArisCorpPanelWithBg } from './tiptap/ariscorp-panel-with-bg-extension';
+export { Video as TiptapVideo } from './tiptap/video-extension';
