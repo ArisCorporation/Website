@@ -41,7 +41,7 @@ expireDate.setHours(expireDate.getHours() + 24);
         <EContainer class="border border-solid border-[#222] p-[20px] md:p-7 rounded my-[40px] mx-auto max-w-[465px]">
           <ESection class="mt-[12px]">
             <EImg
-              src="cb368123-74a3-4021-bb70-2fffbcdd05fa"
+              src="https://cms.ariscorp.de/assets/cb368123-74a3-4021-bb70-2fffbcdd05fa"
               width="64"
               height="64"
               alt="ArisCorp"
