@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { object, string, type InferType } from 'yup';
+import { object, string, type InferType, ref as yup_ref } from 'yup';
+import * as yup from 'yup';
+import YupPassword from 'yup-password';
 import type { FormSubmitEvent } from '#ui/types';
 const { login } = useDirectusAuth();
 const { readFiles } = useDirectusFiles();
@@ -13,18 +15,37 @@ const config = useRuntimeConfig();
 const redirectUri = ref(
   route.query.redirect?.toString() ? decodeURIComponent(route.query.redirect.toString()) : '/ams',
 );
-const submited = ref(false);
+const submitted = ref(false);
+const resetted = ref(false);
 
-const state: { username: string; password: string } = reactive({
+YupPassword(yup);
+
+const request_state: { username: string; password: string } = reactive({
   username: '',
 });
-const form = ref();
-
-const schema = object({
-  username: string().required('Erforderlich!'),
+const reset_state: { username: string; password: string } = reactive({
+  password: '',
 });
 
-type Schema = InferType<typeof schema>;
+const request_form = ref();
+const reset_form = ref();
+
+const request_schema = object({
+  username: string().required('Erforderlich!'),
+});
+const reset_schema = object({
+  password: string()
+    .min(8, 'Dein Passwort muss mindestens 8 Zeichen lang sein.')
+    .minLowercase(1, 'Dein Passwort muss mindestens einen Kleinbuchstaben enthalten.')
+    .minUppercase(1, 'Dein Passwort muss mindestens einen Großbuchstaben enthalten.')
+    .minNumbers(1, 'Dein Passwort muss mindestens eine Zahl enthalten.')
+    .minSymbols(1, 'Dein Passwort muss mindestens ein Sonderzeichen enthalten.')
+    .required('Erforderlich!'),
+  confirm_password: string().oneOf([yup_ref('password'), null], 'Passwörter stimmen nicht überein.'),
+});
+
+type RequestSchema = InferType<typeof request_schema>;
+type ResetSchema = InferType<typeof reset_schema>;
 
 const wallpaperListRes = await readFiles({
   fields: ['id'],
@@ -40,7 +61,7 @@ const wallpaper = computed(
   () => selectedWallpaper.value || wallpaperList[Math.floor(Math.random() * wallpaperList.length)],
 );
 
-const onSubmit = async (event: FormSubmitEvent<Schema>) => {
+const onRequestSubmit = async (event: FormSubmitEvent<RequestSchema>) => {
   // TODO: Add complex error handling
   try {
     const { data: users } = await readAsyncUsers({
@@ -67,6 +88,10 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
         },
       },
     );
+
+    if (token.value?.code) {
+      throw new Error(token.value?.message);
+    }
 
     if (user.contact_email)
       await useFetch('/api/ams/notifications/email/pw-reset', {
@@ -96,10 +121,35 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
           expire_time: expire_date.toLocaleTimeString('de-DE'),
         },
       });
+
+    submitted.value = true;
   } catch (e) {
     console.error('There was an error:', e);
-  } finally {
-    submited.value = true;
+    request_form.value.setErrors([{ path: 'username', message: 'Ein Fehler ist aufgetreten!' }]);
+  }
+};
+
+const onResetSubmit = async (event: FormSubmitEvent<ResetSchema>) => {
+  // TODO: Add complex error handling
+  try {
+    const { data: req } = await useFetch('https://cms.ariscorp.de/flows/trigger/2224a8a5-da10-4a7a-9023-8899741fce37', {
+      method: 'POST',
+      body: {
+        token: query.token,
+        password: event.data.password,
+      },
+    });
+
+    if (req.value?.code) {
+      throw new Error(req.value?.message);
+    }
+    submitted.value = true;
+  } catch (e) {
+    console.error('There was an error:', e);
+    reset_form.value.setErrors([
+      { path: 'password', message: 'Ein Fehler ist aufgetreten!' },
+      { path: 'password_confirm', message: 'Ein Fehler ist aufgetreten!' },
+    ]);
   }
 };
 
@@ -202,46 +252,110 @@ definePageMeta({
       <div
         class="relative flex w-full max-w-md px-4 pt-8 pb-10 mx-auto mt-12 sm:my-auto rounded-xl backdrop-blur-sm glass-bg"
       >
-        <UForm
-          v-if="!submited"
-          ref="form"
-          :schema="schema"
-          :state="state"
-          class="w-full max-w-[540px] pb-4 mx-auto space-y-8"
-          @submit="onSubmit"
-        >
-          <h2 class="mt-0 text-center">Passwort zurücksetzen</h2>
-          <UFormGroup
-            :ui="{ error: '-mb-8 pt-1 text-red-500 dark:text-red-400' }"
-            required
-            label="Benutzername"
-            name="username"
+        <template v-if="!query.token">
+          <UForm
+            v-if="!submitted"
+            ref="request_form"
+            :schema="request_schema"
+            :state="request_state"
+            class="w-full max-w-[540px] pb-4 mx-auto space-y-8"
+            @submit="onRequestSubmit"
           >
-            <UInput
-              v-model="state.username"
-              icon="i-heroicons-user"
-              :trailing="true"
-              placeholder="chris.roberts"
-              size="xl"
-              :ui="inputConfig"
-            />
-          </UFormGroup>
+            <h2 class="mt-0 text-center">Passwort zurücksetzen</h2>
+            <UFormGroup
+              :ui="{ error: '-mb-8 pt-1 text-red-500 dark:text-red-400' }"
+              required
+              label="Passwort"
+              name="username"
+            >
+              <UInput
+                v-model="request_state.username"
+                icon="i-heroicons-user"
+                :trailing="true"
+                placeholder="chris.roberts"
+                size="xl"
+                :ui="inputConfig"
+              />
+            </UFormGroup>
 
-          <div>
-            <ButtonDefault class="w-full mt-8 mb-2"> Passwort zurücksetzen </ButtonDefault>
-            <div class="text-secondary">
-              Du kennst dein Passwort? <NuxtLink to="/ams/login" class="text-primary animate-link">Einloggen!</NuxtLink>
+            <div>
+              <ButtonDefault class="w-full mt-8 mb-2"> Passwort zurücksetzen </ButtonDefault>
+              <div class="text-secondary">
+                Du kennst dein Passwort?
+                <NuxtLink to="/ams/login" class="text-primary animate-link">Einloggen!</NuxtLink>
+              </div>
+              <div class="text-secondary">
+                Noch kein Mitglied?
+                <NuxtLink to="/ams/recruitment" class="text-primary animate-link">Bewerben!</NuxtLink>
+              </div>
             </div>
-            <div class="text-secondary">
-              Noch kein Mitglied? <NuxtLink to="/ams/recruitment" class="text-primary animate-link">Bewerben!</NuxtLink>
-            </div>
+          </UForm>
+          <div v-else class="w-full max-w-[540px] pb-4 mx-auto space-y-8">
+            <h4 class="text-center text-green-600">
+              Falls dieser Benutzer existiert wird er auf Discord und/oder per Email einen Reset-Link erhalten.
+            </h4>
           </div>
-        </UForm>
-        <div v-else class="w-full max-w-[540px] pb-4 mx-auto space-y-8">
-          <h4 class="text-center text-green-600">
-            Falls dieser Benutzer existiert wird er auf Discord und/oder per Email einen Reset-Link erhalten.
-          </h4>
-        </div>
+        </template>
+        <template v-else>
+          <UForm
+            v-if="!submitted"
+            ref="form"
+            :schema="reset_schema"
+            :state="reset_state"
+            class="w-full max-w-[540px] pb-4 mx-auto space-y-8"
+            @submit="onResetSubmit"
+          >
+            <h2 class="mt-0 text-center">Passwort zurücksetzen</h2>
+            <UFormGroup
+              :ui="{ error: '-mb-8 pt-1 text-red-500 dark:text-red-400' }"
+              required
+              label="Passwort"
+              name="password"
+            >
+              <UInput
+                v-model="reset_state.password"
+                type="password"
+                icon="i-heroicons-user"
+                :trailing="true"
+                placeholder="********"
+                size="xl"
+                :ui="inputConfig"
+              />
+            </UFormGroup>
+            <UFormGroup
+              :ui="{ error: '-mb-8 pt-1 text-red-500 dark:text-red-400' }"
+              required
+              label="Passwort bestätigen"
+              name="confirm_password"
+            >
+              <UInput
+                v-model="reset_state.confirm_password"
+                type="password"
+                icon="i-heroicons-user"
+                :trailing="true"
+                placeholder="********"
+                size="xl"
+                :ui="inputConfig"
+              />
+            </UFormGroup>
+
+            <div>
+              <ButtonDefault class="w-full mt-8 mb-2"> Passwort zurücksetzen </ButtonDefault>
+              <div class="text-secondary">
+                Du kennst dein Passwort?
+                <NuxtLink to="/ams/login" class="text-primary animate-link">Einloggen!</NuxtLink>
+              </div>
+              <div class="text-secondary">
+                Noch kein Mitglied?
+                <NuxtLink to="/ams/recruitment" class="text-primary animate-link">Bewerben!</NuxtLink>
+              </div>
+            </div>
+          </UForm>
+          <div v-else-if="submitted" class="w-full max-w-[540px] pb-4 mx-auto space-y-8 flex flex-wrap">
+            <h4 class="text-center text-green-600">Dein Passwort wurde erfolgreich zurückgesetzt!</h4>
+            <NuxtLink to="/ams/login" class="m-auto text-aris-400 animate-link">Jetzt einloggen!</NuxtLink>
+          </div>
+        </template>
       </div>
     </div>
     <Footer />
