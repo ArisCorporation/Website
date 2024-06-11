@@ -5882,6 +5882,7 @@ __metadata:
     are-we-there-yet: "npm:^4.0.2"
     axe-core: "npm:^4.8.2"
     axios: "npm:^1.6.7"
+    cheerio: "npm:^1.0.0-rc.12"
     dayjs-nuxt: "npm:^2.1.9"
     eslint: "npm:^8.55.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -6639,7 +6640,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cheerio@npm:1.0.0-rc.12":
+"cheerio@npm:1.0.0-rc.12, cheerio@npm:^1.0.0-rc.12":
   version: 1.0.0-rc.12
   resolution: "cheerio@npm:1.0.0-rc.12"
   dependencies:

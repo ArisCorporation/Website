@@ -72,6 +72,7 @@
     "@vueuse/nuxt": "^10.6.1",
     "are-we-there-yet": "^4.0.2",
     "axios": "^1.6.7",
+    "cheerio": "^1.0.0-rc.12",
     "nuxt-directus": "^5.6.0",
     "nuxt-directus-next": "^0.0.15",
     "nuxt-headlessui": "^1.1.4",
