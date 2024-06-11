@@ -12,6 +12,7 @@ const { data } = await readAsyncItems('literature_categories', {
         sort: ['chapter'],
       },
     },
+    sort: ['name'],
   },
   transform: (data: any[]) => {
     const obj: any = data[0];
@@ -38,7 +39,7 @@ if (!data) {
     fatal: true,
   });
 }
-console.log(data.value);
+
 useHead({
   title: 'Literatur - ' + data.value.name,
 });

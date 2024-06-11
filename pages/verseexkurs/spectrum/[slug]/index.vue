@@ -12,25 +12,30 @@ const { data } = await readAsyncItems('spectrum_categories', {
         sort: ['chapter'],
       },
     },
+    sort: ['name'],
   },
   transform: (data: any[]) => {
     const obj: any = data[0];
-    const threads = obj.threads.map((thread: any) => {
-      thread.content = thread.content
-        .match(/<[^>]+>.*?<\/[^>]+>/)[0]
-        .replace('h1>', 'p>')
-        .replace('h2>', 'p>')
-        .replace('h3>', 'p>')
-        .replace('h4>', 'p>')
-        .replace('h5>', 'p>');
-      return thread;
-    });
 
-    obj.threads = threads;
+    if (obj.threads?.length > 1) {
+      const threads = obj.threads.map((thread: any) => {
+        thread.content = thread.content
+          .match(/<[^>]+>.*?<\/[^>]+>/)[0]
+          .replace('h1>', 'p>')
+          .replace('h2>', 'p>')
+          .replace('h3>', 'p>')
+          .replace('h4>', 'p>')
+          .replace('h5>', 'p>');
+        return thread;
+      });
+
+      obj.threads = threads;
+    }
+
     return obj;
   },
 });
-
+console.log(data.value.content);
 useHead({
   title: 'Spectrum - ' + data.value.name,
 });
@@ -41,8 +46,10 @@ definePageMeta({
 
 <template>
   <VerseExkursBaseArticle :banner="data.banner">
-    <template #title> Spectrum - {{ data.name }} </template>
-    <template #default>
+    <template #title>
+      Spectrum - <span class="text-aris-400">{{ data.name }}</span>
+    </template>
+    <template v-if="data.threads?.length > 1" #default>
       <div
         v-if="data.threads && data.threads[0]"
         class="grid text-sm sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-x-4 gap-y-6"
@@ -68,6 +75,11 @@ definePageMeta({
       </div>
       <div v-else>
         <Editor v-model="data.content" read-only />
+      </div>
+    </template>
+    <template v-else-if="data.threads[0]" #default>
+      <div>
+        <Editor v-model:model-value="data.threads[0].content" read-only />
       </div>
     </template>
   </VerseExkursBaseArticle>
