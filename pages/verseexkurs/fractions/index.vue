@@ -16,9 +16,6 @@ const fractions = await readItems('fractions', {
   limit: -1,
 });
 
-console.log(fractions);
-console.log(categories);
-
 if (!categories || !fractions) {
   throw createError({
     statusCode: 500,
@@ -76,7 +73,7 @@ definePageMeta({
           :change="(index: number) => (selectedSubTab = index)"
         >
           <template #tabcontent>
-            <div v-if="subSubCategories[0]" v-for="category in subSubCategories" :key="category.name">
+            <div v-for="category in subSubCategories" v-if="subSubCategories[0]" :key="category.name">
               <TableHr
                 v-if="
                   fractions.filter(

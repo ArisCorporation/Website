@@ -77,7 +77,7 @@ if (
     data.value.headquarter.system = transformStarsystem(system[0]);
   }
 }
-console.log(data.value);
+
 useHead({
   title: data.value.name,
 });
@@ -197,7 +197,7 @@ definePageMeta({
           ]"
         >
           <template #default="{ item, index, open }">
-            <h4 class="flex p-1 m-0 my-2 border rounded bg-bsecondary border-btertiary">
+            <h4 class="flex p-1 m-0 my-2 border rounded cursor-pointer bg-bsecondary border-btertiary animate-link">
               <span class="pl-1">
                 {{ item.label }} <span class="text-primary-400">{{ data.name }}</span>
               </span>

@@ -32,7 +32,7 @@ const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) =>
   userCreationForm.value.clear();
   try {
     await userCreationSchema.validate(userFormData);
-    //TODO: GET DISCORD ID AND SET REF FOR CHECKBOX IN SUCCESS-MODAL FOR SENDING CREDENTIALS
+    // TODO: GET DISCORD ID AND SET REF FOR CHECKBOX IN SUCCESS-MODAL FOR SENDING CREDENTIALS
     const userData = {
       status: 'draft',
       first_name: userFormData.firstname,
@@ -50,13 +50,11 @@ const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) =>
       role: userFormData.role?.id,
       discordName: userFormData.discordName ?? '',
     };
-    console.log(userData);
 
     if (userTable.value.items?.find((e: IRawUser) => e.email === userData.email)) {
       throw new Error('Es existiert bereits ein Benutzer mit dieser Vor- Nachnamen-Kombination.');
     }
     const newUser = await createUser(userData);
-    console.log(newUser);
 
     modalStore.closeSlide();
 
@@ -290,12 +288,12 @@ useHead({
         </div>
         <div class="mx-auto mt-4">
           <ButtonDefault
+            class="w-1/3"
+            color="danger"
             @click="
               modalStore.closeModal();
               resetUserFormData();
             "
-            class="w-1/3"
-            color="danger"
           >
             Schließen
           </ButtonDefault>
@@ -305,11 +303,11 @@ useHead({
     <template #slideCard>
       <div class="flex-1">
         <UForm
-          class="h-full"
           ref="userCreationForm"
+          class="h-full"
           :state="userFormData"
           :schema="userCreationSchema"
-          validateOn="submit"
+          validate-on="submit"
           @submit="onEditSubmit"
         >
           <UCard class="flex flex-col flex-1 h-screen scrollbar-gray-thin">
@@ -337,9 +335,9 @@ useHead({
                 <UInput v-model="userFormData.firstname" placeholder="Chris" icon="i-heroicons-user" />
                 <button
                   v-if="userFormData.firstname !== ''"
-                  @click="userFormData.firstname = ''"
                   type="button"
                   class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+                  @click="userFormData.firstname = ''"
                 >
                   <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
                 </button>
@@ -348,9 +346,9 @@ useHead({
                 <UInput v-model="userFormData.lastname" placeholder="Roberts" icon="i-heroicons-user" />
                 <button
                   v-if="userFormData.lastname !== ''"
-                  @click="userFormData.lastname = ''"
                   type="button"
                   class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+                  @click="userFormData.lastname = ''"
                 >
                   <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
                 </button>
@@ -385,8 +383,8 @@ useHead({
                   <template v-if="userFormData.title">
                     <button
                       v-if="userFormData.title"
-                      @click="userFormData.title = ''"
                       class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                      @click="userFormData.title = ''"
                     >
                       <UIcon
                         name="i-heroicons-x-mark-16-solid"
@@ -400,9 +398,9 @@ useHead({
                 <UInput v-model="userFormData.password" placeholder="Chris" icon="i-heroicons-lock-closed" />
                 <button
                   v-if="userFormData.password"
-                  @click="userFormData.password = null"
                   type="button"
                   class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+                  @click="userFormData.password = null"
                 >
                   <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
                 </button>
@@ -437,8 +435,8 @@ useHead({
                   <template v-if="userFormData.role">
                     <button
                       v-if="userFormData.role"
-                      @click="userFormData.role = null"
                       class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                      @click="userFormData.role = null"
                     >
                       <UIcon
                         name="i-heroicons-x-mark-16-solid"
@@ -459,21 +457,15 @@ useHead({
               <div class="flex flex-wrap justify-between w-full px-8 my-auto">
                 <ButtonDefault
                   type="button "
+                  class="w-1/3"
+                  color="danger"
                   @click="
                     modalStore.closeSlide();
                     resetUserFormData();
                   "
-                  class="w-1/3"
-                  color="danger"
                   >Schließen</ButtonDefault
                 >
                 <ButtonDefault
-                  @click="
-                    userFormData.firstname !== '' &&
-                      userFormData.firstname !== null &&
-                      userFormData.role !== null &&
-                      handleUserCreation()
-                  "
                   :disabled="
                     userFormData.firstname !== '' && userFormData.firstname !== null && userFormData.role !== null
                       ? false
@@ -481,6 +473,12 @@ useHead({
                   "
                   class="w-1/3"
                   color="success"
+                  @click="
+                    userFormData.firstname !== '' &&
+                      userFormData.firstname !== null &&
+                      userFormData.role !== null &&
+                      handleUserCreation()
+                  "
                 >
                   Speichern
                 </ButtonDefault>
@@ -508,13 +506,13 @@ useHead({
             <div>
               <!-- TODO: ADD LOCK AND UNLOCK FUNCTIONS -->
               <AmsAdministrationUserTable
+                ref="userTable"
                 @create="handleCreate"
                 @edit="handleEdit"
                 @delete="handleDelete"
                 @lock="handleLock"
                 @unlock="handleUnlock"
                 @archive="handleArchive"
-                ref="userTable"
               />
             </div>
           </div>
