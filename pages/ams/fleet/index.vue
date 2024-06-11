@@ -75,10 +75,26 @@ const { data: hangarItems, refresh: refreshHangarItems } = await readAsyncItems(
       'ship_id.maxCrew',
       'ship_id.price',
       'ship_id.cargo',
-      'ship_id.loaners',
       'ship_id.modules.id',
       'ship_id.modules.name',
       'ship_id.production_status',
+      'ship_id.loaners.loaner_id.id',
+      'ship_id.loaners.loaner_id.name',
+      'ship_id.loaners.loaner_id.slug',
+      'ship_id.loaners.loaner_id.store_image',
+      'ship_id.loaners.loaner_id.manufacturer.name',
+      'ship_id.loaners.loaner_id.manufacturer.code',
+      'ship_id.loaners.loaner_id.manufacturer.slug',
+      'ship_id.loaners.loaner_id.production_status',
+      'ship_id.loaners.loaner_id.length',
+      'ship_id.loaners.loaner_id.height',
+      'ship_id.loaners.loaner_id.beam',
+      'ship_id.loaners.loaner_id.classification',
+      'ship_id.loaners.loaner_id.minCrew',
+      'ship_id.loaners.loaner_id.maxCrew',
+      'ship_id.loaners.loaner_id.price',
+      'ship_id.loaners.loaner_id.cargo',
+      'ship_id.loaners.loaner_id.production_status',
       'department.id',
       'department.name',
       'department.logo',
@@ -111,59 +127,12 @@ const { data: shipList } = await readAsyncItems('ships', {
   transform: (ships: any[]) => ships.map((ship: any) => transformShip(ship)),
 });
 
-let loanerData: any = [];
-const getLoaners = async () => {
-  const loanerIds: string[] = [];
-  hangarItems.value
-    .filter((e: any) => e.ship_id?.production_status_value !== 'flight-ready')
-    .forEach((obj: any) => obj.ship_id.loaners?.forEach((i: any) => !loanerIds.includes(i.id) && loanerIds.push(i.id)));
-  loanerData = [];
-
-  if (loanerIds.length > 0) {
-    const { data: loanerList } = await readAsyncItems('ships', {
-      query: {
-        fields: [
-          'id',
-          'name',
-          'slug',
-          'store_image',
-          'manufacturer.name',
-          'manufacturer.code',
-          'manufacturer.slug',
-          'production_status',
-          'length',
-          'height',
-          'beam',
-          'classification',
-          'minCrew',
-          'maxCrew',
-          'price',
-          'cargo',
-        ],
-        filter: {
-          id: { _in: loanerIds },
-        },
-        sort: ['name'],
-        limit: -1,
-      },
-    });
-
-    if (!loanerList.value) {
-      loanerData = [];
-    } else {
-      loanerData = loanerList.value;
-    }
-  }
-};
-await getLoaners();
-
 const refreshData = async () => {
   await refreshHangarItems();
   // await refreshNuxtData();
-  await getLoaners();
 };
 
-const ships = computed(() => hangarItems.value?.map((obj: any) => transformHangarItem(obj, loanerData)));
+const ships = computed(() => hangarItems.value?.map((obj: any) => transformHangarItem(obj)));
 
 if (!ships.value || !departments.value || !shipList.value) {
   throw createError({
@@ -189,13 +158,6 @@ const filteredHangar = ref();
 const filteredLiveHangar = ref();
 const currentHangar = ref();
 const currentFilteredHangar = ref();
-
-const refreshHangar = async () => {
-  hangarRefreshPending.value = true;
-  await refreshData();
-  await updateHangar();
-  hangarRefreshPending.value = false;
-};
 
 const updateHangar = () => {
   const hangar = ships.value;
@@ -459,26 +421,6 @@ useHead({
         </div>
       </div>
     </div>
-    <!-- <div class="flex w-full px-6"> -->
-    <!-- search -->
-    <!-- </div> -->
-    <!-- <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
-      <div class="flex flex-wrap justify-center w-full mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal"></div>
-      <div
-        class="flex flex-wrap justify-center w-full mx-auto my-auto lg:w-fit h-fit lg:mr-0 lg:gap-4 lg:justify-normal"
-      >
-        <div class="flex mt-6 sm:pr-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <ButtonDefault class="mx-auto sm:mr-0 sm:ml-auto" @click="userSettingsStore.AMSToggleFleetDetailView">
-            Detail Ansicht: {{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
-          </ButtonDefault>
-        </div>
-        <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <ButtonDefault class="mx-auto sm:ml-0 sm:mr-auto" @click="userSettingsStore.AMSToggleFleetLoanerView">
-            Leihschiff-Ansicht: {{ loanerView ? 'Ausschalten' : 'Anschalten' }}
-          </ButtonDefault>
-        </div>
-      </div>
-    </div> -->
     <div class="flex flex-wrap">
       <ClientOnly>
         <TransitionGroup
