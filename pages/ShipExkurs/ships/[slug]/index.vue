@@ -417,6 +417,7 @@ useHead({
                     :text="data.rating.score + '%'"
                     :dash-count="10"
                     :active-count="10 * (data.rating.score / 100)"
+                    :dash-spacing="0 / 4"
                   />
                 </div>
               </div>
