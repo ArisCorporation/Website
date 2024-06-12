@@ -7,5 +7,6 @@ declare global {
     content?: any;
     component?: string;
     componentData?: any;
+    slot?: string;
   }
 }
