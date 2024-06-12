@@ -84,6 +84,7 @@ const changeTab = (index: number) => {
           <div v-if="markdown" :value="tab.content" />
           <Editor v-else-if="tab.content" :model-value="tab.content" read-only class="xl:max-w-[90%]" />
           <component :is="tab.component" v-else-if="tab.component" :data="tab.componentData" />
+          <slot v-else-if="tab.slot" :name="tab.slot" />
         </HeadlessTabPanel>
       </slot>
     </HeadlessTabPanels>
