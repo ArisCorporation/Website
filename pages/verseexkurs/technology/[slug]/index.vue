@@ -12,6 +12,14 @@ const { data } = await readAsyncItems('technologies', {
   transform: (data) => data[0],
 });
 
+if (!data) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
+    fatal: true,
+  });
+}
+
 useHead({
   title: 'Technologien - ' + data.value.name,
 });
