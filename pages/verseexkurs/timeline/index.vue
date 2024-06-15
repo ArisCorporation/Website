@@ -153,32 +153,6 @@ items.push(
 
 items = items.sort((a, b) => a.start - b.start);
 
-const itemss = [
-  {
-    group: 'verse_timeline',
-    type: 'point',
-    start: new Date('2024-01-01').getTime(),
-    // cssVariables: { '--item-background': 'var(--color-2)' },
-    title: 'Point 1',
-  },
-  {
-    group: 'group1',
-    type: 'range',
-    start: 1707135072000,
-    end: 1708431072000,
-    cssVariables: { '--item-background': 'var(--color-4)' },
-    title: 'Range 1',
-  },
-  { group: 'group2', type: 'range', start: 1706790600000, end: 1706877000000, title: 'Range 2' },
-  {
-    group: 'group1',
-    type: 'point',
-    start: new Date('2954-01-02'),
-    cssVariables: { '--item-background': 'var(--color-2)' },
-    title: 'Point 2',
-  },
-];
-
 const totalRange = ref({
   start: new Date(
     new Date(items[0].start).getFullYear() - 2,
