@@ -35,7 +35,7 @@ const { data } = await readAsyncItems('spectrum_categories', {
     return obj;
   },
 });
-console.log(data.value.content);
+
 useHead({
   title: 'Spectrum - ' + data.value.name,
 });

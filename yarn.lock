@@ -5908,6 +5908,7 @@ __metadata:
     vue-cropperjs: "npm:^5.0.0"
     vue-email: "npm:^0.8.11"
     vue-router: "npm:^4.2.5"
+    vue-timeline-chart: "npm:^2.1.2"
     yup: "npm:^1.3.3"
     yup-password: "npm:^0.4.0"
   languageName: unknown
@@ -19739,6 +19740,17 @@ __metadata:
   version: 1.9.1
   resolution: "vue-template-es2015-compiler@npm:1.9.1"
   checksum: 10c0/21d27d1c6afe10a47f17793e18afb7f321888d3ca728bfdb2a79ff49789ed9b40e98abcb68b5499f3da1bbb76a0f188b94aeb5ab0e879f46d6399ac5d4ae38c8
+  languageName: node
+  linkType: hard
+
+"vue-timeline-chart@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "vue-timeline-chart@npm:2.1.2"
+  dependencies:
+    vue: "npm:^3.4.16"
+  peerDependencies:
+    vue: ^3.0.0
+  checksum: 10c0/ff21e017c06a27c8fb7156ced6a9b27aba3194d7aedd482ab0e2eecc4a685614ac81297f9badb6c3fd26ce3ee8ed9ae316c5a0ae1ef4f55384e51402d6ca6a1d
   languageName: node
   linkType: hard
 
