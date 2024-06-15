@@ -9,7 +9,7 @@ export default defineNuxtRouteMiddleware(async (to, _from) => {
   const fullPath = to.path + (queryString ? `?${queryString}` : '');
 
   if (!user.value) {
-    if (!nuxtApp.isHydrating) {
+    if (nuxtApp.isHydrating) {
       return abortNavigation();
     } else {
       return navigateTo({
