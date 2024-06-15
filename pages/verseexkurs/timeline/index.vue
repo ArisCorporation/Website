@@ -32,6 +32,7 @@ const { data } = await readAsyncItems('timeline_items', {
 const { data: users } = await readAsyncUsers({
   query: {
     fields: [
+      'id',
       'first_name',
       'last_name',
       'title',
@@ -88,6 +89,7 @@ const groups = [
 ];
 
 let items = data.value.map((item) => ({
+  id: item.id,
   group: item.category,
   type: item.dates.length === 1 ? 'point' : 'range',
   start: new Date(
@@ -95,13 +97,21 @@ let items = data.value.map((item) => ({
     item.dates.find((e) => e.type === 'start')?.month ?? 0,
     item.dates.find((e) => e.type === 'start')?.day ?? 1,
   ).getTime(),
-  ...(item.dates.length === 2 && {
-    end: new Date(
-      item.dates.find((e) => e.type === 'end')?.year,
-      item.dates.find((e) => e.type === 'end')?.month ?? 0,
-      item.dates.find((e) => e.type === 'end')?.day ?? 1,
-    ).getTime(),
-  }),
+  ...(item.dates.length === 2 && item.dates.find((e) => e.type === 'end').until_now
+    ? {
+        end: new Date(new Date().getFullYear() + 930, new Date().getMonth(), new Date().getDate()).getTime(),
+      }
+    : item.dates.length === 2
+      ? {
+          end: new Date(
+            item.dates.find((e) => e.type === 'end')?.year,
+            item.dates.find((e) => e.type === 'end')?.month ?? 0,
+            item.dates.find((e) => e.type === 'end')?.day ?? 1,
+          ).getTime(),
+        }
+      : {}),
+  start_date: item.dates.find((e) => e.type === 'start'),
+  end_date: item.dates.find((e) => e.type === 'end'),
   title: item.title,
   description: item.description,
   banner: item.banner,
@@ -140,6 +150,7 @@ let items = data.value.map((item) => ({
 
 items.push(
   ...users.value.map((user) => ({
+    id: user.id,
     group: 'ariscorp_timeline',
     type: 'point',
     start: new Date(user.birthdate).getTime(),
@@ -148,6 +159,11 @@ items.push(
     banner: user.avatar,
     cssVariables: { '--item-background': '#00ffe8' },
     link: `/biography/${user.slug}`,
+    start_date: {
+      day: new Date(user.birthdate).getDate(),
+      month: new Date(user.birthdate).getMonth() + 1,
+      year: new Date(user.birthdate).getFullYear(),
+    },
   })),
 );
 
@@ -173,29 +189,90 @@ const viewport = ref({
 });
 const selectedEvent = ref(items[0]);
 
+function selectNextItem() {
+  const currentIndex = items.findIndex((item) => item.id === selectedEvent.value.id);
+  const nextIndex = (currentIndex + 1) % items.length;
+  selectedEvent.value = items[nextIndex];
+}
+
+function selectPreviousItem() {
+  const currentIndex = items.findIndex((item) => item.id === selectedEvent.value.id);
+  const nextIndex = (currentIndex - 1 + items.length) % items.length;
+  selectedEvent.value = items[nextIndex];
+}
+
+console.log(items);
 definePageMeta({
   layout: 'verse-exkurs',
 });
+console.log(Timeline);
 </script>
 
 <template>
   <div class="flex flex-col max-h-screen min-h-screen py-1">
-    <h1 class="text-center">Zeitstahl</h1>
-    <div class="flex-grow overflow-y-auto">
-      <div class="grid px-2.5 lg:grid-cols-2 gap-x-2 gap-y-4">
-        <div>
-          <h1 class="text-center text-industrial-400">{{ selectedEvent.title }}</h1>
-          <Editor :model-value="selectedEvent.description" read-only />
-        </div>
-        <div>
-          <NuxtImg :src="selectedEvent.banner ?? '8436448c-0c93-430e-a2bf-34493dc15ca3'" class="object-cover m-auto" />
-        </div>
+    <div class="relative flex-grow h-[calc(100vh_-_530px)]">
+      <div class="absolute top-0 bottom-0 my-auto -left-4 h-fit">
+        <button class="opacity-50 size-10 animate-link hover:opacity-100" @click="selectPreviousItem">
+          <UIcon name="i-heroicons-chevron-left-16-solid" class="size-full" />
+        </button>
       </div>
-    </div>
-    <div v-if="selectedEvent.link">
-      <hr class="hr-short" />
-      <div class="animate-link w-fit">
-        <NuxtLink :to="selectedEvent.link">Mehr lesen</NuxtLink>
+      <div class="absolute top-0 bottom-0 my-auto -right-4 h-fit">
+        <button class="opacity-50 size-10 animate-link hover:opacity-100" @click="selectNextItem">
+          <UIcon name="i-heroicons-chevron-right-16-solid" class="size-full" />
+        </button>
+      </div>
+      <div class="grid h-full max-h-full px-8 overflow-clip lg:grid-cols-2 gap-x-2 gap-y-4">
+        <div class="h-full overflow-y-auto">
+          <div class="flex text-industrial-400">
+            <p class="p-0">
+              {{
+                new Date(selectedEvent.start).toLocaleDateString('de-DE', {
+                  ...(selectedEvent.start_date.year && {
+                    year: 'numeric',
+                  }),
+                  ...(selectedEvent.start_date.month && {
+                    month: 'long',
+                  }),
+                  ...(selectedEvent.start_date.day && {
+                    day: 'numeric',
+                  }),
+                })
+              }}
+              <template v-if="selectedEvent.end">
+                <span class="text-tbase"> - </span>
+                {{
+                  selectedEvent.end_date.until_now
+                    ? 'Bis Heute'
+                    : new Date(selectedEvent.end).toLocaleDateString('de-DE', {
+                        ...(selectedEvent.end_date.year && {
+                          year: 'numeric',
+                        }),
+                        ...(selectedEvent.end_date.month && {
+                          month: 'long',
+                        }),
+                        ...(selectedEvent.end_date.day && {
+                          day: 'numeric',
+                        }),
+                      })
+                }}
+              </template>
+            </p>
+          </div>
+          <h1 class="text-left text-aris-400">{{ selectedEvent.title }}</h1>
+          <Editor :model-value="selectedEvent.description" read-only class="text-justify" />
+          <div v-if="selectedEvent.link">
+            <hr class="hr-short" />
+            <div class="animate-link w-fit">
+              <NuxtLink :to="selectedEvent.link">Mehr lesen</NuxtLink>
+            </div>
+          </div>
+        </div>
+        <div class="max-h-full m-auto">
+          <NuxtImg
+            :src="selectedEvent.banner ?? '8436448c-0c93-430e-a2bf-34493dc15ca3'"
+            class="object-cover w-full h-full max-h-full"
+          />
+        </div>
       </div>
     </div>
     <hr />
@@ -208,6 +285,9 @@ definePageMeta({
         :viewport-max="totalRange.end"
         :initial-viewport-start="viewport.start"
         :initial-viewport-end="viewport.end"
+        :max-zoom-speed="20"
+        :active-items="[selectedEvent.id]"
+        class="ac-timeline"
         @change-viewport="viewport = $event"
         @click="(e) => e.item && (selectedEvent = e.item)"
       />
@@ -226,6 +306,11 @@ definePageMeta({
 </template>
 
 <style lang="scss" scoped>
+.ac-timeline {
+  :deep(.active) {
+    --item-background: #fff !important;
+  }
+}
 .map {
   --group-items-height: 0.25em;
   --group-border-top: 0;
