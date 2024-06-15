@@ -452,7 +452,7 @@ useHead({
             display-production-state
             display-loaner-state
             display-owner
-            display-planned-states
+            display-planned-state
           />
         </TransitionGroup>
         <Transition
