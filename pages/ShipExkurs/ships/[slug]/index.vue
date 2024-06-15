@@ -61,6 +61,20 @@ const { data } = await readAsyncItems('ships', {
       'rating.introduction',
       'rating.ratings',
       'rating.strengths_and_weaknesses',
+      'loaners.loaner_id.id',
+      'loaners.loaner_id.name',
+      'loaners.loaner_id.slug',
+      'loaners.loaner_id.store_image',
+      'loaners.loaner_id.manufacturer.name',
+      'loaners.loaner_id.manufacturer.slug',
+      'loaners.loaner_id.production_status',
+      'variants.variant_id.id',
+      'variants.variant_id.name',
+      'variants.variant_id.slug',
+      'variants.variant_id.store_image',
+      'variants.variant_id.manufacturer.name',
+      'variants.variant_id.manufacturer.slug',
+      'variants.variant_id.production_status',
     ],
     filter: {
       slug: { _eq: params.slug },
@@ -85,7 +99,7 @@ if (!data.value) {
     fatal: true,
   });
 }
-
+console.log(data.value);
 const commercialSources = data.value.commercials?.map((obj: { id: string; type: string }) => ({
   type: obj.type,
   src: config.public.fileBase + obj.id,
@@ -231,7 +245,7 @@ useHead({
           />
           <TableRow title="P4K-Daten Version" :content="data.p4k_version" />
         </TableParent>
-        <div class="flex max-w-full gap-x-2">
+        <div class="flex flex-wrap max-w-full gap-2">
           <NuxtLink :to="data.store_url" external class="flex-grow text-tbase">
             <ButtonDefault class="w-full text-sm">
               <p v-if="!data.on_sale" class="p-0">RSI Seite</p>
@@ -432,5 +446,45 @@ useHead({
         </template>
       </template>
     </TabGroup>
+    <hr />
+    <div class="flex flex-nowrap">
+      <div v-if="data.variants" class="w-full px-2">
+        <h3 class="text-industrial-400">Varianten</h3>
+        <div>
+          <ShipCard
+            v-for="ship in data.variants"
+            :key="ship.id"
+            :ship-data="ship"
+            preload-images
+            display-production-state
+          />
+        </div>
+      </div>
+      <div v-if="data.all_loaners" class="w-full px-2">
+        <h3 class="text-industrial-400">Leihschiffe- und Fahrzeuge</h3>
+        <div>
+          <ShipCard
+            v-for="ship in data.all_loaners"
+            :key="ship.id"
+            :ship-data="ship"
+            preload-images
+            display-production-state
+          />
+        </div>
+      </div>
+      <div v-if="data.paints" class="w-full px-2">
+        <h3 class="text-industrial-400">Lackierungen</h3>
+        <div>
+          <ShipCard
+            v-for="paint in data.paints"
+            :key="paint.id"
+            :ship-data="paint"
+            preload-images
+            display-production-state
+            paint-view
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
