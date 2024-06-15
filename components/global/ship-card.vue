@@ -170,7 +170,7 @@ const handleEdit = () => {
         >
           <div
             v-if="displayPlannedState && hangarData.userData.planned"
-            class="absolute -top-6 right-2 text-stroke text-secondary"
+            class="absolute cursor-default -top-6 right-2 text-stroke text-secondary"
           >
             Geplant
           </div>
@@ -195,8 +195,8 @@ const handleEdit = () => {
             class="z-20 block mt-auto ml-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100 animate-link"
           >
             <span>
-              <span :class="{ 'text-secondary': hangarData.userData.planned }">{{
-                hangarData.userData.planned ? 'Geplant' : 'Bereitgestell'
+              <span :class="{ 'text-secondary': displayPlannedState && hangarData.userData.planned }">{{
+                displayPlannedState && hangarData.userData.planned ? 'Geplant' : 'Bereitgestell'
               }}</span>
               von: {{ hangarData.userData.owner.full_name }}</span
             >
