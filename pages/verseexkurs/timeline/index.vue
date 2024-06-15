@@ -291,7 +291,7 @@ console.log(Timeline);
         @change-viewport="viewport = $event"
         @click="(e) => e.item && (selectedEvent = e.item)"
       />
-      <h5 class="mt-6 mb-2 test-industrial-500">Karte:</h5>
+      <h5 class="mt-6 mb-2 test-industrial-500">Übersicht:</h5>
       <Timeline
         :items="[...items, { type: 'background', start: viewport.start, end: viewport.end }]"
         :groups="groups.map((group) => ({ ...group, label: '' }))"
