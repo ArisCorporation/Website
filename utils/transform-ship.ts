@@ -10,15 +10,40 @@ interface ILoaner {
 }
 
 export default function transformShip(obj: any, shipList?: any) {
+  // const getVariants = () => {
+  //   if (!shipList) return;
+  //   const variants: Array<IVariant> = [];
+  //   obj.variants?.map((i: IVariant) => variants.push(transformShip(shipList?.find((e: IVariant) => e.id === i.id))));
+  //   return variants;
+  // };
   const getVariants = () => {
-    if (!shipList) return;
-    const variants: Array<IVariant> = [];
-    obj.variants?.map((i: IVariant) => variants.push(transformShip(shipList?.find((e: IVariant) => e.id === i.id))));
-    return variants;
+    return obj.variants.filter((e: any) => e?.variant_id).map((variant: any) => transformShip(variant.variant_id));
+    // const loaners = [];
+    // const loanerData = [];
+    // obj.loaners.forEach((rawLoaner) => {
+    //   if (!loaners.includes(rawLoaner.id)) {
+    //     loaners.push(rawLoaner.id);
+    //     loanerData.push(transformShip(shipList.find((e) => e.id === rawLoaner.id)));
+    //   }
+    // });
+    // return loanerData;
   };
   const getLoaners = () => {
     if (!obj.loaners || obj.production_status === 'flight-ready') return;
-    return obj.loaners.map((loaner: any) => transformShip(loaner.loaner_id));
+    return obj.loaners.filter((e: any) => e?.loaner_id).map((loaner: any) => transformShip(loaner.loaner_id));
+    // const loaners = [];
+    // const loanerData = [];
+    // obj.loaners.forEach((rawLoaner) => {
+    //   if (!loaners.includes(rawLoaner.id)) {
+    //     loaners.push(rawLoaner.id);
+    //     loanerData.push(transformShip(shipList.find((e) => e.id === rawLoaner.id)));
+    //   }
+    // });
+    // return loanerData;
+  };
+  const getAllLoaners = () => {
+    if (!obj.loaners) return;
+    return obj.loaners.filter((e: any) => e?.loaner_id).map((loaner: any) => transformShip(loaner.loaner_id));
     // const loaners = [];
     // const loanerData = [];
     // obj.loaners.forEach((rawLoaner) => {
@@ -158,6 +183,8 @@ export default function transformShip(obj: any, shipList?: any) {
     ...(obj.holoColored && { holoColored: obj.holoColored }),
     // variants: getVariants(),
     ...(obj.loaners && obj.loaners[0] && { loaners: getLoaners() }),
+    ...(obj.loaners && obj.loaners[0] && { all_loaners: getAllLoaners() }),
+    ...(obj.variants && obj.variants[0] && { variants: getVariants() }),
     // loaners: shipList,
     // paints: obj.paints,
     // classification: obj.classification,
