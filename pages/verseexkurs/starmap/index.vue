@@ -2,6 +2,22 @@
 const { readItems, readSingleton } = useDirectusItems();
 const historyIndex = ref(0);
 
+const affiliations = ref(['uee', 'banu', 'vanduul', 'xian', 'unclaimed', 'development']);
+const affiliation_options = [
+  { key: 'uee', label: 'UEE' },
+  { key: 'banu', label: 'Banu' },
+  { key: 'vanduul', label: 'Vanduul' },
+  { key: 'xian', label: `Xi'An` },
+  { key: 'unclaimed', label: 'Nicht Beansprucht' },
+  { key: 'development', label: 'In Entwicklung' },
+];
+const jumppoints = ref(['small', 'medium', 'large']);
+const jumppoint_options = [
+  { key: 'small', label: 'Klein' },
+  { key: 'medium', label: 'Mittel' },
+  { key: 'large', label: 'Groß' },
+];
+
 const tabs = [
   {
     id: 0,
@@ -56,6 +72,14 @@ const systems = await readItems('systems', {
   },
 });
 
+if (!data || !systems) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
+    fatal: true,
+  });
+}
+
 // STARMAP
 // const starmapIcons = reactive([
 //   {
@@ -93,30 +117,177 @@ useHead({
       </template>
       <template #tabcontent>
         <template v-if="selectedTab === 0">
-          <h2 class="hidden m-0 text-center lg:block">
-            Klicke einfach auf ein System um auf die Beschreibung zu gelangen.
-          </h2>
-          <h3 class="block m-0 text-center lg:hidden">Suche nach einem System um auf die Beschreibung zu gelangen.</h3>
-          <div class="hidden lg:block">
-            <DefaultPanel bg="bprimary">
-              <div>
-                <NuxtImg
-                  src="e3b8e2b3-5657-4112-ab8f-c0f1311e9a6b"
-                  :placeholder="[16, 16, 1, 5]"
-                  class="w-1/2 h-fit aspect-[637/160]"
-                />
-                <div class="relative w-full h-fit">
-                  <UPopover
-                    v-for="system in systems.filter((e) => e.status === 'published')"
-                    :key="system.id"
-                    :popper="{ placement: 'right' }"
-                    mode="hover"
-                    :style="{ left: `${system.starmap_position_left}%`, top: `${system.starmap_position_top}%` }"
-                    class="absolute w-[1.65%] h-auto aspect-[1/1]"
-                  >
-                    <NuxtLink
-                      :to="system.status === 'published' && '/verseexkurs/starmap/' + system.slug"
-                      class="w-full h-auto aspect-[1/1] group absolute top-0"
+          <div>
+            <h2 class="hidden m-0 text-center lg:block">
+              Klicke einfach auf ein System um auf die Beschreibung zu gelangen.
+            </h2>
+            <h3 class="block m-0 text-center lg:hidden">
+              Suche nach einem System um auf die Beschreibung zu gelangen.
+            </h3>
+            <div class="hidden lg:block">
+              <DefaultPanel bg="bprimary">
+                <div>
+                  <div class="grid grid-cols-2 gap-x-4">
+                    <NuxtImg
+                      src="e3b8e2b3-5657-4112-ab8f-c0f1311e9a6b"
+                      :placeholder="[16, 16, 1, 5]"
+                      class="w-full h-fit aspect-[637/160]"
+                    />
+                    <div class="grid gap-1 px-2 mt-4 xl:grid-cols-2">
+                      <USelectMenu
+                        v-model="affiliations"
+                        :options="affiliation_options.map((e) => e.key)"
+                        multiple
+                        placeholder="Systeme filtern"
+                        size="md"
+                      >
+                        <template #label>
+                          <span>Systeme filtern</span>
+                        </template>
+                        <template #option="{ option }">
+                          <span>{{ affiliation_options.find((e) => e.key === option)?.label }}</span>
+                        </template>
+                      </USelectMenu>
+                      <USelectMenu
+                        v-model="jumppoints"
+                        :options="jumppoint_options.map((e) => e.key)"
+                        multiple
+                        placeholder="Jumppoints filtern"
+                        size="md"
+                      >
+                        <template #label>
+                          <span>Jumppoints filtern</span>
+                        </template>
+                        <template #option="{ option }">
+                          <span>{{ jumppoint_options.find((e) => e.key === option)?.label }}</span>
+                        </template>
+                      </USelectMenu>
+                    </div>
+                  </div>
+                  <div class="relative w-full h-fit">
+                    <UPopover
+                      v-for="system in systems
+                        .filter((e) => e.status === 'published')
+                        .filter((e) =>
+                          e.affiliation === 'uee'
+                            ? affiliations.includes('uee')
+                            : e.affiliation === 'banu'
+                              ? affiliations.includes('banu')
+                              : e.affiliation === 'vanduul'
+                                ? affiliations.includes('vanduul')
+                                : e.affiliation === 'xian'
+                                  ? affiliations.includes('xian')
+                                  : e.affiliation === 'unclaimed'
+                                    ? affiliations.includes('unclaimed')
+                                    : e.affiliation === 'in_development'
+                                      ? affiliations.includes('development')
+                                      : false,
+                        )"
+                      :key="system.id"
+                      :popper="{ placement: 'right' }"
+                      mode="hover"
+                      :style="{ left: `${system.starmap_position_left}%`, top: `${system.starmap_position_top}%` }"
+                      class="absolute w-[1.65%] h-auto aspect-[1/1]"
+                    >
+                      <NuxtLink
+                        :to="system.status === 'published' && '/verseexkurs/starmap/' + system.slug"
+                        class="w-full h-auto aspect-[1/1] group absolute top-0"
+                      >
+                        <Icon
+                          :name="
+                            'IconsNavigationStarmap' +
+                            (system.affiliation === 'in_development'
+                              ? 'Indevelopment'
+                              : system.affiliation[0].toUpperCase() + system.affiliation.slice(1))
+                          "
+                          class="absolute z-10 w-full h-auto aspect-square"
+                        />
+                        <div
+                          class="w-full h-full rounded-full aspect-[1/1] animate-pulse group-hover:animate-ping bg-aris-400/75 group-hover:bg-aris-400 blur-sm"
+                        />
+                      </NuxtLink>
+                      <template #panel>
+                        <div class="items-center p-4 mx-auto">
+                          <NuxtImg
+                            :src="system?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                            :placeholder="[16, 16, 1, 5]"
+                            class="w-56 h-20 mx-auto border rounded border-btertiary"
+                            :class="{ 'object-cover': system.banner }"
+                          />
+                          <h3 class="mt-1.5 leading-4 text-aris-400">{{ system.name }}</h3>
+                          <hr
+                            class="-mx-1 mb-3 mt-2 relative bg-bprimary text-primary-400 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+                          />
+                          <div class="px-2 border rounded-lg bg-bprimary border-btertiary">
+                            <div class="p-2">
+                              <TableRow title="Zugehörigkeit">
+                                <span class="flex items-center gap-x-1 text-aris-400">
+                                  {{
+                                    system.affiliation
+                                      ? system.affiliation === 'uee'
+                                        ? 'UEE'
+                                        : system.affiliation === 'in_development'
+                                          ? 'In Entwicklung'
+                                          : system.affiliation === 'unclaimed'
+                                            ? 'Nicht Beansprucht'
+                                            : system.affiliation === 'banu'
+                                              ? 'Banu'
+                                              : system.affiliation === 'xian'
+                                                ? `Xi'An`
+                                                : system.affiliation === 'vanduul' && 'Vanduul'
+                                      : null
+                                  }}
+                                  <Icon
+                                    :name="
+                                      'IconsNavigationStarmap' +
+                                      (system.affiliation === 'in_development'
+                                        ? 'Indevelopment'
+                                        : system.affiliation[0].toUpperCase() + system.affiliation.slice(1))
+                                    "
+                                  />
+                                </span>
+                              </TableRow>
+                              <TableHr />
+                              <TableRow
+                                title="Planeten"
+                                :content="system.orbit.filter((e) => e.collection === 'planets').length"
+                              />
+                              <TableHr />
+                              <TableRow
+                                title="Jumppoints"
+                                :content="system.orbit.filter((e) => e.collection === 'jumppoints').length"
+                              />
+                              <TableHr />
+                              <TableRow
+                                title="Asteroidengürtel"
+                                :content="system.orbit.filter((e) => e.collection === 'asteroid_belts').length"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </UPopover>
+                    <div
+                      v-for="system in systems
+                        .filter((e) => e.status !== 'published')
+                        .filter((e) =>
+                          e.affiliation === 'uee'
+                            ? affiliations.includes('uee')
+                            : e.affiliation === 'banu'
+                              ? affiliations.includes('banu')
+                              : e.affiliation === 'vanduul'
+                                ? affiliations.includes('vanduul')
+                                : e.affiliation === 'xian'
+                                  ? affiliations.includes('xian')
+                                  : e.affiliation === 'unclaimed'
+                                    ? affiliations.includes('unclaimed')
+                                    : e.affiliation === 'in_development'
+                                      ? affiliations.includes('development')
+                                      : false,
+                        )"
+                      :key="system.id"
+                      :style="{ left: `${system.starmap_position_left}%`, top: `${system.starmap_position_top}%` }"
+                      class="absolute w-[1.65%] h-auto aspect-[1/1]"
                     >
                       <Icon
                         :name="
@@ -127,155 +298,85 @@ useHead({
                         "
                         class="absolute z-10 w-full h-auto aspect-square"
                       />
-                      <div
-                        class="w-full h-full rounded-full aspect-[1/1] animate-pulse group-hover:animate-ping bg-aris-400/75 group-hover:bg-aris-400 blur-sm"
+                    </div>
+                    <div class="aspect-[3840/2655] w-full h-auto relative">
+                      <NuxtImg
+                        v-if="affiliations.includes('uee')"
+                        id="starmap-names-uee"
+                        src="fcbbe4f2-7bf2-49fc-828c-4037c47dafe3"
+                        :placeholder="[16, 16, 1, 5]"
+                        class="absolute top-0 left-0 pointer-events-none"
+                        @contextmenu.native="(e) => e.preventDefault()"
                       />
-                    </NuxtLink>
-                    <template #panel>
-                      <div class="items-center p-4 mx-auto">
-                        <NuxtImg
-                          :src="system?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
-                          :placeholder="[16, 16, 1, 5]"
-                          class="w-56 h-20 mx-auto border rounded border-btertiary"
-                          :class="{ 'object-cover': system.banner }"
-                        />
-                        <h3 class="mt-1.5 leading-4 text-aris-400">{{ system.name }}</h3>
-                        <hr
-                          class="-mx-1 mb-3 mt-2 relative bg-bprimary text-primary-400 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-                        />
-                        <div class="px-2 border rounded-lg bg-bprimary border-btertiary">
-                          <div class="p-2">
-                            <TableRow title="Zugehörigkeit">
-                              <span class="flex items-center gap-x-1 text-aris-400">
-                                {{
-                                  system.affiliation
-                                    ? system.affiliation === 'uee'
-                                      ? 'UEE'
-                                      : system.affiliation === 'in_development'
-                                        ? 'In Entwicklung'
-                                        : system.affiliation === 'unclaimed'
-                                          ? 'Nicht Beansprucht'
-                                          : system.affiliation === 'banu'
-                                            ? 'Banu'
-                                            : system.affiliation === 'xian'
-                                              ? `Xi'An`
-                                              : system.affiliation === 'vanduul' && 'Vanduul'
-                                    : null
-                                }}
-                                <Icon
-                                  :name="
-                                    'IconsNavigationStarmap' +
-                                    (system.affiliation === 'in_development'
-                                      ? 'Indevelopment'
-                                      : system.affiliation[0].toUpperCase() + system.affiliation.slice(1))
-                                  "
-                                />
-                              </span>
-                            </TableRow>
-                            <TableHr />
-                            <TableRow
-                              title="Planeten"
-                              :content="system.orbit.filter((e) => e.collection === 'planets').length"
-                            />
-                            <TableHr />
-                            <TableRow
-                              title="Jumppoints"
-                              :content="system.orbit.filter((e) => e.collection === 'jumppoints').length"
-                            />
-                            <TableHr />
-                            <TableRow
-                              title="Asteroidengürtel"
-                              :content="system.orbit.filter((e) => e.collection === 'asteroid_belts').length"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </template>
-                  </UPopover>
-                  <div
-                    v-for="system in systems.filter((e) => e.status !== 'published')"
-                    :key="system.id"
-                    :style="{ left: `${system.starmap_position_left}%`, top: `${system.starmap_position_top}%` }"
-                    class="absolute w-[1.65%] h-auto aspect-[1/1]"
-                  >
-                    <Icon
-                      :name="
-                        'IconsNavigationStarmap' +
-                        (system.affiliation === 'in_development'
-                          ? 'Indevelopment'
-                          : system.affiliation[0].toUpperCase() + system.affiliation.slice(1))
-                      "
-                      class="absolute z-10 w-full h-auto aspect-square"
-                    />
-                  </div>
-                  <div class="aspect-[3840/2655] w-full h-auto relative">
-                    <NuxtImg
-                      id="starmap-names-uee"
-                      src="fcbbe4f2-7bf2-49fc-828c-4037c47dafe3"
-                      :placeholder="[16, 16, 1, 5]"
-                      class="absolute top-0 left-0 pointer-events-none"
-                      @contextmenu.native="(e) => e.preventDefault()"
-                    />
-                    <NuxtImg
-                      id="starmap-names-banu"
-                      src="b25ab791-24ae-47f0-aecb-96e770d3235f"
-                      :placeholder="[16, 16, 1, 5]"
-                      class="absolute top-0 left-0 pointer-events-none"
-                      @contextmenu.native="(e) => e.preventDefault()"
-                    />
-                    <NuxtImg
-                      id="starmap-names-vanduul"
-                      src="7977fb47-9b37-4857-9f51-20d53680dfb5"
-                      :placeholder="[16, 16, 1, 5]"
-                      class="absolute top-0 left-0 pointer-events-none"
-                      @contextmenu.native="(e) => e.preventDefault()"
-                    />
-                    <NuxtImg
-                      id="starmap-names-xian"
-                      src="852522cb-8df8-4c22-801f-879b8424a5ef"
-                      :placeholder="[16, 16, 1, 5]"
-                      class="absolute top-0 left-0 pointer-events-none"
-                      @contextmenu.native="(e) => e.preventDefault()"
-                    />
-                    <NuxtImg
-                      id="starmap-names-unclaimed"
-                      src="b9b06b08-d3a4-4a24-8056-3425f3c85379"
-                      :placeholder="[16, 16, 1, 5]"
-                      class="absolute top-0 left-0 pointer-events-none"
-                      @contextmenu.native="(e) => e.preventDefault()"
-                    />
-                    <NuxtImg
-                      id="starmap-names-development"
-                      src="90bab722-42a9-4a83-b453-1552e7abda5d"
-                      :placeholder="[16, 16, 1, 5]"
-                      class="absolute top-0 left-0 pointer-events-none"
-                      @contextmenu.native="(e) => e.preventDefault()"
-                    />
-                    <NuxtImg
-                      id="starmap-jumppoints-small"
-                      src="fc7bd959-b2ff-466e-8445-2948e84735f3"
-                      :placeholder="[16, 16, 1, 5]"
-                      class="absolute top-0 left-0 pointer-events-none"
-                      @contextmenu.native="(e) => e.preventDefault()"
-                    />
-                    <NuxtImg
-                      id="starmap-jumppoints-medium"
-                      src="dd257e4a-36cd-4418-87d3-9465ab9c2f34"
-                      :placeholder="[16, 16, 1, 5]"
-                      class="absolute top-0 left-0 pointer-events-none"
-                      @contextmenu.native="(e) => e.preventDefault()"
-                    />
-                    <NuxtImg
-                      id="starmap-jumppoints-large"
-                      src="053d9d72-7519-461e-8a55-971f84927fd4"
-                      :placeholder="[16, 16, 1, 5]"
-                      class="absolute top-0 left-0 pointer-events-none"
-                      @contextmenu.native="(e) => e.preventDefault()"
-                    />
+                      <NuxtImg
+                        v-if="affiliations.includes('banu')"
+                        id="starmap-names-banu"
+                        src="b25ab791-24ae-47f0-aecb-96e770d3235f"
+                        :placeholder="[16, 16, 1, 5]"
+                        class="absolute top-0 left-0 pointer-events-none"
+                        @contextmenu.native="(e) => e.preventDefault()"
+                      />
+                      <NuxtImg
+                        v-if="affiliations.includes('vanduul')"
+                        id="starmap-names-vanduul"
+                        src="7977fb47-9b37-4857-9f51-20d53680dfb5"
+                        :placeholder="[16, 16, 1, 5]"
+                        class="absolute top-0 left-0 pointer-events-none"
+                        @contextmenu.native="(e) => e.preventDefault()"
+                      />
+                      <NuxtImg
+                        v-if="affiliations.includes('xian')"
+                        id="starmap-names-xian"
+                        src="852522cb-8df8-4c22-801f-879b8424a5ef"
+                        :placeholder="[16, 16, 1, 5]"
+                        class="absolute top-0 left-0 pointer-events-none"
+                        @contextmenu.native="(e) => e.preventDefault()"
+                      />
+                      <NuxtImg
+                        v-if="affiliations.includes('unclaimed')"
+                        id="starmap-names-unclaimed"
+                        src="b9b06b08-d3a4-4a24-8056-3425f3c85379"
+                        :placeholder="[16, 16, 1, 5]"
+                        class="absolute top-0 left-0 pointer-events-none"
+                        @contextmenu.native="(e) => e.preventDefault()"
+                      />
+                      <NuxtImg
+                        v-if="affiliations.includes('development')"
+                        id="starmap-names-development"
+                        src="90bab722-42a9-4a83-b453-1552e7abda5d"
+                        :placeholder="[16, 16, 1, 5]"
+                        class="absolute top-0 left-0 pointer-events-none"
+                        @contextmenu.native="(e) => e.preventDefault()"
+                      />
+                      <NuxtImg
+                        v-if="jumppoints.includes('small')"
+                        id="starmap-jumppoints-small"
+                        src="fc7bd959-b2ff-466e-8445-2948e84735f3"
+                        :placeholder="[16, 16, 1, 5]"
+                        class="absolute top-0 left-0 pointer-events-none"
+                        @contextmenu.native="(e) => e.preventDefault()"
+                      />
+                      <NuxtImg
+                        v-if="jumppoints.includes('medium')"
+                        id="starmap-jumppoints-medium"
+                        src="dd257e4a-36cd-4418-87d3-9465ab9c2f34"
+                        :placeholder="[16, 16, 1, 5]"
+                        class="absolute top-0 left-0 pointer-events-none"
+                        @contextmenu.native="(e) => e.preventDefault()"
+                      />
+                      <NuxtImg
+                        v-if="jumppoints.includes('large')"
+                        id="starmap-jumppoints-large"
+                        src="053d9d72-7519-461e-8a55-971f84927fd4"
+                        :placeholder="[16, 16, 1, 5]"
+                        class="absolute top-0 left-0 pointer-events-none"
+                        @contextmenu.native="(e) => e.preventDefault()"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </DefaultPanel>
+              </DefaultPanel>
+            </div>
           </div>
         </template>
         <template v-if="selectedTab === 1">

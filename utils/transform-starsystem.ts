@@ -1,9 +1,14 @@
 import transformStarsystem from './transform-starsystem';
+import transformPlanet from './transform-planet';
+import transformStar from './transform-star';
+import transformJumppoint from './transform-jumppoint';
+import transformAsteroidbelt from './transform-asteroidbelt';
 
 export default function (obj: any) {
   return {
     ...(obj.id && { id: obj.id }),
     ...(obj.banner && { banner: obj.banner }),
+    ...(obj.overview_image && { overview_image: obj.overview_image }),
     ...(obj.name && { name: obj.name }),
     ...(obj.slug && { slug: obj.slug }),
     ...(obj.content && { content: obj.content }),
