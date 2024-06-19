@@ -10,6 +10,7 @@ const { query } = useRoute();
 const dataRes = await readItems('systems', {
   fields: [
     'banner',
+    'overview_image',
     'name',
     'content',
     'affiliation',
@@ -361,47 +362,57 @@ definePageMeta({
       >
         <template #tabcontent>
           <div v-if="selectedMainTab === 0">
-            <TableParent v-if="true" title="Infobox" class="w-full mb-8 xl:ml-12 xl:float-right xl:w-1/2">
-              <TableHr><span class="text-xl text-industrial-400">Astronomisch</span></TableHr>
-              <TableRow v-if="data.size" title="Systemgröße" :content="data?.size" full-width />
-              <TableRow v-if="data.planets" title="Planeten" :content="data?.planets.length" full-width />
-              <TableRow
-                v-if="data.planets.map((obj: any) => obj.moons).length"
-                title="Monde"
-                :content="
-                  data.planets.map((obj: any) => obj.moons.length).reduce((sum: number, a: number) => sum + a, 0)
-                "
-                full-width
-              />
-              <TableRow
-                v-if="data.asteroid_belts"
-                title="Asteroidengürtel"
-                :content="data?.asteroid_belts.length"
-                full-width
-              />
-              <TableRow v-if="data.jumppoints" title="Jumppoints" :content="data?.jumppoints.length" full-width />
-              <TableHr><span class="text-xl text-industrial-400">Politik & Wirtschaft</span></TableHr>
-              <TableRow v-if="data.affiliation" title="Zugehörigkeit" full-width>
-                <span class="flex items-center gap-x-1 text-aris-400">
-                  {{ data.affiliation }}
-                  <Icon
-                    :name="
-                      'IconsNavigationStarmap' +
-                      (data.affiliation_value[0].toUpperCase() + data.affiliation_value.slice(1))
-                    "
-                  />
-                </span>
-              </TableRow>
-              <TableRow v-if="data.discovery_year" title="Entdeckungsjahr" :content="data.discovery_year" full-width />
-              <TableRow v-if="data.population" title="Bevölkerung" :content="data.population + ' / 10'" full-width />
-              <TableRow v-if="data.economy" title="Wirtschaft" :content="data.economy + ' / 10'" full-width />
-              <TableRow
-                v-if="data.danger_level"
-                title="Gefahrenstufe"
-                :content="data.danger_level + ' / 10'"
-                full-width
-              />
-            </TableParent>
+            <div class="grid gap-4 mb-8 xl:grid-cols-2">
+              <DefaultPanel class="w-full my-auto">
+                <NuxtImg :src="data?.overview_image" :placeholder="[16, 16, 1, 5]" class="object-cover w-full h-full" />
+              </DefaultPanel>
+              <TableParent v-if="true" title="Infobox" class="w-full" panel-classes="h-full">
+                <TableHr><span class="text-xl text-industrial-400">Astronomisch</span></TableHr>
+                <TableRow v-if="data.size" title="Systemgröße" :content="data?.size" full-width />
+                <TableRow v-if="data.planets" title="Planeten" :content="data?.planets.length" full-width />
+                <TableRow
+                  v-if="data.planets.map((obj: any) => obj.moons).length"
+                  title="Monde"
+                  :content="
+                    data.planets.map((obj: any) => obj.moons.length).reduce((sum: number, a: number) => sum + a, 0)
+                  "
+                  full-width
+                />
+                <TableRow
+                  v-if="data.asteroid_belts"
+                  title="Asteroidengürtel"
+                  :content="data?.asteroid_belts.length"
+                  full-width
+                />
+                <TableRow v-if="data.jumppoints" title="Jumppoints" :content="data?.jumppoints.length" full-width />
+                <TableHr><span class="text-xl text-industrial-400">Politik & Wirtschaft</span></TableHr>
+                <TableRow v-if="data.affiliation" title="Zugehörigkeit" full-width>
+                  <span class="flex items-center gap-x-1 text-aris-400">
+                    {{ data.affiliation }}
+                    <Icon
+                      :name="
+                        'IconsNavigationStarmap' +
+                        (data.affiliation_value[0].toUpperCase() + data.affiliation_value.slice(1))
+                      "
+                    />
+                  </span>
+                </TableRow>
+                <TableRow
+                  v-if="data.discovery_year"
+                  title="Entdeckungsjahr"
+                  :content="data.discovery_year"
+                  full-width
+                />
+                <TableRow v-if="data.population" title="Bevölkerung" :content="data.population + ' / 10'" full-width />
+                <TableRow v-if="data.economy" title="Wirtschaft" :content="data.economy + ' / 10'" full-width />
+                <TableRow
+                  v-if="data.danger_level"
+                  title="Gefahrenstufe"
+                  :content="data.danger_level + ' / 10'"
+                  full-width
+                />
+              </TableParent>
+            </div>
             <Editor :model-value="data.content" />
           </div>
           <div v-else-if="selectedMainTab === 1">
