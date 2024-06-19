@@ -4,6 +4,8 @@ import 'vue-timeline-chart/style.css';
 
 const { readAsyncItems } = useDirectusItems();
 const { readAsyncUsers } = useDirectusUsers();
+const modalStore = useModalStore();
+const { metaSymbol } = useShortcuts();
 
 const { data } = await readAsyncItems('timeline_items', {
   query: {
@@ -201,108 +203,207 @@ function selectPreviousItem() {
   selectedEvent.value = items[nextIndex];
 }
 
-console.log(items);
+function zoomIn() {
+  const newStart = viewport.value.start + 1000000000000;
+  const newEnd = viewport.value.end - 1000000000000;
+  if (newStart >= totalRange.value.start && newEnd <= totalRange.value.end) {
+    viewport.value.start = newStart;
+    viewport.value.end = newEnd;
+  }
+}
+
+function zoomOut() {
+  const newStart = viewport.value.start - 1000000000000;
+  const newEnd = viewport.value.end + 1000000000000;
+  if (newStart >= totalRange.value.start) {
+    viewport.value.start = newStart;
+  }
+  if (newEnd <= totalRange.value.end) {
+    viewport.value.end = newEnd;
+  }
+}
+
+function moveRight() {
+  const newStart = viewport.value.start + 1000000000000;
+  const newEnd = viewport.value.end + 1000000000000;
+  if (newStart >= totalRange.value.start && newEnd <= totalRange.value.end) {
+    viewport.value.start = newStart;
+    viewport.value.end = newEnd;
+  }
+}
+
+function moveLeft() {
+  const newStart = viewport.value.start - 1000000000000;
+  const newEnd = viewport.value.end - 1000000000000;
+  if (newStart >= totalRange.value.start && newEnd <= totalRange.value.end) {
+    viewport.value.start = newStart;
+    viewport.value.end = newEnd;
+  }
+}
+
 definePageMeta({
-  layout: 'verse-exkurs',
+  layout: false,
 });
-console.log(Timeline);
 </script>
 
 <template>
-  <div class="flex flex-col max-h-screen min-h-screen py-1">
-    <div class="relative flex-grow h-[calc(100vh_-_530px)]">
-      <div class="absolute top-0 bottom-0 my-auto -left-4 h-fit">
-        <button class="opacity-50 size-10 animate-link hover:opacity-100" @click="selectPreviousItem">
-          <UIcon name="i-heroicons-chevron-left-16-solid" class="size-full" />
-        </button>
-      </div>
-      <div class="absolute top-0 bottom-0 my-auto -right-4 h-fit">
-        <button class="opacity-50 size-10 animate-link hover:opacity-100" @click="selectNextItem">
-          <UIcon name="i-heroicons-chevron-right-16-solid" class="size-full" />
-        </button>
-      </div>
-      <div class="grid h-full max-h-full px-8 overflow-clip lg:grid-cols-2 gap-x-2 gap-y-4">
-        <div class="h-full overflow-y-auto">
-          <div class="flex text-industrial-400">
-            <p class="p-0">
-              {{
-                new Date(selectedEvent.start).toLocaleDateString('de-DE', {
-                  ...(selectedEvent.start_date.year && {
-                    year: 'numeric',
-                  }),
-                  ...(selectedEvent.start_date.month && {
-                    month: 'long',
-                  }),
-                  ...(selectedEvent.start_date.day && {
-                    day: 'numeric',
-                  }),
-                })
-              }}
-              <template v-if="selectedEvent.end">
-                <span class="text-tbase"> - </span>
-                {{
-                  selectedEvent.end_date.until_now
-                    ? 'Bis Heute'
-                    : new Date(selectedEvent.end).toLocaleDateString('de-DE', {
-                        ...(selectedEvent.end_date.year && {
-                          year: 'numeric',
-                        }),
-                        ...(selectedEvent.end_date.month && {
-                          month: 'long',
-                        }),
-                        ...(selectedEvent.end_date.day && {
-                          day: 'numeric',
-                        }),
-                      })
-                }}
-              </template>
+  <NuxtLayout name="verse-exkurs">
+    <template #modalContent>
+      <div class="p-4">
+        <p class="text-justify">
+          Hier kannst du die verschiedenen Ereignisse in der Geschichte von der ArisCorp und dem Verse erkunden.
+        </p>
+        <h3>Steuerung:</h3>
+        <h4>Desktop:</h4>
+        <ul>
+          <li>
+            <p>Klicke auf die verschiedenen Punkte und Zeiträume, um mehr Informationen zu erhalten.</p>
+          </li>
+          <li>
+            <p>Klicke auf die Pfeile im oberen Bereich, um zwischen den verschiedenen Ereignissen zu wechseln.</p>
+          </li>
+          <li>
+            <p>Halte <UKbd>Shift</UKbd> gedrückt und scrolle, um den Zeitraum zu vergrößern.</p>
+          </li>
+          <li>
+            <p>
+              Halte <UKbd>{{ metaSymbol }}</UKbd> gedrückt und scrolle, um den Zeitraum zu zoomen.
             </p>
-          </div>
-          <h1 class="text-left text-aris-400">{{ selectedEvent.title }}</h1>
-          <Editor :model-value="selectedEvent.description" read-only class="text-justify" />
-          <div v-if="selectedEvent.link">
-            <hr class="hr-short" />
-            <div class="animate-link w-fit">
-              <NuxtLink :to="selectedEvent.link">Mehr lesen</NuxtLink>
+          </li>
+        </ul>
+        <h4>Notebook:</h4>
+        <ul>
+          <li>
+            <p>Klicke auf die verschiedenen Punkte und Zeiträume, um mehr Informationen zu erhalten.</p>
+          </li>
+          <li>
+            <p>Klicke auf die Pfeile im oberen Bereich, um zwischen den verschiedenen Ereignissen zu wechseln.</p>
+          </li>
+          <li>
+            <p>Mit dem Touchpad kannst du ganz einfach pinch-to-zoom (mit 2 Fingern zoomen) nutzen.</p>
+          </li>
+          <li>
+            <p>
+              Mit dem Touchpad kannst du ganz einfach mit 2 Fingern nach links und rechts scrollen, um den Zeitraum zu
+              verschieben.
+            </p>
+          </li>
+        </ul>
+      </div>
+    </template>
+    <div class="flex flex-col max-h-screen min-h-screen py-1">
+      <div class="relative flex-grow h-[calc(100vh_-_530px)]">
+        <div class="absolute top-0 bottom-0 my-auto -left-4 h-fit">
+          <button class="opacity-50 size-10 animate-link hover:opacity-100" @click="selectPreviousItem">
+            <UIcon name="i-heroicons-chevron-left-16-solid" class="size-full" />
+          </button>
+        </div>
+        <div class="absolute top-0 bottom-0 my-auto -right-4 h-fit">
+          <button class="opacity-50 size-10 animate-link hover:opacity-100" @click="selectNextItem">
+            <UIcon name="i-heroicons-chevron-right-16-solid" class="size-full" />
+          </button>
+        </div>
+        <div class="grid h-full max-h-full px-8 overflow-clip lg:grid-cols-2 gap-x-2 gap-y-4">
+          <div class="h-full overflow-y-auto">
+            <div class="flex text-industrial-400">
+              <p class="p-0">
+                {{
+                  new Date(selectedEvent.start).toLocaleDateString('de-DE', {
+                    ...(selectedEvent.start_date.year && {
+                      year: 'numeric',
+                    }),
+                    ...(selectedEvent.start_date.month && {
+                      month: 'long',
+                    }),
+                    ...(selectedEvent.start_date.day && {
+                      day: 'numeric',
+                    }),
+                  })
+                }}
+                <template v-if="selectedEvent.end">
+                  <span class="text-tbase"> - </span>
+                  {{
+                    selectedEvent.end_date.until_now
+                      ? 'Bis Heute'
+                      : new Date(selectedEvent.end).toLocaleDateString('de-DE', {
+                          ...(selectedEvent.end_date.year && {
+                            year: 'numeric',
+                          }),
+                          ...(selectedEvent.end_date.month && {
+                            month: 'long',
+                          }),
+                          ...(selectedEvent.end_date.day && {
+                            day: 'numeric',
+                          }),
+                        })
+                  }}
+                </template>
+              </p>
+            </div>
+            <h1 class="text-left text-aris-400">{{ selectedEvent.title }}</h1>
+            <Editor :model-value="selectedEvent.description" read-only class="text-justify" />
+            <div v-if="selectedEvent.link">
+              <hr class="hr-short" />
+              <div class="animate-link w-fit">
+                <NuxtLink :to="selectedEvent.link">Mehr lesen</NuxtLink>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="max-h-full m-auto">
-          <NuxtImg
-            :src="selectedEvent.banner ?? '8436448c-0c93-430e-a2bf-34493dc15ca3'"
-            class="object-cover w-full h-full max-h-full"
-          />
+          <div class="max-h-full m-auto">
+            <NuxtImg
+              :src="selectedEvent.banner ?? '8436448c-0c93-430e-a2bf-34493dc15ca3'"
+              class="object-cover w-full h-full max-h-full"
+            />
+          </div>
         </div>
       </div>
+      <div class="flex my-2">
+        <hr />
+
+        <ButtonDefault class="mx-2" @click="modalStore.openModal('Hilfe', { hideCloseButton: true })">
+          <UIcon name="i-heroicons-information-circle" class="flex m-auto size-5" />
+        </ButtonDefault>
+        <ButtonDefault class="mx-2" @click="zoomOut">
+          <UIcon name="i-heroicons-magnifying-glass-minus-solid" class="flex m-auto size-5" />
+        </ButtonDefault>
+        <ButtonDefault class="mx-2" @click="zoomIn">
+          <UIcon name="i-heroicons-magnifying-glass-plus-solid" class="flex m-auto size-5" />
+        </ButtonDefault>
+        <ButtonDefault class="mx-2" @click="moveLeft">
+          <UIcon name="i-heroicons-chevron-double-left-solid" class="flex m-auto size-5" />
+        </ButtonDefault>
+        <ButtonDefault class="mx-2" @click="moveRight">
+          <UIcon name="i-heroicons-chevron-double-right-solid" class="flex m-auto size-5" />
+        </ButtonDefault>
+      </div>
+      <div>
+        <Timeline
+          v-if="items[0]"
+          :items="items"
+          :groups="groups"
+          :viewport-min="totalRange.start"
+          :viewport-max="totalRange.end"
+          :initial-viewport-start="viewport.start"
+          :initial-viewport-end="viewport.end"
+          :max-zoom-speed="20"
+          :active-items="[selectedEvent.id]"
+          class="ac-timeline"
+          @change-viewport="viewport = $event"
+          @click="(e) => e.item && (selectedEvent = e.item)"
+        />
+        <h5 class="mt-6 mb-2 test-industrial-500">Übersicht:</h5>
+        <Timeline
+          :items="[...items, { type: 'background', start: viewport.start, end: viewport.end }]"
+          :groups="groups.map((group) => ({ ...group, label: '' }))"
+          :viewport-min="totalRange.start"
+          :viewport-max="totalRange.end"
+          :min-viewport-duration="totalRange.end"
+          inert
+          class="map"
+        />
+      </div>
     </div>
-    <hr />
-    <div>
-      <Timeline
-        v-if="items[0]"
-        :items="items"
-        :groups="groups"
-        :viewport-min="totalRange.start"
-        :viewport-max="totalRange.end"
-        :initial-viewport-start="viewport.start"
-        :initial-viewport-end="viewport.end"
-        :max-zoom-speed="20"
-        :active-items="[selectedEvent.id]"
-        class="ac-timeline"
-        @change-viewport="viewport = $event"
-        @click="(e) => e.item && (selectedEvent = e.item)"
-      />
-      <h5 class="mt-6 mb-2 test-industrial-500">Übersicht:</h5>
-      <Timeline
-        :items="[...items, { type: 'background', start: viewport.start, end: viewport.end }]"
-        :groups="groups.map((group) => ({ ...group, label: '' }))"
-        :viewport-min="totalRange.start"
-        :viewport-max="totalRange.end"
-        :min-viewport-duration="totalRange.end"
-        inert
-        class="map"
-      />
-    </div>
-  </div>
+  </NuxtLayout>
 </template>
 
 <style lang="scss" scoped>
