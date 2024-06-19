@@ -5,11 +5,21 @@ defineProps({
     required: false,
     default: null,
   },
+  panelClasses: {
+    type: String,
+    required: false,
+    default: '',
+  },
+  innerClasses: {
+    type: String,
+    required: false,
+    default: '',
+  },
 });
 </script>
 
 <template>
-  <DefaultPanel>
+  <DefaultPanel :panel-classes="panelClasses" :inner-classes="innerClasses">
     <div class="grid px-4 py-3 xl:grid-cols-4 bg-bprimary">
       <p
         v-if="title"

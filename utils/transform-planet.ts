@@ -1,3 +1,8 @@
+import transformLandingZone from './transform-landing-zone';
+import transformMoon from './transform-moon';
+import transformPlanet from './transform-planet';
+import transformSpacestation from './transform-spacestation';
+
 export default function (obj: any) {
   const getType = () => {
     const typeMap: { [key: string]: string } = {

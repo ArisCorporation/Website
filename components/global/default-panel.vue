@@ -15,13 +15,23 @@ defineProps({
     required: false,
     default: false,
   },
+  panelClasses: {
+    type: String,
+    required: false,
+    default: '',
+  },
+  innerClasses: {
+    type: String,
+    required: false,
+    default: '',
+  },
 });
 </script>
 
 <template>
   <div class="wrapper">
-    <div class="panel" :class="['bg-' + bg, 'border-' + color]">
-      <div class="panel-inner" :class="{ 'overflow-clip': !overflow }">
+    <div class="panel" :class="['bg-' + bg, 'border-' + color, panelClasses]">
+      <div class="panel-inner" :class="[{ 'overflow-clip': !overflow }, innerClasses]">
         <slot />
       </div>
     </div>
