@@ -209,6 +209,12 @@ function zoomIn() {
   if (newStart >= totalRange.value.start && newEnd <= totalRange.value.end) {
     viewport.value.start = newStart;
     viewport.value.end = newEnd;
+  } else if (newStart < totalRange.value.start) {
+    viewport.value.start = totalRange.value.start;
+    viewport.value.end = totalRange.value.start + 1000000000000;
+  } else if (newEnd > totalRange.value.end) {
+    viewport.value.start = totalRange.value.end - 1000000000000;
+    viewport.value.end = totalRange.value.end;
   }
 }
 
@@ -217,9 +223,13 @@ function zoomOut() {
   const newEnd = viewport.value.end + 1000000000000;
   if (newStart >= totalRange.value.start) {
     viewport.value.start = newStart;
+  } else if (newStart <= totalRange.value.start) {
+    viewport.value.start = totalRange.value.start;
   }
   if (newEnd <= totalRange.value.end) {
     viewport.value.end = newEnd;
+  } else if (newEnd >= totalRange.value.end) {
+    viewport.value.end = totalRange.value.end;
   }
 }
 
@@ -229,6 +239,10 @@ function moveRight() {
   if (newStart >= totalRange.value.start && newEnd <= totalRange.value.end) {
     viewport.value.start = newStart;
     viewport.value.end = newEnd;
+  } else if (viewport.value.end + 1 < totalRange.value.end) {
+    const difference = viewport.value.end - viewport.value.start;
+    viewport.value.start = totalRange.value.end - difference;
+    viewport.value.end = totalRange.value.end;
   }
 }
 
@@ -238,6 +252,10 @@ function moveLeft() {
   if (newStart >= totalRange.value.start && newEnd <= totalRange.value.end) {
     viewport.value.start = newStart;
     viewport.value.end = newEnd;
+  } else if (viewport.value.start - 1 > totalRange.value.start) {
+    const difference = viewport.value.end - viewport.value.start;
+    viewport.value.start = totalRange.value.start;
+    viewport.value.end = totalRange.value.start + difference;
   }
 }
 
