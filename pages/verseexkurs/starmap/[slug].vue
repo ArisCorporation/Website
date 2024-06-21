@@ -363,7 +363,7 @@ definePageMeta({
         <template #tabcontent>
           <div v-if="selectedMainTab === 0">
             <div class="grid gap-4 mb-8 xl:grid-cols-2">
-              <DefaultPanel class="w-full my-auto">
+              <DefaultPanel class="mb-auto">
                 <NuxtImg :src="data?.overview_image" :placeholder="[16, 16, 1, 5]" class="object-cover w-full h-full" />
               </DefaultPanel>
               <TableParent v-if="true" title="Infobox" class="w-full" panel-classes="h-full">
