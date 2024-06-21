@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps(['editor']);
+defineProps(['editor', 'openLibrary']);
 </script>
 
 <template>
@@ -9,6 +9,7 @@ defineProps(['editor']);
     size="xs"
     :variant="editor?.isActive('video') ? 'solid' : 'ghost'"
     :color="editor?.isActive('video') ? 'primary' : 'white'"
+    @click="openLibrary"
   />
   <!-- @click="setVideo" -->
 </template>

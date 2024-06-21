@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps(['editor']);
+defineProps(['editor', 'openLibrary']);
 </script>
 
 <template>
@@ -9,6 +9,7 @@ defineProps(['editor']);
     size="xs"
     :variant="editor?.isActive('image') ? 'solid' : 'ghost'"
     :color="editor?.isActive('image') ? 'primary' : 'white'"
+    @click="openLibrary"
   />
   <!-- @click="setImage" -->
 </template>

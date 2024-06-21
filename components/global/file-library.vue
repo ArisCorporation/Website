@@ -6,54 +6,46 @@ interface Folder {
   children: Folder[];
 }
 
-const props = defineProps({
-  folder: {
-    type: String,
-    required: false,
-    default: null,
-  },
-});
-defineEmits(['folder-select']);
+defineEmits(['image-click']);
+
+const props = defineProps<{ grid?: string; type?: 'image' | 'video' | 'audio' }>();
 
 const { globals, url } = useDirectus();
-const { readFiles } = useDirectusFiles();
+const { readAsyncFiles } = useDirectusFiles();
 const active_folder = useState<Folder | null>('active_folder');
 
-const { data, refresh } = await useAsyncData(async () => {
-  const { data: newFolders } = await globals.fetch(url.href + 'folders?fields=*&sort=name');
-  const newFiles = await readFiles({
-    limit: -1,
-    filter: {
-      ...(props.folder !== 'all' && { folder: props.folder ? { _eq: props.folder } : { _null: true } }),
-    },
-  });
+const { data: folders } = await useAsyncData(() => globals.fetch(url.href + 'folders?fields=*&sort=name&limit=-1'), {
+  watch: [active_folder],
+  transform: (data) => {
+    const folders = data?.data;
+    folders.forEach((folder: any, index: number) => {
+      const childrenFolders = folders?.filter((e) => e.parent === folder.id);
+      folders[index] = { ...folder, children: childrenFolders };
+    });
 
-  newFolders.forEach((folder: any, index: number) => {
-    const childrenFolders = newFolders.filter((e) => e.parent === folder.id);
-    newFolders[index] = { ...folder, children: childrenFolders };
-  });
-
-  return {
-    folders: newFolders,
-    files: newFiles,
-  };
+    return folders;
+  },
 });
 
-const folders = computed(() => data.value?.folders);
-const files = computed(() => data.value?.files);
-
-watch(
-  () => props.folder,
-  async () => {
-    await refresh();
+const { data: files, refresh: frefresh } = await useAsyncData(
+  () =>
+    globals.fetch(
+      url.href +
+        `files?fields=*&limit=-1${active_folder.value?.id !== 'all' ? `&filter[folder]${active_folder.value?.id ? `[_eq]=${active_folder.value?.id}` : '[_null]'}` : ''}${props.type ? `&filter[type][_istarts_with]=${props.type}` : ''}`,
+    ),
+  {
+    watch: [active_folder],
+    transform: (data) => data?.data,
   },
 );
 
 const open = ref(false);
 </script>
 <template>
-  <div class="flex flex-row max-w-full py-2 border divide-x rounded border-bsecondary divide-bsecondary">
-    <div class="px-1 min-w-72">
+  <div
+    class="w-full max-w-full grid-cols-3 py-2 border divide-y rounded sm:divide-x sm:divide-y-0 sm:grid border-bsecondary divide-bsecondary"
+  >
+    <div class="px-1 pb-4 overflow-x-auto sm:pb-0">
       <ul class="pl-0 space-y-4 list-none">
         <li class="p-0">
           <div
@@ -78,6 +70,7 @@ const open = ref(false);
               v-for="folder in folders.filter((e) => !e.parent)"
               :key="folder.id"
               :folder="folder"
+              :folders="folders"
               :level="1"
             />
           </ul>
@@ -98,16 +91,17 @@ const open = ref(false);
         </li>
       </ul>
     </div>
-    <div class="flex-grow w-auto p-4 ml-2 min-h-max">
-      <div class="grid grid-cols-6 gap-4">
+    <div class="w-auto col-span-2 p-4 mx-2 sm:mr-0 min-h-max">
+      <div class="grid gap-4" :style="{ gridTemplateColumns: `repeat(${grid ?? 6}, minmax(0, 1fr))` }">
         <div
           v-for="file in files"
           :key="file.id"
-          class="w-full h-auto aspect-[1/1] bg-bsecondary rounded-xl overflow-clip"
+          class="w-full h-auto aspect-[1/1] bg-bsecondary rounded-xl overflow-clip cursor-pointer animate-link"
+          @click="() => $emit('image-click', file)"
         >
-          <NuxtImg v-if="file.type.startsWith('image')" :src="file.id" class="object-cover w-full h-full" />
+          <NuxtImg v-if="file.type?.startsWith('image')" :src="file.id" class="object-cover w-full h-full" />
           <video
-            v-else-if="file.type.startsWith('video')"
+            v-else-if="file.type?.startsWith('video')"
             :src="$config.public.fileBase + file.id + '#t=1.1'"
             class="object-cover w-full h-full rounded-xl"
           />

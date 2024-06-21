@@ -22,6 +22,6 @@ defineProps(['editor']);
     ]"
     :popper="{ placement: 'bottom-end' }"
   >
-    <UButton color="white" label="Objekte" trailing-icon="i-heroicons-chevron-down-20-solid" />
+    <UButton color="white" label="Einfügen" trailing-icon="i-heroicons-chevron-down-20-solid" />
   </UDropdown>
 </template>
