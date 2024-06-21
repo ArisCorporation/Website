@@ -3,6 +3,8 @@ import cheerio from 'cheerio';
 import { TiptapArisCorpPanel, TiptapArisCorpPanelWithBg, TiptapVideo } from '~/composables/tiptapExt';
 
 const fullscreen_state = ref(false);
+const fileLibrary = ref(false);
+const fileLibraryType = ref();
 
 const props = defineProps<{ modelValue: string; readOnly?: boolean }>();
 const { modelValue, readOnly } = toRefs(props);
@@ -81,6 +83,18 @@ function toggleFullscreen() {
   }
 }
 
+function onFileSelection(file: any) {
+  if (fileLibraryType.value === 'image') {
+    editor.value?.commands.setImage({
+      src: useRuntimeConfig().public.fileBase + file.id,
+      alt: useRuntimeConfig().public.fileBase + file.title,
+      title: useRuntimeConfig().public.fileBase + file.title,
+    });
+  } else if (fileLibraryType.value === 'video') {
+    editor.value?.commands.setVideo(useRuntimeConfig().public.fileBase + file.id);
+  }
+}
+
 watch(modelValue, (value) => {
   // HTML
   const isSame = editor?.value?.getHTML() === value;
@@ -106,6 +120,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
+    <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" />
     <div v-if="editor && !readOnly" id="editor_container">
       <UCard
         :ui="{
@@ -155,8 +170,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex flex-row py-2 gap-x-6">
               <div class="flex flex-row gap-x-2">
-                <EditorButtonSubscript :editor="editor" />
                 <EditorButtonSuperscript :editor="editor" />
+                <EditorButtonSubscript :editor="editor" />
               </div>
               <EditorButtonBlockquote :editor="editor" />
               <div class="flex flex-row gap-x-2">
@@ -173,8 +188,24 @@ onBeforeUnmount(() => {
               <EditorButtonDivider :editor="editor" />
               <EditorButtonLink :editor="editor" />
               <div class="flex flex-row gap-x-2">
-                <EditorButtonImage :editor="editor" />
-                <EditorButtonVideo :editor="editor" />
+                <EditorButtonImage
+                  :editor="editor"
+                  :open-library="
+                    () => {
+                      fileLibrary = true;
+                      fileLibraryType = 'image';
+                    }
+                  "
+                />
+                <EditorButtonVideo
+                  :editor="editor"
+                  :open-library="
+                    () => {
+                      fileLibrary = true;
+                      fileLibraryType = 'video';
+                    }
+                  "
+                />
               </div>
               <EditorButtonTable :editor="editor" />
               <EditorButtonComponents :editor="editor" />
@@ -209,8 +240,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <div class="flex flex-row gap-x-2">
-                <EditorButtonSubscript :editor="editor" />
                 <EditorButtonSuperscript :editor="editor" />
+                <EditorButtonSubscript :editor="editor" />
               </div>
               <EditorButtonBlockquote :editor="editor" />
               <div class="flex flex-row gap-x-2">
@@ -220,8 +251,24 @@ onBeforeUnmount(() => {
               <EditorButtonDivider :editor="editor" />
               <EditorButtonLink :editor="editor" />
               <div class="flex flex-row gap-x-2">
-                <EditorButtonImage :editor="editor" />
-                <EditorButtonVideo :editor="editor" />
+                <EditorButtonImage
+                  :editor="editor"
+                  :open-library="
+                    () => {
+                      fileLibrary = true;
+                      fileLibraryType = 'image';
+                    }
+                  "
+                />
+                <EditorButtonVideo
+                  :editor="editor"
+                  :open-library="
+                    () => {
+                      fileLibrary = true;
+                      fileLibraryType = 'video';
+                    }
+                  "
+                />
               </div>
               <EditorButtonTable :editor="editor" />
               <EditorButtonComponents :editor="editor" />
@@ -249,8 +296,8 @@ onBeforeUnmount(() => {
                 <EditorButtonClearFormatting :editor="editor" />
               </div>
               <div class="flex flex-row gap-x-2">
-                <EditorButtonSubscript :editor="editor" />
                 <EditorButtonSuperscript :editor="editor" />
+                <EditorButtonSubscript :editor="editor" />
               </div>
               <EditorButtonBlockquote :editor="editor" />
               <div class="flex flex-row gap-x-2">
@@ -267,8 +314,24 @@ onBeforeUnmount(() => {
               <EditorButtonDivider :editor="editor" />
               <EditorButtonLink :editor="editor" />
               <div class="flex flex-row gap-x-2">
-                <EditorButtonImage :editor="editor" />
-                <EditorButtonVideo :editor="editor" />
+                <EditorButtonImage
+                  :editor="editor"
+                  :open-library="
+                    () => {
+                      fileLibrary = true;
+                      fileLibraryType = 'image';
+                    }
+                  "
+                />
+                <EditorButtonVideo
+                  :editor="editor"
+                  :open-library="
+                    () => {
+                      fileLibrary = true;
+                      fileLibraryType = 'video';
+                    }
+                  "
+                />
               </div>
               <EditorButtonTable :editor="editor" />
               <EditorButtonComponents :editor="editor" />
@@ -296,8 +359,8 @@ onBeforeUnmount(() => {
                 <EditorButtonClearFormatting :editor="editor" />
               </div>
               <div class="flex flex-row gap-x-2">
-                <EditorButtonSubscript :editor="editor" />
                 <EditorButtonSuperscript :editor="editor" />
+                <EditorButtonSubscript :editor="editor" />
               </div>
               <EditorButtonBlockquote :editor="editor" />
               <div class="flex flex-row gap-x-2">
@@ -307,8 +370,24 @@ onBeforeUnmount(() => {
               <EditorButtonDivider :editor="editor" />
               <EditorButtonLink :editor="editor" />
               <div class="flex flex-row gap-x-2">
-                <EditorButtonImage :editor="editor" />
-                <EditorButtonVideo :editor="editor" />
+                <EditorButtonImage
+                  :editor="editor"
+                  :open-library="
+                    () => {
+                      fileLibrary = true;
+                      fileLibraryType = 'image';
+                    }
+                  "
+                />
+                <EditorButtonVideo
+                  :editor="editor"
+                  :open-library="
+                    () => {
+                      fileLibrary = true;
+                      fileLibraryType = 'video';
+                    }
+                  "
+                />
               </div>
               <EditorButtonTable :editor="editor" />
               <EditorButtonComponents :editor="editor" />

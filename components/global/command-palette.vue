@@ -8,6 +8,8 @@ const { readUsers } = useDirectusUsers();
 
 // const commandPaletteRef = ref();
 
+// Add all pages and actions/commands
+
 const pages = [
   {
     id: 'homepage',
@@ -55,6 +57,17 @@ const ams_commands = [
     icon: 'i-heroicons-document-plus',
     to: '/ams/hangar#add',
     // shortcuts: [metaSymbol, 'N'],
+  },
+];
+
+const ams_pages = [
+  {
+    id: 'ams-profile',
+    label: 'Profil',
+    avatar: {
+      src: useRuntimeConfig().public.fileBase + useDirectusAuth().user?.value?.avatar,
+    },
+    to: '/ams/profile',
   },
 ];
 
@@ -111,6 +124,7 @@ const groups = computed(() => [
     commands,
   },
   ...(useDirectusAuth().user.value ? [{ key: 'amsCommands', commands: ams_commands, label: 'A.M.S. Aktionen' }] : []),
+  ...(useDirectusAuth().user.value ? [{ key: 'amsCommands', commands: ams_pages, label: 'A.M.S. Seiten' }] : []),
   {
     key: 'employees',
     label: (q) => q && `Mitarbeiter passend zu “${q}”...`,

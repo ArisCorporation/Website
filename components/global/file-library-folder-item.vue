@@ -16,6 +16,10 @@ defineProps({
     type: Number,
     required: true,
   },
+  folders: {
+    type: Array,
+    required: true,
+  },
 });
 const active_folder = useState<Folder | null>('active_folder');
 const open = ref(false);
@@ -30,7 +34,7 @@ const open = ref(false);
         <UIcon name="i-heroicons-folder" class="my-auto size-5" />
         <p class="p-0">{{ folder.name }}</p>
       </div>
-      <div class="relative my-auto size-5 animate-link">
+      <div v-if="folders?.find((e) => e.parent === folder.id)" class="relative my-auto size-5 animate-link">
         <UIcon
           name="i-heroicons-chevron-down-20-solid"
           class="w-full h-full transition-transform duration-300"
@@ -41,7 +45,13 @@ const open = ref(false);
     </div>
     <template v-if="folder.children && folder.children.length > 0">
       <ul v-if="open" class="pt-2 space-y-2 list-none">
-        <FileLibraryFolderItem v-for="child in folder.children" :key="child.id" :folder="child" :level="level + 1" />
+        <FileLibraryFolderItem
+          v-for="child in folder.children"
+          :key="child.id"
+          :folder="child"
+          :folders="folders"
+          :level="level + 1"
+        />
       </ul>
     </template>
   </li>
