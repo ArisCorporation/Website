@@ -6,6 +6,9 @@ const { readAsyncItems } = useDirectusItems();
 const { readAsyncUsers } = useDirectusUsers();
 const modalStore = useModalStore();
 const { metaSymbol } = useShortcuts();
+const timeline = ref(null);
+let isDraggingMapViewport = false;
+let previousDragTimePos = 0;
 
 const { data } = await readAsyncItems('timeline_items', {
   query: {
@@ -259,6 +262,53 @@ function moveLeft() {
   }
 }
 
+function handleViewportDrag({ time, event, item }) {
+  switch (event.type) {
+    case 'pointerdown':
+      if (item?.id !== 'selection') {
+        return;
+      }
+      console.log('pointerdown');
+
+      isDraggingMapViewport = true;
+      previousDragTimePos = time;
+      break;
+    case 'pointermove': {
+      if (!isDraggingMapViewport) {
+        return;
+      }
+      console.log('pointermove');
+
+      const delta = time - previousDragTimePos;
+      const length = viewport.value.end - viewport.value.start;
+      if (delta < 0) {
+        viewport.value.start = Math.max(viewport.value.start + delta, totalRange.value.start);
+        viewport.value.end = viewport.value.start + length;
+      } else {
+        viewport.value.end = Math.min(viewport.value.end + delta, totalRange.value.end);
+        viewport.value.start = viewport.value.end - length;
+      }
+      previousDragTimePos = time;
+
+      break;
+    }
+  }
+}
+
+function onMapWheel(event) {
+  timeline.value?.onWheel(event);
+}
+
+onMounted(() =>
+  window.addEventListener(
+    'pointerup',
+    () => {
+      isDraggingMapViewport = false;
+    },
+    { capture: true },
+  ),
+);
+
 definePageMeta({
   layout: false,
 });
@@ -271,8 +321,7 @@ definePageMeta({
         <p class="text-justify">
           Hier kannst du die verschiedenen Ereignisse in der Geschichte von der ArisCorp und dem Verse erkunden.
         </p>
-        <h3>Steuerung:</h3>
-        <h4>Desktop:</h4>
+        <h3>Allgemeine Steuerung:</h3>
         <ul>
           <li>
             <p>Klicke auf die verschiedenen Punkte und Zeiträume, um mehr Informationen zu erhalten.</p>
@@ -280,6 +329,13 @@ definePageMeta({
           <li>
             <p>Klicke auf die Pfeile im oberen Bereich, um zwischen den verschiedenen Ereignissen zu wechseln.</p>
           </li>
+          <li>
+            <p>Du kannst die aktuelle Ansicht in der Map greifen und herumschieben um zu navigieren.</p>
+          </li>
+        </ul>
+        <h3>Spezifische Steuerung:</h3>
+        <h4>Desktop:</h4>
+        <ul>
           <li>
             <p>Halte <UKbd>Shift</UKbd> gedrückt und scrolle, um den Zeitraum zu vergrößern.</p>
           </li>
@@ -291,12 +347,6 @@ definePageMeta({
         </ul>
         <h4>Notebook:</h4>
         <ul>
-          <li>
-            <p>Klicke auf die verschiedenen Punkte und Zeiträume, um mehr Informationen zu erhalten.</p>
-          </li>
-          <li>
-            <p>Klicke auf die Pfeile im oberen Bereich, um zwischen den verschiedenen Ereignissen zu wechseln.</p>
-          </li>
           <li>
             <p>Mit dem Touchpad kannst du ganz einfach pinch-to-zoom (mit 2 Fingern zoomen) nutzen.</p>
           </li>
@@ -397,6 +447,7 @@ definePageMeta({
       <div>
         <Timeline
           v-if="items[0]"
+          ref="timeline"
           :items="items"
           :groups="groups"
           :viewport-min="totalRange.start"
@@ -409,15 +460,17 @@ definePageMeta({
           @change-viewport="viewport = $event"
           @click="(e) => e.item && (selectedEvent = e.item)"
         />
-        <h5 class="mt-6 mb-2 test-industrial-500">Übersicht:</h5>
+        <h5 class="mt-6 mb-2 test-industrial-500">Map:</h5>
         <Timeline
-          :items="[...items, { type: 'background', start: viewport.start, end: viewport.end }]"
+          :items="[...items, { id: 'selection', type: 'background', start: viewport.start, end: viewport.end }]"
           :groups="groups.map((group) => ({ ...group, label: '' }))"
           :viewport-min="totalRange.start"
           :viewport-max="totalRange.end"
           :min-viewport-duration="totalRange.end"
-          inert
           class="map"
+          @pointermove="handleViewportDrag"
+          @pointerdown="handleViewportDrag"
+          @wheel="onMapWheel"
         />
       </div>
     </div>
@@ -431,22 +484,29 @@ definePageMeta({
   }
 }
 .map {
-  --group-items-height: 0.25em;
+  --group-items-height: 0.5em;
   --group-border-top: 0;
   --label-padding: 0;
-  --group-padding-top: 0.05em;
-  --group-padding-bottom: 0.05em;
+  --group-padding-top: 0.1em;
+  --group-padding-bottom: 0.1em;
 
   :deep(.group:first-of-type) {
     padding-top: 1rem;
   }
 
-  :deep(.group:nth-of-type(5)) {
+  :deep(.group:nth-of-type(3)) {
     padding-bottom: 1rem;
   }
 
   :deep(.background) {
     --item-background: color-mix(in srgb, currentcolor, transparent 90%);
+
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  :deep(.item) {
+    pointer-events: none;
   }
 }
 </style>
