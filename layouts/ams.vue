@@ -50,6 +50,11 @@ const sidebarItems = [
 
 const sidebarUserItems = [
   {
+    name: 'Nachrichten',
+    icon: 'heroicons:envelope-16-solid',
+    link: '/messages',
+  },
+  {
     name: 'Mein Hangar',
     icon: 'IconsNavigationHangar',
     link: '/hangar',

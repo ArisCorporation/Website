@@ -6,7 +6,7 @@ const fullscreen_state = ref(false);
 const fileLibrary = ref(false);
 const fileLibraryType = ref();
 
-const props = defineProps<{ modelValue: string; readOnly?: boolean }>();
+const props = defineProps<{ modelValue: string; readOnly?: boolean; simpleMode?: boolean }>();
 const { modelValue, readOnly } = toRefs(props);
 const emit = defineEmits(['update:modelValue']);
 
@@ -95,6 +95,8 @@ function onFileSelection(file: any) {
   }
 }
 
+const editorHeight = computed(() => (props.simpleMode ? '100%' : 'auto'));
+
 watch(modelValue, (value) => {
   // HTML
   const isSame = editor?.value?.getHTML() === value;
@@ -119,9 +121,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div>
+  <div :class="{ 'h-full': simpleMode }">
     <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" />
-    <div v-if="editor && !readOnly" id="editor_container">
+    <div v-if="editor && !readOnly && !simpleMode" id="editor_container">
       <UCard
         :ui="{
           header: { background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
@@ -131,7 +133,7 @@ onBeforeUnmount(() => {
         }"
         class="overflow-clip"
       >
-        <template #header>
+        <template v-if="!hideButtons" #header>
           <div class="flex flex-row justify-between py-2 gap-x-2">
             <EditorButtonType :editor="editor" />
             <div class="flex flex-row gap-x-2">
@@ -428,13 +430,16 @@ onBeforeUnmount(() => {
         </template>
       </UCard>
     </div>
-    <div v-else-if="editor && readOnly">
-      <TiptapEditorContent :editor="editor" />
-    </div>
+    <template v-else-if="editor">
+      <TiptapEditorContent :editor="editor" :class="{ 'h-full': simpleMode }" />
+    </template>
   </div>
 </template>
 
 <style>
+.tiptap {
+  height: v-bind('editorHeight');
+}
 .tiptap:focus {
   outline: none;
   border: none;

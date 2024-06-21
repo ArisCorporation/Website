@@ -38,6 +38,7 @@ export default defineNuxtConfig({
     'nuxt-lodash',
     'nuxt-tiptap-editor',
     'nuxt-resend',
+    'radix-vue/nuxt',
     // '@nuxt/test-utils/module',
     // 'nuxt-markdown-render',
   ],

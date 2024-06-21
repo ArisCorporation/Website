@@ -1178,7 +1178,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/dom@npm:^1.5.1":
+"@floating-ui/dom@npm:^1.5.1, @floating-ui/dom@npm:^1.6.1, @floating-ui/dom@npm:^1.6.5":
   version: 1.6.5
   resolution: "@floating-ui/dom@npm:1.6.5"
   dependencies:
@@ -1197,10 +1197,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/utils@npm:^0.2.0":
+"@floating-ui/utils@npm:^0.2.0, @floating-ui/utils@npm:^0.2.1":
   version: 0.2.2
   resolution: "@floating-ui/utils@npm:0.2.2"
   checksum: 10c0/b2becdcafdf395af1641348da0031ff1eaad2bc60c22e14bd3abad4acfe2c8401e03097173d89a2f646a99b75819a78ef21ebb2572cab0042a56dd654b0065cd
+  languageName: node
+  linkType: hard
+
+"@floating-ui/vue@npm:^1.0.6":
+  version: 1.0.6
+  resolution: "@floating-ui/vue@npm:1.0.6"
+  dependencies:
+    "@floating-ui/dom": "npm:^1.6.1"
+    "@floating-ui/utils": "npm:^0.2.1"
+    vue-demi: "npm:>=0.13.0"
+  checksum: 10c0/ed9fcf76a8ad1c5ed28260753dec37928358cd475b61cb64503609a88d9b815f7836266a1402b1cfc9cf1f6ac25818c1bc42ba1285a5e1dc36e58f709edc0276
   languageName: node
   linkType: hard
 
@@ -1384,6 +1395,24 @@ __metadata:
   peerDependencies:
     vue: ">=3"
   checksum: 10c0/53ef92a1f02230fe3a4c1d178fff29f14c3392707e74ccf8611cdc1c9f0193d5c26c4cd95ea05e358baf4842f585fad1b809601319e0e2ce5200586f94ba8f70
+  languageName: node
+  linkType: hard
+
+"@internationalized/date@npm:^3.5.4":
+  version: 3.5.4
+  resolution: "@internationalized/date@npm:3.5.4"
+  dependencies:
+    "@swc/helpers": "npm:^0.5.0"
+  checksum: 10c0/4e1fe3e2ad1719390e9b859ee23e8b7e9315ddfc2a0fcf446d8954a5b41147a4bed025f9d9718e0d4a6f097407af87ac0bdea3879d23d2a84757dd5aa5b9edf8
+  languageName: node
+  linkType: hard
+
+"@internationalized/number@npm:^3.5.3":
+  version: 3.5.3
+  resolution: "@internationalized/number@npm:3.5.3"
+  dependencies:
+    "@swc/helpers": "npm:^0.5.0"
+  checksum: 10c0/dd1bb4e89c6468b97e8357e1ba0a60234bd2c8226f3241c4c7499e5b1791ba0574127ea6de0fd6c4158e2ceef564bba6531a8f5589e58b820df669e312500f99
   languageName: node
   linkType: hard
 
@@ -3446,6 +3475,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/helpers@npm:^0.5.0":
+  version: 0.5.11
+  resolution: "@swc/helpers@npm:0.5.11"
+  dependencies:
+    tslib: "npm:^2.4.0"
+  checksum: 10c0/7d1987ee6b887277d373a9be8c445cd2259c3258c08b16908c06864121fd8eac8bb89b179c91b6c5395f38194a903b5772575947c7eb3ca23285152cb0f66caa
+  languageName: node
+  linkType: hard
+
 "@swc/wasm@npm:^1.3.91":
   version: 1.6.3
   resolution: "@swc/wasm@npm:1.6.3"
@@ -3503,6 +3541,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/virtual-core@npm:3.7.0":
+  version: 3.7.0
+  resolution: "@tanstack/virtual-core@npm:3.7.0"
+  checksum: 10c0/898c16555ccd419151cc2b7232f22d679679588fd66287f87c237028abd1eafb6a0566e7e6515de094f5f30d1d3cb4f063cc878637e453c5704cdc661945c351
+  languageName: node
+  linkType: hard
+
 "@tanstack/vue-virtual@npm:^3.0.0-beta.60":
   version: 3.5.1
   resolution: "@tanstack/vue-virtual@npm:3.5.1"
@@ -3511,6 +3556,17 @@ __metadata:
   peerDependencies:
     vue: ^2.7.0 || ^3.0.0
   checksum: 10c0/f5ac83ff5285384be3f6a3c2c44af6d6df45b357d0d171ec6b8335a374752d28b545cdb79475c1b50d903715c19a61177b44d915138f72acb8e528de95047a63
+  languageName: node
+  linkType: hard
+
+"@tanstack/vue-virtual@npm:^3.5.0":
+  version: 3.7.0
+  resolution: "@tanstack/vue-virtual@npm:3.7.0"
+  dependencies:
+    "@tanstack/virtual-core": "npm:3.7.0"
+  peerDependencies:
+    vue: ^2.7.0 || ^3.0.0
+  checksum: 10c0/29e2e4302097a7e92184e8f5f9c1344dbcb40e44338296ceec3cefbd35784d4bc768c5c2da97623b19ffb27c6c52f69d782f2489181c92cdb141c78b187e8251
   languageName: node
   linkType: hard
 
@@ -5453,7 +5509,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vueuse/core@npm:10.11.0, @vueuse/core@npm:^10.11.0, @vueuse/core@npm:^10.7.0, @vueuse/core@npm:^10.9.0":
+"@vueuse/core@npm:10.11.0, @vueuse/core@npm:^10.11.0, @vueuse/core@npm:^10.5.0, @vueuse/core@npm:^10.7.0, @vueuse/core@npm:^10.9.0":
   version: 10.11.0
   resolution: "@vueuse/core@npm:10.11.0"
   dependencies:
@@ -5546,7 +5602,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vueuse/shared@npm:10.11.0":
+"@vueuse/shared@npm:10.11.0, @vueuse/shared@npm:^10.5.0":
   version: 10.11.0
   resolution: "@vueuse/shared@npm:10.11.0"
   dependencies:
@@ -6052,6 +6108,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"aria-hidden@npm:^1.2.3":
+  version: 1.2.4
+  resolution: "aria-hidden@npm:1.2.4"
+  dependencies:
+    tslib: "npm:^2.0.0"
+  checksum: 10c0/8abcab2e1432efc4db415e97cb3959649ddf52c8fc815d7384f43f3d3abf56f1c12852575d00df9a8927f421d7e0712652dd5f8db244ea57634344e29ecfc74a
+  languageName: node
+  linkType: hard
+
 "aria-query@npm:^5.3.0":
   version: 5.3.0
   resolution: "aria-query@npm:5.3.0"
@@ -6118,6 +6183,7 @@ __metadata:
     nuxt-tiptap-editor: "npm:^1.1.0"
     pinia-plugin-persistedstate: "npm:^3.2.1"
     prettier: "npm:^3.1.0"
+    radix-vue: "npm:^1.8.4"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     setprototypeof: "npm:^1.2.0"
@@ -13777,7 +13843,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^5.0.7":
+"nanoid@npm:^5.0.6, nanoid@npm:^5.0.7":
   version: 5.0.7
   resolution: "nanoid@npm:5.0.7"
   bin:
@@ -16615,6 +16681,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"radix-vue@npm:^1.8.4":
+  version: 1.8.4
+  resolution: "radix-vue@npm:1.8.4"
+  dependencies:
+    "@floating-ui/dom": "npm:^1.6.5"
+    "@floating-ui/vue": "npm:^1.0.6"
+    "@internationalized/date": "npm:^3.5.4"
+    "@internationalized/number": "npm:^3.5.3"
+    "@tanstack/vue-virtual": "npm:^3.5.0"
+    "@vueuse/core": "npm:^10.5.0"
+    "@vueuse/shared": "npm:^10.5.0"
+    aria-hidden: "npm:^1.2.3"
+    defu: "npm:^6.1.4"
+    fast-deep-equal: "npm:^3.1.3"
+    nanoid: "npm:^5.0.6"
+  peerDependencies:
+    vue: ">= 3.2.0"
+  checksum: 10c0/52fac4a79cee2f3d33f6ed8bf7b2c97b94018a8534196bbecc301b23ed2e02ba41ad07fec8bb7c9ef9dd1b5226cac5010e2467bd4be08c3655230218b277ab88
+  languageName: node
+  linkType: hard
+
 "radix3@npm:^1.1.2":
   version: 1.1.2
   resolution: "radix3@npm:1.1.2"
@@ -18863,7 +18950,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.3, tslib@npm:^2.6.2":
+"tslib@npm:^2.0.0, tslib@npm:^2.0.3, tslib@npm:^2.4.0, tslib@npm:^2.6.2":
   version: 2.6.3
   resolution: "tslib@npm:2.6.3"
   checksum: 10c0/2598aef53d9dbe711af75522464b2104724d6467b26a60f2bdac8297d2b5f1f6b86a71f61717384aa8fd897240467aaa7bcc36a0700a0faf751293d1331db39a
@@ -19936,7 +20023,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue-demi@npm:>=0.14.5, vue-demi@npm:>=0.14.8, vue-demi@npm:^0.14.7":
+"vue-demi@npm:>=0.13.0, vue-demi@npm:>=0.14.5, vue-demi@npm:>=0.14.8, vue-demi@npm:^0.14.7":
   version: 0.14.8
   resolution: "vue-demi@npm:0.14.8"
   peerDependencies:

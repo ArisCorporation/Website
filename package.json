@@ -75,6 +75,7 @@
     "nuxt-resend": "^0.0.2",
     "nuxt-tiptap-editor": "^1.1.0",
     "pinia-plugin-persistedstate": "^3.2.1",
+    "radix-vue": "^1.8.4",
     "setprototypeof": "^1.2.0",
     "shepherd.js": "^11.2.0",
     "tailwindcss": "^3.4.3",
