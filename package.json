@@ -19,6 +19,7 @@
   "devDependencies": {
     "@iconify/json": "^2.2.191",
     "@nuxt/devtools": "latest",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/node": "^18.17.5",
     "@vue/cli-service": "^5.0.8",
     "axe-core": "^4.8.2",
