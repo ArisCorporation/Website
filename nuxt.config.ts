@@ -40,7 +40,7 @@ export default defineNuxtConfig({
     // '@nuxt/test-utils/module',
     // 'nuxt-markdown-render',
     'nuxt-resend',
-    "@nuxt/eslint"
+    '@nuxt/eslint',
   ],
   // plugins: ['~/plugins/vue-cropper.ts'],
 
@@ -95,6 +95,16 @@ export default defineNuxtConfig({
         project: 'homepage',
       }),
     ],
+    extend(config, { isClient }) {
+      // Exclude .node files from the Rollup plugin
+      config.optimizeDeps.exclude = ['@sentry/profiling-node'];
+      config.build.rollupOptions = {
+        external: ['@sentry/profiling-node'],
+        plugins: [
+          // Add plugins if necessary to handle or ignore .node files
+        ],
+      };
+    },
   },
 
   components: [
@@ -167,7 +177,7 @@ export default defineNuxtConfig({
 
   eslint: {
     config: {
-      stylistic: true
-    }
-  }
+      stylistic: true,
+    },
+  },
 });
