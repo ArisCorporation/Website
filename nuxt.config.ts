@@ -37,9 +37,10 @@ export default defineNuxtConfig({
     'dayjs-nuxt',
     'nuxt-lodash',
     'nuxt-tiptap-editor',
-    'nuxt-resend',
     // '@nuxt/test-utils/module',
     // 'nuxt-markdown-render',
+    'nuxt-resend',
+    "@nuxt/eslint"
   ],
   // plugins: ['~/plugins/vue-cropper.ts'],
 
@@ -163,4 +164,10 @@ export default defineNuxtConfig({
     baseUrl: process.env.NUXT_PUBLIC_FILE_BASE,
     autoImport: true,
   },
+
+  eslint: {
+    config: {
+      stylistic: true
+    }
+  }
 });
