@@ -6187,6 +6187,7 @@ __metadata:
     "@nuxtjs/tailwindcss": "npm:^6.12.0"
     "@pinia-plugin-persistedstate/nuxt": "npm:^1.2.0"
     "@pinia/nuxt": "npm:^0.5.1"
+    "@rollup/plugin-node-resolve": "npm:^15.2.3"
     "@sentry/node": "npm:^7.110.1"
     "@sentry/profiling-node": "npm:^7.110.1"
     "@sentry/vite-plugin": "npm:^2.16.1"
