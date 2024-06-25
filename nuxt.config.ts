@@ -1,6 +1,7 @@
 import { defineNuxtConfig } from 'nuxt/config';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { version } from './package.json';
+import ignore from 'rollup-plugin-ignore';
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
 export default defineNuxtConfig({
@@ -95,15 +96,13 @@ export default defineNuxtConfig({
         project: 'homepage',
       }),
     ],
-    extend(config, { isClient }) {
-      // Exclude .node files from the Rollup plugin
-      config.optimizeDeps.exclude = ['@sentry/profiling-node'];
-      config.build.rollupOptions = {
-        external: ['@sentry/profiling-node'],
-        plugins: [
-          // Add plugins if necessary to handle or ignore .node files
-        ],
-      };
+    optimizeDeps: {
+      exclude: ['@sentry/profiling-node'],
+    },
+    build: {
+      rollupOptions: {
+        plugins: [ignore(['*.node'])],
+      },
     },
   },
 
