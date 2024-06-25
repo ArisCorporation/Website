@@ -1,8 +1,6 @@
 import { defineNuxtConfig } from 'nuxt/config';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { version } from './package.json';
-import ignore from 'rollup-plugin-ignore';
-import nodeResolve from '@rollup/plugin-node-resolve';
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
 export default defineNuxtConfig({
@@ -96,20 +94,7 @@ export default defineNuxtConfig({
         org: 'ariscorp',
         project: 'homepage',
       }),
-      ignore(['*.node']), // Ignore .node files
-      nodeResolve({
-        extensions: ['.js', '.json', '.node'], // Handle .node files as external
-      }),
     ],
-    optimizeDeps: {
-      exclude: ['@sentry/profiling-node'],
-    },
-    build: {
-      rollupOptions: {
-        plugins: [ignore(['*.node'])],
-        external: (id) => id.endsWith('.node'), // Treat .node files as external
-      },
-    },
   },
 
   components: [
