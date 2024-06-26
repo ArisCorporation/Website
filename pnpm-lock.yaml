@@ -26,6 +26,9 @@ importers:
       '@pinia/nuxt':
         specifier: ^0.5.1
         version: 0.5.1(magicast@0.3.4)(rollup@4.18.0)(typescript@5.5.2)(vue@3.4.30(typescript@5.5.2))
+      '@vue-email/render':
+        specifier: ^0.0.9
+        version: 0.0.9(typescript@5.5.2)
       '@vueuse/core':
         specifier: ^10.11.0
         version: 10.11.0(vue@3.4.30(typescript@5.5.2))
@@ -36,7 +39,7 @@ importers:
         specifier: ^1.7.2
         version: 1.7.2
       cheerio:
-        specifier: ^1.0.0-rc.12
+        specifier: 1.0.0-rc.12
         version: 1.0.0-rc.12
       nuxt:
         specifier: ^3.12.2
@@ -64,7 +67,7 @@ importers:
         version: 0.4.0
     devDependencies:
       '@pinia-plugin-persistedstate/nuxt':
-        specifier: ^1.2.0
+        specifier: ^1.2.1
         version: 1.2.1(@pinia/nuxt@0.5.1(magicast@0.3.4)(rollup@4.18.0)(typescript@5.5.2)(vue@3.4.30(typescript@5.5.2)))(magicast@0.3.4)(pinia@2.1.7(typescript@5.5.2)(vue@3.4.30(typescript@5.5.2)))(rollup@4.18.0)
       '@sentry/node':
         specifier: ^8.12.0
@@ -2081,6 +2084,10 @@ packages:
 
   '@vue-email/nuxt@0.8.19':
     resolution: {integrity: sha512-Ymg3NW9evqSzddTyN+TeDYkbu23z+l6FIvmE2JFYusZGKrSQ4bi8ol5jAR5zIrqXprKN9tSxCFFNpi5TLNBl4g==}
+
+  '@vue-email/render@0.0.9':
+    resolution: {integrity: sha512-FShvnLSoys3y+30uIO4ZuBSsXKGaj/VOB+CfNxhgxLmFsLbwKwUZQgJVAmXviuuSC5xpWQCOEPQ8P7oEEYa0WA==}
+    engines: {node: '>=18.0.0'}
 
   '@vue-email/tailwind@0.0.6':
     resolution: {integrity: sha512-+t3yC1ym2fwa2KexOvdMDgB1Thpj3dcmMEztjSj6fa2tcuWmj/fTn+5yskzjtrokyqtc4dAqe7Da7uj1/j+dww==}
@@ -8738,6 +8745,14 @@ snapshots:
       - typescript
       - utf-8-validate
       - vue
+
+  '@vue-email/render@0.0.9(typescript@5.5.2)':
+    dependencies:
+      html-to-text: 9.0.5
+      js-beautify: 1.15.1
+      vue: 3.4.30(typescript@5.5.2)
+    transitivePeerDependencies:
+      - typescript
 
   '@vue-email/tailwind@0.0.6':
     dependencies:

@@ -1,21 +1,21 @@
-import { useCompiler } from '#vue-email';
+import { render } from '@vue-email/render';
+import mailTemplate from '~/emails/reset-pw.vue';
 
 export default defineEventHandler(async (event: any) => {
   const body = await readBody(event);
   const { emails } = useResend();
-  const template = await useCompiler('reset-pw.vue', {
-    props: {
-      username: body.username,
-      token: body.token,
-      datetime: new Date().toString(),
-    },
+
+  const html = await render(mailTemplate, {
+    username: body.username,
+    token: body.token,
+    datetime: new Date().toString(),
   });
 
   const response = await emails.send({
     from: 'ArisCorp Management System <ams@ariscorp.de>',
     to: body.to,
     subject: 'Passwort zurücksetzen',
-    html: template.html,
+    html: html,
   });
 
   return response;
