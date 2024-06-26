@@ -58,6 +58,7 @@ export default defineNuxtConfig({
     'nuxt-headlessui',
     'nuxt-lodash',
     'nuxt-resend',
+    '@nuxthub/core',
   ],
   // plugins: ['~/plugins/vue-cropper.ts'],
 
