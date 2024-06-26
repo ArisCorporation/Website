@@ -107,14 +107,14 @@ let items = data.value.map((item) => ({
         end: new Date(new Date().getFullYear() + 930, new Date().getMonth(), new Date().getDate()).getTime(),
       }
     : item.dates.length === 2
-      ? {
-          end: new Date(
-            item.dates.find((e) => e.type === 'end')?.year,
-            item.dates.find((e) => e.type === 'end')?.month ?? 0,
-            item.dates.find((e) => e.type === 'end')?.day ?? 1,
-          ).getTime(),
-        }
-      : {}),
+    ? {
+        end: new Date(
+          item.dates.find((e) => e.type === 'end')?.year,
+          item.dates.find((e) => e.type === 'end')?.month ?? 0,
+          item.dates.find((e) => e.type === 'end')?.day ?? 1,
+        ).getTime(),
+      }
+    : {}),
   start_date: item.dates.find((e) => e.type === 'start'),
   end_date: item.dates.find((e) => e.type === 'end'),
   title: item.title,
@@ -126,31 +126,31 @@ let items = data.value.map((item) => ({
       item.category === 'ariscorp_timeline'
         ? '#00ffe8'
         : item.category === 'verse_timeline'
-          ? '#1d4ed8'
-          : item.category === 'one_day_in_history'
-            ? '#16a34a'
-            : item.category === 'company_founding'
-              ? '#dc2626'
-              : item.category === 'epoch'
-                ? '#eaa75f'
-                : '',
+        ? '#1d4ed8'
+        : item.category === 'one_day_in_history'
+        ? '#16a34a'
+        : item.category === 'company_founding'
+        ? '#dc2626'
+        : item.category === 'epoch'
+        ? '#eaa75f'
+        : '',
   },
   link:
     item.linked_item[0]?.collection === 'systems'
       ? `/verseexkurs/starmap/${item.linked_item[0]?.item?.slug}`
       : item.linked_item[0]?.collection === 'companies'
-        ? `/verseexkurs/companies/${item.linked_item[0]?.item?.slug}`
-        : item.linked_item[0]?.collection === 'literature_categories'
-          ? `/verseexkurs/literatures/${item.linked_item[0]?.item?.slug}`
-          : item.linked_item[0]?.collection === 'fractions'
-            ? `/verseexkurs/fractions/${item.linked_item[0]?.item?.slug}`
-            : item.linked_item[0]?.collection === 'spectrum_categories'
-              ? `/verseexkurs/spectrum/${item.linked_item[0]?.item?.slug}`
-              : item.linked_item[0]?.collection === 'ships'
-                ? `/shipexkurs/ships/${item.linked_item[0]?.item?.slug}`
-                : item.linked_item[0]?.collection === 'spectrum_threads'
-                  ? `/verseexkurs/spectrum/${item.linked_item[0]?.item?.category?.slug}/${item.linked_item[0]?.item?.slug}`
-                  : null,
+      ? `/verseexkurs/companies/${item.linked_item[0]?.item?.slug}`
+      : item.linked_item[0]?.collection === 'literature_categories'
+      ? `/verseexkurs/literatures/${item.linked_item[0]?.item?.slug}`
+      : item.linked_item[0]?.collection === 'fractions'
+      ? `/verseexkurs/fractions/${item.linked_item[0]?.item?.slug}`
+      : item.linked_item[0]?.collection === 'spectrum_categories'
+      ? `/verseexkurs/spectrum/${item.linked_item[0]?.item?.slug}`
+      : item.linked_item[0]?.collection === 'ships'
+      ? `/shipexkurs/ships/${item.linked_item[0]?.item?.slug}`
+      : item.linked_item[0]?.collection === 'spectrum_threads'
+      ? `/verseexkurs/spectrum/${item.linked_item[0]?.item?.category?.slug}/${item.linked_item[0]?.item?.slug}`
+      : null,
 }));
 
 items.push(
@@ -160,7 +160,9 @@ items.push(
     type: 'point',
     start: new Date(user.birthdate).getTime(),
     title: `${user.full_name}${user.full_name.endsWith('s') ? "'" : "'s"} Geburtstag`,
-    description: `${user.full_name} wurde am ${new Date(user.birthdate).toLocaleDateString()}${user.birthplace ? ` in der Stadt: ${user.birthplace.name}` : ''} geboren.`,
+    description: `${user.full_name} wurde am ${new Date(user.birthdate).toLocaleDateString()}${
+      user.birthplace ? ` in der Stadt: ${user.birthplace.name}` : ''
+    } geboren.`,
     banner: user.avatar,
     cssVariables: { '--item-background': '#00ffe8' },
     link: `/biography/${user.slug}`,
