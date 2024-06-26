@@ -1,5 +1,5 @@
 import { defineNuxtConfig } from 'nuxt/config';
-// import { sentryVitePlugin } from '@sentry/vite-plugin';
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { version } from './package.json';
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
@@ -112,6 +112,12 @@ export default defineNuxtConfig({
   //     }),
   //   ],
   // },
+
+  nitro: {
+    rollupConfig: {
+      plugins: [vue()],
+    },
+  },
 
   components: [
     // For All Components
