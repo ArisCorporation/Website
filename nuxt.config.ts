@@ -1,5 +1,5 @@
 import { defineNuxtConfig } from 'nuxt/config';
-import { sentryVitePlugin } from '@sentry/vite-plugin';
+// import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { version } from './package.json';
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
@@ -20,27 +20,43 @@ export default defineNuxtConfig({
   },
   css: ['~/assets/css/main.css', '~/assets/css/tailwind.css'],
 
+  // modules: [
+  //   '@vueuse/nuxt',
+  //   '@nuxt/image',
+  //   'nuxt-icon',
+  //   'nuxt-headlessui',
+  //   'nuxt-directus-next',
+  //   // '@nuxt/content',
+  //   '@nuxtjs/mdc',
+  //   '@pinia/nuxt',
+  //   // '@vueuse/motion/nuxt',
+  //   '@pinia-plugin-persistedstate/nuxt',
+  //   '@vue-email/nuxt',
+  //   // '@nuxtjs/tailwindcss',
+  //   '@nuxt/ui',
+  //   'dayjs-nuxt',
+  //   'nuxt-lodash',
+  //   'nuxt-tiptap-editor',
+  //   // '@nuxt/test-utils/module',
+  //   // 'nuxt-markdown-render',
+  //   'nuxt-resend',
+  //   '@nuxt/eslint',
+  // ],
   modules: [
-    '@vueuse/nuxt',
-    '@nuxt/image',
-    'nuxt-icon',
-    'nuxt-headlessui',
-    'nuxt-directus-next',
-    // '@nuxt/content',
-    '@nuxtjs/mdc',
-    '@pinia/nuxt',
-    // '@vueuse/motion/nuxt',
-    '@pinia-plugin-persistedstate/nuxt',
-    '@vue-email/nuxt',
-    // '@nuxtjs/tailwindcss',
+    // '@vue-email/nuxt',
     '@nuxt/ui',
-    'dayjs-nuxt',
-    'nuxt-lodash',
-    'nuxt-tiptap-editor',
-    // '@nuxt/test-utils/module',
-    // 'nuxt-markdown-render',
-    'nuxt-resend',
+    'nuxt-directus-next',
     '@nuxt/eslint',
+    '@nuxt/image',
+    '@pinia/nuxt',
+    '@pinia-plugin-persistedstate/nuxt',
+    'nuxt-tiptap-editor',
+    '@vueuse/nuxt',
+    'dayjs-nuxt',
+    '@nuxt/icon',
+    'nuxt-headlessui',
+    'nuxt-lodash',
+    'nuxt-resend',
   ],
   // plugins: ['~/plugins/vue-cropper.ts'],
 
@@ -70,32 +86,32 @@ export default defineNuxtConfig({
     },
   },
 
-  imports: {
-    presets: [
-      {
-        from: '@sentry/vue',
-        imports: [
-          {
-            as: 'Sentry',
-            name: '*',
-          },
-        ],
-      },
-    ],
-  },
+  // imports: {
+  //   presets: [
+  //     {
+  //       from: '@sentry/vue',
+  //       imports: [
+  //         {
+  //           as: 'Sentry',
+  //           name: '*',
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // },
 
   // SENTRY CONFIG
-  sourcemap: true,
-  vite: {
-    plugins: [
-      // Put the Sentry vite plugin after all other plugins
-      sentryVitePlugin({
-        authToken: process.env.SENTRY_AUTH_TOKEN,
-        org: 'ariscorp',
-        project: 'homepage',
-      }),
-    ],
-  },
+  // sourcemap: true,
+  // vite: {
+  //   plugins: [
+  //     // Put the Sentry vite plugin after all other plugins
+  //     sentryVitePlugin({
+  //       authToken: process.env.SENTRY_AUTH_TOKEN,
+  //       org: 'ariscorp',
+  //       project: 'homepage',
+  //     }),
+  //   ],
+  // },
 
   components: [
     // For All Components
@@ -160,10 +176,10 @@ export default defineNuxtConfig({
     prefix: 'Tiptap', // prefix for Tiptap imports, composables not included
   },
 
-  vueEmail: {
-    baseUrl: process.env.NUXT_PUBLIC_FILE_BASE,
-    autoImport: true,
-  },
+  // vueEmail: {
+  //   baseUrl: process.env.NUXT_PUBLIC_FILE_BASE,
+  //   autoImport: true,
+  // },
 
   eslint: {
     config: {
