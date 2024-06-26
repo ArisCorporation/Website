@@ -1,6 +1,6 @@
 {
   "name": "ariscorp-homepage",
-  "version": "4.0-PRE",
+  "version": "4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -54,6 +54,7 @@
     "nuxt-directus-next": "^0.0.15",
     "nuxt-headlessui": "^1.2.0",
     "nuxt-lodash": "^2.5.3",
-    "nuxt-resend": "^0.0.2"
+    "nuxt-resend": "^0.0.2",
+    "sass": "^1.77.6"
   }
 }
