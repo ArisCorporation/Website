@@ -10,7 +10,7 @@ const route = useRoute();
 const { query } = route;
 const config = useRuntimeConfig();
 const redirectUri = ref(
-  route.query.redirect?.toString() ? decodeURIComponent(route.query.redirect.toString()) : '/ams',
+  route.query.redirect?.toString() ? route.query.redirect : '/ams',
 );
 
 const state: { username: string; password: string } = reactive({
@@ -113,12 +113,12 @@ useHead({
 
 definePageMeta({
   layout: false,
-  middleware: async function (to, _from) {
-    const { user } = await useDirectusAuth();
-    if (user.value) {
-      return navigateTo(to.query.redirect ? decodeURIComponent(to.query.redirect as string) : '/ams');
-    }
-  },
+  // middleware: async function (to, _from) {
+  //   const { user } = await useDirectusAuth();
+  //   if (user.value) {
+  //     return navigateTo(to.query.redirect ? decodeURIComponent(to.query.redirect as string) : '/ams');
+  //   }
+  // },
 });
 </script>
 
@@ -128,20 +128,8 @@ definePageMeta({
       <h6>DEV TOOLS:</h6>
       <code class="block pb-1">Form: {{ form }}</code>
       <code class="block">State: {{ state }}</code>
-      <code class="block">
-        <button
-          @click="
-            async () => {
-              await login('dev@ariscorp.de', 'dev');
-              router.push(redirectUri);
-            }
-          "
-        >
-          Fast-Login
-        </button>
-      </code>
       <code class="block">Background: {{ wallpaper }}</code>
-      <code class="block">Redirect: {{ decodeURIComponent(String(route.query.redirect)) }}</code>
+      <code class="block">Redirect: {{ route.query.redirect }}</code>
       <code class="block"
         >Select Background:
         <div class="flex justify-between space-x-6">
@@ -174,6 +162,7 @@ definePageMeta({
           @submit="onSubmit"
         >
           <h2 class="mt-0 text-center">Log In</h2>
+          <span>{{ redirectUri }}</span>
           <UFormGroup
             :ui="{ error: '-mb-8 pt-1 text-red-500 dark:text-red-400' }"
             required
