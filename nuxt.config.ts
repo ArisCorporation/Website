@@ -43,7 +43,7 @@ export default defineNuxtConfig({
   //   '@nuxt/eslint',
   // ],
   modules: [
-    // '@vue-email/nuxt',
+    '@vue-email/nuxt',
     '@nuxt/ui',
     'nuxt-directus-next',
     '@nuxt/eslint',
