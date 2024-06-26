@@ -1,22 +1,23 @@
 <script setup lang="ts">
-const state = defineModel<boolean>();
-const modalStore = useModalStore();
+const state = defineModel<boolean>()
+const modalStore = useModalStore()
 
-const props = defineProps<{ modelValue: any; big?: boolean }>();
-const hasVModel = computed(() => props.modelValue !== undefined);
+const props = defineProps<{ modelValue: any, big?: boolean }>()
+const hasVModel = computed(() => props.modelValue !== undefined)
 
 const open = computed<boolean>({
   get(): boolean {
-    return hasVModel.value ? state.value : modalStore.isSlideOpen;
+    return hasVModel.value ? state.value : modalStore.isSlideOpen
   },
   set(value: boolean) {
     if (hasVModel.value) {
-      state.value = value;
-    } else {
-      modalStore.isSlideOpen = value;
+      state.value = value
+    }
+    else {
+      modalStore.isSlideOpen = value
     }
   },
-});
+})
 </script>
 
 <template>
@@ -40,7 +41,10 @@ const open = computed<boolean>({
             divide: 'divide-y divide-btertiary',
           }"
         >
-          <template #header>
+          <template
+            v-if="$slots.slideHeader"
+            #header
+          >
             <!-- TODO: Styling -->
             <!-- <button
               class="absolute flex items-center w-8 h-8 cursor-pointer focus:outline-none"
@@ -54,7 +58,10 @@ const open = computed<boolean>({
             <slot name="slideHeader" />
           </template>
           <slot name="slideContent" />
-          <template #footer>
+          <template
+            v-if="$slots.slideFooter"
+            #footer
+          >
             <slot name="slideFooter" />
           </template>
         </UCard>

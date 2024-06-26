@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import cheerio from 'cheerio';
-import { TiptapArisCorpPanel, TiptapArisCorpPanelWithBg, TiptapVideo } from '~/composables/tiptapExt';
+import cheerio from 'cheerio'
+import { TiptapArisCorpPanel, TiptapArisCorpPanelWithBg, TiptapVideo } from '~/composables/tiptapExt'
 
-const fullscreen_state = ref(false);
-const fileLibrary = ref(false);
-const fileLibraryType = ref();
+const fullscreen_state = ref(false)
+const fileLibrary = ref(false)
+const fileLibraryType = ref()
 
-const props = defineProps<{ modelValue: string; readOnly?: boolean }>();
-const { modelValue, readOnly } = toRefs(props);
-const emit = defineEmits(['update:modelValue']);
+const props = defineProps<{ modelValue: string, readOnly?: boolean }>()
+const { modelValue, readOnly } = toRefs(props)
+const emit = defineEmits(['update:modelValue'])
 
 function removeParagraphsAroundVideos(htmlString) {
   // if (!htmlString) return htmlString;
 
-  const $ = cheerio.load(htmlString);
+  const $ = cheerio.load(htmlString)
 
   $('p > video').each((_, el) => {
-    const video = $(el);
-    const parent = video.parent();
-    parent.before(video);
-    parent.remove();
-  });
+    const video = $(el)
+    const parent = video.parent()
+    parent.before(video)
+    parent.remove()
+  })
 
-  return $.html();
+  return $.html()
 }
 
 const editor = useEditor({
@@ -60,26 +60,28 @@ const editor = useEditor({
   ],
 
   onUpdate: () => {
-    emit('update:modelValue', unref(editor).getHTML());
+    emit('update:modelValue', unref(editor).getHTML())
   },
-});
+})
 
 function fullscreenchanged(event) {
   // document.fullscreenElement will point to the element that
   // is in fullscreen mode if there is one. If there isn't one,
   // the value of the property is null.
   if (document.fullscreenElement) {
-    fullscreen_state.value = true;
-  } else {
-    fullscreen_state.value = false;
+    fullscreen_state.value = true
+  }
+  else {
+    fullscreen_state.value = false
   }
 }
 function toggleFullscreen() {
-  const fullscreen = document.querySelector('#editor_container');
+  const fullscreen = document.querySelector('#editor_container')
   if (!fullscreen_state.value) {
-    fullscreen?.requestFullscreen();
-  } else {
-    document.exitFullscreen();
+    fullscreen?.requestFullscreen()
+  }
+  else {
+    document.exitFullscreen()
   }
 }
 
@@ -89,39 +91,47 @@ function onFileSelection(file: any) {
       src: useRuntimeConfig().public.fileBase + file.id,
       alt: useRuntimeConfig().public.fileBase + file.title,
       title: useRuntimeConfig().public.fileBase + file.title,
-    });
-  } else if (fileLibraryType.value === 'video') {
-    editor.value?.commands.setVideo(useRuntimeConfig().public.fileBase + file.id);
+    })
+  }
+  else if (fileLibraryType.value === 'video') {
+    editor.value?.commands.setVideo(useRuntimeConfig().public.fileBase + file.id)
   }
 }
 
 watch(modelValue, (value) => {
   // HTML
-  const isSame = editor?.value?.getHTML() === value;
+  const isSame = editor?.value?.getHTML() === value
 
   // JSON
   // const isSame = JSON.stringify(this.editor.getJSON()) === JSON.stringify(value)
 
   if (isSame) {
-    return;
+    return
   }
 
-  editor?.value?.commands.setContent(value, false);
-});
+  editor?.value?.commands.setContent(value, false)
+})
 
 // base: 'max-h-[calc(100dvh_-_300px)] sm:max-h-[calc(100dvh_-_250px)] xl:max-h-[calc(100dvh_-_200px)] overflow-y-scroll',
 onMounted(() => {
-  document.addEventListener('fullscreenchange', fullscreenchanged);
-});
+  document.addEventListener('fullscreenchange', fullscreenchanged)
+})
 onBeforeUnmount(() => {
-  unref(editor).destroy();
-});
+  unref(editor).destroy()
+})
 </script>
 
 <template>
   <div>
-    <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" />
-    <div v-if="editor && !readOnly" id="editor_container">
+    <EditorFileLibrary
+      v-model="fileLibrary"
+      :file-types="fileLibraryType"
+      @file-selection="onFileSelection"
+    />
+    <div
+      v-if="editor && !readOnly"
+      id="editor_container"
+    >
       <UCard
         :ui="{
           header: { background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
@@ -137,13 +147,16 @@ onBeforeUnmount(() => {
             <div class="flex flex-row gap-x-2">
               <EditorButtonUndo :editor="editor" />
               <EditorButtonRedo :editor="editor" />
-              <EditorButtonFullscreen :fullscreen_toggle="toggleFullscreen" :fullscreen_state="fullscreen_state" />
+              <EditorButtonFullscreen
+                :fullscreen_toggle="toggleFullscreen"
+                :fullscreen_state="fullscreen_state"
+              />
             </div>
           </div>
           <div class="flex -mx-2.5">
             <hr
               class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-            />
+            >
           </div>
           <div class="sm:hidden">
             <div class="flex flex-row justify-between py-2 gap-x-2">
@@ -166,7 +179,7 @@ onBeforeUnmount(() => {
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
                 @click="editor.chain().focus().setColor"
-              />
+              >
             </div>
             <div class="flex flex-row py-2 gap-x-6">
               <div class="flex flex-row gap-x-2">
@@ -182,7 +195,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <EditorButtonDivider :editor="editor" />
@@ -213,7 +226,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
           </div>
           <div class="hidden sm:block md:hidden">
@@ -236,7 +249,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <div class="flex flex-row gap-x-2">
@@ -276,7 +289,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
           </div>
           <div class="hidden md:block xl:hidden">
@@ -308,7 +321,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <EditorButtonDivider :editor="editor" />
@@ -339,7 +352,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
           </div>
           <div class="hidden xl:block">
@@ -395,13 +408,16 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
           </div>
         </template>
 
         <div class="">
-          <TiptapEditorContent :editor="editor" class="" />
+          <TiptapEditorContent
+            :editor="editor"
+            class=""
+          />
         </div>
 
         <template #footer>
