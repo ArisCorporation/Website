@@ -1,7 +1,7 @@
-import { defineNuxtConfig } from 'nuxt/config';
+import { defineNuxtConfig } from 'nuxt/config'
 // import { sentryVitePlugin } from '@sentry/vite-plugin';
-import vue from '@vitejs/plugin-vue';
-import { version } from './package.json';
+import vue from '@vitejs/plugin-vue'
+import { version } from './package.json'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
 export default defineNuxtConfig({
@@ -157,8 +157,6 @@ export default defineNuxtConfig({
         to: ['/ams'],
       },
     },
-    // cookieNameToken: 'ams_token',
-    // cookieNameRefreshToken: 'ams_refresh_token',
   },
 
   headlessui: {
@@ -191,7 +189,10 @@ export default defineNuxtConfig({
 
   eslint: {
     config: {
-      stylistic: true,
+      stylistic: {
+        indent: 'tab',
+        semi: false,
+      },
     },
   },
-});
+})
