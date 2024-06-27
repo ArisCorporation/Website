@@ -90,6 +90,10 @@ export default defineNuxtConfig({
 		},
 	},
 
+	build: {
+		target: 'es2020',
+	},
+
 	// imports: {
 	//   presets: [
 	//     {
