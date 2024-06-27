@@ -1,17 +1,17 @@
 <script setup lang="ts">
-const state = defineModel<boolean>()
+const state = ref(false) // Use ref for reactive state instead of defineModel
 const modalStore = useModalStore()
 
 const props = defineProps<{ modelValue: any, big?: boolean }>()
 const hasVModel = computed(() => props.modelValue !== undefined)
 
-const open = computed<boolean>({
+const open = computed({
 	get(): boolean {
-		return hasVModel?.value ? state?.value : modalStore.isSlideOpen
+		return hasVModel.value ? props.modelValue : modalStore.isSlideOpen
 	},
 	set(value: boolean) {
-		if (hasVModel?.value) {
-			state.value = value
+		if (hasVModel.value) {
+			emit('update:modelValue', value) // Emit event for v-model update
 		}
 		else {
 			modalStore.isSlideOpen = value
