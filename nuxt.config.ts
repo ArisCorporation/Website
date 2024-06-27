@@ -117,10 +117,7 @@ export default defineNuxtConfig({
 	//   ],
 	// },
 
-	sourcemap: {
-		client: true,
-		server: true,
-	},
+	sourcemap: true,
 
 	nitro: {
 		rollupConfig: {
@@ -187,11 +184,6 @@ export default defineNuxtConfig({
 
 	tiptap: {
 		prefix: 'Tiptap', // prefix for Tiptap imports, composables not included
-	},
-
-	vueEmail: {
-	  baseUrl: process.env.NUXT_PUBLIC_FILE_BASE,
-	  autoImport: true,
 	},
 
 	eslint: {
