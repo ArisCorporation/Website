@@ -65,6 +65,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     authSecret: process.env.NUXT_AUTH_SECRET,
     // cmsToken: process.env.NUXT_CMS_TOKEN,
+    discordBotToken: process.env.NUXT_DISCORD_BOT_TOKEN,
+    discordGuildId: process.env.NUXT_DISCORD_GUILD_ID,
     public: {
       appVersion: version,
       buildNumber: process.env.COMMIT_REF || process.env.NUXT_PUBLIC_BUILD_NUMBER,

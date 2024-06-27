@@ -1,72 +1,111 @@
 <script setup lang="ts">
-import { object, string, number, boolean, type InferType } from 'yup';
-import type { FormSubmitEvent } from '#ui/types';
-const { updateUser } = useDirectusUsers();
-const modalStore = useModalStore();
+import { object, string, number, boolean, type InferType } from 'yup'
+import type { FormSubmitEvent } from '#ui/types'
 
-const user = transformUser(await useDirectusAuth().readMe());
+const { updateUser } = useDirectusUsers()
+const modalStore = useModalStore()
+const config = useRuntimeConfig()
 
-const form = ref();
+const user = transformUser(await useDirectusAuth().readMe())
+
+type discordMember = {
+  id: string
+  label: string
+  global_name: string | null
+  username: string | null
+  nick: string | null
+  avatar: {
+    src: string
+  }
+}
+
+const discordMembers: discordMember[] = await useFetch('/api/ams/notifications/discord/getMembers').then((data: { data: { value: discordMember[] } }) => {
+  return data.data.value
+})
+
+const form = ref()
 const schema = object({
   contact_email: string().email('Keine gültige Email-Adresse angegeben!').nullable(),
   discord_name: string().nullable(),
-});
+})
 
-type Schema = InferType<typeof schema>;
+type Schema = InferType<typeof schema>
 
 const formdata = reactive({
   contact_email: user.contact_email || '',
   discord_name: user.discord_name || '',
-});
-const initialFormdata = reactive({ ...formdata });
+  discord_user: discordMembers.find(e => e.id === user.discord_id) || null,
+})
+const initialFormdata = reactive({ ...formdata })
 
-const discord_id = ref(user.discord_id || '');
+const discord_id = ref(user.discord_id || '')
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  const userId = user.id;
-  const updatedUser = {};
+  const userId = user.id
+  const updatedUser = {}
 
   for (const key in formdata) {
     if (formdata[key as keyof typeof formdata] !== initialFormdata[key as keyof typeof initialFormdata]) {
-      updatedUser[key as keyof typeof updatedUser] = formdata[key as keyof typeof formdata];
+      updatedUser[key as keyof typeof updatedUser] = formdata[key as keyof typeof formdata]
     }
   }
 
+  updatedUser.discord_id = updatedUser.discord_user?.id
+
+  delete updatedUser.discord_user
+  delete updatedUser.discord_name
+
+  console.log(updatedUser)
+
   if (Object.keys(updatedUser).length === 0) {
-    return;
+    return
   }
 
   try {
-    const new_data = await updateUser(userId, updatedUser, { limit: -1 });
+    const new_data = await updateUser(userId, updatedUser, { limit: -1 })
 
     for (const key in formdata) {
       if (initialFormdata[key as keyof typeof initialFormdata] !== formdata[key as keyof typeof formdata]) {
-        initialFormdata[key as keyof typeof initialFormdata] = formdata[key as keyof typeof formdata];
+        initialFormdata[key as keyof typeof initialFormdata] = formdata[key as keyof typeof formdata]
       }
     }
 
-    discord_id.value = new_data.discord_id;
-  } catch (e) {
-    console.error(e);
+    discord_id.value = new_data.discord_id
+  }
+  catch (e) {
+    console.error(e)
   }
 }
 </script>
 
 <template>
   <div>
-    <UForm :ref="form" :schema="schema" :state="formdata" validate-on="submit" @submit="onSubmit">
+    <UForm
+      :ref="form"
+      :schema="schema"
+      :state="formdata"
+      validate-on="submit"
+      @submit="onSubmit"
+    >
       <div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
         <div class="flex items-center justify-between gap-4 mt-4">
           <div class="flex flex-wrap items-center gap-1.5">
             <div>
-              <p class="p-0 font-semibold text-white">Mitteilungen</p>
+              <p class="p-0 font-semibold text-white">
+                Mitteilungen
+              </p>
               <p class="p-0 mt-1 text-sm text-tbase/50">
                 Hier kannst du einstellen, wie du wichtige Benachrichtigungen wie Chat-Nachrichten,
                 Passwort-Zurücksetzungen und andere Mitteilungen erhalten möchtest.
               </p>
             </div>
           </div>
-          <UButton color="green" type="submit">Speichern</UButton>
+          <UButton
+            color="green"
+            type="submit"
+          >
+            Speichern
+          </UButton>
         </div>
         <UFormGroup
           label="Kontakt Email"
@@ -114,31 +153,45 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           </div>
         </UFormGroup>
         <UFormGroup
-          label="Discord Benutzername"
-          name="discord_name"
-          description="Für das A.M.S. Benachrichtigungssystem (coming-soon) kannst du einen Discord Benutzernamen angeben."
+          label="Discord Benutzer"
+          name="discord_user"
+          description="Für das A.M.S. Benachrichtigungssystem (coming-soon) kannst du einen Discord Benutzer angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
           <div class="relative">
-            <UInput
-              v-model="formdata.discord_name"
+            <USelectMenu
+              v-model="formdata.discord_user"
+              :options="discordMembers"
+              searchable
+              clear-search-on-close
+              searchable-placeholder="Suche..."
+              :search-attributes="['label', 'global_name', 'username', 'nick']"
               size="md"
-              autocomplete="off"
+              :ui="
+                formdata.discord_user || initialFormdata.discord_user
+                  ? {
+                    leading: {
+                      padding: {
+                        xl: 'ps-10',
+                      },
+                    },
+                  }
+                  : { leading: { padding: { xl: 'hidden' } } }
+              "
               :icon="
-                formdata.discord_name || initialFormdata.discord_name
-                  ? formdata.discord_name === initialFormdata.discord_name
+                formdata.discord_user || initialFormdata.discord_user
+                  ? formdata.discord_user === initialFormdata.discord_user
                     ? 'i-heroicons-x-mark-16-solid'
                     : 'i-heroicons-arrow-uturn-left'
                   : ''
               "
-              placeholder="user_name"
             />
-            <template v-if="formdata.discord_name || initialFormdata.discord_name">
+            <template v-if="formdata.discord_user || initialFormdata.discord_user">
               <button
-                v-if="formdata.discord_name === initialFormdata.discord_name"
+                v-if="formdata.discord_user === initialFormdata.discord_user"
                 class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                @click="formdata.discord_name = ''"
+                @click="formdata.discord_user = null"
               >
                 <UIcon
                   name="i-heroicons-x-mark-16-solid"
@@ -148,7 +201,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
               <button
                 v-else
                 class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                @click="formdata.discord_name = initialFormdata.discord_name"
+                @click="formdata.discord_user = initialFormdata.discord_user"
               >
                 <UIcon
                   name="i-heroicons-arrow-uturn-left"

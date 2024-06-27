@@ -155,7 +155,7 @@ definePageMeta({
     >
       <NuxtImg
         src="3090187e-6348-4290-a878-af1b2b48c114"
-        :placeholder="[16, 16, 1, 5]"
+        :placeholder="[16, 7, 1, 5]"
         class="flex object-contain w-full mx-auto sm:absolute sm:top-0 h-fit sm:left-6 sm:w-80 sm:m-0 aspect-[1112/477]"
       />
       <div
