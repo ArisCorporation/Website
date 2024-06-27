@@ -7,7 +7,7 @@
 //   },
 // });
 
-const contextMenu = defineModel()
+// const contextMenu = defineModel()
 
 const removePopover = ref(false)
 const emit = defineEmits(['edit', 'removeOpen', 'removeConfirm'])
@@ -348,7 +348,7 @@ const handleEdit = () => {
 				</div>
 			</Transition>
 		</DefaultPanel>
-		<UContextMenu
+		<!-- <UContextMenu
 			v-model="contextMenu"
 			:virtual-element="virtualElement"
 			:ui="{ background: 'bg-bprimary bg-opacity-25 backdrop-blur-xl' }"
@@ -411,7 +411,7 @@ const handleEdit = () => {
 					</div>
 				</li>
 			</ul>
-		</UContextMenu>
+		</UContextMenu> -->
 	</div>
 </template>
 
