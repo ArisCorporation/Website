@@ -64,7 +64,8 @@ const props = defineProps({
 			>
 				<div class="flex flex-wrap justify-between w-full my-auto text-xs text-primary-400">
 					<div>
-						<span class="opacity-50">Geposted: </span><span>{{ $dayjs().add(930, 'years').to(data.date_created) }}</span>
+						<!-- :TEMP:DAYJS: -->
+						<!-- <span class="opacity-50">Geposted: </span><span>{{ $dayjs().add(930, 'years').to(data.date_created) }}</span> -->
 					</div>
 					<div>
 						<span class="opacity-50">Channel: </span><span>{{ data.channel.name }}</span>

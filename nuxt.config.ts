@@ -53,12 +53,11 @@ export default defineNuxtConfig({
 		'@pinia-plugin-persistedstate/nuxt',
 		'nuxt-tiptap-editor',
 		'@vueuse/nuxt',
-		'dayjs-nuxt',
+		// 'dayjs-nuxt',
 		'@nuxt/icon',
 		'nuxt-headlessui',
 		'nuxt-lodash',
 		'nuxt-resend',
-		'@nuxthub/core',
 	],
 	// plugins: ['~/plugins/vue-cropper.ts'],
 
@@ -171,12 +170,12 @@ export default defineNuxtConfig({
 		icons: ['heroicons', 'ic', 'mdi', 'fa6-regular', 'fa6-solid', 'radix-icons', 'lucide', 'svg-spinners'],
 	},
 
-	dayjs: {
-		locales: ['en', 'de'],
-		plugins: ['relativeTime', 'utc', 'timezone'],
-		defaultLocale: 'de',
-		defaultTimezone: 'Europe/Berlin',
-	},
+	// dayjs: {
+	// 	locales: ['en', 'de'],
+	// 	plugins: ['relativeTime', 'utc', 'timezone'],
+	// 	defaultLocale: 'de',
+	// 	defaultTimezone: 'Europe/Berlin',
+	// },
 
 	typescript: {
 		shim: false,
