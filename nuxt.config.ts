@@ -90,10 +90,6 @@ export default defineNuxtConfig({
 		},
 	},
 
-	build: {
-		target: 'es2020',
-	},
-
 	// imports: {
 	//   presets: [
 	//     {
@@ -108,7 +104,7 @@ export default defineNuxtConfig({
 	//   ],
 	// },
 
-	sourcemap: true,
+	// sourcemap: true,
 	// SENTRY CONFIG
 	// vite: {
 	//   plugins: [
@@ -120,6 +116,11 @@ export default defineNuxtConfig({
 	//     }),
 	//   ],
 	// },
+
+	sourcemap: {
+		client: true,
+		server: true,
+	},
 
 	nitro: {
 		rollupConfig: {
