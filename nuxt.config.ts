@@ -105,7 +105,13 @@ export default defineNuxtConfig({
 
 	// sourcemap: true,
 	// SENTRY CONFIG
-	// vite: {
+	vite: {
+		vue: {
+			script: {
+				defineModel: true,
+				propsDestructure: true,
+			},
+		},
 	//   plugins: [
 	//     // Put the Sentry vite plugin after all other plugins
 	//     sentryVitePlugin({
@@ -114,7 +120,7 @@ export default defineNuxtConfig({
 	//       project: 'homepage',
 	//     }),
 	//   ],
-	// },
+	},
 
 	sourcemap: true,
 
