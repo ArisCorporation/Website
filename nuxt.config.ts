@@ -104,8 +104,8 @@ export default defineNuxtConfig({
 	//   ],
 	// },
 
+	sourcemap: true,
 	// SENTRY CONFIG
-	// sourcemap: true,
 	// vite: {
 	//   plugins: [
 	//     // Put the Sentry vite plugin after all other plugins
@@ -116,11 +116,6 @@ export default defineNuxtConfig({
 	//     }),
 	//   ],
 	// },
-
-	sourcemap: {
-		server: true,
-		client: true,
-	},
 
 	nitro: {
 		rollupConfig: {
@@ -189,10 +184,10 @@ export default defineNuxtConfig({
 		prefix: 'Tiptap', // prefix for Tiptap imports, composables not included
 	},
 
-	// vueEmail: {
-	//   baseUrl: process.env.NUXT_PUBLIC_FILE_BASE,
-	//   autoImport: true,
-	// },
+	vueEmail: {
+	  baseUrl: process.env.NUXT_PUBLIC_FILE_BASE,
+	  autoImport: true,
+	},
 
 	eslint: {
 		config: {
