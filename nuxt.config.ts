@@ -49,7 +49,7 @@ export default defineNuxtConfig({
 		'nuxt-directus-next',
 		'@nuxt/eslint',
 		'@nuxt/image',
-		// '@pinia/nuxt',
+		'@pinia/nuxt',
 		// '@pinia-plugin-persistedstate/nuxt',
 		'nuxt-tiptap-editor',
 		'@vueuse/nuxt',
