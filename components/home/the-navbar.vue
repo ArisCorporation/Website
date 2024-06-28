@@ -64,7 +64,7 @@ const bannerItems = [
   },
 ];
 
-const homepageTabsStore = useHomepageTabsStore();
+// const homepageTabsStore = useHomepageTabsStore();
 
 function toggleMenu() {
   mobileMenu.value = !mobileMenu.value;
@@ -72,12 +72,12 @@ function toggleMenu() {
 
 function handleHomeButton(item: any) {
   if (item.action) {
-    if (item.action.tabGroup === 'our') {
-      homepageTabsStore.setOurTab(item.action.tabIndex);
-    }
-    if (item.action.tabGroup === 'aris') {
-      homepageTabsStore.setArisTab(item.action.tabIndex);
-    }
+    // if (item.action.tabGroup === 'our') {
+    //   homepageTabsStore.setOurTab(item.action.tabIndex);
+    // }
+    // if (item.action.tabGroup === 'aris') {
+    //   homepageTabsStore.setArisTab(item.action.tabIndex);
+    // }
   }
   toggleMenu();
 }
