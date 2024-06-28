@@ -3,7 +3,6 @@ import { object, string, number, boolean, type InferType } from 'yup'
 import type { FormSubmitEvent } from '#ui/types'
 
 const { updateUser } = useDirectusUsers()
-const modalStore = useModalStore()
 const config = useRuntimeConfig()
 
 const user = transformUser(await useDirectusAuth().readMe())

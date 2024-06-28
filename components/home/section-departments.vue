@@ -1,5 +1,11 @@
 <script setup lang="ts">
-const homepageTabsStore = useHomepageTabsStore();
+const homepageTabs = useState<{
+	selectedArisTab: number
+	selectedOurTab: number
+	selectedOurFleetTab: number
+	selectedOurDepartmentTab: number
+}>('homepageTabsStore')
+
 const props = defineProps({
   data: {
     type: Array<any>,
@@ -10,8 +16,8 @@ const props = defineProps({
 <template>
   <TabGroup
     no-margin
-    :store="homepageTabsStore.selectedOurDepartmentTab"
-    :change="homepageTabsStore.setOurDepartmentTab"
+    :store="homepageTabs.selectedOurDepartmentTab"
+    :change="(e: any) => homepageTabs.selectedOurDepartmentTab = e"
     hide-hr
   >
     <template #tablist>

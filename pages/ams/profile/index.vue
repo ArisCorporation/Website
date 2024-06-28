@@ -6,8 +6,6 @@ import type { FormSubmitEvent } from '#ui/types'
 
 const { readAsyncItems } = useDirectusItems()
 const { updateUser } = useDirectusUsers()
-const modalStore = useModalStore()
-
 YupPassword(yup)
 
 defineEmits(['cropperInput'])
@@ -267,7 +265,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 			|| updatedUser.hasOwnProperty('first_name')
 			|| updatedUser.hasOwnProperty('last_name')
 		) {
-			modalStore.setData({
+			setModalData({
 				...((updatedUser.hasOwnProperty('first_name') || updatedUser.hasOwnProperty('last_name')) && {
 					username: useSlugify(
 						formdata.first_name.trim() + (formdata.last_name ? ' ' + formdata.last_name.trim() : ''),
@@ -277,7 +275,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 				...(updatedUser.hasOwnProperty('password') && { password: updatedUser.password }),
 			})
 
-			modalStore.openModal('WARNUNG!!!', {
+			openModal('WARNUNG!!!', {
 				type: 'cred-change',
 			})
 		}

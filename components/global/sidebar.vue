@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const user = transformUser(useDirectusAuth().readMe());
-const SidebarStore = useSidebarStore();
+const sidebarStore = useState<{
+	MobileSidebar: boolean
+}>('sidebarStore')
 const router = useRouter();
 
 defineProps({
@@ -34,7 +36,7 @@ defineProps({
     aria-controls="default-sidebar"
     type="button"
     class="fixed z-40 inline-flex items-center p-2 mt-2 text-sm rounded-lg text-tbase hover:text-bprimary w-fit ms-3 lg:hidden focus:outline-none focus:ring-0 hover:bg-tbase"
-    @click="SidebarStore.toggleMobileSidebar"
+    @click="sidebarStore.MobileSidebar = !sidebarStore.MobileSidebar"
   >
     <span class="sr-only">Open sidebar</span>
     <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -48,7 +50,7 @@ defineProps({
   <aside
     id="default-sidebar"
     class="fixed top-0 left-0 z-50 w-64 transition-transform h-[100dvh] lg:translate-x-0"
-    :class="{ '-translate-x-full': !SidebarStore.MobileSidebar }"
+    :class="{ '-translate-x-full': !sidebarStore.MobileSidebar }"
     aria-label="Sidebar"
   >
     <div class="relative h-full pb-4 overflow-y-auto bg-bsecondary">
@@ -67,7 +69,7 @@ defineProps({
                 ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
                 : 'text-tbase/75 hover:text-white',
             ]"
-            @click="SidebarStore.mobileSidebarOff"
+            @click="sidebarStore.MobileSidebar = false"
           >
             <Icon
               v-if="item.icon"
@@ -108,7 +110,7 @@ defineProps({
                 ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
                 : 'text-tbase/75 hover:text-white',
             ]"
-            @click="SidebarStore.mobileSidebarOff"
+            @click="sidebarStore.MobileSidebar = false"
           >
             <Icon
               v-if="item.icon"
@@ -136,7 +138,7 @@ defineProps({
           <NuxtLink
             to="/"
             class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline text-tbase hover:text-white group animate-link"
-            @click="SidebarStore.mobileSidebarOff"
+            @click="sidebarStore.MobileSidebar = false"
           >
             <Icon name="IconsLogosAriscorp" class="w-6 h-6 transition duration-200 text-tbase group-hover:text-white" />
             <span class="ms-3">ArisCorp Homepage</span>

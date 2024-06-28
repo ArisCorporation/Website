@@ -5,7 +5,18 @@ const { width } = useWindowSize()
 const { createUser, updateUser, deleteUsers } = useDirectusUsers()
 const user = transformUser(useDirectusAuth().user?.value)
 const config = useRuntimeConfig()
-const modalStore = useModalStore()
+const modalStore = useState<{
+    isModalOpen: boolean
+      isSlideOpen: boolean
+      title: string
+      data: any
+      type: string
+      hideXButton: boolean
+      hideCloseButton: boolean
+      agreeAction: any
+      big: boolean
+      locked: boolean
+  }>('modalStore')
 const userTable = ref()
 
 class FetchError extends Error {
@@ -27,7 +38,7 @@ function resetUserFormData() {
 }
 const handleCreate = () => {
 	resetUserFormData()
-	modalStore.openSlide({ type: 'createUser' })
+	openSlide({ type: 'createUser' })
 }
 const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) => {
 	userCreationForm.value.clear()
@@ -57,12 +68,12 @@ const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) =>
 		}
 		const newUser = await createUser(userData)
 
-		modalStore.closeSlide()
+		closeSlide()
 
 		await setTimeout(() => {
 			userTable.value.refresh()
-			modalStore.setData(transformUser(newUser))
-			modalStore.openModal('Benutzer erstellt.', {
+			setModalData(transformUser(newUser))
+			openModal('Benutzer erstellt.', {
 				hideCloseButton: true,
 				hideXButton: true,
 				type: 'userCreationSuccess',
@@ -307,7 +318,7 @@ useHead({
 						class="w-1/3"
 						color="danger"
 						@click="
-							modalStore.closeModal();
+							closeModal();
 							resetUserFormData();
 						"
 					>
@@ -536,7 +547,7 @@ useHead({
 									class="w-1/3"
 									color="danger"
 									@click="
-										modalStore.closeSlide();
+										closeSlide();
 										resetUserFormData();
 									"
 								>

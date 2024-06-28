@@ -8,8 +8,21 @@ import type { FormSubmitEvent } from '#ui/types'
 const { readAsyncItems, updateItem, deleteItems, createItems } = useDirectusItems()
 const { readAsyncUsers, updateUser } = useDirectusUsers()
 const { params, path } = useRoute()
-const userSettingsStore = useUserSettingsStore()
-const { userSettings } = storeToRefs(userSettingsStore)
+const userSettings = useState<{
+	ams: {
+		hangarDetailView: boolean
+		hangarLoanerView: boolean
+		fleetDetailView: boolean
+		fleetLoanerView: boolean
+		avatarConsent: boolean
+		administration: {
+			userTableColumns: { key: string; label?: string; sortable?: boolean }[] | null
+		}
+	}
+	se: {
+		shipDetailView: boolean
+	}
+}>('userSettingsStore')
 const loanerView = computed(() => userSettings.value.ams.fleetLoanerView)
 const hideHangar = ref(false)
 const search = ref('')
@@ -19,7 +32,6 @@ const selectedTab = ref(0)
 const setTab = (index: number) => {
 	selectedTab.value = index
 }
-const modalStore = useModalStore()
 const dataChanged = ref(false)
 const form = ref()
 const selectedDepartment = ref({ name: 'Alle' })
@@ -239,8 +251,8 @@ function handleEdit(title: string, data: any) {
 	dataChanged.value = false
 	setFormData(data)
 
-	modalStore.setData(data)
-	modalStore.openSlide({ hideCloseButton: true, hideXButton: true, type: 'editShip' })
+	setModalData(data)
+	openSlide({ hideCloseButton: true, hideXButton: true, type: 'editShip' })
 }
 
 function getCurrentFilteredHangar() {
@@ -270,7 +282,7 @@ defineShortcuts({
 	},
 	d: {
 		handler: () => {
-			userSettingsStore.AMSToggleFleetDetailView()
+			userSettings.value.ams.fleetDetailView = !userSettings.value.ams.fleetDetailView
 		},
 	},
 })
@@ -443,7 +455,7 @@ useHead({
 				<div class="flex mt-6 sm:pr-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
 					<ButtonDefault
 						class="mx-auto sm:mr-0 sm:ml-auto"
-						@click="() => userSettingsStore.AMSToggleFleetDetailView()"
+						@click="() => userSettings.ams.fleetDetailView = !userSettings.ams.fleetDetailView"
 					>
 						Detail Ansicht:
 						{{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
@@ -452,7 +464,7 @@ useHead({
 				<div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
 					<ButtonDefault
 						class="mx-auto sm:ml-0 sm:mr-auto"
-						@click="() => userSettingsStore.AMSToggleFleetLoanerView()"
+						@click="() => userSettings.ams.fleetLoanerView = !userSettings.ams.fleetLoanerView"
 					>
 						Leihschiff-Ansicht: {{ loanerView ? 'Ausschalten' : 'Anschalten' }}
 					</ButtonDefault>

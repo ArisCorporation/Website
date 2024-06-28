@@ -7,8 +7,21 @@ import type { FormSubmitEvent } from '#ui/types'
 const { readAsyncItems, updateItem, deleteItems, createItems } = useDirectusItems()
 const { readAsyncUsers, updateUser } = useDirectusUsers()
 const { params, path } = useRoute()
-const userSettingsStore = useUserSettingsStore()
-const { userSettings } = storeToRefs(userSettingsStore)
+const userSettings = useState<{
+	ams: {
+		hangarDetailView: boolean
+		hangarLoanerView: boolean
+		fleetDetailView: boolean
+		fleetLoanerView: boolean
+		avatarConsent: boolean
+		administration: {
+			userTableColumns: { key: string; label?: string; sortable?: boolean }[] | null
+		}
+	}
+	se: {
+		shipDetailView: boolean
+	}
+}>('userSettingsStore')
 const loanerView = computed(() => userSettings.value.ams.hangarLoanerView)
 const hideHangar = ref(false)
 const search = ref('')
@@ -18,7 +31,18 @@ const selectedTab = ref(0)
 const setTab = (index: number) => {
 	selectedTab.value = index
 }
-const modalStore = useModalStore()
+const modalStore = useState<{
+    isModalOpen: boolean
+      isSlideOpen: boolean
+      title: string
+      data: any
+      type: string
+      hideXButton: boolean
+      hideCloseButton: boolean
+      agreeAction: any
+      big: boolean
+      locked: boolean
+  }>('modalStore')
 const dataChanged = ref(false)
 const form = ref()
 const selectedDepartment = ref({ name: 'Alle' })
@@ -296,8 +320,8 @@ function handleEdit(title: string, data: any) {
 	dataChanged.value = false
 	setFormData(data)
 
-	modalStore.setData(data)
-	modalStore.openSlide({ hideCloseButton: true, hideXButton: true, type: 'editShip' })
+	setModalData(data)
+	openSlide({ hideCloseButton: true, hideXButton: true, type: 'editShip' })
 }
 
 const onEditSubmit = async (event: FormSubmitEvent<Schema>) => {
@@ -305,7 +329,7 @@ const onEditSubmit = async (event: FormSubmitEvent<Schema>) => {
 		if (!event.data) {
 			throw new Error('Data is null!')
 		}
-		modalStore.closeSlide()
+		closeSlide()
 		await updateItem('user_hangars', modalStore.data.id, {
 			name: event.data.name,
 			name_public: event.data.show_name,
@@ -358,7 +382,7 @@ const onAddSubmit = async (type: string, data: any[]) => {
 			throw new Error('Data is null!')
 		}
 
-		modalStore.closeModal()
+		closeModal()
 		if (type === 'addShips') {
 			await createItems(
 				'user_hangars',
@@ -402,8 +426,8 @@ function getCurrentFilteredHangar() {
 getCurrentFilteredHangar()
 
 const openAddModal = () => {
-	modalStore.setData([])
-	modalStore.openModal(selectedTab.value === 0 ? 'Hangar: Schiffe hinzufügen' : 'Wunschliste: Schiffe hinzufügen', {
+	setModalData([])
+	openModal(selectedTab.value === 0 ? 'Hangar: Schiffe hinzufügen' : 'Wunschliste: Schiffe hinzufügen', {
 		hideCloseButton: true,
 		hideXButton: true,
 		type: selectedTab.value === 0 ? 'addShips' : 'addWishlist',
@@ -414,7 +438,7 @@ defineShortcuts({
 	...(path.startsWith('/ams/hangar') && {
 		n: {
 			handler: () => {
-				if (!modalStore.isModalOpen) {
+				if (!modalStore.value.isModalOpen) {
 					openAddModal()
 				}
 			},
@@ -427,7 +451,7 @@ defineShortcuts({
 	},
 	d: {
 		handler: () => {
-			userSettingsStore.AMSToggleHangarDetailView()
+			userSettings.value.ams.hangarDetailView = !userSettings.value.ams.hangarDetailView
 		},
 	},
 })
@@ -485,15 +509,15 @@ const tour = new Shepherd.Tour({
 				{
 					text: 'Weiter',
 					action(): any {
-						modalStore.setData([])
-						modalStore.openModal('Hangar: Schiffe hinzufügen', {
+						setModalData([])
+						openModal('Hangar: Schiffe hinzufügen', {
 							hideCloseButton: true,
 							hideXButton: true,
 							type: 'addShips',
 						})
 
 						const interval = setInterval(() => {
-							if (modalStore.isModalOpen) {
+							if (modalStore.value.isModalOpen) {
 								clearInterval(interval)
 								return this.next()
 							}
@@ -537,7 +561,7 @@ const tour = new Shepherd.Tour({
 				{
 					text: 'Weiter',
 					action(): any {
-						modalStore.data = [shipList.value[0]]
+						modalStore.value.data = [shipList.value[0]]
 						return this.next()
 					},
 				},
@@ -565,7 +589,7 @@ const tour = new Shepherd.Tour({
 					text: 'Weiter',
 					action(): any {
 						hangarRefreshPending.value = true
-						onAddSubmit(modalStore.type, modalStore.data)
+						onAddSubmit(modalStore.value.type, modalStore.value.data)
 						const interval = setInterval(() => {
 							if (!hangarRefreshPending.value) {
 								clearInterval(interval)
@@ -608,7 +632,7 @@ const tour = new Shepherd.Tour({
 						)
 
 						const interval = setInterval(() => {
-							if (modalStore.isSlideOpen) {
+							if (modalStore.value.isSlideOpen) {
 								clearInterval(interval)
 								return this.next()
 							}
@@ -742,7 +766,7 @@ const tour = new Shepherd.Tour({
 				{
 					text: 'Weiter',
 					action(): any {
-						modalStore.closeSlide()
+						closeSlide()
 						return this.next()
 					},
 				},
@@ -913,7 +937,7 @@ useHead({
 							type="button"
 							class="w-1/3"
 							color="danger"
-							@click="modalStore.closeModal"
+							@click="() => closeModal()"
 						>
 							Schließen
 						</ButtonDefault>
@@ -1307,8 +1331,8 @@ useHead({
 									type="button"
 									class="w-1/3"
 									color="danger"
-									@click="modalStore.closeSlide"
-								>
+									@click="() => closeSlide()"
+									>
 									Schließen
 								</ButtonDefault>
 								<ButtonDefault
@@ -1690,7 +1714,7 @@ useHead({
 				<div class="flex mt-6 sm:pr-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
 					<ButtonDefault
 						class="mx-auto sm:mr-0 sm:ml-auto"
-						@click="() => userSettingsStore.AMSToggleHangarDetailView()"
+						@click="() => userSettings.ams.hangarDetailView = !userSettings.ams.hangarDetailView"
 					>
 						Detail Ansicht:
 						{{ userSettings.ams.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
@@ -1699,7 +1723,7 @@ useHead({
 				<div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
 					<ButtonDefault
 						class="mx-auto sm:ml-0 sm:mr-auto"
-						@click="() => userSettingsStore.AMSToggleHangarLoanerView()"
+						@click="() => userSettings.ams.hangarLoanerView = !userSettings.ams.hangarLoanerView"
 					>
 						Leihschiff-Ansicht: {{ loanerView ? 'Ausschalten' : 'Anschalten' }}
 					</ButtonDefault>

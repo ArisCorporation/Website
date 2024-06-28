@@ -1,8 +1,27 @@
 <script setup lang="ts">
 const { copy, isSupported: clipboardIsSupported } = useClipboard()
-const userSettingsStore = useUserSettingsStore()
-const { userSettings } = storeToRefs(userSettingsStore)
-const homepageTabsStore = useHomepageTabsStore()
+
+const userSettings = useState<{
+	ams: {
+		hangarDetailView: boolean
+		hangarLoanerView: boolean
+		fleetDetailView: boolean
+		fleetLoanerView: boolean
+		avatarConsent: boolean
+		administration: {
+			userTableColumns: { key: string; label?: string; sortable?: boolean }[] | null
+		}
+	}
+	se: {
+		shipDetailView: boolean
+	}
+}>('userSettingsStore')
+const homepageTabs = useState<{
+	selectedArisTab: number
+	selectedOurTab: number
+	selectedOurFleetTab: number
+	selectedOurDepartmentTab: number
+}>('homepageTabsStore')
 const config = useRuntimeConfig()
 const toast = useToast()
 defineProps({
@@ -14,7 +33,7 @@ defineProps({
 
 const handleCopy = () => {
 	if (clipboardIsSupported && location?.href) {
-		copy(config.public.url + '/?our=1&fleet=' + homepageTabsStore.selectedOurFleetTab + '#fleet')
+		copy(config.public.url + '/?our=1&fleet=' + homepageTabs.value.selectedOurFleetTab + '#fleet')
 		toast.add({ title: 'URL in Zwischenablage kopiert!' })
 	}
 	else {
@@ -25,7 +44,7 @@ const handleCopy = () => {
 defineShortcuts({
 	d: {
 		handler: () => {
-			userSettingsStore.AMSToggleFleetDetailView()
+			userSettings.value.ams.fleetDetailView = !userSettings.value.ams.fleetDetailView
 		},
 	},
 })
@@ -43,8 +62,8 @@ defineShortcuts({
 			</p>
 		</div>
 		<TabGroup
-			:store="homepageTabsStore.selectedOurFleetTab"
-			:change="homepageTabsStore.setOurFleetTab"
+			:store="homepageTabs.selectedOurFleetTab"
+			:change="(e: any) => homepageTabs.selectedOurFleetTab = e"
 			hide-hr
 		>
 			<template #tablist>
@@ -97,7 +116,7 @@ defineShortcuts({
 					<div class="flex mb-3 ml-auto">
 						<ButtonDefault
 							class="mx-auto sm:mr-0 sm:ml-auto"
-							@click="userSettingsStore.AMSToggleFleetDetailView"
+							@click="userSettings.ams.fleetDetailView = !userSettings.ams.fleetDetailView"
 						>
 							Detail Ansicht:
 							{{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
@@ -155,7 +174,7 @@ defineShortcuts({
 					<div class="flex mb-3 ml-auto">
 						<ButtonDefault
 							class="mx-auto sm:mr-0 sm:ml-auto"
-							@click="userSettingsStore.AMSToggleFleetDetailView"
+							@click="userSettings.ams.fleetDetailView = !userSettings.ams.fleetDetailView"
 						>
 							Detail Ansicht:
 							{{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}

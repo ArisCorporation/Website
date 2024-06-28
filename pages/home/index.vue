@@ -2,7 +2,12 @@
 const { readAsyncSingleton, readAsyncItems } = useDirectusItems()
 const { readAsyncUsers } = useDirectusUsers()
 const { query } = useRoute()
-const homepageTabsStore = useHomepageTabsStore()
+const homepageTabs = useState<{
+	selectedArisTab: number
+	selectedOurTab: number
+	selectedOurFleetTab: number
+	selectedOurDepartmentTab: number
+}>('homepageTabsStore')
 // const scrollMargin = ref('scroll-m-14');
 const scrollMargin = ref('scroll-m-0')
 
@@ -167,16 +172,16 @@ const ourtabs: any[] = [
 
 if (query) {
 	if (query.aris) {
-		homepageTabsStore.setArisTab(Number(query.aris))
+		homepageTabs.value.selectedArisTab = Number(query.aris)
 	}
 	if (query.our) {
-		homepageTabsStore.setOurTab(Number(query.our))
+		homepageTabs.value.selectedOurTab = Number(query.our)
 	}
 	if (query.fleet) {
-		homepageTabsStore.setOurFleetTab(Number(query.fleet))
+		homepageTabs.value.selectedOurFleetTab = Number(query.fleet)
 	}
 	if (query.department) {
-		homepageTabsStore.setOurDepartmentTab(Number(query.department))
+		homepageTabs.value.selectedOurDepartmentTab = Number(query.department)
 	}
 }
 
@@ -194,8 +199,8 @@ definePageMeta({
 		<TabGroup
 			id="ariscorp"
 			:class="scrollMargin"
-			:store="homepageTabsStore.selectedArisTab"
-			:change="homepageTabsStore.setArisTab"
+			:store="homepageTabs.selectedArisTab"
+			:change="(e: any) => homepageTabs.selectedArisTab = e"
 			:tablist="aristabs"
 			title="über"
 			between
@@ -207,8 +212,8 @@ definePageMeta({
 		<TabGroup
 			id="our"
 			:class="scrollMargin"
-			:store="homepageTabsStore.selectedOurTab"
-			:change="(e) => homepageTabsStore.setOurTab(e)"
+			:store="homepageTabs.selectedOurTab"
+			:change="(e:any) => homepageTabs.selectedOurTab = e"
 			:tablist="ourtabs"
 			title="unsere"
 			between

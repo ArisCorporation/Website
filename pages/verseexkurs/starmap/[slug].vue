@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const { readItems } = useDirectusItems()
 const { params } = useRoute()
-const modalStore = useModalStore()
 const selectedMainTab = ref(0)
 const modalData = ref()
 const { query } = useRoute()
@@ -91,7 +90,7 @@ const tabs = [
 ]
 
 const openQuickView = (title: string, data?: any) => {
-	modalStore.openModal(title, { big: true, hideCloseButton: true })
+	openModal(title, { big: true, hideCloseButton: true })
 	modalData.value = data
 }
 

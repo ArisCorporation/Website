@@ -6,16 +6,26 @@ const props = defineProps({
     default: false,
   },
 });
-const modalStore = useModalStore();
-const { isModalOpen, title, hideCloseButton, hideXButton, agreeAction, big, locked } = storeToRefs(modalStore);
+const modalStore = useState<{
+    isModalOpen: boolean
+      isSlideOpen: boolean
+      title: string
+      data: any
+      type: string
+      hideXButton: boolean
+      hideCloseButton: boolean
+      agreeAction: any
+      big: boolean
+      locked: boolean
+  }>('modalStore')
 
 const closeModal = () => {
-  modalStore.closeModal();
+  closeModal();
 };
 </script>
 
 <template>
-  <HeadlessTransitionRoot appear :show="isModalOpen" as="template">
+  <HeadlessTransitionRoot appear :show="modalStore.isModalOpen" as="template">
     <HeadlessDialog as="div" class="relative z-50" @close="closeModal">
       <HeadlessTransitionChild
         as="template"
@@ -39,23 +49,23 @@ const closeModal = () => {
             leave-from="opacity-100 scale-100"
             leave-to="opacity-0 scale-95"
           >
-            <HeadlessDialogPanel class="w-full" :class="[big ? 'max-w-4xl' : 'max-w-2xl']">
+            <HeadlessDialogPanel class="w-full" :class="[modalStore.big ? 'max-w-4xl' : 'max-w-2xl']">
               <DefaultPanel overflow>
                 <div class="px-4 pt-2 pb-6">
-                  <button v-if="!hideXButton" type="button" class="absolute top-1 left-1" @click="closeAction">
+                  <button v-if="!modalStore.hideXButton" type="button" class="absolute top-1 left-1" @click="modalStore?.closeAction">
                     <Icon
                       name="heroicons:x-circle"
                       class="w-6 h-6 text-white transition opacity-50 hover:opacity-100"
                     />
                   </button>
-                  <HeadlessDialogTitle v-if="title" as="h3" class="text-white">{{ title }}</HeadlessDialogTitle>
+                  <HeadlessDialogTitle v-if="modalStore.title" as="h3" class="text-white">{{ modalStore.title }}</HeadlessDialogTitle>
                   <div class="mt-2">
                     <slot name="content" :close="closeModal" />
                   </div>
 
-                  <div v-if="!hideCloseButton || agreeAction" class="mt-4">
+                  <div v-if="!modalStore.hideCloseButton || modalStore.agreeAction" class="mt-4">
                     <button
-                      v-if="!hideCloseButton"
+                      v-if="!modalStore.hideCloseButton"
                       type="button"
                       class="inline-flex justify-center px-4 py-2 text-sm font-medium text-black transition-all duration-100 border border-transparent rounded-md opacity-75 hover:duration-200 bg-danger hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       @click="closeModal"
@@ -65,10 +75,10 @@ const closeModal = () => {
                     <!-- v-motion
                       :variants="$config.public.mbutton" -->
                     <button
-                      v-if="agreeAction"
+                      v-if="modalStore.agreeAction"
                       type="button"
                       class="inline-flex justify-center px-4 py-2 text-sm font-medium text-black transition-all duration-100 border border-transparent rounded-md opacity-75 hover:duration-200 bg-success hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      @click="agreeAction"
+                      @click="modalStore.agreeAction"
                     >
                       Schließen!
                     </button>
