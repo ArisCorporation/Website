@@ -1,10 +1,6 @@
 <script setup lang="ts">
 const { readSingleton } = useDirectusItems();
-const VeTabs = useState<{
-	selectedUeeTab: number
-		selectedUeeHolidayTab: number
-		selectedCompaniesTab: number
-}>('veTabsStore')
+const VeTabs = useVeTabsStore();
 
 const dataRes = await readSingleton('uee', {
   fields: ['banner', 'content', 'tabs', 'holidays'],
@@ -48,7 +44,7 @@ definePageMeta({
       <NuxtImg :src="data?.banner" :placeholder="[16, 16, 1, 5]" class="mx-auto" />
     </template>
     <Editor :model-value="data?.content" read-only />
-    <TabGroup :tablist="data?.tablist" small-header :store="VeTabs.selectedUeeTab" :change="(e: any) => VeTabs.selectedUeeTab = e">
+    <TabGroup :tablist="data?.tablist" small-header :store="VeTabs.selectedUeeTab" :change="VeTabs.setUeeTab">
       <template #tabcontent>
         <div>
           <Editor
@@ -60,7 +56,7 @@ definePageMeta({
             <TabGroupVertical
               :tablist="data?.holidayTablist"
               :store="VeTabs.selectedUeeHolidayTab"
-              :change="(e: any) => VeTabs.selectedUeeHolidayTab = e"
+              :change="VeTabs.setUeeHolidayTab"
             />
           </div>
         </div>

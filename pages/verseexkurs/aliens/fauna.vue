@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { readItems } = useDirectusItems();
+const modalStore = useModalStore();
 const selectedItem = ref();
 
 const data = await readItems('fauna', {
@@ -20,7 +21,7 @@ if (!data) {
 }
 
 const openModal = (item: any) => {
-  openSlide({ big: true });
+  modalStore.openSlide({ big: true });
   selectedItem.value = item;
 };
 

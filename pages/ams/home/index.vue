@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const modalStore = useModalStore();
 const user = transformUser(useDirectusAuth().user?.value);
 
 const indexItems = [
