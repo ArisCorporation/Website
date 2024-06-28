@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems()
+const { readAsyncItems, readItems } = useDirectusItems()
 const { params } = useRoute()
 
 const data = await readAsyncItems('ships', {
@@ -173,10 +173,16 @@ const data3 = await readAsyncItems('ships', {
 
 const data4 = await readAsyncItems('ships')
 
+const data5 = await useAsyncData('ships5', await readItems('ships'))
+
+const data6 = await useFetch('https://cms.ariscorp.de/items/ships')
+
 console.log(data)
 console.log(data2)
 console.log(data3)
 console.log(data4)
+console.log(data5)
+console.log(data6)
 
 definePageMeta({
 	layout: 'ship-exkurs',
