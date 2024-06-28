@@ -9,8 +9,8 @@ const { readAsyncItems, updateItem, deleteItems, createItems } = useDirectusItem
 const { readAsyncUsers, updateUser } = useDirectusUsers()
 const { params, path } = useRoute()
 const userSettingsStore = useUserSettingsStore()
-const { userSettings } = storeToRefs(userSettingsStore)
-const loanerView = computed(() => userSettings.value.ams.fleetLoanerView)
+const userSettings = storeToRefs(userSettingsStore)
+const loanerView = computed(() => userSettings.ams.value.fleetLoanerView)
 const hideHangar = ref(false)
 const search = ref('')
 const search_input = ref()
@@ -71,8 +71,8 @@ const { data: hangarItems, refresh: refreshHangarItems } = await readAsyncItems(
 			'ship_id.height',
 			'ship_id.beam',
 			'ship_id.classification',
-			'ship_id.minCrew',
-			'ship_id.maxCrew',
+			'ship_id.crew_min',
+			'ship_id.crew_max',
 			'ship_id.price',
 			'ship_id.cargo',
 			'ship_id.modules.id',
@@ -90,8 +90,8 @@ const { data: hangarItems, refresh: refreshHangarItems } = await readAsyncItems(
 			'ship_id.loaners.loaner_id.height',
 			'ship_id.loaners.loaner_id.beam',
 			'ship_id.loaners.loaner_id.classification',
-			'ship_id.loaners.loaner_id.minCrew',
-			'ship_id.loaners.loaner_id.maxCrew',
+			'ship_id.loaners.loaner_id.crew_min',
+			'ship_id.loaners.loaner_id.crew_max',
 			'ship_id.loaners.loaner_id.price',
 			'ship_id.loaners.loaner_id.cargo',
 			'ship_id.loaners.loaner_id.production_status',

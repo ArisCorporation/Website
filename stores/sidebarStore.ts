@@ -1,14 +1,17 @@
-export const useSidebarStore = defineStore({
-  id: 'sidebarStore',
-  state: () => ({
-    MobileSidebar: false,
-  }),
-  actions: {
-    toggleMobileSidebar() {
-      this.MobileSidebar = !this.MobileSidebar;
-    },
-    mobileSidebarOff() {
-      this.MobileSidebar = false;
-    },
-  },
-});
+interface State {
+	MobileSidebar: boolean
+}
+
+export const useSidebarStore = defineStore('sidebarStore', {
+	state: (): State => ({
+		MobileSidebar: false,
+	}),
+	actions: {
+		toggleMobileSidebar() {
+			this.MobileSidebar = !this.MobileSidebar
+		},
+		mobileSidebarOff() {
+			this.MobileSidebar = false
+		},
+	},
+})

@@ -310,7 +310,7 @@ const handleEdit = () => {
 						/>
 						<TableRow
 							title="Crew"
-							:content="(shipData.minCrew || 'N/A') + ' - ' + (shipData.maxCrew || 'N/A')"
+							:content="(shipData.crew_min || 'N/A') + ' - ' + (shipData.crew_max || 'N/A')"
 						/>
 						<TableRow
 							title="Kaufpreis"
