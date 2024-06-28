@@ -294,7 +294,8 @@ console.log(` CLI  (ascii-image-converter)
 		<CommandPalette />
 		<main>
 			<NuxtLayout>
-				<NuxtPage />
+				<h1>test</h1>
+				<!-- <NuxtPage /> -->
 			</NuxtLayout>
 		</main>
 	</div>
