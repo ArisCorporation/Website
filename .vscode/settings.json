@@ -7,5 +7,21 @@
   },
   "nuxt.isNuxtApp": false,
   "cSpell.language": "en,de-DE",
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "10.1.1.6",
+      "port": 8032,
+      "askForPassword": true,
+      "driver": "PostgreSQL",
+      "name": "CMS",
+      "database": "directus",
+      "username": "wztgnGVsQQzt"
+    }
+  ],
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
 }
