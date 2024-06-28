@@ -14,7 +14,7 @@ const dataRes = await readItems('systems', {
 		'name',
 		'content',
 		'affiliation',
-		'discover_year',
+		'discovery_year',
 		'population',
 		'economy',
 		'danger_level',
@@ -46,9 +46,10 @@ const dataRes = await readItems('systems', {
 		'orbit.object:planets.orbit.collection',
 		'orbit.object:planets.orbit.object.name',
 		'orbit.object:planets.orbit.object.slug',
-		'orbit.object:planets.orbit.object.astronomical_designation',
+		'orbit.object:planets.orbit.object:planets.astronomical_designation',
+		'orbit.object:planets.orbit.object:moons.astronomical_designation',
 		'orbit.object:planets.orbit.object.banner',
-		'orbit.object:planets.orbit.object.type',
+		'orbit.object:planets.orbit.object:space_stations.type',
 		'orbit.object:asteroid_belts.name',
 		'orbit.object:asteroid_belts.slug',
 		'orbit.object:asteroid_belts.banner',
@@ -497,6 +498,7 @@ definePageMeta({
 												'IconsNavigationStarmap'
 													+ (data.affiliation_value[0].toUpperCase() + data.affiliation_value.slice(1))
 											"
+											class="my-auto size-6"
 										/>
 									</span>
 								</TableRow>
