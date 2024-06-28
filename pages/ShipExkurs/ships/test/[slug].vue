@@ -1,17 +1,8 @@
 <script setup lang="ts">
 const { readAsyncItems } = useDirectusItems()
 const { params } = useRoute()
-const { copy, isSupported: clipboardIsSupported } = useClipboard()
-const toast = useToast()
-const config = useRuntimeConfig()
-const carousel = ref()
 
-const selectedTab = ref(0)
-const setTab = (index: number) => {
-	selectedTab.value = index
-}
-
-const { data } = await readAsyncItems('ships', {
+const data = await readAsyncItems('ships', {
 	query: {
 		fields: [
 			'id',
@@ -91,7 +82,8 @@ const { data } = await readAsyncItems('ships', {
 	},
 	transform: (rawShips: any[]) => transformShip(rawShips[0]),
 })
-const { data: data2 } = await readAsyncItems('ships', {
+
+const data2 = await readAsyncItems('ships', {
 	query: {
 		fields: [
 			'id',
@@ -171,8 +163,17 @@ const { data: data2 } = await readAsyncItems('ships', {
 	},
 })
 
+const data3 = await readAsyncItems('ships', {
+	query: {
+		filter: {
+			slug: { _eq: params.slug },
+		},
+	},
+})
+
 console.log(data)
 console.log(data2)
+console.log(data3)
 
 definePageMeta({
 	layout: 'ship-exkurs',
