@@ -1,0 +1,559 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-bprimary text-tbase scroll-smooth font-nasa max-w-full text-base scrollbar;
+  }
+  *:focus-visible {
+    @apply outline-aris-400
+  }
+  ::selection {
+    @apply bg-primary-400 text-bprimary;
+  }
+  /* body {
+    @apply text-[#d1d5dd];
+  } */
+  .scrollbar::-webkit-scrollbar-track {
+    @apply rounded bg-bsecondary;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    /*border-radius: 10px; */
+  }
+  .scrollbar::-webkit-scrollbar {
+    @apply w-[7px] h-[7px] bg-bsecondary;
+  }
+  .scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded-md bg-primary-400;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply rounded bg-bsecondary;
+    -webkit-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+    /*border-radius: 10px; */
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    @apply w-[5px] h-[5px] bg-bsecondary;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply rounded-md bg-primary-400;
+    -webkit-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+  }
+  .scrollbar-gray-thin::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+    /*border-radius: 10px; */
+  }
+  .scrollbar-gray-thin::-webkit-scrollbar {
+    @apply w-[5px] h-[5px];
+  }
+  .scrollbar-gray-thin::-webkit-scrollbar-thumb {
+    @apply rounded-md bg-dark-gray;
+    -webkit-box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+  }
+  main {
+    @apply min-h-screen flex;
+  }
+  main > div {
+    @apply flex flex-1 flex-col justify-between;
+  }
+
+  h1 {
+    @apply text-white block mb-8 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-widest;
+  }
+  h2 {
+    @apply text-white block mb-6 mt-12 text-lg sm:text-xl md:text-2xl font-bold;
+  }
+  h3 {
+    @apply text-white block mb-3 text-lg md:text-xl font-bold;
+  }
+  h4 {
+    @apply text-white block mb-2 text-lg font-bold;
+  }
+  h5,
+  h6 {
+    @apply text-white;
+  }
+
+  p {
+    @apply p-2;
+  }
+
+  a {
+    @apply text-secondary cursor-pointer;
+  }
+  .a-text {
+    @apply opacity-50 transition hover:opacity-100;
+  }
+
+  hr {
+    @apply bg-secondary h-[2px] w-full my-5 border-none;
+  }
+
+  button {
+    @apply focus:outline-aris-400;
+  }
+
+  .prose td {
+    vertical-align: middle !important;
+  }
+
+  .prose {
+    max-width: 100% !important;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hr-short {
+    @apply w-16 mt-2;
+  }
+  ul {
+    @apply list-disc pl-4;
+  }
+  ul ul {
+    @apply list-[circle] pl-4;
+  }
+
+  ul ul ul {
+    @apply list-[square] pl-4;
+  }
+
+  ol {
+    @apply list-decimal pl-4;
+  }
+  ol ol {
+    @apply list-[lower-latin] pl-4;
+  }
+  ol ol ol {
+    @apply list-[lower-roman] pl-4;
+  }
+
+  ol li {
+    @apply pb-2;
+  }
+
+  ul li {
+    @apply marker:text-primary-400 pb-2;
+  }
+
+  img {
+    @apply my-0;
+  }
+
+  blockquote {
+    @apply p-4 my-4 border-s-4 border-btertiary bg-bsecondary rounded-l;
+  }
+  blockquote > p {
+    @apply italic leading-relaxed;
+  }
+
+  #sentry-feedback {
+    --background: #111;
+    --background-hover: #222;
+    --foreground: #d1d5dd;
+    --error: #dc2626;
+    --success: #16a34a;
+    --border: 1.5px solid rgba(68, 68, 68, 1);
+    /* --inputOutlineFocus: #00ffe8; */
+    --input-outline-focus: #00ffe8;
+    --submit-background: #00ffe8;
+    --submit-background-hover: rgba(0, 255, 232, .5);
+    --submit-foreground-hover: #eee;
+    --submit-border: #444;
+    --submit-foreground: #222;
+  }
+
+  .bg-image {
+    @apply bg-center bg-no-repeat bg-cover bg-bsecondary;
+  }
+
+  .transition-default {
+    @apply transition-all duration-300;
+  }
+  .transition {
+    @apply transition-all duration-200 hover:duration-300;
+  }
+  .transition-peer {
+    @apply transition-all duration-200 peer-hover:duration-300;
+  }
+  .transition-short {
+    @apply transition-all duration-100 hover:duration-200;
+  }
+  .transition-short-group {
+    @apply transition-all duration-100 group-hover:duration-200;
+  }
+
+  .sidebar-scrollbar {
+    overflow-x: hidden;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar-track {
+    @apply rounded bg-bsecondary;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    /*border-radius: 10px; */
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar {
+    @apply w-[6px] bg-bsecondary;
+  }
+
+  .sidebar-scrollbar::-webkit-scrollbar-thumb {
+    @apply rounded bg-primary-400;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .text-stroke {
+    text-shadow:
+      -1px -1px 0 black,
+      1px -1px 0 black,
+      -1px 1px 0 black,
+      1px 1px 0 black;
+  }
+
+  .tooltip {
+    @apply absolute z-10 w-32 px-2 py-1 mt-3 -ml-16 text-center rounded opacity-0 group-hover:opacity-100 transition-group bg-bsecondary left-1/2 before:absolute before:bottom-full before:left-1/2 before:-ml-[8px] before:border-8 before:border-transparent before:border-b-bsecondary;
+  }
+
+  .comm-link-grid {
+    @apply max-w-5xl mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+  input[type='number']:hover,
+  input[type='number']:focus {
+    -moz-appearance: number-input;
+  }
+
+  .redacted {
+    color: #ff6b6b;
+    position: relative;
+  }
+  .redacted-small {
+    color: #ff6b6b;
+    position: relative;
+  }
+
+  .redacted:before {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: -2px;
+    width: 100%;
+    /* color: 78px; */
+    background-color: #111;
+    overflow: hidden;
+    clip: rect(0, 900px, 0, 0);
+    animation: noise-before 3s infinite linear alternate-reverse;
+  }
+
+  .redacted:after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 2px;
+    width: 100%;
+    /* color: 78px; */
+    background-color: #111;
+    overflow: hidden;
+    clip: rect(0, 900px, 0, 0);
+    animation: noise-after 2s infinite linear alternate-reverse;
+  }
+  .redacted-small:before {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: -1px;
+    width: 100%;
+    /* color: 78px; */
+    background-color: transparent;
+    overflow: hidden;
+    clip: rect(0, 300px, 0, 0);
+    animation: noise-before-small 3s infinite linear alternate-reverse;
+  }
+
+  .redacted-small:after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 1px;
+    width: 100%;
+    /* color: 78px; */
+    background-color: transparent;
+    overflow: hidden;
+    clip: rect(0, 300px, 0, 0);
+    animation: noise-after-small 2s infinite linear alternate-reverse;
+  }
+  @keyframes noise-before {
+    0% {
+      clip: rect(61px, 9999px, 52px, 0);
+    }
+    5% {
+      clip: rect(33px, 9999px, 144px, 0);
+    }
+    10% {
+      clip: rect(121px, 9999px, 115px, 0);
+    }
+    15% {
+      clip: rect(144px, 9999px, 162px, 0);
+    }
+    20% {
+      clip: rect(62px, 9999px, 180px, 0);
+    }
+    25% {
+      clip: rect(34px, 9999px, 42px, 0);
+    }
+    30% {
+      clip: rect(147px, 9999px, 179px, 0);
+    }
+    35% {
+      clip: rect(99px, 9999px, 63px, 0);
+    }
+    40% {
+      clip: rect(188px, 9999px, 122px, 0);
+    }
+    45% {
+      clip: rect(154px, 9999px, 14px, 0);
+    }
+    50% {
+      clip: rect(63px, 9999px, 37px, 0);
+    }
+    55% {
+      clip: rect(161px, 9999px, 147px, 0);
+    }
+    60% {
+      clip: rect(109px, 9999px, 175px, 0);
+    }
+    65% {
+      clip: rect(157px, 9999px, 88px, 0);
+    }
+    70% {
+      clip: rect(173px, 9999px, 131px, 0);
+    }
+    75% {
+      clip: rect(62px, 9999px, 70px, 0);
+    }
+    80% {
+      clip: rect(24px, 9999px, 153px, 0);
+    }
+    85% {
+      clip: rect(138px, 9999px, 40px, 0);
+    }
+    90% {
+      clip: rect(79px, 9999px, 136px, 0);
+    }
+    95% {
+      clip: rect(25px, 9999px, 34px, 0);
+    }
+    100% {
+      clip: rect(173px, 9999px, 166px, 0);
+    }
+  }
+  @keyframes noise-before-small {
+    0% {
+      clip: rect(30.5px, 9999px, 26px, 0);
+    }
+    5% {
+      clip: rect(16.5px, 9999px, 72px, 0);
+    }
+    10% {
+      clip: rect(60.5px, 9999px, 57.5px, 0);
+    }
+    15% {
+      clip: rect(72px, 9999px, 81px, 0);
+    }
+    20% {
+      clip: rect(31px, 9999px, 90px, 0);
+    }
+    25% {
+      clip: rect(17px, 9999px, 21px, 0);
+    }
+    30% {
+      clip: rect(73.5px, 9999px, 89.5px, 0);
+    }
+    35% {
+      clip: rect(45.5px, 9999px, 31.5px, 0);
+    }
+    40% {
+      clip: rect(94px, 9999px, 61px, 0);
+    }
+    45% {
+      clip: rect(77px, 9999px, 7px, 0);
+    }
+    50% {
+      clip: rect(31.5px, 9999px, 18.5px, 0);
+    }
+    55% {
+      clip: rect(80.5px, 9999px, 73.5px, 0);
+    }
+    60% {
+      clip: rect(54.5px, 9999px, 87.5px, 0);
+    }
+    65% {
+      clip: rect(78.5px, 9999px, 44px, 0);
+    }
+    70% {
+      clip: rect(86.5px, 9999px, 65.5px, 0);
+    }
+    75% {
+      clip: rect(31px, 9999px, 35px, 0);
+    }
+    80% {
+      clip: rect(12px, 9999px, 76.5px, 0);
+    }
+    85% {
+      clip: rect(69px, 9999px, 20px, 0);
+    }
+    90% {
+      clip: rect(39.5px, 9999px, 68px, 0);
+    }
+    95% {
+      clip: rect(12.5px, 9999px, 17px, 0);
+    }
+    100% {
+      clip: rect(86.5px, 9999px, 83px, 0);
+    }
+  }
+  @keyframes noise-after {
+    0% {
+      clip: rect(26px, 9999px, 33px, 0);
+    }
+    5% {
+      clip: rect(140px, 9999px, 198px, 0);
+    }
+    10% {
+      clip: rect(184px, 9999px, 89px, 0);
+    }
+    15% {
+      clip: rect(121px, 9999px, 6px, 0);
+    }
+    20% {
+      clip: rect(181px, 9999px, 99px, 0);
+    }
+    25% {
+      clip: rect(154px, 9999px, 133px, 0);
+    }
+    30% {
+      clip: rect(134px, 9999px, 169px, 0);
+    }
+    35% {
+      clip: rect(26px, 9999px, 187px, 0);
+    }
+    40% {
+      clip: rect(147px, 9999px, 137px, 0);
+    }
+    45% {
+      clip: rect(31px, 9999px, 52px, 0);
+    }
+    50% {
+      clip: rect(191px, 9999px, 109px, 0);
+    }
+    55% {
+      clip: rect(74px, 9999px, 54px, 0);
+    }
+    60% {
+      clip: rect(145px, 9999px, 75px, 0);
+    }
+    65% {
+      clip: rect(153px, 9999px, 198px, 0);
+    }
+    70% {
+      clip: rect(99px, 9999px, 136px, 0);
+    }
+    75% {
+      clip: rect(118px, 9999px, 192px, 0);
+    }
+    80% {
+      clip: rect(1px, 9999px, 83px, 0);
+    }
+    85% {
+      clip: rect(145px, 9999px, 98px, 0);
+    }
+    90% {
+      clip: rect(121px, 9999px, 154px, 0);
+    }
+    95% {
+      clip: rect(156px, 9999px, 44px, 0);
+    }
+    100% {
+      clip: rect(67px, 9999px, 122px, 0);
+    }
+  }
+  @keyframes noise-after-small {
+    0% {
+      clip: rect(13px, 9999px, 16.5px, 0);
+    }
+    5% {
+      clip: rect(70px, 9999px, 99px, 0);
+    }
+    10% {
+      clip: rect(92px, 9999px, 44.5px, 0);
+    }
+    15% {
+      clip: rect(60.5px, 9999px, 3px, 0);
+    }
+    20% {
+      clip: rect(90.5px, 9999px, 45.5px, 0);
+    }
+    25% {
+      clip: rect(77px, 9999px, 66.5px, 0);
+    }
+    30% {
+      clip: rect(67px, 9999px, 84.5px, 0);
+    }
+    35% {
+      clip: rect(13px, 9999px, 93.5px, 0);
+    }
+    40% {
+      clip: rect(73.5px, 9999px, 68.5px, 0);
+    }
+    45% {
+      clip: rect(15.5px, 9999px, 26px, 0);
+    }
+    50% {
+      clip: rect(95.5px, 9999px, 54.5px, 0);
+    }
+    55% {
+      clip: rect(37px, 9999px, 27px, 0);
+    }
+    60% {
+      clip: rect(72.5px, 9999px, 37.5px, 0);
+    }
+    65% {
+      clip: rect(76.5px, 9999px, 99px, 0);
+    }
+    70% {
+      clip: rect(49.5px, 9999px, 68px, 0);
+    }
+    75% {
+      clip: rect(59px, 9999px, 96px, 0);
+    }
+    80% {
+      clip: rect(0.5px, 9999px, 41.5px, 0);
+    }
+    85% {
+      clip: rect(72.5px, 9999px, 49px, 0);
+    }
+    90% {
+      clip: rect(60.5px, 9999px, 77px, 0);
+    }
+    95% {
+      clip: rect(78px, 9999px, 22px, 0);
+    }
+    100% {
+      clip: rect(33.5px, 9999px, 61px, 0);
+    }
+  }
+}
+/* 
+@layer components {
+  .animate-link {
+    @apply ;
+  }
+} */
