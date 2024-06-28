@@ -4,7 +4,8 @@ import 'vue-timeline-chart/style.css'
 
 const { readAsyncItems } = useDirectusItems()
 const { readAsyncUsers } = useDirectusUsers()
-  const { metaSymbol } = useShortcuts()
+const modalStore = useModalStore()
+const { metaSymbol } = useShortcuts()
 const timeline = ref(null)
 let isDraggingMapViewport = false
 let previousDragTimePos = 0
@@ -458,7 +459,7 @@ definePageMeta({
 
         <ButtonDefault
           class="mx-2"
-          @click="openModal('Hilfe', { hideCloseButton: true })"
+          @click="modalStore.openModal('Hilfe', { hideCloseButton: true })"
         >
           <UIcon
             name="i-heroicons-information-circle"

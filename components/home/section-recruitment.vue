@@ -5,18 +5,7 @@ defineProps({
     required: true,
   },
 });
-const modalStore = useState<{
-    isModalOpen: boolean
-      isSlideOpen: boolean
-      title: string
-      data: any
-      type: string
-      hideXButton: boolean
-      hideCloseButton: boolean
-      agreeAction: any
-      big: boolean
-      locked: boolean
-  }>('modalStore')
+const modalStore = useModalStore();
 </script>
 
 <template>
@@ -37,7 +26,7 @@ const modalStore = useState<{
         color="secondary"
         type="button"
         class="mt-2"
-        @click="openModal('', { hideCloseButton: true, hideXButton: true })"
+        @click="modalStore.openModal('', { hideCloseButton: true, hideXButton: true })"
       >
         Jetzt bewerben
       </ButtonDefault>

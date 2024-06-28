@@ -1,20 +1,7 @@
 <script setup lang="ts">
 const { readAsyncItems } = useDirectusItems();
-const userSettings = useState<{
-	ams: {
-		hangarDetailView: boolean
-		hangarLoanerView: boolean
-		fleetDetailView: boolean
-		fleetLoanerView: boolean
-		avatarConsent: boolean
-		administration: {
-			userTableColumns: { key: string; label?: string; sortable?: boolean }[] | null
-		}
-	}
-	se: {
-		shipDetailView: boolean
-	}
-}>('userSettingsStore')
+const userSettingsStore = useUserSettingsStore();
+const { userSettings } = storeToRefs(userSettingsStore);
 
 const hideShips = ref(false);
 const search = ref('');

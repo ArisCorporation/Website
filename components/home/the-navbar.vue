@@ -64,12 +64,7 @@ const bannerItems = [
   },
 ];
 
-const homepageTabs = useState<{
-	selectedArisTab: number
-	selectedOurTab: number
-	selectedOurFleetTab: number
-	selectedOurDepartmentTab: number
-}>('homepageTabsStore')
+const homepageTabsStore = useHomepageTabsStore();
 
 function toggleMenu() {
   mobileMenu.value = !mobileMenu.value;
@@ -78,10 +73,10 @@ function toggleMenu() {
 function handleHomeButton(item: any) {
   if (item.action) {
     if (item.action.tabGroup === 'our') {
-      homepageTabs.value.selectedOurTab = item.action.tabIndex;
+      homepageTabsStore.setOurTab(item.action.tabIndex);
     }
     if (item.action.tabGroup === 'aris') {
-      homepageTabs.value.selectedArisTab = item.action.tabIndex;
+      homepageTabsStore.setArisTab(item.action.tabIndex);
     }
   }
   toggleMenu();

@@ -1,24 +1,7 @@
 <script setup lang="ts">
 const { readUsers, readAsyncUsers } = useDirectusUsers()
-// STORE
-const userSettings = useState<{
-	ams: {
-		hangarDetailView: boolean
-		hangarLoanerView: boolean
-		fleetDetailView: boolean
-		fleetLoanerView: boolean
-		avatarConsent: boolean
-		administration: {
-			userTableColumns: { key: string; label?: string; sortable?: boolean }[] | null
-		}
-	}
-	se: {
-		shipDetailView: boolean
-	}
-}>('userSettingsStore')
-
-// const userSettingsStore = useUserSettingsStore()
-// const { userSettings } = storeToRefs(userSettingsStore)
+const userSettingsStore = useUserSettingsStore()
+const { userSettings } = storeToRefs(userSettingsStore)
 const emit = defineEmits(['create', 'lock', 'unlock', 'archive', 'delete', 'edit'])
 // TODO
 const { data: baseItemCount } = await readAsyncUsers({
@@ -278,7 +261,7 @@ defineExpose({
 
 onMounted(() => {
 	if (!userSettings.value.ams.administration.userTableColumns) {
-		userSettings.value.ams.administration.userTableColumns = columns
+		userSettingsStore.AMSAdministrationSetUserTableColumns(columns)
 	}
 })
 </script>
@@ -443,7 +426,7 @@ onMounted(() => {
 								multiple
 								placeholder="Columns"
 								size="md"
-								@update:model-value="userSettings.ams.administration.userTableColumns = $event"
+								@update:model-value="userSettingsStore.AMSAdministrationSetUserTableColumns($event)"
 							>
 								<UButton
 									icon="i-heroicons-view-columns"

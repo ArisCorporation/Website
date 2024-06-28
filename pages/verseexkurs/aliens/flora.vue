@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { readItems, readSingleton } = useDirectusItems();
-  const selectedItem = ref();
+const modalStore = useModalStore();
+const selectedItem = ref();
 const selectedTab = ref(0);
 
 const introduction = await readSingleton('flora_index', {
@@ -25,7 +26,7 @@ if (!data || !introduction) {
 }
 
 const openModal = (item: any) => {
-  openSlide({ big: true });
+  modalStore.openSlide({ big: true });
   selectedItem.value = item;
 };
 
