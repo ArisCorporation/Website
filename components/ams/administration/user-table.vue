@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { readUsers, readAsyncUsers } = useDirectusUsers()
 const userSettingsStore = useUserSettingsStore()
-const { userSettings } = storeToRefs(userSettingsStore)
+const userSettings = storeToRefs(userSettingsStore)
 const emit = defineEmits(['create', 'lock', 'unlock', 'archive', 'delete', 'edit'])
 // TODO
 const { data: baseItemCount } = await readAsyncUsers({
@@ -34,7 +34,7 @@ const columns = [
 ]
 const columnsTable = computed(() =>
 	columns.filter(column =>
-		JSON.stringify(userSettings.value?.ams.administration.userTableColumns).includes(column.key),
+		JSON.stringify(userSettings.ams.value.administration.userTableColumns).includes(column.key),
 	),
 )
 const itemOptions = computed(() => [
@@ -260,7 +260,7 @@ defineExpose({
 })
 
 onMounted(() => {
-	if (!userSettings.value.ams.administration.userTableColumns) {
+	if (!userSettings.ams.value.administration.userTableColumns) {
 		userSettingsStore.AMSAdministrationSetUserTableColumns(columns)
 	}
 })
