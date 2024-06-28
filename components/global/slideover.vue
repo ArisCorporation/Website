@@ -1,17 +1,17 @@
 <script setup lang="ts">
-const state = ref(false) // Use ref for reactive state instead of defineModel
+const state = defineModel<boolean>()
 const modalStore = useModalStore()
 
 const props = defineProps<{ modelValue: any, big?: boolean }>()
 const hasVModel = computed(() => props.modelValue !== undefined)
 
-const open = computed({
+const open = computed<boolean>({
 	get(): boolean {
-		return hasVModel.value ? props.modelValue : modalStore.isSlideOpen
+		return hasVModel?.value ? state?.value : modalStore.isSlideOpen
 	},
 	set(value: boolean) {
-		if (hasVModel.value) {
-			emit('update:modelValue', value) // Emit event for v-model update
+		if (hasVModel?.value) {
+			state.value = value
 		}
 		else {
 			modalStore.isSlideOpen = value
@@ -29,6 +29,21 @@ const open = computed({
 				'w-screen ' + (modalStore.big || big ? 'max-w-full md:max-w-3xl 2xl:max-w-4xl' : 'max-w-[532px] xl:max-w-xl'),
 		}"
 	>
+		<UButton
+			variant="soft"
+			color="gray"
+			icon="i-heroicons-x-mark-20-solid"
+			size="2xl"
+			square
+			class="absolute top-4 -left-12 animate-link"
+			:ui="{
+				rounded: 'rounded-full',
+				square: {
+					'2xl': 'p-1',
+				},
+			}"
+			@click="open = false"
+		/>
 		<!-- <div class="flex-1 p-4 scrollbar-gray-thin"> -->
 		<slot name="slideCard">
 			<div class="flex-1 overflow-y-scroll">
