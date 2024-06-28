@@ -26,7 +26,7 @@ const open = computed<boolean>({
 		:ui="{
 			strategy: 'override',
 			width:
-				'w-screen ' + (modalStore.big || big ? 'max-w-full md:max-w-3xl 2xl:max-w-4xl' : 'max-w-[532px] xl:max-w-xl'),
+				'w-screen ' + (modalStore.big || big ? 'max-w-full lg:max-w-3xl 2xl:max-w-4xl' : 'max-w-full sm:max-w-[532px] xl:max-w-xl'),
 		}"
 	>
 		<UButton
@@ -50,16 +50,37 @@ const open = computed<boolean>({
 				<UCard
 					class="flex flex-col flex-1 h-full overflow-y-scroll scrollbar-gray-thin"
 					:ui="{
-						body: { base: 'flex-1' },
+						body: { base: `flex-1 ${$slots.slideHeader ? '' : 'sm:!border-t-0'}` },
 						background: 'bg-bprimary',
 						ring: '',
 						divide: 'divide-y divide-btertiary',
+						header: {
+							base: `${$slots.slideHeader ? '' : 'sm:hidden'}`,
+							background: '',
+							padding: `px-4 sm:px-6 ${$slots.slideHeader ? 'py-5' : 'py-2'}`,
+						},
 					}"
 				>
 					<template
-						v-if="$slots.slideHeader"
 						#header
 					>
+						<div class="flex lg:hidden">
+							<UButton
+								variant="soft"
+								color="gray"
+								icon="i-heroicons-x-mark-20-solid"
+								size="sm"
+								square
+								class="ml-2 animate-link"
+								:ui="{
+									rounded: 'rounded-full',
+									square: {
+										'2xl': 'p-0.5',
+									},
+								}"
+								@click="open = false"
+							/>
+						</div>
 						<!-- TODO: Styling -->
 						<!-- <button
               class="absolute flex items-center w-8 h-8 cursor-pointer focus:outline-none"
