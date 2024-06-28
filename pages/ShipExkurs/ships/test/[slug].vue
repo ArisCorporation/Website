@@ -171,9 +171,12 @@ const data3 = await readAsyncItems('ships', {
 	},
 })
 
+const data4 = await readAsyncItems('ships')
+
 console.log(data)
 console.log(data2)
 console.log(data3)
+console.log(data4)
 
 definePageMeta({
 	layout: 'ship-exkurs',
