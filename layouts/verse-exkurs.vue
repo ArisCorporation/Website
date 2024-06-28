@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const SidebarStore = useSidebarStore();
+const sidebarStore = useState<{
+	MobileSidebar: boolean
+}>('sidebarStore')
 
 const sidebarItems = [
   {
@@ -110,7 +112,7 @@ useHead({
     <Sidebar banner="IconsLogosVeBanner" base-url="/verseexkurs" :sidebar-items="sidebarItems" />
     <div id="sidebar-space" class="hidden lg:block" />
     <div class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen">
-      <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
+      <SidebarOverlay :state="sidebarStore.MobileSidebar" @click="() => sidebarStore.MobileSidebar = !sidebarStore.MobileSidebar" />
       <DevOnly>
         <div v-if="JSON.parse(useCookie('devtools').value ?? 'false')" class="bg-black z-[99] pb-4 px-8">
           <h6>DEV TOOLS:</h6>

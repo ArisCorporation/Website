@@ -3,10 +3,23 @@ import * as yup from 'yup';
 import YupPassword from 'yup-password';
 import type { FormSubmitEvent } from '#ui/types';
 const config = useRuntimeConfig();
-const SidebarStore = useSidebarStore();
+const sidebarStore = useState<{
+	MobileSidebar: boolean
+}>('sidebarStore')
 const { user, logout, refresh: refreshUser, readMe } = useDirectusAuth();
 const router = useRouter();
-const modalStore = useModalStore();
+const modalStore = useState<{
+    isModalOpen: boolean
+      isSlideOpen: boolean
+      title: string
+      data: any
+      type: string
+      hideXButton: boolean
+      hideCloseButton: boolean
+      agreeAction: any
+      big: boolean
+      locked: boolean
+  }>('modalStore')
 const { updateUser } = useDirectusUsers();
 
 YupPassword(yup);
@@ -92,8 +105,8 @@ const onPwSubmit = async (event: FormSubmitEvent<pw_Schema>) => {
   try {
     await updateUser(user.value.id, { password: pw_formdata.password, temporary_password: false }, {});
     await refreshUser();
-    if (!user.value.temporary_password) modalStore.unlockModal();
-    modalStore.closeModal();
+    if (!user.value.temporary_password) unlockModal();
+    closeModal();
   } catch (error) {
     console.error(error);
   }
@@ -103,7 +116,7 @@ onMounted(() => {
   const toast = useToast();
 
   if (user.value && user.value?.temporary_password) {
-    modalStore.openModal('Temoräres Password', {
+    openModal('Temoräres Password', {
       type: 'temporary-pw',
       hideCloseButton: true,
       locked: true,
@@ -271,7 +284,7 @@ useHead({
     <div id="sidebar-space" class="hidden lg:block" />
     <!-- lg:max-w-[calc(100vw-16rem)]  lg:ml-64 -->
     <div class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen">
-      <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
+      <SidebarOverlay :state="sidebarStore.MobileSidebar" @click="() => sidebarStore.MobileSidebar = !sidebarStore.MobileSidebar" />
 
       <div v-if="JSON.parse(useCookie('devtools').value)" class="bg-black z-[99] pb-4 px-8">
         <h6>DEV TOOLS:</h6>

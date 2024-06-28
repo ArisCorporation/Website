@@ -64,7 +64,12 @@ const bannerItems = [
   },
 ];
 
-const homepageTabsStore = useHomepageTabsStore();
+const homepageTabs = useState<{
+	selectedArisTab: number
+	selectedOurTab: number
+	selectedOurFleetTab: number
+	selectedOurDepartmentTab: number
+}>('homepageTabsStore')
 
 function toggleMenu() {
   mobileMenu.value = !mobileMenu.value;
@@ -73,10 +78,10 @@ function toggleMenu() {
 function handleHomeButton(item: any) {
   if (item.action) {
     if (item.action.tabGroup === 'our') {
-      homepageTabsStore.setOurTab(item.action.tabIndex);
+      homepageTabs.value.selectedOurTab = item.action.tabIndex;
     }
     if (item.action.tabGroup === 'aris') {
-      homepageTabsStore.setArisTab(item.action.tabIndex);
+      homepageTabs.value.selectedArisTab = item.action.tabIndex;
     }
   }
   toggleMenu();

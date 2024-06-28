@@ -4,8 +4,21 @@ import { object, string, type InferType, boolean } from 'yup';
 const { readAsyncItems, updateItem, deleteItems, createItems } = useDirectusItems();
 const { readAsyncUsers } = useDirectusUsers();
 const { params, path } = useRoute();
-const userSettingsStore = useUserSettingsStore();
-const { userSettings } = storeToRefs(userSettingsStore);
+const userSettings = useState<{
+	ams: {
+		hangarDetailView: boolean
+		hangarLoanerView: boolean
+		fleetDetailView: boolean
+		fleetLoanerView: boolean
+		avatarConsent: boolean
+		administration: {
+			userTableColumns: { key: string; label?: string; sortable?: boolean }[] | null
+		}
+	}
+	se: {
+		shipDetailView: boolean
+	}
+}>('userSettingsStore')
 const loanerView = computed(() => userSettings.value.ams.hangarLoanerView);
 const hideHangar = ref(true);
 const search = ref('');
@@ -13,7 +26,18 @@ const selectedTab = ref(0);
 const setTab = (index: number) => {
   selectedTab.value = index;
 };
-const modalStore = useModalStore();
+const modalStore = useState<{
+    isModalOpen: boolean
+      isSlideOpen: boolean
+      title: string
+      data: any
+      type: string
+      hideXButton: boolean
+      hideCloseButton: boolean
+      agreeAction: any
+      big: boolean
+      locked: boolean
+  }>('modalStore')
 const dataChanged = ref(false);
 const form = ref();
 
@@ -290,7 +314,7 @@ useHead({
             </template>
           </USelectMenu>
           <div class="flex flex-wrap justify-between w-full px-8 mt-6">
-            <ButtonDefault type="button" @click="modalStore.closeModal" class="w-1/3" color="danger"
+            <ButtonDefault type="button" @click="() => closeModal()" class="w-1/3" color="danger"
               >Schließen</ButtonDefault
             >
             <ButtonDefault
@@ -623,7 +647,7 @@ useHead({
 
             <template #footer>
               <div class="flex flex-wrap justify-between w-full px-8 my-auto">
-                <ButtonDefault type="button" @click="modalStore.closeSlide" class="w-1/3" color="danger">
+                <ButtonDefault type="button" @click="() => closeSlide()" class="w-1/3" color="danger">
                   Schließen
                 </ButtonDefault>
                 <ButtonDefault
@@ -997,12 +1021,12 @@ useHead({
         class="flex flex-wrap justify-center w-full mx-auto my-auto lg:w-fit h-fit lg:mr-0 lg:gap-4 lg:justify-normal"
       >
         <div class="flex mt-6 sm:pr-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <ButtonDefault class="mx-auto sm:mr-0 sm:ml-auto" @click="userSettingsStore.AMSToggleHangarDetailView">
+          <ButtonDefault class="mx-auto sm:mr-0 sm:ml-auto" @click="() => userSettings.ams.hangarDetailView = !userSettings.ams.hangarDetailView">
             Detail Ansicht: {{ userSettings.ams.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
         <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
-          <ButtonDefault class="mx-auto sm:ml-0 sm:mr-auto" @click="userSettingsStore.AMSToggleHangarLoanerView">
+          <ButtonDefault class="mx-auto sm:ml-0 sm:mr-auto" @click="() => userSettings.ams.hangarLoanerView = !userSettings.ams.hangarLoanerView">
             Leihschiff-Ansicht: {{ loanerView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
@@ -1040,7 +1064,7 @@ useHead({
           <ButtonDefault
             @click="
               modalStore.data = [];
-              modalStore.openModal(
+              openModal(
                 selectedTab === 0 ? 'Hangar: Schiffe hinzufügen' : 'Wunschliste: Schiffe hinzufügen',
                 {
                   hideCloseButton: true,

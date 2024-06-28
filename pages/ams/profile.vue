@@ -3,7 +3,18 @@ import VueCropper from 'vue-cropperjs';
 import 'cropperjs/dist/cropper.css';
 
 const { updateMe } = useDirectusUsers();
-const modalStore = useModalStore();
+const modalStore = useState<{
+    isModalOpen: boolean
+      isSlideOpen: boolean
+      title: string
+      data: any
+      type: string
+      hideXButton: boolean
+      hideCloseButton: boolean
+      agreeAction: any
+      big: boolean
+      locked: boolean
+  }>('modalStore')
 const user = ref(transformUser(await useDirectusAuth().readMe()));
 const { uploadFiles, deleteFile } = useDirectusFiles();
 const avatarUploadLoading = ref(false);
@@ -50,7 +61,7 @@ function setCropperImage(e: any) {
   }
 
   if (typeof FileReader === 'function') {
-    modalStore.openModal('Avatar ändern', { type: 'avatar-cropper', hideCloseButton: true });
+    openModal('Avatar ändern', { type: 'avatar-cropper', hideCloseButton: true });
     const reader = new FileReader();
 
     reader.onload = (event: any) => {
@@ -77,7 +88,7 @@ async function saveAvatar() {
       const new_avatar = await uploadFiles(formData);
       await updateMe({ avatar: new_avatar.id }, { fields: ['id'] });
       avatarUploadLoading.value = false;
-      modalStore.closeModal();
+      closeModal();
 
       await deleteFile(old_avatar);
     } catch (e) {
@@ -151,7 +162,7 @@ definePageMeta({
             </div>
             <!-- <template #footer> -->
             <div class="flex flex-wrap justify-center w-full pt-4 my-auto gap-x-[5.5rem]">
-              <ButtonDefault type="button" class="w-1/3" color="danger" @click="modalStore.closeModal">
+              <ButtonDefault type="button" class="w-1/3" color="danger" @click="() => closeModal()">
                 Schließen
               </ButtonDefault>
               <ButtonDefault class="w-1/3" color="success" @click="saveAvatar"> Speichern </ButtonDefault>

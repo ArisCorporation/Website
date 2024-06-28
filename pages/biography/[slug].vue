@@ -6,9 +6,27 @@ const { readAsyncItems } = useDirectusItems()
 const { path, params } = useRoute()
 const { copy, isSupported: clipboardIsSupported } = useClipboard()
 const toast = useToast()
-const homepageTabsStore = useHomepageTabsStore()
-const userSettingsStore = useUserSettingsStore()
-const { userSettings } = storeToRefs(userSettingsStore)
+const homepageTabs = useState<{
+	selectedArisTab: number
+	selectedOurTab: number
+	selectedOurFleetTab: number
+	selectedOurDepartmentTab: number
+}>('homepageTabsStore')
+const userSettings = useState<{
+	ams: {
+		hangarDetailView: boolean
+		hangarLoanerView: boolean
+		fleetDetailView: boolean
+		fleetLoanerView: boolean
+		avatarConsent: boolean
+		administration: {
+			userTableColumns: { key: string; label?: string; sortable?: boolean }[] | null
+		}
+	}
+	se: {
+		shipDetailView: boolean
+	}
+}>('userSettingsStore')
 
 const { x, y } = useMouse()
 const { y: windowY } = useWindowScroll()
@@ -206,13 +224,13 @@ const handleShare = () => {
 	// }
 }
 const handleDepartmentLink = () => {
-	homepageTabsStore.setOurTab(2)
-	homepageTabsStore.setOurDepartmentTab(data.value?.department.tab_id)
+	homepageTabs.value.selectedOurTab = 2
+	homepageTabs.value.selectedOurDepartmentTab = data.value?.department.tab_id
 }
 
 defineShortcuts({
 	d: {
-		handler: () => userSettingsStore.AMSToggleHangarDetailView(),
+		handler: () => userSettings.value.ams.hangarDetailView = !userSettings.value.ams.hangarDetailView,
 	},
 })
 
@@ -579,7 +597,7 @@ useHead({
 						<div class="flex mb-3 ml-auto">
 							<ButtonDefault
 								class="mx-auto sm:mr-0 sm:ml-auto"
-								@click="userSettingsStore.AMSToggleHangarDetailView"
+								@click="userSettings.ams.hangarDetailView = !userSettings.ams.hangarDetailView"
 							>
 								Detail Ansicht:
 								{{ userSettings.ams.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
