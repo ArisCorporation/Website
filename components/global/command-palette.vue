@@ -136,6 +136,7 @@ const groups = computed(() => [
 			const users = await readUsers({
 				filter: {
 					...useDirectusSearch(q, ['title', 'first_name', 'last_name', 'department.name', 'leading_department.name']),
+					hidden: { _eq: false },
 				},
 				fields: [
 					'id',
