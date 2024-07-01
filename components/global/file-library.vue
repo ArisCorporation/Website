@@ -49,9 +49,9 @@ const { data: folders } = await useAsyncData(() => globals.fetch(url.href + 'fol
 // 		transform: (data: any) => data?.data,
 // 	},
 // )
-const search_filters = ref(useDirectusSearch(search.value, ['title', 'description']))
-watch(search, () => search_filters.value = useDirectusSearch(search.value, ['title', 'description']))
-
+// const search_filters = ref(useDirectusSearch(search.value, ['title', 'description'], { id: '_eq' }))
+// watch(search, () => search_filters.value = useDirectusSearch(search.value, ['title', 'description'], { id: '_eq' }))
+// watch(search, () => console.log(useDirectusSearch(search.value, ['title', 'description'], { id: '_eq' })))
 // const { data: files_count } = await readAsyncFiles({
 // 	query: {
 // 		fields: ['id'],
@@ -71,8 +71,9 @@ watch(search, () => search_filters.value = useDirectusSearch(search.value, ['tit
 const { data: files_count } = await useAsyncData('files_count', async () => await readFiles({
 	fields: ['id'],
 	limit: -1,
+	search: search.value,
 	filter: {
-		...search_filters.value,
+		// ...search_filters.value,
 		...(active_folder.value?.id !== 'all'
 			? { folder:
 				{
@@ -82,7 +83,7 @@ const { data: files_count } = await useAsyncData('files_count', async () => awai
 		...(props.type ? { type: { _istarts_with: props.type } } : {}),
 	} },
 ), {
-	watch: [search_filters, page, pageCount, active_folder],
+	watch: [search, page, pageCount, active_folder],
 })
 
 watch(
@@ -127,8 +128,9 @@ const { data: files } = await useAsyncData('files', async () => await readFiles(
 	fields: ['id', 'title', 'description', 'type', 'folder'],
 	limit: pageCount.value,
 	page: page.value,
+	search: search.value,
 	filter: {
-		...search_filters.value,
+		// ...search_filters.value,
 		...(active_folder.value?.id !== 'all'
 			? { folder:
 				{
@@ -138,7 +140,7 @@ const { data: files } = await useAsyncData('files', async () => await readFiles(
 		...(props.type ? { type: { _istarts_with: props.type } } : {}),
 	} },
 ), {
-	watch: [search_filters, page, pageCount, active_folder],
+	watch: [search, page, pageCount, active_folder],
 })
 
 const open = ref(false)
@@ -227,7 +229,7 @@ const open = ref(false)
 				<div
 					v-for="file in files"
 					:key="file.id"
-					class="w-full h-auto aspect-[1/1] bg-bsecondary rounded-xl overflow-clip cursor-pointer animate-link"
+					class="w-full relative h-auto aspect-[1/1] bg-bsecondary rounded-xl overflow-clip cursor-pointer animate-link"
 					@click="() => $emit('image-click', file)"
 				>
 					<NuxtImg
@@ -235,19 +237,24 @@ const open = ref(false)
 						height="150px"
 						width="150px"
 						:src="file.id"
-						class="object-cover w-full h-full"
+						format="jpg"
+						class="relative z-10 object-cover w-full h-full"
 					/>
 					<video
 						v-else-if="file.type?.startsWith('video')"
 						:src="$config.public.fileBase + file.id + '#t=1.1'"
-						class="object-cover w-full h-full rounded-xl"
+						class="relative z-10 object-cover w-full h-full rounded-xl"
 					/>
 					<div
 						v-else
-						class="flex w-full h-full text-center"
+						class="relative z-10 flex w-full h-full text-center bg-bsecondary"
 					>
 						<span class="m-auto">{{ file.title }}</span>
 					</div>
+					<USkeleton
+						class="absolute top-0 bottom-0 left-0 right-0 z-0 m-auto size-full"
+						:ui="{ rounded: 'rounded-xl' }"
+					/>
 				</div>
 			</div>
 		</div>
