@@ -34,25 +34,25 @@ export const useUserSettingsStore = defineStore('userSettings', {
 	}),
 	actions: {
 		AMSToggleHangarDetailView() {
-			this.userSettings.ams.hangarDetailView = !this.userSettings.ams.hangarDetailView
+			this.ams.hangarDetailView = !this.ams.hangarDetailView
 		},
 		AMSToggleHangarLoanerView() {
-			this.userSettings.ams.hangarLoanerView = !this.userSettings.ams.hangarLoanerView
+			this.ams.hangarLoanerView = !this.ams.hangarLoanerView
 		},
 		AMSToggleFleetDetailView() {
-			this.userSettings.ams.fleetDetailView = !this.userSettings.ams.fleetDetailView
+			this.ams.fleetDetailView = !this.ams.fleetDetailView
 		},
 		AMSToggleFleetLoanerView() {
-			this.userSettings.ams.fleetLoanerView = !this.userSettings.ams.fleetLoanerView
+			this.ams.fleetLoanerView = !this.ams.fleetLoanerView
 		},
 		AMSAcceptAvatarConsent() {
-			this.userSettings.ams.avatarConsent = true
+			this.ams.avatarConsent = true
 		},
 		AMSAdministrationSetUserTableColumns(columns: tableColumns[]) {
-			this.userSettings.ams.administration.userTableColumns = columns
+			this.ams.administration.userTableColumns = columns
 		},
 		SEToggleShipDetailView() {
-			this.userSettings.se.shipDetailView = !this.userSettings.se.shipDetailView
+			this.se.shipDetailView = !this.se.shipDetailView
 		},
 	},
 })
