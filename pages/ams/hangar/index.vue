@@ -33,6 +33,7 @@ const { data: user } = await readAsyncUsers({
 		filter: {
 			...(path.startsWith('/ams/hangar') && { id: useDirectusAuth().user.value?.id }),
 			...(path.startsWith('/ams/employees') && { slug: params?.slug }),
+			hidden: { _eq: false },
 		},
 	},
 	transform: (users: IRawUser[]) => transformUser(users[0]),

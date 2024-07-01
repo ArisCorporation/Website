@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const { readAsyncItems } = useDirectusItems()
-const userSettingsStore = useUserSettingsStore()
-const { userSettings } = storeToRefs(userSettingsStore)
+const userSettings = useUserSettingsStore()
 
 const hideShips = ref(false)
 const search = ref('')
