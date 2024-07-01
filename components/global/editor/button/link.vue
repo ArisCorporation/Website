@@ -1,33 +1,33 @@
 <script setup lang="ts">
-defineProps(['editor']);
+const props = defineProps<{ editor: any }>()
 
 function setLink() {
-  const previousUrl = unref(editor)?.getAttributes('link').href;
-  const url = window.prompt('URL', previousUrl);
+	const previousUrl = unref(props.editor)?.getAttributes('link').href
+	const url = window.prompt('URL', previousUrl)
 
-  // cancelled
-  if (url === null) {
-    return;
-  }
+	// cancelled
+	if (url === null) {
+		return
+	}
 
-  // empty
-  if (url === '') {
-    unref(editor)?.chain().focus().extendMarkRange('link').unsetLink().run();
+	// empty
+	if (url === '') {
+		unref(props.editor)?.chain().focus().extendMarkRange('link').unsetLink().run()
 
-    return;
-  }
+		return
+	}
 
-  // update link
-  unref(editor)?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+	// update link
+	unref(props.editor)?.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
 }
 </script>
 
 <template>
-  <UButton
-    icon="i-fa6-solid-link"
-    size="xs"
-    :variant="editor?.isActive('link') ? 'solid' : 'ghost'"
-    :color="editor?.isActive('link') ? 'primary' : 'white'"
-    @click="setLink"
-  />
+	<UButton
+		icon="i-fa6-solid-link"
+		size="xs"
+		:variant="editor?.isActive('link') ? 'solid' : 'ghost'"
+		:color="editor?.isActive('link') ? 'primary' : 'white'"
+		@click="setLink"
+	/>
 </template>
