@@ -50,12 +50,12 @@ const open = computed<boolean>({
 				<UCard
 					class="flex flex-col flex-1 h-full overflow-y-scroll scrollbar-gray-thin"
 					:ui="{
-						body: { base: `flex-1 ${$slots.slideHeader ? '' : 'sm:!border-t-0'}` },
+						body: { base: `flex-1 ${$slots.slideHeader ? '' : big ? 'lg:!border-t-0' : 'sm:!border-t-0'}` },
 						background: 'bg-bprimary',
 						ring: '',
 						divide: 'divide-y divide-btertiary',
 						header: {
-							base: `${$slots.slideHeader ? '' : 'sm:hidden'}`,
+							base: `${$slots.slideHeader ? '' : big ? 'lg:hidden' : 'sm:hidden'}`,
 							background: '',
 							padding: `px-4 sm:px-6 ${$slots.slideHeader ? 'py-5' : 'py-2'}`,
 						},
@@ -64,7 +64,10 @@ const open = computed<boolean>({
 					<template
 						#header
 					>
-						<div class="flex lg:hidden">
+						<div
+							class="flex"
+							:class="[big ? 'lg:hidden' : 'sm:hidden']"
+						>
 							<UButton
 								variant="soft"
 								color="gray"
