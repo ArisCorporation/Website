@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const { copy, isSupported: clipboardIsSupported } = useClipboard()
-const userSettingsStore = useUserSettingsStore()
-const { userSettings } = storeToRefs(userSettingsStore)
+const userSettings = useUserSettingsStore()
 const homepageTabsStore = useHomepageTabsStore()
 const config = useRuntimeConfig()
 const toast = useToast()
@@ -25,7 +24,7 @@ const handleCopy = () => {
 defineShortcuts({
 	d: {
 		handler: () => {
-			userSettingsStore.AMSToggleFleetDetailView()
+			userSettings.AMSToggleFleetDetailView()
 		},
 	},
 })
@@ -97,7 +96,7 @@ defineShortcuts({
 					<div class="flex mb-3 ml-auto">
 						<ButtonDefault
 							class="mx-auto sm:mr-0 sm:ml-auto"
-							@click="userSettingsStore.AMSToggleFleetDetailView"
+							@click="userSettings.AMSToggleFleetDetailView"
 						>
 							Detail Ansicht:
 							{{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
@@ -155,7 +154,7 @@ defineShortcuts({
 					<div class="flex mb-3 ml-auto">
 						<ButtonDefault
 							class="mx-auto sm:mr-0 sm:ml-auto"
-							@click="userSettingsStore.AMSToggleFleetDetailView"
+							@click="userSettings.AMSToggleFleetDetailView"
 						>
 							Detail Ansicht:
 							{{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
