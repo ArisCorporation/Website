@@ -7,6 +7,8 @@ import type { FormSubmitEvent } from '#ui/types'
 const { readAsyncItems } = useDirectusItems()
 const { updateUser } = useDirectusUsers()
 const modalStore = useModalStore()
+const saveLoading = ref(false)
+const submitSuccess = ref(false)
 
 YupPassword(yup)
 
@@ -251,7 +253,11 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 	}
 
 	try {
+		submitSuccess.value = false
+		saveLoading.value = true
 		await updateUser(userId, updatedUser, { limit: -1 })
+		saveLoading.value = false
+		submitSuccess.value = true
 
 		for (const key in formdata) {
 			if (initialFormdata[key as keyof typeof initialFormdata] !== formdata[key as keyof typeof formdata]) {
@@ -312,6 +318,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					<UButton
 						:color="form?.errors?.length ? 'red' : 'green'"
 						type="submit"
+						:loading="saveLoading"
+						:icon="submitSuccess ? 'i-heroicons-check-16-solid' : ''"
 					>
 						Speichern
 					</UButton>
@@ -330,6 +338,16 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 							</p>
 						</div>
 					</div>
+					<!-- <div
+						v-if="submitSuccess"
+						class="flex items-center gap-1.5 basis-full"
+					>
+						<div>
+							<p class="p-0 font-semibold text-green-600">
+								Speichern erfolgreich!
+							</p>
+						</div>
+					</div> -->
 				</div>
 				<UFormGroup
 					label="Vorname"
