@@ -112,6 +112,7 @@ const { data } = await readAsyncUsers({
 		],
 		filter: {
 			slug: { _eq: params.slug },
+			hidden: { _eq: false },
 		},
 		deep: {
 			hangar_items: {

@@ -8,6 +8,9 @@ const { data: baseItemCount } = await readAsyncUsers({
 	query: {
 		limit: -1,
 		fields: ['id'],
+		filter: {
+			hidden: { _eq: false },
+		},
 	},
 })
 // const { data: baseItemCount } = await useAsyncData('get-administration-data', async () =>
@@ -172,6 +175,7 @@ const { data, pending, refresh } = await useLazyAsyncData(
 						// TODO: ADD DEPARTMENT
 						// { department: { gameplay_name: { _icontains: search.value } } },
 					],
+					hidden: { _eq: false },
 				},
 			}),
 			readUsers({
@@ -199,6 +203,7 @@ const { data, pending, refresh } = await useLazyAsyncData(
 						// TODO: ADD DEPARTMENT
 						// { department: { gameplay_name: { _icontains: search.value } } },
 					],
+					hidden: { _eq: false },
 				},
 				fields: [
 					'id',

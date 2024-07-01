@@ -33,6 +33,7 @@ const { data: users } = await readAsyncUsers({
 	query: {
 		filter: {
 			status: { _eq: 'active' },
+			hidden: { _eq: false },
 		},
 	},
 	transform: (users: IRawUser[]) => users.map((user: IRawUser) => transformUser(user)),
