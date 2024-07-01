@@ -3,6 +3,7 @@ const { readUsers, readAsyncUsers } = useDirectusUsers()
 const userSettingsStore = useUserSettingsStore()
 const userSettings = storeToRefs(userSettingsStore)
 const emit = defineEmits(['create', 'lock', 'unlock', 'archive', 'delete', 'edit'])
+
 // TODO
 const { data: baseItemCount } = await readAsyncUsers({
 	query: {
@@ -22,6 +23,18 @@ const { data: baseItemCount } = await readAsyncUsers({
 //   }),
 // );
 
+// USER - Selected Rows
+const selectedRows = ref([])
+function select(row: any) {
+	const index = selectedRows.value.findIndex(item => item.id === row.id)
+	if (index === -1) {
+		selectedRows.value.push(row)
+	}
+	else {
+		selectedRows.value.splice(index, 1)
+	}
+}
+
 // USER - Columns
 // TODO: ADD DEPARTMENT AND AVATAR
 // { key: 'department.gameplay_name', label: 'Abteilung', sortable: true },
@@ -33,7 +46,7 @@ const columns = [
 	{ key: 'first_name', label: 'Vorname', sortable: true },
 	{ key: 'last_name', label: 'Nachname', sortable: true },
 	{ key: 'discord_name', label: 'Discord Benutzername' },
-	{ key: 'contactEmail', label: 'Kontakt Email' },
+	{ key: 'contact_email', label: 'Kontakt Email' },
 ]
 const columnsTable = computed(() =>
 	columns.filter(column =>
@@ -52,6 +65,12 @@ const itemOptions = computed(() => [
 			icon: 'i-heroicons-pencil',
 			disabled: selectedRows.value.length !== 1,
 			click: () => emit('edit', selectedRows.value[0]),
+		},
+		{
+			label: 'Avatar ändern',
+			icon: 'i-heroicons-pencil',
+			disabled: selectedRows.value.length !== 1,
+			click: () => emit('avatar_edit', selectedRows.value[0]),
 		},
 	],
 	[
@@ -82,22 +101,10 @@ const itemOptions = computed(() => [
 			label: 'Löschen',
 			icon: 'i-heroicons-trash',
 			disabled: selectedRows.value.length < 1,
-			click: () => emit('delete', selectedRows),
+			click: () => emit('delete', selectedRows.value),
 		},
 	],
 ])
-
-// USER - Selected Rows
-const selectedRows = ref([])
-function select(row: any) {
-	const index = selectedRows.value.findIndex(item => item.id === row.id)
-	if (index === -1) {
-		selectedRows.value.push(row)
-	}
-	else {
-		selectedRows.value.splice(index, 1)
-	}
-}
 
 // USER - Actions
 
@@ -148,7 +155,7 @@ const pageTo = computed(() => Math.min(page.value * pageCount.value, pageTotal.v
 
 // USER - Data
 const { data, pending, refresh } = await useLazyAsyncData(
-	'members',
+	'ut_users',
 	async () => {
 		const [itemCount, items] = await Promise.all([
 			readUsers({
@@ -206,20 +213,7 @@ const { data, pending, refresh } = await useLazyAsyncData(
 					hidden: { _eq: false },
 				},
 				fields: [
-					'id',
-					'title',
-					'first_name',
-					'last_name',
-					'email',
-					'slug',
-					'avatar',
-					'roles',
-					'role',
-					// TODO: ADD DEPARTMENT
-					// 'head_of_department',
-					'discord_name',
-					'contactEmail',
-					'status',
+					'*',
 				],
 			}),
 		])
@@ -423,7 +417,7 @@ onMounted(() => {
 							</UDropdown>
 							<USelectMenu
 								:model-value="
-									userSettings.ams.administration.userTableColumns?.map((column) =>
+									userSettings.ams.value.administration.userTableColumns?.map((column) =>
 										columns.find((e) => e.key === column.key),
 									)
 								"
