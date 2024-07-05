@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import VueCropper from 'vue-cropperjs'
 import 'cropperjs/dist/cropper.css'
-import { number, object, string, boolean, type InferType, ValidationError } from 'yup'
+import { number, object, string, boolean, array, type InferType, ValidationError } from 'yup'
 import * as yup from 'yup'
 import YupPassword from 'yup-password'
 
@@ -23,6 +23,10 @@ class FetchError extends Error {
 		this.name = 'FetchError'
 	}
 }
+
+const discordMembers: discordMember[] = await useFetch('/api/ams/notifications/discord/getMembers').then((data: { data: { value: discordMember[] } }) => {
+	return data.data.value
+})
 
 const { data: roleOptions } = await useFetch(`${config.public.backendUrl}/roles?fields=id,label,name,access_level&sort=access_level&limit=-1`, { transform: data => data.data.filter(e => user.position.access_level >= 5 ? true : e.access_level < 5).map((role: any) => ({ id: role.id, position: role.name === 'Administrator' ? 'Verwaltung + Administration' : role.label, access_level: role.access_level })) })
 
@@ -259,6 +263,38 @@ type EditSchema = InferType<typeof edit_schema>
 
 const edit_formdata = reactive<EditSchema>({})
 
+type discordMember = {
+	id: string
+	label: string
+	global_name: string | null
+	username: string | null
+	nick: string | null
+	avatar: {
+		src: string
+	}
+}
+
+const userNotificationsEditForm = ref()
+const noti_schema = object({
+	contact_email: string().email('Keine gültige Email-Adresse angegeben!').nullable(),
+	discord_name: string().nullable(),
+	discord_user: object({
+		id: yup.string().required('Fehler mit Discord Benutzerdaten'),
+		label: yup.string().required('Fehler mit Discord Benutzerdaten'),
+		global_name: yup.string().nullable(),
+		username: yup.string().nullable(),
+		nick: yup.string().nullable(),
+		avatar: yup.object().shape({
+			src: yup.string().required('Fehler mit Discord Benutzerdaten'),
+		}).required('Fehler mit Discord Benutzerdaten'),
+	}).nullable().default(undefined),
+})
+
+type NotiSchema = InferType<typeof noti_schema>
+
+const noti_formdata = reactive<NotiSchema>({})
+const	noti_discord_id = ref<string>('')
+
 watch(edit_formdata, () => {
 	if (edit_formdata.citizen_reason === 'military') {
 		edit_formdata.duty_state = true
@@ -269,9 +305,59 @@ watch(edit_formdata, () => {
 	else if (edit_formdata.citizen_reason === 'social_commitment') {
 		edit_formdata.social_state = true
 	}
+	if (edit_formdata.department === '') {
+		edit_formdata.department = null
+	}
+})
+
+const userRolesEditForm = ref()
+const roles_schema = object({
+	head_of_department: boolean().required('Bitte wähle aus, ob der Benutzer Abteilungsleiter ist.'),
+	department: object({
+		id: string().required(),
+		name: string().required(),
+		logo: string().nullable(),
+	}).nullable(),
+	roles: array().of(string()).required('Bitte wähle mindestens eine Rolle aus.'),
+	role: object({
+		id: string().required(),
+		position: string().required(),
+		access_level: number().required(),
+	}).required('Bitte wähle eine Position aus.'),
+})
+
+type RolesSchema = InferType<typeof roles_schema>
+
+const roles_formdata = reactive<RolesSchema>({})
+
+const roles_values_recruitment = ref()
+const roles_values_marketing_and_press = ref()
+const roles_values_content_writer = ref()
+
+watch(roles_formdata, () => {
+	if (roles_formdata.department === '') {
+		roles_formdata.department = null
+	}
+})
+watch([roles_values_recruitment, roles_values_marketing_and_press, roles_values_content_writer], () => {
+	const roles = []
+
+	if (roles_values_recruitment.value) {
+		roles.push('recruitment')
+	}
+	if (roles_values_marketing_and_press.value) {
+		roles.push('marketing_and_press')
+	}
+	if (roles_values_content_writer.value) {
+		roles.push('content_writer')
+	}
+
+	roles_formdata.roles = roles
 })
 
 const initialEditFormdata = reactive({ ...edit_formdata })
+const initialNotificationsEditFormdata = reactive({ ...noti_formdata })
+const initialRolesEditFormdata = reactive({ ...roles_formdata })
 
 const cropper = ref()
 const cropper_input = ref()
@@ -310,7 +396,7 @@ const avatarUploadLoading = ref(false)
 const edit_user = ref()
 async function saveAvatar() {
 	await cropper.value.getCroppedCanvas().toBlob(async (blob: Blob) => {
-		const old_avatar = edit_user.value?.avatar
+		const old_avatar = edit_user.value?.avatar === '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492' ? null : edit_user.value?.avatar
 		const formData = new FormData()
 		console.log(edit_user)
 
@@ -337,7 +423,7 @@ async function saveAvatar() {
 	})
 }
 
-const handleEdit = (user: any) => {
+const handleProfileEdit = (user: any) => {
 	const userData = transformUser(user)
 
 	edit_user.value = userData
@@ -399,8 +485,8 @@ const handleEdit = (user: any) => {
 	modalStore.setData(userData)
 	modalStore.openSlide({ type: 'editUser', big: true })
 }
-async function onEditSubmit(event: FormSubmitEvent<Schema>) {
-	const userId = user.id
+async function onProfileEditSubmit(event: FormSubmitEvent<EditSchema>) {
+	const userId = edit_user.value.id
 	const updatedUser = {}
 
 	for (const key in edit_formdata) {
@@ -408,9 +494,20 @@ async function onEditSubmit(event: FormSubmitEvent<Schema>) {
 			updatedUser[key as keyof typeof updatedUser] = edit_formdata[key as keyof typeof edit_formdata]
 		}
 	}
-
+	console.log(updatedUser)
 	if (Object.keys(updatedUser).length === 0) {
 		return
+	}
+
+	if (updatedUser.hasOwnProperty('department')) {
+		if (edit_user.value.head_of_department === true) {
+			updatedUser.leading_department = updatedUser.department
+			updatedUser.department = null
+		}
+		else {
+			updatedUser.department = updatedUser.department
+			updatedUser.leading_department = null
+		}
 	}
 
 	try {
@@ -453,9 +550,146 @@ async function onEditSubmit(event: FormSubmitEvent<Schema>) {
 		userTable.value.selectedRows = []
 	}
 }
+
+const handleNotificationsEdit = (user: any) => {
+	const userData = transformUser(user)
+
+	edit_user.value = userData
+	noti_discord_id.value = userData.discord_id
+
+	noti_formdata.contact_email = userData.contact_email || '',
+	noti_formdata.discord_name = userData.discord_name || '',
+	noti_formdata.discord_user = discordMembers.find(e => e.id === userData?.discord_id) || null
+
+	for (const key in noti_formdata) {
+		initialNotificationsEditFormdata[key as keyof typeof initialNotificationsEditFormdata] = noti_formdata[key as keyof typeof noti_formdata]
+	}
+
+	modalStore.setData(userData)
+	modalStore.openSlide({ type: 'editUserNotifications', big: true })
+}
+async function onNotificationsEditSubmit(event: FormSubmitEvent<NotiSchema>) {
+	const userId = user.id
+	const updatedUser = {}
+
+	for (const key in noti_formdata) {
+		if (noti_formdata[key as keyof typeof noti_formdata] !== initialNotificationsEditFormdata[key as keyof typeof initialNotificationsEditFormdata]) {
+			updatedUser[key as keyof typeof updatedUser] = noti_formdata[key as keyof typeof noti_formdata]
+		}
+	}
+
+	updatedUser.discord_id = updatedUser.discord_user ? updatedUser.discord_user?.id : null
+
+	delete updatedUser.discord_user
+	delete updatedUser.discord_name
+
+	console.log(updatedUser)
+
+	if (Object.keys(updatedUser).length === 0) {
+		return
+	}
+
+	try {
+		const new_data = await updateUser(userId, updatedUser, { limit: -1 })
+
+		for (const key in noti_formdata) {
+			if (initialNotificationsEditFormdata[key as keyof typeof initialNotificationsEditFormdata] !== noti_formdata[key as keyof typeof noti_formdata]) {
+				initialNotificationsEditFormdata[key as keyof typeof initialNotificationsEditFormdata] = noti_formdata[key as keyof typeof noti_formdata]
+			}
+		}
+
+		noti_discord_id.value = new_data.discord_id
+	}
+	catch (e) {
+		console.error(e)
+	}
+	finally {
+		userTable.value.refresh()
+		userTable.value.selectedRows = []
+	}
+}
+
+const handleRolesEdit = (user: any) => {
+	const userData = transformUser(user)
+
+	edit_user.value = userData
+	console.log(userData)
+
+	roles_values_recruitment.value = userData.roles_value?.includes('recruitment') ? true : false
+	roles_values_marketing_and_press.value = userData.roles_value?.includes('marketing_and_press') ? true : false
+	roles_values_content_writer.value = userData.roles_value?.includes('content_writer') ? true : false
+
+	roles_formdata.head_of_department = userData.head_of_department || null
+	roles_formdata.department = departments.value.find((e: any) => e.id === userData.department_id) || ''
+	roles_formdata.roles_value = userData.roles_value || null
+	roles_formdata.role = roleOptions.value.find((e: any) => e.id === userData.position.id) || null
+
+	for (const key in roles_formdata) {
+		initialRolesEditFormdata[key as keyof typeof initialRolesEditFormdata] = roles_formdata[key as keyof typeof roles_formdata]
+	}
+
+	modalStore.setData(userData)
+	modalStore.openSlide({ type: 'editUserRoles', big: true })
+}
+async function onRolesEditSubmit(event: FormSubmitEvent<RolesSchema>) {
+	const userId = edit_user.value.id
+	const updatedUser = {}
+	console.log(updatedUser)
+	for (const key in roles_formdata) {
+		if (roles_formdata[key as keyof typeof roles_formdata] !== initialRolesEditFormdata[key as keyof typeof initialRolesEditFormdata]) {
+			updatedUser[key as keyof typeof updatedUser] = roles_formdata[key as keyof typeof roles_formdata]
+		}
+	}
+
+	if (Object.keys(updatedUser).length === 0) {
+		return
+	}
+	console.log(userId)
+	console.log(edit_user.value)
+	console.log(updatedUser)
+	if (updatedUser.hasOwnProperty('department')) {
+		if (edit_user.value.head_of_department === true) {
+			updatedUser.leading_department = updatedUser.department
+			updatedUser.department = null
+		}
+		else {
+			updatedUser.department = updatedUser.department
+			updatedUser.leading_department = null
+		}
+	}
+	console.log(userId)
+	console.log(edit_user.value)
+	console.log(updatedUser)
+
+	try {
+		await updateUser(userId, updatedUser, { limit: -1 })
+
+		for (const key in roles_formdata) {
+			if (initialRolesEditFormdata[key as keyof typeof initialRolesEditFormdata] !== roles_formdata[key as keyof typeof roles_formdata]) {
+				initialRolesEditFormdata[key as keyof typeof initialRolesEditFormdata] = roles_formdata[key as keyof typeof roles_formdata]
+			}
+		}
+	}
+	catch (e) {
+		console.error(e)
+	}
+	finally {
+		userTable.value.refresh()
+		userTable.value.selectedRows = []
+	}
+}
 const handleDelete = async (users: any[]) => {
+	modalStore.setData(users.map((user: any) => transformUser(user)))
+	modalStore.openModal('Benutzer löschen', {
+		type: 'deleteUsers',
+		hideCloseButton: true,
+		hideXButton: true,
+	})
+}
+const submitDelete = async (users: any[]) => {
 	try {
 		await deleteUsers(users?.map((obj: any) => obj.id))
+		modalStore.closeModal()
 	}
 	catch (e) {
 		console.error(e)
@@ -588,6 +822,43 @@ const titleOptions = ['Dr.', 'Dr. Med.', 'Prof. Med.', 'Dipl. Ing.']
 // 	})
 // }
 
+const submit_enable = computed<boolean>(() => {
+	if (modalStore.type === 'createUser'
+		&& userFormData.firstname !== ''
+		&& userFormData.firstname !== null
+		&& userFormData.role !== null) {
+		return true
+	}
+	else if (modalStore.type === 'editUser' && edit_formdata.first_name !== '') {
+		return true
+	}
+	else if (modalStore.type === 'editUserNotifications') {
+		return true
+	}
+	else if (modalStore.type === 'editUserRoles' && roles_formdata.role !== null) {
+		return true
+	}
+
+	return false
+})
+
+function handleSubmit(event) {
+	console.log('handle', submit_enable.value)
+	if (modalStore.type === 'createUser'
+		&& submit_enable.value) {
+		handleUserCreation(event)
+	}
+	else if (modalStore.type === 'editUser' && submit_enable.value) {
+		onProfileEditSubmit(event)
+	}
+	else if (modalStore.type === 'editUserNotifications' && submit_enable.value) {
+		onNotificationsEditSubmit(event)
+	}
+	else if (modalStore.type === 'editUserRoles' && submit_enable.value) {
+		onRolesEditSubmit(event)
+	}
+}
+
 definePageMeta({
 	layout: false,
 	middleware: [
@@ -684,6 +955,7 @@ useHead({
 			</div>
 			<template v-if="modalStore.type === 'avatar-cropper'">
 				<div>
+					<p><span class="text-industrial-400">Achtung: </span>Sobald der neue Avatar gespeichert wird, wird der alte gelöscht.</p>
 					<div class="divide-y-2 divide-btertiary">
 						<!-- <UCard> -->
 						<div class="pb-4">
@@ -750,10 +1022,41 @@ useHead({
 					</p>
 				</div>
 			</template>
+			<template v-if="modalStore.type === 'deleteUsers'">
+				Bist du dir sicher, dass du {{ modalStore.data.length > 1 ? 'folgende' : 'den folgenden' }} Benutzer löschen möchtest?
+				<ul class="mx-auto w-fit">
+					<li
+						v-for="user in modalStore.data"
+						:key="user.id"
+					>
+						{{ user.full_name }}
+					</li>
+				</ul>
+				<div class="mx-auto mt-4 space-x-4">
+					<ButtonDefault
+						class="w-1/3"
+						color="danger"
+						@click="
+							submitDelete(modalStore.data);
+						"
+					>
+						Löschen
+					</ButtonDefault>
+					<ButtonDefault
+						class="w-1/3"
+						color="success"
+						@click="modalStore.closeModal"
+					>
+						Abbrechen
+					</ButtonDefault>
+				</div>
+			</template>
 		</template>
 		<template #slideHeader>
 			<span v-if="modalStore.type === 'createUser'">Neues Mitglied hinzufügen</span>
-			<span v-else-if="modalStore.type === 'editUser'">{{ modalStore.data.full_name }}</span>
+			<span v-else-if="modalStore.type === 'editUser'">Profil: {{ modalStore.data.full_name }}</span>
+			<span v-else-if="modalStore.type === 'editUserNotifications'">Mitteilungseinstellungen: {{ modalStore.data.full_name }}</span>
+			<span v-else-if="modalStore.type === 'editUserRoles'">Organisatorische Einstellungen: {{ modalStore.data.full_name }}</span>
 		</template>
 		<template #slideContent>
 			<UForm
@@ -3052,6 +3355,398 @@ useHead({
 					</div>
 				</div>
 			</UForm>
+			<UForm
+				v-else-if="modalStore.type === 'editUserNotifications'"
+				ref="userNotificationsEditForm"
+				class="h-full"
+				:state="noti_formdata"
+				:schema="noti_schema"
+				validate-on="submit"
+			>
+				<div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
+					<UFormGroup
+						label="Nachname"
+						name="last_name"
+						description="Hier kannst du einen Nachnamen angeben. Der Nachname ist optional."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<div class="relative">
+							<UInput
+								v-model="edit_formdata.last_name"
+								:icon="
+									edit_formdata.last_name || initialEditFormdata.last_name
+										? edit_formdata.last_name === initialEditFormdata.last_name
+											? 'i-heroicons-x-mark-16-solid'
+											: 'i-heroicons-arrow-uturn-left'
+										: ''
+								"
+								placeholder="Roberts"
+								size="md"
+								autocomplete="off"
+							/>
+							<template v-if="edit_formdata.last_name || initialEditFormdata.last_name">
+								<button
+									v-if="edit_formdata.last_name === initialEditFormdata.last_name"
+									class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+									@click="edit_formdata.last_name = ''"
+								>
+									<UIcon
+										name="i-heroicons-x-mark-16-solid"
+										class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+									/>
+								</button>
+								<button
+									v-else
+									class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+									@click="edit_formdata.last_name = initialEditFormdata.last_name"
+								>
+									<UIcon
+										name="i-heroicons-arrow-uturn-left"
+										class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+									/>
+								</button>
+							</template>
+						</div>
+					</UFormGroup>
+					<UFormGroup
+						label="Kontakt Email"
+						name="contact_email"
+						description="Für das A.M.S. Benachrichtigungssystem (coming-soon) kannst du eine Kontakt Email angeben."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<div class="relative">
+							<UInput
+								v-model="noti_formdata.contact_email"
+								size="md"
+								autocomplete="off"
+								:icon="
+									noti_formdata.contact_email || initialNotificationsEditFormdata.contact_email
+										? noti_formdata.contact_email === initialNotificationsEditFormdata.contact_email
+											? 'i-heroicons-x-mark-16-solid'
+											: 'i-heroicons-arrow-uturn-left'
+										: ''
+								"
+								placeholder="contact@email.com"
+							/>
+							<template v-if="noti_formdata.contact_email || initialNotificationsEditFormdata.contact_email">
+								<button
+									v-if="noti_formdata.contact_email === initialNotificationsEditFormdata.contact_email"
+									class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+									@click="noti_formdata.contact_email = ''"
+								>
+									<UIcon
+										name="i-heroicons-x-mark-16-solid"
+										class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+									/>
+								</button>
+								<button
+									v-else
+									class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+									@click="noti_formdata.contact_email = initialNotificationsEditFormdata.contact_email"
+								>
+									<UIcon
+										name="i-heroicons-arrow-uturn-left"
+										class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+									/>
+								</button>
+							</template>
+						</div>
+					</UFormGroup>
+					<UFormGroup
+						label="Discord Benutzer"
+						name="discord_user"
+						description="Für das A.M.S. Benachrichtigungssystem (coming-soon) kannst du einen Discord Benutzer angeben."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<div class="relative">
+							<USelectMenu
+								v-model="noti_formdata.discord_user"
+								:options="['', ...discordMembers]"
+								option-attribute="name"
+								searchable
+								clear-search-on-close
+								searchable-placeholder="Suche..."
+								:search-attributes="['label', 'global_name', 'username', 'nick']"
+								size="md"
+								:ui="
+									noti_formdata.discord_user || initialNotificationsEditFormdata.discord_user
+										? {
+											leading: {
+												padding: {
+													xl: 'ps-10',
+												},
+											},
+										}
+										: { leading: { padding: { xl: 'hidden' } } }
+								"
+								:icon="
+									noti_formdata.discord_user || initialNotificationsEditFormdata.discord_user
+										? noti_formdata.discord_user === initialNotificationsEditFormdata.discord_user
+											? 'i-heroicons-x-mark-16-solid'
+											: 'i-heroicons-arrow-uturn-left'
+										: ''
+								"
+							>
+								<template
+									v-if="noti_formdata.discord_user || initialNotificationsEditFormdata.discord_user"
+									#leading
+								/>
+								<template #label>
+									<span v-if="noti_formdata.discord_user">{{ noti_formdata.discord_user.label }}</span>
+									<span
+										v-else
+										class="text-[13.9px]"
+									>Kein Discord Benutzer ausgewählt</span>
+								</template>
+								<template #option="{ option }">
+									<span v-if="option">{{ option.label }}</span>
+									<span v-else>Kein Discord Benutzer</span>
+								</template>
+							</USelectMenu>
+							<template v-if="noti_formdata.discord_user || initialNotificationsEditFormdata.discord_user">
+								<button
+									v-if="noti_formdata.discord_user === initialNotificationsEditFormdata.discord_user"
+									class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+									@click="noti_formdata.discord_user = null"
+								>
+									<UIcon
+										name="i-heroicons-x-mark-16-solid"
+										class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+									/>
+								</button>
+								<button
+									v-else
+									class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+									@click="noti_formdata.discord_user = initialNotificationsEditFormdata.discord_user"
+								>
+									<UIcon
+										name="i-heroicons-arrow-uturn-left"
+										class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+									/>
+								</button>
+							</template>
+						</div>
+					</UFormGroup>
+					<UFormGroup
+						label="Discord ID"
+						name="discord_id"
+						description="Hier ist deine Discord ID. Diese wird generiert sobald du einen Benutzernamen angibst und speicherst."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<UInput
+							size="md"
+							disabled
+							autocomplete="off"
+							trailing
+							placeholder="xxxxxxxxxxxxx"
+							:model-value="noti_discord_id"
+							:ui="{ leading: { padding: { md: 'ps-24' } } }"
+						>
+							<template #leading>
+								<span class="text-sm text-dark-gray">Discord-ID:</span>
+							</template>
+						</UInput>
+					</UFormGroup>
+				</div>
+			</UForm>
+			<UForm
+				v-else-if="modalStore.type === 'editUserRoles'"
+				ref="userRolesEditForm"
+				class="h-full"
+				:state="roles_formdata"
+				:schema="roles_schema"
+				validate-on="submit"
+			>
+				<div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
+					<UFormGroup
+						label="Abteilungsleiter"
+						name="head_of_department"
+						description="Hier kannst du sehen ob du Abteilungsleiter bist."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<UCheckbox
+							v-model="roles_formdata.head_of_department"
+							label="Abteilungsleiter"
+						/>
+					</UFormGroup>
+					<UFormGroup
+						label="Abteilung"
+						name="department"
+						description="Hier kannst du sehen ob du Abteilungsleiter bist."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<div class="relative">
+							<USelectMenu
+								v-model="roles_formdata.department"
+								:options="['', ...departments]"
+								option-attribute="name"
+								searchable
+								clear-search-on-close
+								searchable-placeholder="Suche..."
+								:search-attributes="['name']"
+								:ui="
+									roles_formdata.department || initialRolesEditFormdata.department
+										? {
+											leading: {
+												padding: {
+													xl: 'ps-10',
+												},
+											},
+										}
+										: { leading: { padding: { xl: 'hidden' } } }
+								"
+								:icon="
+									roles_formdata.department || initialRolesEditFormdata.department
+										? roles_formdata.department === initialRolesEditFormdata.department
+											? 'i-heroicons-x-mark-16-solid'
+											: 'i-heroicons-arrow-uturn-left'
+										: ''
+								"
+								size="md"
+							>
+								<template
+									v-if="roles_formdata.department || initialRolesEditFormdata.department"
+									#leading
+								/>
+								<template #label>
+									<span v-if="roles_formdata.department">{{ roles_formdata.department.name }}</span>
+									<span
+										v-else
+										class="text-[13.9px]"
+									>Keine Abteilung ausgewählt</span>
+								</template>
+								<template #option="{ option }">
+									<span v-if="option">{{ option.name }}</span>
+									<span v-else>Keine Abteilung</span>
+								</template>
+							</USelectMenu>
+							<template v-if="roles_formdata.department || initialRolesEditFormdata.department">
+								<button
+									v-if="roles_formdata.department === initialRolesEditFormdata.department"
+									class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+									@click="roles_formdata.department = ''"
+								>
+									<UIcon
+										name="i-heroicons-x-mark-16-solid"
+										class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+									/>
+								</button>
+								<button
+									v-else
+									class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+									@click="roles_formdata.department = initialRolesEditFormdata.department"
+								>
+									<UIcon
+										name="i-heroicons-arrow-uturn-left"
+										class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+									/>
+								</button>
+							</template>
+						</div>
+					</UFormGroup>
+					<UFormGroup
+						label="Rollen"
+						description="Hier kannst du deine Rollen sehen. Du kannst mit der Verwaltung sprechen, falls du mehr oder weniger Rollen möchtest."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<UFormGroup>
+							<UCheckbox
+								v-model="roles_values_recruitment"
+								name="recruitment"
+								label="Rekrutierung"
+							/>
+						</UFormGroup>
+						<UFormGroup>
+							<UCheckbox
+								v-model="roles_values_marketing_and_press"
+								name="marketing_and_press"
+								label="Marketing & Presse"
+							/>
+						</UFormGroup>
+						<UFormGroup>
+							<UCheckbox
+								v-model="roles_values_content_writer"
+								name="content_writer"
+								label="Inhaltsersteller"
+							/>
+						</UFormGroup>
+					</UFormGroup>
+					<UFormGroup
+						label="Position"
+						name="role"
+						required
+						description="Die Position des Mitgliedes"
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<div class="relative">
+							<USelectMenu
+								v-model="roles_formdata.role"
+								:options="roleOptions"
+								:ui="
+									roles_formdata.role
+										? {
+											leading: {
+												padding: {
+													xl: 'ps-10',
+												},
+											},
+										}
+										: { leading: { padding: { xl: 'hidden' } } }
+								"
+								:icon="
+									roles_formdata.role
+										? 'i-heroicons-x-mark-16-solid'
+										: ''
+								"
+								size="md"
+							>
+								<template
+									v-if="roles_formdata.role"
+									#leading
+								/>
+								<template #label>
+									<span v-if="roles_formdata.role">{{ roles_formdata.role.position }}</span>
+									<span v-else>Keine Position ausgewählt</span>
+								</template>
+								<template #option="{ option }">
+									<span v-if="option">{{ option.position }}</span>
+									<span v-else>Keine Position</span>
+								</template>
+							</USelectMenu>
+							<template v-if="roles_formdata.role">
+								<button
+									class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+									@click="roles_formdata.role = ''"
+								>
+									<UIcon
+										name="i-heroicons-x-mark-16-solid"
+										class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+									/>
+								</button>
+							</template>
+						</div>
+						<template
+							v-if="roles_formdata?.role?.id === 'bc712fc8-ce4f-4427-b431-4942eaaedaa6'"
+							#help
+						>
+							<span
+								class="text-danger"
+							>
+								Achtung: Du hast die Administrator-Position ausgewählt. Dies bedeutet das jemand alle Daten der
+								Website verändern kann!
+							</span>
+						</template>
+					</UFormGroup>
+				</div>
+			</UForm>
 		</template>
 		<template #slideFooter>
 			<div class="sticky bottom-0 flex flex-wrap justify-between w-full px-8 my-auto">
@@ -3067,22 +3762,10 @@ useHead({
 					Schließen
 				</ButtonDefault>
 				<ButtonDefault
-					:disabled="
-						modalStore.type === 'createUser'
-							? userFormData.firstname !== '' && userFormData.firstname !== null && userFormData.role !== null
-								? false
-								: true
-							: edit_formdata.first_name !== '' ? false : true
-					"
+					:disabled="!submit_enable"
 					class="w-1/3"
 					color="success"
-					@click="
-						modalStore.type === 'createUser'
-							? userFormData.firstname !== ''
-								&& userFormData.firstname !== null
-								&& userFormData.role !== null && handleUserCreation($event)
-							: edit_formdata.first_name !== '' && onEditSubmit($event)
-					"
+					@click="(event) => submit_enable && handleSubmit(event)"
 				>
 					Speichern
 				</ButtonDefault>
@@ -3107,9 +3790,11 @@ useHead({
 				<template #item="{ item }">
 					<div v-if="item.label === 'Home'">
 						<h2>Home</h2>
+						<p>Coming Soon</p>
 					</div>
 					<div v-else-if="item.label === 'Verwaltungsübersicht'">
 						<h2>Verwaltungsübersicht</h2>
+						<p>Coming Soon</p>
 					</div>
 					<div v-else-if="item.label === 'Benutzer'">
 						<div>
@@ -3117,8 +3802,10 @@ useHead({
 							<AmsAdministrationUserTable
 								ref="userTable"
 								@create="handleCreate"
-								@edit="handleEdit"
-								@avatar_edit="handleAvatarEdit"
+								@edit:profile="handleProfileEdit"
+								@edit:notifications="handleNotificationsEdit"
+								@edit:avatar="handleAvatarEdit"
+								@edit:roles="handleRolesEdit"
 								@delete="handleDelete"
 								@lock="handleLock"
 								@unlock="handleUnlock"
@@ -3128,6 +3815,7 @@ useHead({
 					</div>
 					<div v-else-if="item.label === 'Hangars'">
 						<h2>Hangars</h2>
+						<p>Coming Soon</p>
 					</div>
 				</template>
 			</UTabs>

@@ -2,7 +2,7 @@
 const { readUsers, readAsyncUsers } = useDirectusUsers()
 const userSettingsStore = useUserSettingsStore()
 const userSettings = storeToRefs(userSettingsStore)
-const emit = defineEmits(['create', 'lock', 'unlock', 'archive', 'delete', 'edit'])
+const emit = defineEmits(['create', 'lock', 'unlock', 'archive', 'delete', 'edit:profile', 'edit:notification', 'edit:avatar', 'edit:roles'])
 
 // TODO
 const { data: baseItemCount } = await readAsyncUsers({
@@ -61,16 +61,28 @@ const itemOptions = computed(() => [
 	],
 	[
 		{
-			label: 'Editieren',
+			label: 'Profil Editieren',
 			icon: 'i-heroicons-pencil',
 			disabled: selectedRows.value.length !== 1,
-			click: () => emit('edit', selectedRows.value[0]),
+			click: () => emit('edit:profile', selectedRows.value[0]),
+		},
+		{
+			label: 'Mitt. Editieren',
+			icon: 'i-heroicons-pencil',
+			disabled: selectedRows.value.length !== 1,
+			click: () => emit('edit:notifications', selectedRows.value[0]),
 		},
 		{
 			label: 'Avatar ändern',
 			icon: 'i-heroicons-pencil',
 			disabled: selectedRows.value.length !== 1,
-			click: () => emit('avatar_edit', selectedRows.value[0]),
+			click: () => emit('edit:avatar', selectedRows.value[0]),
+		},
+		{
+			label: 'Rollen Editieren',
+			icon: 'i-heroicons-pencil',
+			disabled: selectedRows.value.length !== 1,
+			click: () => emit('edit:roles', selectedRows.value[0]),
 		},
 	],
 	[
