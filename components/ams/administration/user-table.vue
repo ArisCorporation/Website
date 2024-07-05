@@ -67,7 +67,7 @@ const itemOptions = computed(() => [
 			click: () => emit('edit:profile', selectedRows.value[0]),
 		},
 		{
-			label: 'Mitt. Editieren',
+			label: 'Org. Editieren',
 			icon: 'i-heroicons-pencil',
 			disabled: selectedRows.value.length !== 1,
 			click: () => emit('edit:notifications', selectedRows.value[0]),
