@@ -20,10 +20,10 @@ type discordMember = {
 		src: string
 	}
 }
-
 const discordMembers: discordMember[] = await useFetch('/api/ams/notifications/discord/getMembers').then((data: { data: { value: discordMember[] } }) => {
 	return data.data.value
 })
+console.log(discordMembers)
 
 const form = ref()
 const schema = object({
@@ -207,6 +207,11 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 								>Kein Discord Benutzer ausgewählt</span>
 							</template>
 							<template #option="{ option }">
+								<UAvatar
+									v-if="option"
+									:src="option.avatar.src"
+									size="2xs"
+								/>
 								<span v-if="option">{{ option.label }}</span>
 								<span v-else>Kein Discord Benutzer</span>
 							</template>

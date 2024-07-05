@@ -38,13 +38,23 @@ function resetUserFormData() {
 	userFormData.password = null
 	userFormData.role = null
 	userFormData.discordName = ''
+	userFormData.discord_user = ''
 }
 const handleCreate = () => {
 	resetUserFormData()
 	modalStore.openSlide({ type: 'createUser' })
 }
+
+const temp_pw_create = ref()
 const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) => {
 	userCreationForm.value.clear()
+	temp_pw_create.value = userFormData.password !== null && userFormData.password !== ''
+			  	? userFormData.password
+			  	: useSlugify(
+			  		userFormData.firstname.trim() + (userFormData.lastname && '.' + userFormData.lastname.trim()),
+			  		true,
+			  	)
+
 	try {
 		// await userCreationSchema.validate(userFormData)
 		// TODO: GET DISCORD ID AND SET REF FOR CHECKBOX IN SUCCESS-MODAL FOR SENDING CREDENTIALS
@@ -63,7 +73,7 @@ const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) =>
 			  		true,
 			  	),
 			role: userFormData.role?.id,
-			discordName: userFormData.discordName ?? '',
+			discord_id: userFormData.discord_user?.id,
 			temporary_password: true,
 		}
 
@@ -74,10 +84,15 @@ const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) =>
 		const newUser = await createUser(userData)
 
 		modalStore.closeSlide()
+		userCreationSendCredentials.value = newUser.discord_id ? true : false
+		if (!newUser.discord_id) {
+			temp_pw_create.value = null
+		}
 
 		await setTimeout(() => {
 			userTable.value.refresh()
 			modalStore.setData(transformUser(newUser))
+			console.log('User created:', modalStore.data)
 			modalStore.openModal('Benutzer erstellt.', {
 				hideCloseButton: true,
 				hideXButton: true,
@@ -748,6 +763,24 @@ const handleArchive = async (users: any[]) => {
 	}
 }
 
+const sendCredentials = async (data) => {
+	console.log(data)
+	const created_date = new Date()
+	await useFetch('https://cms.ariscorp.de/flows/trigger/5a39f82d-6037-4db9-a948-837219ac7cd4', {
+		method: 'POST',
+		body: {
+			discord_id: data.discord_id,
+			name: data.full_name,
+			created_ts: created_date.toISOString(),
+			username: data?.login_email.replace('@ariscorp.de', ''),
+			password: temp_pw_create.value,
+		},
+	})
+
+	resetUserFormData()
+	temp_pw_create.value = null
+}
+
 // USER - Data
 const userCreationForm = ref()
 const userCreationSendCredentials = ref(false)
@@ -931,7 +964,10 @@ useHead({
 						label="Benutzer Anmeldeinformationen schicken?"
 						class="flex items-center gap-x-4"
 					>
-						<UCheckbox v-model="userCreationSendCredentials" />
+						<UCheckbox
+							v-model="userCreationSendCredentials"
+							:disabled="modalStore.data.discord_id ? false : true"
+						/>
 						<template #hint>
 							<p>
 								Wenn sie den Discord-Namen angegeben haben, können dem Benutzer automatisch per PN die
@@ -944,10 +980,18 @@ useHead({
 					<ButtonDefault
 						class="w-1/3"
 						color="danger"
-						@click="
+						@click="() => {
 							modalStore.closeModal();
 							resetUserFormData();
-						"
+
+							if (userCreationSendCredentials) {
+								sendCredentials(modalStore.data);
+							}
+							else {
+
+								resetUserFormData();
+							}
+						}"
 					>
 						Schließen
 					</ButtonDefault>
@@ -1340,6 +1384,75 @@ useHead({
 								Website verändern kann!
 							</span>
 						</template>
+					</UFormGroup>
+					<TableHr><span class="flex items-center text-lg">Mitteilungen</span></TableHr>
+					<UFormGroup
+						label="Discord Benutzer"
+						name="discord_user"
+						description="Für das A.M.S. Benachrichtigungssystem (coming-soon) kannst du einen Discord Benutzer angeben. Auch die Anmeldeinformationen können automatisch an den Benutzer gesendet werden."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<div class="relative">
+							<USelectMenu
+								v-model="userFormData.discord_user"
+								:options="['', ...discordMembers]"
+								option-attribute="name"
+								searchable
+								clear-search-on-close
+								searchable-placeholder="Suche..."
+								:search-attributes="['label', 'global_name', 'username', 'nick']"
+								size="md"
+								:ui="
+									userFormData.discord_user
+										? {
+											leading: {
+												padding: {
+													xl: 'ps-10',
+												},
+											},
+										}
+										: { leading: { padding: { xl: 'hidden' } } }
+								"
+								:icon="
+									userFormData.discord_user
+										? 'i-heroicons-x-mark-16-solid'
+										: ''
+								"
+							>
+								<template
+									v-if="userFormData.discord_user"
+									#leading
+								/>
+								<template #label>
+									<span v-if="userFormData.discord_user">{{ userFormData.discord_user.label }}</span>
+									<span
+										v-else
+										class="text-[13.9px]"
+									>Kein Discord Benutzer ausgewählt</span>
+								</template>
+								<template #option="{ option }">
+									<UAvatar
+										v-if="option"
+										:src="option.avatar.src"
+										size="2xs"
+									/>
+									<span v-if="option">{{ option.label }}</span>
+									<span v-else>Kein Discord Benutzer</span>
+								</template>
+							</USelectMenu>
+							<template v-if="userFormData.discord_user">
+								<button
+									class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+									@click="userFormData.discord_user = null"
+								>
+									<UIcon
+										name="i-heroicons-x-mark-16-solid"
+										class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+									/>
+								</button>
+							</template>
+						</div>
 					</UFormGroup>
 				</div>
 				<!-- <template #footer> -->
@@ -3502,6 +3615,11 @@ useHead({
 									>Kein Discord Benutzer ausgewählt</span>
 								</template>
 								<template #option="{ option }">
+									<UAvatar
+										v-if="option"
+										:src="option.avatar.src"
+										size="2xs"
+									/>
 									<span v-if="option">{{ option.label }}</span>
 									<span v-else>Kein Discord Benutzer</span>
 								</template>
