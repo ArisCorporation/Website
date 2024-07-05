@@ -67,7 +67,7 @@ export default function (obj: any) {
 			sex_value: obj.sex,
 			pronom: obj.sex === 'female' ? 'Sie' : 'Er',
 		}),
-		...(obj.roles && { roles: roles.length > 0 ? roles : null, roles_value: obj.roles }),
+		...(obj.hasOwnProperty('roles') && { roles: roles.length > 0 ? roles : null, roles_value: obj.roles }),
 		...(obj.role?.hasOwnProperty('id')
 			? {
 					position: {
