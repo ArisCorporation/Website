@@ -67,7 +67,7 @@ const itemOptions = computed(() => [
 			click: () => emit('edit:profile', selectedRows.value[0]),
 		},
 		{
-			label: 'Org. Editieren',
+			label: 'Mitt. Editieren',
 			icon: 'i-heroicons-pencil',
 			disabled: selectedRows.value.length !== 1,
 			click: () => emit('edit:notifications', selectedRows.value[0]),
@@ -79,7 +79,7 @@ const itemOptions = computed(() => [
 			click: () => emit('edit:avatar', selectedRows.value[0]),
 		},
 		{
-			label: 'Rollen Editieren',
+			label: 'Org. Editieren',
 			icon: 'i-heroicons-pencil',
 			disabled: selectedRows.value.length !== 1,
 			click: () => emit('edit:roles', selectedRows.value[0]),
