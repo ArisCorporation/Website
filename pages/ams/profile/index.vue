@@ -234,6 +234,9 @@ watch(formdata, () => {
 	else if (formdata.citizen_reason === 'social_commitment') {
 		formdata.social_state = true
 	}
+	if (formdata.department === '') {
+		formdata.department = null
+	}
 })
 
 const initialFormdata = reactive({ ...formdata })
@@ -250,6 +253,21 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 	if (Object.keys(updatedUser).length === 0) {
 		return
+	}
+
+	// if (updatedUser.hasOwnProperty('department')) {
+	// 	updatedUser.department?.id ? updatedUser.department = updatedUser.department.id : updatedUser.department = null
+	// }
+
+	if (updatedUser.hasOwnProperty('department')) {
+		if (user.head_of_department === true) {
+			updatedUser.leading_department = updatedUser.department
+			updatedUser.department = null
+		}
+		else {
+			updatedUser.department = updatedUser.department
+			updatedUser.leading_department = null
+		}
 	}
 
 	try {
