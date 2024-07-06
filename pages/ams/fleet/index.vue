@@ -447,7 +447,7 @@ useHead({
 						@click="() => userSettingsStore.AMSToggleFleetDetailView()"
 					>
 						Detail Ansicht:
-						{{ userSettings.ams.value.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
+						{{ userSettings.ams.fleetDetailView ? 'Ausschalten' : 'Anschalten' }}
 					</ButtonDefault>
 				</div>
 				<div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
@@ -477,7 +477,7 @@ useHead({
 						:key="item.id"
 						:ship-data="item.ship"
 						:hangar-data="item"
-						:detail-view="userSettings.ams.value.fleetDetailView"
+						:detail-view="userSettings.ams.fleetDetailView"
 						preload-images
 						internal-bio
 						display-department
