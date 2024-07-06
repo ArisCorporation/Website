@@ -451,6 +451,7 @@ const handleProfileEdit = (user: any) => {
 	edit_formdata.last_name = userData.last_name || ''
 	edit_formdata.title = userData.title || ''
 	edit_formdata.password = null
+	edit_formdata.head_of_department = userData.head_of_department || false
 	edit_formdata.department = departments.value.find((e: any) => e.id === userData.department_id) || ''
 	edit_formdata.rsi_handle = userData.rsi_handle || ''
 	edit_formdata.sex = userData.sex_value || ''
@@ -634,7 +635,7 @@ const handleRolesEdit = (user: any) => {
 	roles_values_marketing_and_press.value = userData.roles_value?.includes('marketing_and_press') ? true : false
 	roles_values_content_writer.value = userData.roles_value?.includes('content_writer') ? true : false
 
-	roles_formdata.head_of_department = userData.head_of_department || null
+	roles_formdata.head_of_department = userData.head_of_department || false
 	roles_formdata.department = departments.value.find((e: any) => e.id === userData.department_id) || ''
 	roles_formdata.roles_value = userData.roles_value || null
 	roles_formdata.role = roleOptions.value.find((e: any) => e.id === userData.position.id) || null
@@ -1684,16 +1685,22 @@ useHead({
 						/>
 					</UFormGroup>
 					<UFormGroup
-						label="Abteilungsleiter"
+						label="Abteilungsposition"
 						name="head_of_department"
-						description="Hier kannst du sehen ob du Abteilungsleiter bist."
+						description="Hier kannst du sehen welche Position du in der Abteilung hast."
 						class="items-center grid-cols-2 gap-2 md:grid"
 						:ui="{ container: 'relative' }"
 					>
-						<UCheckbox
-							:model-value="user.head_of_department"
+						<URadioGroup
+							v-model="edit_formdata.head_of_department"
 							disabled
-							label="Abteilungsleiter"
+							:options="[{
+								value: true,
+								label: 'Abteilungsleiter',
+							}, {
+								value: false,
+								label: 'Abteilungsmitarbeiter',
+							}]"
 						/>
 					</UFormGroup>
 					<UFormGroup
@@ -3681,15 +3688,21 @@ useHead({
 			>
 				<div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
 					<UFormGroup
-						label="Abteilungsleiter"
+						label="Abteilungsposition"
 						name="head_of_department"
-						description="Hier kannst du sehen ob du Abteilungsleiter bist."
+						description="Hier kannst du sehen welche Position du in der Abteilung hast."
 						class="items-center grid-cols-2 gap-2 md:grid"
 						:ui="{ container: 'relative' }"
 					>
-						<UCheckbox
+						<URadioGroup
 							v-model="roles_formdata.head_of_department"
-							label="Abteilungsleiter"
+							:options="[{
+								value: true,
+								label: 'Abteilungsleiter',
+							}, {
+								value: false,
+								label: 'Abteilungsmitarbeiter',
+							}]"
 						/>
 					</UFormGroup>
 					<UFormGroup

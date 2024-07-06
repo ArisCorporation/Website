@@ -596,16 +596,22 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					/>
 				</UFormGroup>
 				<UFormGroup
-					label="Abteilungsleiter"
+					label="Abteilungsposition"
 					name="head_of_department"
-					description="Hier kannst du sehen ob du Abteilungsleiter bist."
+					description="Hier kannst du sehen welche Position du in der Abteilung hast."
 					class="items-center grid-cols-2 gap-2 md:grid"
 					:ui="{ container: 'relative' }"
 				>
-					<UCheckbox
-						:model-value="user.head_of_department"
+					<URadioGroup
+						v-model="user.head_of_department"
 						disabled
-						label="Abteilungsleiter"
+						:options="[{
+							value: true,
+							label: 'Abteilungsleiter',
+						}, {
+							value: false,
+							label: 'Abteilungsmitarbeiter',
+						}]"
 					/>
 				</UFormGroup>
 				<UFormGroup
