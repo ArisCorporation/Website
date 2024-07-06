@@ -946,15 +946,22 @@ useHead({
 				</div>
 			</template>
 		</template>
-		<template #slideCard>
-			<div class="flex-1">
-				<UForm
-					ref="form"
-					:schema="schema"
-					:state="formdata"
-					@submit="onEditSubmit"
-				>
-					<UCard
+		<!-- <template #slideCard> -->
+		<template #slideHeader>
+			<NuxtImg
+				:src="modalStore.data?.ship.store_image"
+				:placeholder="[16, 16, 1, 5]"
+				class="object-cover w-full mx-auto rounded-lg shadow-xl max-h-36"
+			/>
+		</template>
+		<template #slideContent>
+			<UForm
+				ref="form"
+				:schema="schema"
+				:state="formdata"
+				@submit="onEditSubmit"
+			>
+				<!-- <UCard
 						class="flex flex-col flex-1 h-screen scrollbar-gray-thin"
 						:ui="{
 							body: {
@@ -965,391 +972,364 @@ useHead({
 						}"
 					>
 						<template #header>
-							<NuxtImg
-								:src="modalStore.data?.ship.store_image"
-								:placeholder="[16, 16, 1, 5]"
-								class="object-cover w-full mx-auto rounded-lg shadow-xl max-h-36"
-							/>
-						</template>
-						<div
-							id="ship-edit-base"
-							class="px-2"
-						>
-							<TableHr><span class="flex items-center text-lg">Basisdaten</span></TableHr>
-							<UFormGroup
-								label="Schiffsname"
-								name="name"
-								description="Hier kannst du den Namen deines Schiffes eingeben."
-								class="items-center grid-cols-2 gap-2 md:grid"
-								:ui="{ container: 'relative' }"
-							>
-								<!-- TODO: Modellübergreifend einzigartig machen -->
-								<UInput
-									v-model="formdata.name"
-									:icon="
-										formdata.name || initialFormdata.name
-											? formdata.name === initialFormdata.name
-												? 'i-heroicons-x-mark-16-solid'
-												: 'i-heroicons-arrow-uturn-left'
-											: ''
-									"
-									placeholder="UEE Stanton"
-									size="md"
-									autocomplete="off"
-								/>
-								<!-- <template #description> -->
-								<!-- <p class="px-0">Hier kannst du den Namen deines Schiffes eingeben.</p> -->
-								<!-- <p class="px-0">
+
+						</template> -->
+				<div
+					id="ship-edit-base"
+					class="px-2"
+				>
+					<TableHr><span class="flex items-center text-lg">Basisdaten</span></TableHr>
+					<UFormGroup
+						label="Schiffsname"
+						name="name"
+						description="Hier kannst du den Namen deines Schiffes eingeben."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<!-- TODO: Modellübergreifend einzigartig machen -->
+						<UInput
+							v-model="formdata.name"
+							:icon="
+								formdata.name || initialFormdata.name
+									? formdata.name === initialFormdata.name
+										? 'i-heroicons-x-mark-16-solid'
+										: 'i-heroicons-arrow-uturn-left'
+									: ''
+							"
+							placeholder="UEE Stanton"
+							size="md"
+							autocomplete="off"
+						/>
+						<!-- <template #description> -->
+						<!-- <p class="px-0">Hier kannst du den Namen deines Schiffes eingeben.</p> -->
+						<!-- <p class="px-0">
                   Falls du Inspiration brauchst, schau dich mal
                   <NuxtLink target="_blank" to="https://www.fantasynamegenerators.com/spaceship-names.php"
                     >hier</NuxtLink
                   >
                   um.
                 </p> -->
-								<!-- </template> -->
-								<template v-if="formdata.name || initialFormdata.name">
-									<button
-										v-if="formdata.name === initialFormdata.name"
-										class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-										@click="formdata.name = ''"
-									>
-										<UIcon
-											name="i-heroicons-x-mark-16-solid"
-											class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-										/>
-									</button>
-									<button
-										v-else
-										class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-										@click="formdata.name = initialFormdata.name"
-									>
-										<UIcon
-											name="i-heroicons-arrow-uturn-left"
-											class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-										/>
-									</button>
-								</template>
-							</UFormGroup>
-							<UFormGroup
-								label="Seriennummer"
-								name="serial"
-								description="Hier kannst du die Seriennummer deines Schiffes eingeben"
-								class="items-center grid-cols-2 gap-2 md:grid"
-								:ui="{ container: 'relative' }"
+						<!-- </template> -->
+						<template v-if="formdata.name || initialFormdata.name">
+							<button
+								v-if="formdata.name === initialFormdata.name"
+								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+								@click="formdata.name = ''"
 							>
-								<UInput
-									v-model="formdata.serial"
-									:icon="
-										formdata.serial || initialFormdata.serial
-											? formdata.serial === initialFormdata.serial
-												? 'i-heroicons-x-mark-16-solid'
-												: 'i-heroicons-arrow-uturn-left'
-											: ''
-									"
-									placeholder="R40"
-									size="md"
-									autocomplete="off"
+								<UIcon
+									name="i-heroicons-x-mark-16-solid"
+									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
 								/>
-								<template v-if="formdata.serial || initialFormdata.serial">
-									<button
-										v-if="formdata.serial === initialFormdata.serial"
-										class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-										@click="formdata.serial = ''"
-									>
-										<UIcon
-											name="i-heroicons-x-mark-16-solid"
-											class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-										/>
-									</button>
-									<button
-										v-else
-										class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-										@click="formdata.serial = initialFormdata.serial"
-									>
-										<UIcon
-											name="i-heroicons-arrow-uturn-left"
-											class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-										/>
-									</button>
-								</template>
-							</UFormGroup>
-						</div>
-						<div
-							id="ship-edit-division"
-							class="px-2"
-						>
-							<TableHr><span class="flex items-center text-lg">Einteilung</span></TableHr>
-							<UFormGroup
-								label="Einteilung"
-								name="group"
-								description="Hier kannst du dein Schiff der ArisCorp oder deiner privaten Flotte zuweisen."
-								class="items-center grid-cols-2 gap-2 md:grid"
-								:ui="{ container: 'relative' }"
+							</button>
+							<button
+								v-else
+								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+								@click="formdata.name = initialFormdata.name"
 							>
-								<URadioGroup
-									v-model="formdata.group"
-									:options="[
-										{
-											value: 'private',
-											label: 'Privat',
-											color: 'secondary',
-										},
-										{
-											value: 'ariscorp',
-											label: 'ArisCorp',
-											color: 'primary',
-										},
-									]"
+								<UIcon
+									name="i-heroicons-arrow-uturn-left"
+									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
 								/>
-							</UFormGroup>
-
-							<UFormGroup
-								label="Abteilung"
-								name="department"
-								description="Wenn du willst, kannst du dein Schiff hier einer beliebigen Abteilung zuweisen."
-								class="items-center grid-cols-2 gap-2 md:grid"
-								:ui="{ container: 'relative' }"
-							>
-								<USelectMenu
-									v-model="formdata.department"
-									:disabled="formdata.group !== 'ariscorp'"
-									:options="['', ...departments]"
-									option-attribute="name"
-									searchable
-									clear-search-on-close
-									searchable-placeholder="Suche..."
-									:search-attributes="['name']"
-									:ui="
-										formdata.department || initialFormdata.department
-											? {
-												leading: {
-													padding: {
-														xl: 'ps-10',
-													},
-												},
-											}
-											: { leading: { padding: { xl: 'hidden' } } }
-									"
-									:icon="
-										formdata.department || initialFormdata.department
-											? formdata.department === initialFormdata.department
-												? 'i-heroicons-x-mark-16-solid'
-												: 'i-heroicons-arrow-uturn-left'
-											: ''
-									"
-									size="md"
-								>
-									<template
-										v-if="formdata.department || initialFormdata.department"
-										#leading
-									/>
-									<template #label>
-										<span v-if="formdata.department">{{ formdata.department.name }}</span>
-										<span
-											v-else
-											class="text-[13.9px]"
-										>Keine Abteilung ausgewählt</span>
-									</template>
-									<template #option="{ option }">
-										<span v-if="option">{{ option.name }}</span>
-										<span v-else>Keine Abteilung</span>
-									</template>
-								</USelectMenu>
-								<template v-if="formdata.department || initialFormdata.department">
-									<button
-										v-if="formdata.department === initialFormdata.department"
-										class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-										@click="formdata.department = ''"
-									>
-										<UIcon
-											name="i-heroicons-x-mark-16-solid"
-											class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-										/>
-									</button>
-									<button
-										v-else
-										class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-										@click="formdata.department = initialFormdata.department"
-									>
-										<UIcon
-											name="i-heroicons-arrow-uturn-left"
-											class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-										/>
-									</button>
-								</template>
-							</UFormGroup>
-						</div>
-						<div
-							id="ship-edit-visibility"
-							class="px-2"
-						>
-							<TableHr><span class="flex items-center text-lg">Sichtbarkeit</span></TableHr>
-							<UFormGroup
-								label="Allgemeine Sichtbarkeit"
-								name="visibility"
-								description="Die Allgemeine Sichtbarkeit bezieht sich auf das gesamte Schiff."
-								class="items-center grid-cols-2 gap-2 md:grid"
-								:ui="{ container: 'relative' }"
-							>
-								<URadioGroup
-									v-model="formdata.visibility"
-									:options="[
-										{
-											value: 'public',
-											label: 'Öffentlich',
-											color: 'success',
-										},
-										{
-											value: 'internal',
-											label: 'Nur intern',
-											color: 'primary',
-										},
-										{
-											value: 'hidden',
-											label: 'Versteckt',
-											color: 'secondary',
-										},
-									]"
-								/>
-								<template #hint>
-									<UPopover mode="hover">
-										<UButton
-											icon="i-heroicons-information-circle"
-											variant="inputInfo"
-										/>
-										<template #panel>
-											<div class="text-xs whitespace-break-spaces">
-												<p class="text-white">
-													Erklärung:
-												</p>
-												<p>
-													<span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner
-													öffentlichen Biografie & internen Hangar
-												</p>
-												<p>
-													<span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
-													Biografie & Hangar
-												</p>
-												<p><span class="text-secondary">Versteckt</span>: In deinem privaten Hangar</p>
-											</div>
-										</template>
-									</UPopover>
-								</template>
-							</UFormGroup>
-							<UFormGroup
-								label="Schiffsnamen"
-								name="show_name"
-								description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
-								class="items-center grid-cols-2 gap-2 md:grid"
-								:ui="{ container: 'relative' }"
-							>
-								<URadioGroup
-									v-model="formdata.show_name"
-									:options="[
-										{
-											value: true,
-											label: 'Öffentlich',
-											color: 'success',
-										},
-										{
-											value: false,
-											label: 'Nur intern',
-											color: 'primary',
-										},
-									]"
-								/>
-								<template #hint>
-									<UPopover mode="hover">
-										<UButton
-											icon="i-heroicons-information-circle"
-											variant="inputInfo"
-										/>
-										<template #panel>
-											<div class="text-xs whitespace-break-spaces">
-												<p class="text-white">
-													Erklärung:
-												</p>
-												<p>
-													<span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner
-													öffentlichen Biografie & internen Hangar
-												</p>
-												<p>
-													<span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
-													Biografie & Hangar
-												</p>
-											</div>
-										</template>
-									</UPopover>
-								</template>
-							</UFormGroup>
-						</div>
-						<div
-							id="ship-edit-other"
-							class="px-2"
-						>
-							<TableHr><span class="flex items-center text-lg">Andere Daten</span></TableHr>
-							<UFormGroup
-								label="Kaufstatus"
-								name="planned"
-								description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
-								class="items-center grid-cols-2 gap-2 md:grid"
-								:ui="{ container: 'relative' }"
-							>
-								<URadioGroup
-									v-model="formdata.planned"
-									:options="[
-										{
-											value: false,
-											label: 'Gekauft',
-											color: 'primary',
-										},
-										{
-											value: true,
-											label: 'Geplant',
-											color: 'secondary',
-										},
-									]"
-								/>
-							</UFormGroup>
-						</div>
-
-						<template #footer>
-							<div
-								id="ship-edit-buttons"
-								class="flex flex-wrap justify-between w-full px-8 my-auto"
-							>
-								<ButtonDefault
-									type="button"
-									class="w-1/3"
-									color="danger"
-									@click="modalStore.closeSlide"
-								>
-									Schließen
-								</ButtonDefault>
-								<ButtonDefault
-									:type="dataChanged ? 'submit' : 'button'"
-									class="w-1/3"
-									color="success"
-									:disabled="!dataChanged"
-								>
-									Speichern
-								</ButtonDefault>
-							</div>
+							</button>
 						</template>
-					</UCard>
-				</UForm>
-				<!-- <UForm class="h-full" ref="form" :state="formdata" :schema="schema" @submit="onEditSubmit">
+					</UFormGroup>
+					<UFormGroup
+						label="Seriennummer"
+						name="serial"
+						description="Hier kannst du die Seriennummer deines Schiffes eingeben"
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<UInput
+							v-model="formdata.serial"
+							:icon="
+								formdata.serial || initialFormdata.serial
+									? formdata.serial === initialFormdata.serial
+										? 'i-heroicons-x-mark-16-solid'
+										: 'i-heroicons-arrow-uturn-left'
+									: ''
+							"
+							placeholder="R40"
+							size="md"
+							autocomplete="off"
+						/>
+						<template v-if="formdata.serial || initialFormdata.serial">
+							<button
+								v-if="formdata.serial === initialFormdata.serial"
+								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+								@click="formdata.serial = ''"
+							>
+								<UIcon
+									name="i-heroicons-x-mark-16-solid"
+									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+								/>
+							</button>
+							<button
+								v-else
+								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+								@click="formdata.serial = initialFormdata.serial"
+							>
+								<UIcon
+									name="i-heroicons-arrow-uturn-left"
+									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+								/>
+							</button>
+						</template>
+					</UFormGroup>
+				</div>
+				<div
+					id="ship-edit-division"
+					class="px-2"
+				>
+					<TableHr><span class="flex items-center text-lg">Einteilung</span></TableHr>
+					<UFormGroup
+						label="Einteilung"
+						name="group"
+						description="Hier kannst du dein Schiff der ArisCorp oder deiner privaten Flotte zuweisen."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<URadioGroup
+							v-model="formdata.group"
+							:options="[
+								{
+									value: 'private',
+									label: 'Privat',
+									color: 'secondary',
+								},
+								{
+									value: 'ariscorp',
+									label: 'ArisCorp',
+									color: 'primary',
+								},
+							]"
+						/>
+					</UFormGroup>
+
+					<UFormGroup
+						label="Abteilung"
+						name="department"
+						description="Wenn du willst, kannst du dein Schiff hier einer beliebigen Abteilung zuweisen."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<USelectMenu
+							v-model="formdata.department"
+							:disabled="formdata.group !== 'ariscorp'"
+							:options="['', ...departments]"
+							option-attribute="name"
+							searchable
+							clear-search-on-close
+							searchable-placeholder="Suche..."
+							:search-attributes="['name']"
+							:ui="
+								formdata.department || initialFormdata.department
+									? {
+										leading: {
+											padding: {
+												xl: 'ps-10',
+											},
+										},
+									}
+									: { leading: { padding: { xl: 'hidden' } } }
+							"
+							:icon="
+								formdata.department || initialFormdata.department
+									? formdata.department === initialFormdata.department
+										? 'i-heroicons-x-mark-16-solid'
+										: 'i-heroicons-arrow-uturn-left'
+									: ''
+							"
+							size="md"
+						>
+							<template
+								v-if="formdata.department || initialFormdata.department"
+								#leading
+							/>
+							<template #label>
+								<span v-if="formdata.department">{{ formdata.department.name }}</span>
+								<span
+									v-else
+									class="text-[13.9px]"
+								>Keine Abteilung ausgewählt</span>
+							</template>
+							<template #option="{ option }">
+								<span v-if="option">{{ option.name }}</span>
+								<span v-else>Keine Abteilung</span>
+							</template>
+						</USelectMenu>
+						<template v-if="formdata.department || initialFormdata.department">
+							<button
+								v-if="formdata.department === initialFormdata.department"
+								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+								@click="formdata.department = ''"
+							>
+								<UIcon
+									name="i-heroicons-x-mark-16-solid"
+									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+								/>
+							</button>
+							<button
+								v-else
+								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+								@click="formdata.department = initialFormdata.department"
+							>
+								<UIcon
+									name="i-heroicons-arrow-uturn-left"
+									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+								/>
+							</button>
+						</template>
+					</UFormGroup>
+				</div>
+				<div
+					id="ship-edit-visibility"
+					class="px-2"
+				>
+					<TableHr><span class="flex items-center text-lg">Sichtbarkeit</span></TableHr>
+					<UFormGroup
+						label="Allgemeine Sichtbarkeit"
+						name="visibility"
+						description="Die Allgemeine Sichtbarkeit bezieht sich auf das gesamte Schiff."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<URadioGroup
+							v-model="formdata.visibility"
+							:options="[
+								{
+									value: 'public',
+									label: 'Öffentlich',
+									color: 'success',
+								},
+								{
+									value: 'internal',
+									label: 'Nur intern',
+									color: 'primary',
+								},
+								{
+									value: 'hidden',
+									label: 'Versteckt',
+									color: 'secondary',
+								},
+							]"
+						/>
+						<template #hint>
+							<UPopover mode="hover">
+								<UButton
+									icon="i-heroicons-information-circle"
+									variant="inputInfo"
+								/>
+								<template #panel>
+									<div class="text-xs whitespace-break-spaces">
+										<p class="text-white">
+											Erklärung:
+										</p>
+										<p>
+											<span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner
+											öffentlichen Biografie & internen Hangar
+										</p>
+										<p>
+											<span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
+											Biografie & Hangar
+										</p>
+										<p><span class="text-secondary">Versteckt</span>: In deinem privaten Hangar</p>
+									</div>
+								</template>
+							</UPopover>
+						</template>
+					</UFormGroup>
+					<UFormGroup
+						label="Schiffsnamen"
+						name="show_name"
+						description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<URadioGroup
+							v-model="formdata.show_name"
+							:options="[
+								{
+									value: true,
+									label: 'Öffentlich',
+									color: 'success',
+								},
+								{
+									value: false,
+									label: 'Nur intern',
+									color: 'primary',
+								},
+							]"
+						/>
+						<template #hint>
+							<UPopover mode="hover">
+								<UButton
+									icon="i-heroicons-information-circle"
+									variant="inputInfo"
+								/>
+								<template #panel>
+									<div class="text-xs whitespace-break-spaces">
+										<p class="text-white">
+											Erklärung:
+										</p>
+										<p>
+											<span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner
+											öffentlichen Biografie & internen Hangar
+										</p>
+										<p>
+											<span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
+											Biografie & Hangar
+										</p>
+									</div>
+								</template>
+							</UPopover>
+						</template>
+					</UFormGroup>
+				</div>
+				<div
+					id="ship-edit-other"
+					class="px-2"
+				>
+					<TableHr><span class="flex items-center text-lg">Andere Daten</span></TableHr>
+					<UFormGroup
+						label="Kaufstatus"
+						name="planned"
+						description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
+						class="items-center grid-cols-2 gap-2 md:grid"
+						:ui="{ container: 'relative' }"
+					>
+						<URadioGroup
+							v-model="formdata.planned"
+							:options="[
+								{
+									value: false,
+									label: 'Gekauft',
+									color: 'primary',
+								},
+								{
+									value: true,
+									label: 'Geplant',
+									color: 'secondary',
+								},
+							]"
+						/>
+					</UFormGroup>
+				</div>
+
+			<!-- </UCard> -->
+
+			<!-- <UForm class="h-full" ref="form" :state="formdata" :schema="schema" @submit="onEditSubmit">
           <UCard class="flex flex-col flex-1 h-screen scrollbar-gray-thin"> -->
-				<!-- <template #header>
+			<!-- <template #header>
               <NuxtImg
                 :src="modalStore.data?.ship.store_image"
                 :placeholder="[16, 16, 1, 5]"
                 class="object-cover w-full mx-auto rounded-lg shadow-xl max-h-36"
               />
             </template> -->
-				<!-- <h4 class="mt-0 mb-1 text-left">Basisdaten</h4> -->
-				<!-- <div class="items-center justify-between space-y-4 gap-x-4"> -->
-				<!-- <UFormGroup size="xl" label="Schiffsname" name="name" :ui="formgroupUi">
+			<!-- <h4 class="mt-0 mb-1 text-left">Basisdaten</h4> -->
+			<!-- <div class="items-center justify-between space-y-4 gap-x-4"> -->
+			<!-- <UFormGroup size="xl" label="Schiffsname" name="name" :ui="formgroupUi">
                 <UInput v-model="formdata.name" placeholder="UEE Stanton" icon="i-mdi-rename-outline" />
                 <template #hint>
                   <UPopover mode="hover">
@@ -1375,7 +1355,7 @@ useHead({
                   </UPopover>
                 </template>
               </UFormGroup> -->
-				<!-- <UFormGroup size="xl" label="Seriennummer" name="serial" :ui="formgroupUi">
+			<!-- <UFormGroup size="xl" label="Seriennummer" name="serial" :ui="formgroupUi">
                 <UInput v-model="formdata.serial" placeholder="R40" icon="i-mdi-rename-outline" />
                 <template #hint>
                   <UPopover mode="hover">
@@ -1388,7 +1368,7 @@ useHead({
                   </UPopover>
                 </template>
               </UFormGroup> -->
-				<!-- <h4 class="mt-2 mb-1 text-left">Einteilung:</h4>
+			<!-- <h4 class="mt-2 mb-1 text-left">Einteilung:</h4>
               <UFormGroup size="xl" label="Zuordnung" name="group" :ui="formgroupUi">
                 <ArisRadioGroup
                   v-model="formdata.group"
@@ -1649,7 +1629,7 @@ useHead({
                   </UPopover>
                 </template>
               </UFormGroup> -->
-				<!-- </div>
+			<!-- </div>
             <template #footer>
               <div class="flex flex-wrap justify-between w-full px-8 my-auto">
                 <ButtonDefault type="button" @click="modalStore.closeSlide" class="w-1/3" color="danger"
@@ -1667,8 +1647,33 @@ useHead({
             </template>
           </UCard>
         </UForm> -->
+			</UForm>
+		</template>
+		<template #slideFooter>
+			<div
+				id="ship-edit-buttons"
+				class="flex flex-wrap justify-between w-full px-8 my-auto"
+			>
+				<ButtonDefault
+					type="button"
+					class="w-1/3"
+					color="danger"
+					@click="modalStore.closeSlide"
+				>
+					Schließen
+				</ButtonDefault>
+				<ButtonDefault
+					:type="dataChanged ? 'submit' : 'button'"
+					class="w-1/3"
+					color="success"
+					:disabled="!dataChanged"
+					@click="form.submit()"
+				>
+					Speichern
+				</ButtonDefault>
 			</div>
 		</template>
+		<!-- </template> -->
 		<div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
 			<div class="flex flex-wrap justify-center mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
 				<div class="flex mx-auto sm:mx-0 sm:pr-4 basis-full lg:block lg:p-0">
