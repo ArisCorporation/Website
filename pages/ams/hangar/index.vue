@@ -816,6 +816,20 @@ const updateOnboarding = async () => {
 	await updateUser(user.value.id, { onboardings: [...onboardings, 'hangar'] }, {})
 }
 
+const shipsWithCounts = computed(() => {
+	const shipCount = {}
+	// Count each ship's occurrences
+	modalStore.data?.forEach((ship: any) => {
+		const identifier = `${ship.manufacturer.name}:${ship.name}`
+		if (!shipCount[identifier]) {
+			shipCount[identifier] = { ...ship, count: 0 }
+		}
+		shipCount[identifier].count += 1
+	})
+	// Convert the object back into an array
+	return Object.values(shipCount)
+})
+
 onMounted(() => {
 	if (!useDirectusAuth().user.value.onboardings?.find((e: string) => e === 'hangar')) tour.start()
 
@@ -858,12 +872,12 @@ useHead({
 				<div class="mt-6 space-y-4 text-left">
 					<ul>
 						<li
-							v-for="(ship, index) in modalStore.data"
+							v-for="(ship, index) in shipsWithCounts"
 							:key="index"
 						>
 							<div class="relative grid grid-cols-2 pr-10">
 								<span class="text-tbase">{{ ship.manufacturer.name }}: </span>
-								<span class="text-primary">{{ ship.name }}</span>
+								<span class="text-primary"><span class="text-tbase">{{ ship.count }}x </span>{{ ship.name }}</span>
 								<div class="absolute flex items-center h-full right-4 gap-x-2">
 									<button
 										class="flex w-5 h-5 transition text-dark-gray hover:text-white"
@@ -879,7 +893,7 @@ useHead({
 										@click="modalStore.data.splice(index, 1)"
 									>
 										<Icon
-											name="heroicons:x-circle"
+											:name="ship.count > 1 ? 'heroicons:minus-circle' : 'heroicons:x-circle'"
 											class="w-full h-full"
 										/>
 									</button>
