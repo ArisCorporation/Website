@@ -57,7 +57,7 @@ const open = computed<boolean>({
 						header: {
 							base: `${$slots.slideHeader ? '' : big ? 'lg:hidden' : 'sm:hidden'}`,
 							background: '',
-							padding: `px-4 sm:px-6 ${$slots.slideHeader ? 'py-5' : 'py-2'}`,
+							padding: `${$slots.slideHeader ? 'py-5' : 'py-2'}`,
 						},
 					}"
 				>
@@ -65,7 +65,7 @@ const open = computed<boolean>({
 						#header
 					>
 						<div
-							class="flex"
+							class="flex px-4 sm:px-6"
 							:class="[big ? 'lg:hidden' : 'sm:hidden']"
 						>
 							<UButton
@@ -84,6 +84,10 @@ const open = computed<boolean>({
 								@click="open = false"
 							/>
 						</div>
+						<hr
+							class="w-full h-px bg-btertiary"
+							:class="[big ? 'lg:hidden' : 'sm:hidden']"
+						>
 						<!-- TODO: Styling -->
 						<!-- <button
               class="absolute flex items-center w-8 h-8 cursor-pointer focus:outline-none"
@@ -94,7 +98,9 @@ const open = computed<boolean>({
                 class="w-full h-full transition rounded-full bg-black/75 hover:bg-black text-tbase hover:text-white"
               />
             </button> -->
-						<slot name="slideHeader" />
+						<div class="px-4 sm:px-6">
+							<slot name="slideHeader" />
+						</div>
 					</template>
 					<slot name="slideContent" />
 					<template
