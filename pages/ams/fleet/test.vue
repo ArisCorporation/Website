@@ -21,6 +21,7 @@ const { data: user } = await readAsyncUsers({
 	query: {
 		filter: {
 			status: { _eq: 'active' },
+			hidden: { _eq: false },
 		},
 		limit: -1,
 	},
