@@ -28,7 +28,6 @@ const { data: departments } = await readAsyncItems('departments', {
 		],
 		filter: {
 			status: { _eq: 'published' },
-			hidden: { _eq: false },
 		},
 		limit: -1,
 		sort: ['name'],
@@ -70,7 +69,7 @@ if (!departments.value || !users.value) {
 }
 
 const updateMembers = () =>
-	selectedDepartment.value.id
+	selectedDepartment.value?.id
 		? (filteredMembers.value = users.value.filter(e => e.department_id === selectedDepartment.value.id))
 		: (filteredMembers.value = users.value)
 // const updateMembers = () => (filteredMembers.value = data.value.members);
