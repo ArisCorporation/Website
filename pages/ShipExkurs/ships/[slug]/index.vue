@@ -144,6 +144,18 @@ function openModule(module: any) {
 	})
 }
 
+const module_carousel_wrapper = ref()
+const module_carousel = ref()
+const { isFullscreen: isModuleCarouselFS, enter: enterModuleCarouselFS, exit: exitModuleCarouselFS, toggle: toggleModuleCarouselFS } = useFullscreen(module_carousel_wrapper)
+
+const module_shortcuts_enabled = computed(() => modalStore.isModalOpen && modalStore.type === 'module')
+
+defineShortcuts({
+	f: () => module_shortcuts_enabled.value && toggleModuleCarouselFS(),
+	arrowleft: () => module_shortcuts_enabled.value && module_carousel.value?.prev(),
+	arrowright: () => module_shortcuts_enabled.value && module_carousel.value?.next(),
+})
+
 definePageMeta({
 	layout: false,
 })
@@ -161,58 +173,73 @@ useHead({
 					bg="bprimary"
 					class="mx-auto mb-3 size-full"
 				>
-					<UCarousel
-						ref="carousel"
-						:items="modalStore.data.gallery"
-						:ui="{ item: 'flex flex-none snap-center w-full aspect-[16/9]' }"
-						class="max-h-[calc(100vh-4rem)] aspect-[16/9] w-auto relative"
-						arrows
-						indicators
+					<div
+						ref="module_carousel_wrapper"
+						class="relative size-full"
 					>
-						<template #default="{ item }">
-							<div class="relative flex size-full">
-								<NuxtImg
-									:src="item"
-									class="relative z-20 object-contain w-full h-auto m-auto border border-btertiary/75"
-									draggable="false"
-								/>
-								<NuxtImg
-									:src="item"
-									class="absolute z-10 object-cover w-full h-full m-auto blur brightness-50"
-									draggable="false"
-								/>
-								<USkeleton class="absolute top-0 bottom-0 left-0 right-0 z-0 m-auto size-full" />
-							</div>
-						</template>
+						<UButton
+							:icon="isModuleCarouselFS ? 'i-cil-fullscreen-exit' : 'i-cil-fullscreen'"
+							color="gray"
+							variant="ghost"
+							class="absolute z-40 rotate-90 rounded-xl top-1 right-2"
+							@click="isModuleCarouselFS ? exitModuleCarouselFS() : enterModuleCarouselFS()"
+						/>
+						<UCarousel
+							ref="module_carousel"
+							:items="modalStore.data.gallery"
+							:ui="{ item: `flex flex-none snap-center w-full ${isModuleCarouselFS ? 'max-h-screen' : 'aspect-[16/9]'}`, indicators: { wrapper: 'absolute flex items-center justify-center gap-3 bottom-4 inset-x-0 z-30' } }"
+							class="relative w-auto "
+							:class="[isModuleCarouselFS ? 'max-h-screen' : 'max-h-[calc(100vh-4rem)] aspect-[16/9]']"
+							arrows
+							indicators
+						>
+							<template #default="{ item }">
+								<div class="relative flex size-full">
+									<NuxtImg
+										:src="item"
+										class="relative z-20 object-contain w-full h-auto m-auto"
+										:class="[isModuleCarouselFS ? 'border-0 max-h-screen' : 'border border-btertiary/75']"
+										draggable="false"
+									/>
+									<NuxtImg
+										:src="item"
+										class="absolute z-10 object-cover w-full h-full m-auto blur"
+										:class="[isModuleCarouselFS ? 'brightness-0' : 'brightness-50']"
+										draggable="false"
+									/>
+									<USkeleton class="absolute top-0 bottom-0 left-0 right-0 z-0 m-auto size-full" />
+								</div>
+							</template>
 
-						<template #prev="{ onClick, disabled }">
-							<UButton
-								color="gray"
-								class="absolute top-0 bottom-0 flex justify-center w-8 h-8 my-auto rounded-full p-1.5 left-4 group z-30"
-								:disabled="disabled"
-								@click="onClick"
-							>
-								<UIcon
-									name="i-heroicons-chevron-left-20-solid"
-									class="flex-shrink-0 w-5 h-5 m-auto group-hover:text-aris-400"
-								/>
-							</UButton>
-						</template>
+							<template #prev="{ onClick, disabled }">
+								<UButton
+									color="gray"
+									class="absolute top-0 bottom-0 flex justify-center w-8 h-8 my-auto rounded-full p-1.5 left-4 group z-30"
+									:disabled="disabled"
+									@click="onClick"
+								>
+									<UIcon
+										name="i-heroicons-chevron-left-20-solid"
+										class="flex-shrink-0 w-5 h-5 m-auto group-hover:text-aris-400"
+									/>
+								</UButton>
+							</template>
 
-						<template #next="{ onClick, disabled }">
-							<UButton
-								color="gray"
-								class="absolute top-0 bottom-0 flex justify-center w-8 h-8 my-auto rounded-full p-1.5 right-4 group z-30"
-								:disabled="disabled"
-								@click="onClick"
-							>
-								<UIcon
-									name="i-heroicons-chevron-right-20-solid"
-									class="flex-shrink-0 w-5 h-5 m-auto group-hover:text-aris-400"
-								/>
-							</UButton>
-						</template>
-					</UCarousel>
+							<template #next="{ onClick, disabled }">
+								<UButton
+									color="gray"
+									class="absolute top-0 bottom-0 flex justify-center w-8 h-8 my-auto rounded-full p-1.5 right-4 group z-30"
+									:disabled="disabled"
+									@click="onClick"
+								>
+									<UIcon
+										name="i-heroicons-chevron-right-20-solid"
+										class="flex-shrink-0 w-5 h-5 m-auto group-hover:text-aris-400"
+									/>
+								</UButton>
+							</template>
+						</UCarousel>
+					</div>
 				</DefaultPanel>
 				<div>
 					<TableParent
