@@ -173,7 +173,7 @@ export default defineNuxtConfig({
 	},
 
 	ui: {
-		icons: ['heroicons', 'ic', 'mdi', 'fa6-regular', 'fa6-solid', 'radix-icons', 'lucide', 'svg-spinners'],
+		icons: ['heroicons', 'ic', 'mdi', 'fa6-regular', 'fa6-solid', 'radix-icons', 'lucide', 'svg-spinners', 'cil'],
 	},
 
 	// dayjs: {
