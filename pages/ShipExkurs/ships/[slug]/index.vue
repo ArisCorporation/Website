@@ -5,6 +5,7 @@ const { copy, isSupported: clipboardIsSupported } = useClipboard()
 const toast = useToast()
 const config = useRuntimeConfig()
 const carousel = ref()
+const modalStore = useModalStore()
 
 const selectedTab = ref(0)
 const setTab = (index: number) => {
@@ -75,6 +76,13 @@ const { data } = await readAsyncItems('ships', {
 			'variants.variant_id.manufacturer.name',
 			'variants.variant_id.manufacturer.slug',
 			'variants.variant_id.production_status',
+			'modules.id',
+			'modules.name',
+			'modules.slug',
+			'modules.gallery.directus_file_id',
+			'modules.manufacturer.name',
+			'modules.manufacturer.slug',
+			'modules.production_status',
 		],
 		filter: {
 			slug: { _eq: params.slug },
@@ -99,7 +107,7 @@ if (!data.value) {
 		fatal: true,
 	})
 }
-console.log(data.value)
+
 const commercialSources = data.value.commercials?.map((obj: { id: string, type: string }) => ({
 	type: obj.type,
 	src: config.public.fileBase + obj.id,
@@ -127,8 +135,17 @@ const tablist = computed<any[]>(() => [
 	...(data.value.rating ? [{ id: '5', header: 'Wertung' }] : []),
 ])
 
+function openModule(module: any) {
+	modalStore.setData(module)
+	modalStore.openModal(module.name, {
+		type: 'module',
+		hideCloseButton: true,
+		hideXButton: true,
+	})
+}
+
 definePageMeta({
-	layout: 'ship-exkurs',
+	layout: false,
 })
 
 useHead({
@@ -137,7 +154,92 @@ useHead({
 </script>
 
 <template>
-	<div>
+	<NuxtLayout name="ship-exkurs">
+		<template #modalContent>
+			<div v-if="modalStore.type === 'module'">
+				<DefaultPanel
+					bg="bprimary"
+					class="mx-auto mb-3 size-full"
+				>
+					<UCarousel
+						ref="carousel"
+						:items="modalStore.data.gallery"
+						:ui="{ item: 'flex flex-none snap-center w-full aspect-[16/9]' }"
+						class="max-h-[calc(100vh-4rem)] aspect-[16/9] w-auto relative"
+						arrows
+						indicators
+					>
+						<template #default="{ item }">
+							<div class="relative flex size-full">
+								<NuxtImg
+									:src="item"
+									class="relative z-20 object-contain w-full h-auto m-auto border border-btertiary/75"
+									draggable="false"
+								/>
+								<NuxtImg
+									:src="item"
+									class="absolute z-10 object-cover w-full h-full m-auto blur brightness-50"
+									draggable="false"
+								/>
+								<USkeleton class="absolute top-0 bottom-0 left-0 right-0 z-0 m-auto size-full" />
+							</div>
+						</template>
+
+						<template #prev="{ onClick, disabled }">
+							<UButton
+								color="gray"
+								class="absolute top-0 bottom-0 flex justify-center w-8 h-8 my-auto rounded-full p-1.5 left-4 group z-30"
+								:disabled="disabled"
+								@click="onClick"
+							>
+								<UIcon
+									name="i-heroicons-chevron-left-20-solid"
+									class="flex-shrink-0 w-5 h-5 m-auto group-hover:text-aris-400"
+								/>
+							</UButton>
+						</template>
+
+						<template #next="{ onClick, disabled }">
+							<UButton
+								color="gray"
+								class="absolute top-0 bottom-0 flex justify-center w-8 h-8 my-auto rounded-full p-1.5 right-4 group z-30"
+								:disabled="disabled"
+								@click="onClick"
+							>
+								<UIcon
+									name="i-heroicons-chevron-right-20-solid"
+									class="flex-shrink-0 w-5 h-5 m-auto group-hover:text-aris-400"
+								/>
+							</UButton>
+						</template>
+					</UCarousel>
+				</DefaultPanel>
+				<div>
+					<TableParent
+						title="Infobox"
+						class="w-full mt-6 mb-8 xl:w-2/3"
+						:class="[modalStore.data.description ? 'float-right xl:ml-12' : 'ml-auto']"
+					>
+						<TableRow
+							title="Hersteller"
+							:content="modalStore.data.manufacturer.name"
+							:link="`/verseexkurs/companies/${modalStore.data.manufacturer.slug}`"
+							full-width
+							@click="modalStore.data.manufacturer.name && modalStore.closeModal()"
+						/>
+						<TableRow
+							title="Produktionsstatus"
+							:content="modalStore.data.production_status"
+							full-width
+						/>
+					</TableParent>
+					<Editor
+						:model-value="modalStore.data.description"
+						read-only
+					/>
+				</div>
+			</div>
+		</template>
 		<div class="flex flex-wrap-reverse justify-between">
 			<div class="mt-auto">
 				<h1 class="mb-0 text-industrial-400">
@@ -630,6 +732,25 @@ useHead({
 					/>
 				</div>
 			</div>
+			<div
+				v-if="data.modules"
+				class="w-full px-2"
+			>
+				<h3 class="text-industrial-400">
+					Module
+				</h3>
+				<div>
+					<ShipCard
+						v-for="module in data.modules"
+						:key="module.id"
+						:ship-data="module"
+						preload-images
+						display-production-state
+						module-view
+						@module-open="openModule"
+					/>
+				</div>
+			</div>
 		</div>
-	</div>
+	</NuxtLayout>
 </template>

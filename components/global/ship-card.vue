@@ -10,7 +10,7 @@
 // const contextMenu = defineModel()
 
 const removePopover = ref(false)
-const emit = defineEmits(['edit', 'removeOpen', 'removeConfirm'])
+const emit = defineEmits(['edit', 'removeOpen', 'removeConfirm', 'module-open'])
 const props = defineProps({
 	shipData: {
 		type: null,
@@ -100,6 +100,11 @@ const props = defineProps({
 		type: null,
 		required: false,
 	},
+	moduleView: {
+		type: Boolean,
+		required: false,
+		default: false,
+	},
 })
 
 defineExpose({ removePopover })
@@ -123,8 +128,10 @@ const handleEdit = () => {
 		>
 			<div class="relative h-fit">
 				<NuxtLink
-					:to="'/shipexkurs/ships/' + shipData.slug"
+					:to="!moduleView ? '/shipexkurs/ships/' + shipData.slug : ''"
+					:role="!moduleView ? 'link' : 'button'"
 					class="block relative transition-all duration-500 ease h-[200px] bg-image group peer"
+					@click="moduleView ? $emit('module-open', shipData) : null"
 				>
 					<NuxtImg
 						:src="shipData.store_image"
