@@ -5,6 +5,10 @@ const { copy, isSupported: clipboardIsSupported } = useClipboard()
 const toast = useToast()
 const config = useRuntimeConfig()
 const carousel = ref()
+const store_image_view = ref(true)
+const auto_rotate = ref(true)
+const camera_zoom = ref(true)
+const orbit_controls = ref()
 const modalStore = useModalStore()
 
 const selectedTab = ref(0)
@@ -55,6 +59,7 @@ const { data } = await readAsyncItems('ships', {
 			'commercials.commercial_id.id',
 			'commercials.commercial_id.type',
 			'brochure',
+			'hologram',
 			'store_url',
 			'sales_url',
 			'on_sale',
@@ -107,7 +112,7 @@ if (!data.value) {
 		fatal: true,
 	})
 }
-
+console.log(data.value)
 const commercialSources = data.value.commercials?.map((obj: { id: string, type: string }) => ({
 	type: obj.type,
 	src: config.public.fileBase + obj.id,
@@ -147,7 +152,6 @@ function openModule(module: any) {
 const module_carousel_wrapper = ref()
 const module_carousel = ref()
 const { isFullscreen: isModuleCarouselFS, enter: enterModuleCarouselFS, exit: exitModuleCarouselFS, toggle: toggleModuleCarouselFS } = useFullscreen(module_carousel_wrapper)
-
 const module_shortcuts_enabled = computed(() => modalStore.isModalOpen && modalStore.type === 'module')
 
 defineShortcuts({
@@ -288,11 +292,90 @@ useHead({
 		<hr class="my-3">
 		<div class="grid grid-cols-3 gap-4">
 			<div class="col-span-3 space-y-4 xl:col-span-2">
-				<DefaultPanel>
-					<NuxtImg
-						:src="data.store_image"
-						class="h-[300px] lg:h-[600px] xl:h-[700px] w-full object-cover"
-					/>
+				<DefaultPanel bg="bprimary">
+					<div class="h-[300px] lg:h-[600px] xl:h-[700px] w-full z-50 relative">
+						<div
+							v-if="data.hologram"
+							class="absolute z-40 rotate-10 top-1 right-2"
+						>
+							<ButtonDefault
+								:active="!store_image_view"
+								@click="store_image_view = !store_image_view"
+							>
+								3D
+							</ButtonDefault>
+						</div>
+						<div
+							v-if="!store_image_view"
+							class="absolute z-40 rotate-10 bottom-1 right-2"
+						>
+							<ButtonDefault
+								:active="auto_rotate"
+								class="size-fit"
+								@click="auto_rotate = !auto_rotate"
+							>
+								<UIcon
+									name="i-lucide-orbit"
+									class="flex size-5"
+								/>
+							</ButtonDefault>
+							<!-- <ButtonDefault
+								:active="camera_zoom"
+								class="size-fit"
+								@click="camera_zoom = !camera_zoom"
+							>
+								<UIcon
+									name="i-heroicons-magnifying-glass-16-solid"
+									class="flex size-5"
+								/>
+							</ButtonDefault> -->
+						</div>
+						<NuxtImg
+							v-if="store_image_view"
+							:src="data.store_image"
+							class="object-cover size-full"
+						/>
+						<TresCanvas
+							v-else-if="!store_image_view && data.hologram"
+							clear-color="#111"
+							:tone-mapping-exposure="1"
+							tone-mapping="ACESFilmicToneMapping"
+							alpha
+						>
+							<TresPerspectiveCamera
+								:position="[0, 20, 80]"
+							/>
+							<OrbitControls
+								ref="orbit_controls"
+								:enable-zoom="true"
+								:auto-rotate="auto_rotate"
+								:auto-rotate-speed="1"
+								make-default
+							/>
+							<Stars
+								:radius="100"
+								:count="500"
+							/>
+							<Suspense>
+								<GLTFModel
+									:path="$config.public.fileBase + data.hologram"
+									draco
+								/>
+							</Suspense>
+
+							<TresAmbientLight
+								:intensity="1"
+							/>
+							<TresDirectionalLight
+								:position="[0, 100, 0]"
+								:intensity="1.5"
+							/>
+							<TresDirectionalLight
+								:position="[0, -100, 0]"
+								:intensity="1.5"
+							/>
+						</TresCanvas>
+					</div>
 				</DefaultPanel>
 				<DefaultPanel bg="bprimary">
 					<Editor
