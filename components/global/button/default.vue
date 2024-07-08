@@ -25,6 +25,11 @@ defineProps({
 		required: false,
 		default: null,
 	},
+	active: {
+		type: Boolean,
+		required: false,
+		default: false,
+	},
 })
 </script>
 
@@ -45,16 +50,17 @@ defineProps({
 			class="box-border overflow-hidden text-center transition-all duration-200 group-hover/button:duration-300 whitespace-nowrap text-ellipsis"
 			:class="[
 				{
-					'group-hover/button:bg-btertiary': !disabled,
+					'group-hover/button:bg-btertiary': !disabled && !active,
 					'p-2 rounded-md': size === 'base',
 					'p-1 rounded-[5px]': size === 'xs',
+					'bg-btertiary': active,
 				},
 				'group-hover:text-' + color,
 			]"
 		>
-			<p class="p-0">
-				<slot />
-			</p>
+			<!-- <p class="p-0"> -->
+			<slot />
+			<!-- </p> -->
 		</div>
 	</button>
 	<NuxtLink

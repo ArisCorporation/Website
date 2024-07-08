@@ -23,6 +23,8 @@
     "@nuxt/image": "^1.7.0",
     "@nuxt/ui": "^2.17.0",
     "@pinia/nuxt": "^0.5.1",
+    "@tresjs/cientos": "^3.9.0",
+    "@tresjs/nuxt": "^3.0.0",
     "@vue-email/render": "^0.0.9",
     "@vueuse/core": "^10.11.0",
     "@vueuse/nuxt": "^10.11.0",

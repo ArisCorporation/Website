@@ -179,7 +179,7 @@ export default function transformShip(obj: any, shipList?: any) {
 		...(obj.acceleration_vtol && { acceleration_vtol: obj.acceleration_vtol }),
 		...(obj.acceleration_maneuvering && { acceleration_maneuvering: obj.acceleration_maneuvering }),
 		...(obj.brochure && { brochure: obj.brochure }),
-		...(obj.holo && { holo: obj.holo }),
+		...(obj.hologram && { hologram: obj.hologram }),
 		...(obj.holoColored && { holoColored: obj.holoColored }),
 		// variants: getVariants(),
 		...(obj.loaners && obj.loaners[0] && { loaners: getLoaners() }),
