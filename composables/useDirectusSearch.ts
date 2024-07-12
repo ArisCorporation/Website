@@ -3,7 +3,6 @@ export const useDirectusSearch = (
 	filter_properties: string[],
 	custom_filter?: { [property: string]: string },
 ): { _or: { [property: string]: { _icontains: string } }[] } => {
-	console.log('q', q)
 	if (!q) return { _or: [] }
 	function buildFilter(propertyPath: string, word: string, operator?: string) {
 		// Split the property path into parts

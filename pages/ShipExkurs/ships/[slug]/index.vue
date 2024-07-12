@@ -361,7 +361,7 @@ useHead({
 						</div>
 						<div
 							v-if="!store_image_view"
-							class="absolute z-40 rotate-10 bottom-1 right-2"
+							class="absolute z-40 space-x-2 rotate-10 bottom-1 right-2"
 						>
 							<UTooltip :text="`Auto-Rotation ${camera_zoom ? 'deaktivieren' : 'aktivieren'}`">
 								<ButtonDefault
