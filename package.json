@@ -31,6 +31,7 @@
     "cheerio": "1.0.0-rc.12",
     "nuxt-tiptap-editor": "^1.1.2",
     "shepherd.js": "^13.0.1",
+    "three-stdlib": "^2.30.4",
     "toucan-js": "^3.4.0",
     "vue-cropperjs": "^5.0.0",
     "vue-timeline-chart": "^2.3.1",
