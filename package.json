@@ -30,7 +30,6 @@
     "@vueuse/nuxt": "^10.11.0",
     "axios": "^1.7.2",
     "cheerio": "1.0.0-rc.12",
-    "nuxt": "^3.12.3",
     "nuxt-tiptap-editor": "^1.1.2",
     "shepherd.js": "^13.0.1",
     "toucan-js": "^3.4.0",
@@ -40,6 +39,7 @@
     "yup-password": "^0.4.0"
   },
   "devDependencies": {
+    "@iconify-json/ci": "^1.1.13",
     "@pinia-plugin-persistedstate/nuxt": "^1.2.1",
     "@sentry/node": "^8.15.0",
     "@sentry/profiling-node": "^8.15.0",
@@ -53,6 +53,7 @@
     "@tiptap/extension-text-style": "^2.4.0",
     "@tiptap/extension-underline": "^2.4.0",
     "@vue-email/nuxt": "^0.8.19",
+    "nuxt": "^3.12.3",
     "nuxt-directus-next": "^0.0.15",
     "nuxt-headlessui": "^1.2.0",
     "nuxt-lodash": "^2.5.3",

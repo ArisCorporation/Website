@@ -19,6 +19,7 @@ export default defineNuxtConfig({
 			viewport: 'width=device-width, initial-scale=1',
 		},
 	},
+
 	css: ['~/assets/css/main.css', '~/assets/css/tailwind.css'],
 
 	// modules: [
@@ -44,22 +45,23 @@ export default defineNuxtConfig({
 	//   '@nuxt/eslint',
 	// ],
 	modules: [
-        '@vue-email/nuxt',
-        '@nuxt/ui',
-        'nuxt-directus-next',
-        '@nuxt/eslint',
-        '@nuxt/image',
-        '@pinia/nuxt',
-        '@pinia-plugin-persistedstate/nuxt',
-        'nuxt-tiptap-editor',
-        '@vueuse/nuxt',
-        // 'dayjs-nuxt',
-        '@nuxt/icon',
-        'nuxt-headlessui',
-        'nuxt-lodash',
-        'nuxt-resend',
-        "@tresjs/nuxt"
-    ],
+		'@tresjs/nuxt',
+		'@vue-email/nuxt',
+		'@nuxt/ui',
+		'nuxt-directus-next',
+		'@nuxt/eslint',
+		'@nuxt/image',
+		'@pinia/nuxt',
+		'@pinia-plugin-persistedstate/nuxt',
+		'nuxt-tiptap-editor',
+		'@vueuse/nuxt',
+		// 'dayjs-nuxt',
+		'@nuxt/icon',
+		'nuxt-headlessui',
+		'nuxt-lodash',
+		'nuxt-resend',
+	],
+
 	// plugins: ['~/plugins/vue-cropper.ts'],
 
 	runtimeConfig: {
@@ -200,4 +202,6 @@ export default defineNuxtConfig({
 			},
 		},
 	},
+
+	compatibilityDate: '2024-07-12',
 })
