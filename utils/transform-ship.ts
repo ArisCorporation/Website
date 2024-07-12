@@ -1,3 +1,5 @@
+import transformUtilStoreImage from './transform-util-store_image'
+
 interface IVariant {
 	id: string
 	name: string
@@ -203,7 +205,7 @@ export default function transformShip(obj: any, shipList?: any) {
         	+ ','
         	+ obj.insurance_expedited_cost.split('.')[1].slice(0, 2),
 		}),
-		...(obj.store_image && { store_image: obj.store_image }),
+		...transformUtilStoreImage(obj, 'store_image'),
 		...(obj.gallery && { gallery: obj.gallery.map((obj: any) => obj.directus_files_id) }),
 		...(obj.commercial_video_id && { commercial_video_id: obj.commercial_video_id }),
 		...(obj.commercials && typeof obj.commercials[0] === 'object' && obj.commercials[0].commercial_id

@@ -45,7 +45,6 @@ export default defineNuxtConfig({
 	//   '@nuxt/eslint',
 	// ],
 	modules: [
-		'@tresjs/nuxt',
 		'@vue-email/nuxt',
 		'@nuxt/ui',
 		'nuxt-directus-next',
@@ -60,6 +59,7 @@ export default defineNuxtConfig({
 		'nuxt-headlessui',
 		'nuxt-lodash',
 		'nuxt-resend',
+		'@tresjs/nuxt',
 	],
 
 	// plugins: ['~/plugins/vue-cropper.ts'],
