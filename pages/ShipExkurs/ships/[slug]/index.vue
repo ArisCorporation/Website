@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed, ref, shallowRef, toRefs, watchEffect } from 'vue'
+import { Spherical, Vector3 } from 'three'
+
 const { readAsyncItems } = useDirectusItems()
 const { params } = useRoute()
 const { copy, isSupported: clipboardIsSupported } = useClipboard()
@@ -25,7 +28,11 @@ const { data } = await readAsyncItems('ships', {
 			'p4k_version',
 			'name',
 			'slug',
-			'store_image',
+			'store_image.id',
+			'store_image.width',
+			'store_image.height',
+			'store_image.focal_point_x',
+			'store_image.focal_point_y',
 			'production_status',
 			'description',
 			'history',
@@ -104,7 +111,7 @@ const { data } = await readAsyncItems('ships', {
 	},
 	transform: (rawShips: any[]) => transformShip(rawShips[0]),
 })
-
+console.log(data.value)
 if (!data.value) {
 	throw createError({
 		statusCode: 404,
@@ -112,7 +119,7 @@ if (!data.value) {
 		fatal: true,
 	})
 }
-console.log(data.value)
+
 const commercialSources = data.value.commercials?.map((obj: { id: string, type: string }) => ({
 	type: obj.type,
 	src: config.public.fileBase + obj.id,
@@ -153,6 +160,53 @@ const module_carousel_wrapper = ref()
 const module_carousel = ref()
 const { isFullscreen: isModuleCarouselFS, enter: enterModuleCarouselFS, exit: exitModuleCarouselFS, toggle: toggleModuleCarouselFS } = useFullscreen(module_carousel_wrapper)
 const module_shortcuts_enabled = computed(() => modalStore.isModalOpen && modalStore.type === 'module')
+
+const stars_props = {
+	size: 0.1,
+	sizeAttenuation: true,
+	transparent: true,
+	alphaTest: 0.01,
+	alphaMap: null,
+	count: 500,
+	depth: 50,
+	radius: 100,
+}
+
+const stars_position = ref()
+const stars_scale = ref()
+
+const { radius: stars_radius, depth: stars_depth, count: stars_count, size: stars_size, sizeAttenuation: stars_sizeAttenuation, transparent: stars_transparent, alphaMap: stars_alphaMap, alphaTest: stars_alphaTest } = toRefs(stars_props)
+
+const setStars = () => {
+	let circle = stars_radius.value + stars_depth.value
+	const increment = computed(() => stars_depth.value / stars_count.value)
+
+	const positionArray: number[] = []
+	const scaleArray: number[] = Array.from(
+		{ length: stars_count.value },
+		() => (0.5 + 0.5 * Math.random()) * 4,
+	)
+
+	const generateStars = (circle: number): Array<number> => {
+		const starArray = new Vector3()
+			.setFromSpherical(new Spherical(circle, Math.acos(1 - Math.random() * 2), Math.random() * 2 * Math.PI))
+			.toArray()
+		return starArray
+	}
+
+	for (let i = 0; i < stars_count.value; i++) {
+		circle -= increment.value * Math.random()
+		positionArray.push(...generateStars(circle))
+	}
+	stars_position.value = new Float32Array(positionArray)
+	stars_scale.value = new Float32Array(scaleArray)
+}
+
+watchEffect(() => {
+	setStars()
+})
+
+const starsRef = shallowRef()
 
 defineShortcuts({
 	f: () => module_shortcuts_enabled.value && toggleModuleCarouselFS(),
@@ -309,31 +363,36 @@ useHead({
 							v-if="!store_image_view"
 							class="absolute z-40 rotate-10 bottom-1 right-2"
 						>
-							<ButtonDefault
-								:active="auto_rotate"
-								class="size-fit"
-								@click="auto_rotate = !auto_rotate"
-							>
-								<UIcon
-									name="i-lucide-orbit"
-									class="flex size-5"
-								/>
-							</ButtonDefault>
-							<!-- <ButtonDefault
-								:active="camera_zoom"
-								class="size-fit"
-								@click="camera_zoom = !camera_zoom"
-							>
-								<UIcon
-									name="i-heroicons-magnifying-glass-16-solid"
-									class="flex size-5"
-								/>
-							</ButtonDefault> -->
+							<UTooltip :text="`Auto-Rotation ${camera_zoom ? 'deaktivieren' : 'aktivieren'}`">
+								<ButtonDefault
+									:active="auto_rotate"
+									class="size-fit"
+									@click="auto_rotate = !auto_rotate"
+								>
+									<UIcon
+										name="i-lucide-orbit"
+										class="flex size-5"
+									/>
+								</ButtonDefault>
+							</UTooltip>
+							<UTooltip :text="`Zoom ${camera_zoom ? 'deaktivieren' : 'aktivieren'}`">
+								<ButtonDefault
+									:active="camera_zoom"
+									class="size-fit"
+									@click="camera_zoom = !camera_zoom"
+								>
+									<UIcon
+										name="i-heroicons-magnifying-glass-16-solid"
+										class="flex size-5"
+									/>
+								</ButtonDefault>
+							</UTooltip>
 						</div>
 						<NuxtImg
 							v-if="store_image_view"
 							:src="data.store_image"
 							class="object-cover size-full"
+							:style="{ 'object-position': data.store_image_properties.object_position }"
 						/>
 						<TresCanvas
 							v-else-if="!store_image_view && data.hologram"
@@ -345,19 +404,32 @@ useHead({
 							<TresPerspectiveCamera
 								:position="[0, 20, 80]"
 							/>
-							<OrbitControls
+							<TcientosOrbitControls
 								ref="orbit_controls"
-								:enable-zoom="true"
+								:enable-zoom="camera_zoom"
 								:auto-rotate="auto_rotate"
 								:auto-rotate-speed="1"
 								make-default
 							/>
-							<Stars
+							<!-- <TcientosStars
 								:radius="100"
 								:count="500"
-							/>
+							/> -->
+							<TresPoints ref="starsRef">
+								<TresBufferGeometry
+									:position="[stars_position, 3]"
+									:a-scale="[stars_scale, 1]"
+								/>
+								<TresPointsMaterial
+									:size="stars_size"
+									:size-attenuation="stars_sizeAttenuation"
+									:transparent="stars_transparent"
+									:alpha-test="stars_alphaTest"
+									:alpha-map="stars_alphaMap"
+								/>
+							</TresPoints>
 							<Suspense>
-								<GLTFModel
+								<TcientosUseGLTFComponent
 									:path="$config.public.fileBase + data.hologram"
 									draco
 								/>
