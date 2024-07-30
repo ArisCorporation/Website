@@ -115,14 +115,14 @@ export default defineNuxtConfig({
 				propsDestructure: true,
 			},
 		},
-	//   plugins: [
-	//     // Put the Sentry vite plugin after all other plugins
-	//     sentryVitePlugin({
-	//       authToken: process.env.SENTRY_AUTH_TOKEN,
-	//       org: 'ariscorp',
-	//       project: 'homepage',
-	//     }),
-	//   ],
+		//   plugins: [
+		//     // Put the Sentry vite plugin after all other plugins
+		//     sentryVitePlugin({
+		//       authToken: process.env.SENTRY_AUTH_TOKEN,
+		//       org: 'ariscorp',
+		//       project: 'homepage',
+		//     }),
+		//   ],
 	},
 
 	sourcemap: true,
@@ -192,15 +192,6 @@ export default defineNuxtConfig({
 
 	tiptap: {
 		prefix: 'Tiptap', // prefix for Tiptap imports, composables not included
-	},
-
-	eslint: {
-		config: {
-			stylistic: {
-				indent: 'tab',
-				semi: false,
-			},
-		},
 	},
 
 	compatibilityDate: '2024-07-12',
