@@ -482,66 +482,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					class="items-center grid-cols-2 gap-2 md:grid"
 					:ui="{ container: 'relative' }"
 				>
-					<div class="relative">
-						<USelectMenu
-							v-model="formdata.title"
-							:options="titleOptions"
-							:ui="
-								formdata.title || initialFormdata.title
-									? {
-										leading: {
-											padding: {
-												xl: 'ps-10',
-											},
-										},
-									}
-									: { leading: { padding: { xl: 'hidden' } } }
-							"
-							:icon="
-								formdata.title || initialFormdata.title
-									? formdata.title === initialFormdata.title
-										? 'i-heroicons-x-mark-16-solid'
-										: 'i-heroicons-arrow-uturn-left'
-									: ''
-							"
-							size="md"
-						>
-							<template
-								v-if="formdata.title || initialFormdata.title"
-								#leading
-							/>
-							<template #label>
-								<span v-if="formdata.title">{{ formdata.title }}</span>
-								<span v-else>Kein Titel ausgewählt</span>
-							</template>
-							<template #option="{ option }">
-								<span v-if="option">{{ option }}</span>
-								<span v-else>Kein Titel</span>
-							</template>
-						</USelectMenu>
-						<template v-if="formdata.title || initialFormdata.title">
-							<button
-								v-if="formdata.title === initialFormdata.title"
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.title = ''"
-							>
-								<UIcon
-									name="i-heroicons-x-mark-16-solid"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-							<button
-								v-else
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.title = initialFormdata.title"
-							>
-								<UIcon
-									name="i-heroicons-arrow-uturn-left"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-						</template>
-					</div>
+					<ArisSelectMenu
+						v-model="formdata.title"
+						:initial-state="initialFormdata.title"
+						:options="titleOptions"
+						empty-label="Kein Titel"
+						no-selected-label="Kein Titel ausgewählt"
+					/>
 				</UFormGroup>
 				<UFormGroup
 					label="Passwort"
@@ -621,74 +568,20 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					class="items-center grid-cols-2 gap-2 md:grid"
 					:ui="{ container: 'relative' }"
 				>
-					<div class="relative">
-						<USelectMenu
-							v-model="formdata.department"
-							:options="['', ...departments]"
-							option-attribute="name"
-							searchable
-							clear-search-on-close
-							searchable-placeholder="Suche..."
-							:search-attributes="['name']"
-							:ui="
-								formdata.department || initialFormdata.department
-									? {
-										leading: {
-											padding: {
-												xl: 'ps-10',
-											},
-										},
-									}
-									: { leading: { padding: { xl: 'hidden' } } }
-							"
-							:icon="
-								formdata.department || initialFormdata.department
-									? formdata.department === initialFormdata.department
-										? 'i-heroicons-x-mark-16-solid'
-										: 'i-heroicons-arrow-uturn-left'
-									: ''
-							"
-							size="md"
-						>
-							<template
-								v-if="formdata.department || initialFormdata.department"
-								#leading
-							/>
-							<template #label>
-								<span v-if="formdata.department">{{ formdata.department.name }}</span>
-								<span
-									v-else
-									class="text-[13.9px]"
-								>Keine Abteilung ausgewählt</span>
-							</template>
-							<template #option="{ option }">
-								<span v-if="option">{{ option.name }}</span>
-								<span v-else>Keine Abteilung</span>
-							</template>
-						</USelectMenu>
-						<template v-if="formdata.department || initialFormdata.department">
-							<button
-								v-if="formdata.department === initialFormdata.department"
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.department = ''"
-							>
-								<UIcon
-									name="i-heroicons-x-mark-16-solid"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-							<button
-								v-else
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.department = initialFormdata.department"
-							>
-								<UIcon
-									name="i-heroicons-arrow-uturn-left"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-						</template>
-					</div>
+					<ArisSelectMenu
+						v-model="formdata.department"
+						:initial-state="initialFormdata.department"
+						:options="['', ...departments]"
+						option-attribute="name"
+						searchable
+						clear-search-on-close
+						searchable-placeholder="Suche..."
+						:search-attributes="['name']"
+						:option-label="formdata.department.name"
+						:selected-label="formdata.department.name"
+						empty-label="Keine Abteilung"
+						no-selected-label="Keine Abteilung ausgewählt"
+					/>
 				</UFormGroup>
 				<UFormGroup
 					label="RSI Handle"
@@ -769,65 +662,20 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					class="items-center grid-cols-2 gap-2 md:grid"
 					:ui="{ container: 'relative' }"
 				>
-					<div class="relative">
-						<USelectMenu
-							v-model="formdata.current_residence"
-							:options="['', ...landing_zones]"
-							option-attribute="name"
-							searchable
-							clear-search-on-close
-							searchable-placeholder="Suche..."
-							:search-attributes="['name']"
-							:icon="
-								formdata.current_residence || initialFormdata.current_residence
-									? formdata.current_residence === initialFormdata.current_residence
-										? 'i-heroicons-x-mark-16-solid'
-										: 'i-heroicons-arrow-uturn-left'
-									: ''
-							"
-							size="md"
-						>
-							<template
-								v-if="formdata.current_residence || initialFormdata.current_residence"
-								#leading
-							/>
-							<template #label>
-								<span v-if="formdata.current_residence">{{
-									formdata.current_residence.path_label || formdata.current_residence.name
-								}}</span>
-								<span
-									v-else
-									class="text-[13.9px]"
-								>Keine Landezone ausgewählt</span>
-							</template>
-							<template #option="{ option }">
-								<span v-if="option">{{ option.path_label || option.name }}</span>
-								<span v-else>Keine Landezone</span>
-							</template>
-						</USelectMenu>
-						<template v-if="formdata.current_residence || initialFormdata.current_residence">
-							<button
-								v-if="formdata.current_residence === initialFormdata.current_residence"
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.current_residence = ''"
-							>
-								<UIcon
-									name="i-heroicons-x-mark-16-solid"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-							<button
-								v-else
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.current_residence = initialFormdata.current_residence"
-							>
-								<UIcon
-									name="i-heroicons-arrow-uturn-left"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-						</template>
-					</div>
+				<ArisSelectMenu
+						v-model="formdata.current_residence"
+						:initial-state="initialFormdata.current_residence"
+						:options="['', ...landing_zones]"
+						option-attribute="name"
+						searchable
+						clear-search-on-close
+						searchable-placeholder="Suche..."
+						:search-attributes="['name']"
+						:option-label="(option: any) => option.path_label || option.name"
+						:selected-label="formdata.current_residence.path_label || formdata.current_residence.name"
+						empty-label="Keine Landezone"
+						no-selected-label="Keine Landezone ausgewählt"
+					/>
 				</UFormGroup>
 				<UFormGroup
 					label="Geburtsdatum"
@@ -887,63 +735,20 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 					class="items-center grid-cols-2 gap-2 md:grid"
 					:ui="{ container: 'relative' }"
 				>
-					<div class="relative">
-						<USelectMenu
-							v-model="formdata.birthplace"
-							:options="['', ...landing_zones]"
-							option-attribute="name"
-							searchable
-							clear-search-on-close
-							searchable-placeholder="Suche..."
-							:search-attributes="['name']"
-							:icon="
-								formdata.birthplace || initialFormdata.birthplace
-									? formdata.birthplace === initialFormdata.birthplace
-										? 'i-heroicons-x-mark-16-solid'
-										: 'i-heroicons-arrow-uturn-left'
-									: ''
-							"
-							size="md"
-						>
-							<template
-								v-if="formdata.birthplace || initialFormdata.birthplace"
-								#leading
-							/>
-							<template #label>
-								<span v-if="formdata.birthplace">{{ formdata.birthplace.path_label || formdata.birthplace.name }}</span>
-								<span
-									v-else
-									class="text-[13.9px]"
-								>Keine Landezone ausgewählt</span>
-							</template>
-							<template #option="{ option }">
-								<span v-if="option">{{ option.path_label || option.name }}</span>
-								<span v-else>Keine Landezone</span>
-							</template>
-						</USelectMenu>
-						<template v-if="formdata.birthplace || initialFormdata.birthplace">
-							<button
-								v-if="formdata.birthplace === initialFormdata.birthplace"
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.birthplace = ''"
-							>
-								<UIcon
-									name="i-heroicons-x-mark-16-solid"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-							<button
-								v-else
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.birthplace = initialFormdata.birthplace"
-							>
-								<UIcon
-									name="i-heroicons-arrow-uturn-left"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-						</template>
-					</div>
+				<ArisSelectMenu
+						v-model="formdata.birthplace"
+						:initial-state="initialFormdata.birthplace"
+						:options="['', ...landing_zones]"
+						option-attribute="name"
+						searchable
+						clear-search-on-close
+						searchable-placeholder="Suche..."
+						:search-attributes="['name']"
+						:option-label="(option: any) => option.path_label || option.name"
+						:selected-label="formdata.birthplace.path_label || formdata.birthplace.name"
+						empty-label="Keine Abteilung"
+						no-selected-label="Keine Abteilung ausgewählt"
+					/>
 				</UFormGroup>
 				<UFormGroup
 					label="Haarfarbe"
@@ -1311,63 +1116,25 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 							class="items-center grid-cols-2 gap-2 md:grid"
 							:ui="{ container: 'relative' }"
 						>
-							<div class="relative">
-								<USelectMenu
-									v-model="formdata.duty_division"
-									:options="[
-										'',
-										{ name: 'UEE Army', value: 'army' },
-										{ name: 'UEE Marine', value: 'marines' },
-										{ name: 'UEE Navy', value: 'navy' },
-									]"
-									size="md"
-									:icon="
-										formdata.duty_division || initialFormdata.duty_division
-											? formdata.duty_division === initialFormdata.duty_division
-												? 'i-heroicons-x-mark-16-solid'
-												: 'i-heroicons-arrow-uturn-left'
-											: ''
-									"
-									value-attribute="value"
-								>
-									<template #label>
-										<span v-if="formdata.duty_division">{{
-											[
+							<ArisSelectMenu
+								v-model="formdata.duty_division"
+								:initial-state="initialFormdata.duty_division"
+								:options="[
+												'',
 												{ name: 'UEE Army', value: 'army' },
 												{ name: 'UEE Marine', value: 'marines' },
 												{ name: 'UEE Navy', value: 'navy' },
-											].find((e) => formdata.duty_division === e.value)?.name
-										}}</span>
-										<span v-else>Keine Division ausgewählt</span>
-									</template>
-									<template #option="{ option }">
-										<span v-if="option.name">{{ option.name }}</span>
-										<span v-else>Keine Division</span>
-									</template>
-								</USelectMenu>
-								<template v-if="formdata.duty_division || initialFormdata.duty_division">
-									<button
-										v-if="formdata.duty_division === initialFormdata.duty_division"
-										class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-										@click="formdata.duty_division = ''"
-									>
-										<UIcon
-											name="i-heroicons-x-mark-16-solid"
-											class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-										/>
-									</button>
-									<button
-										v-else
-										class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-										@click="formdata.duty_division = initialFormdata.duty_division"
-									>
-										<UIcon
-											name="i-heroicons-arrow-uturn-left"
-											class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-										/>
-									</button>
-								</template>
-							</div>
+											]"
+								value-attribute="value"
+								:option-label="(option: any) => option.name"
+								:selected-label="[
+														{ name: 'UEE Army', value: 'army' },
+														{ name: 'UEE Marine', value: 'marines' },
+														{ name: 'UEE Navy', value: 'navy' },
+													].find((e) => formdata.duty_division === e.value)?.name || 'Keine Division ausgewählt'"
+								empty-label="Keine Division"
+								no-selected-label="Keine Division ausgewählt"
+							/>
 						</UFormGroup>
 					</div>
 				</Transition>
@@ -1520,7 +1287,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 									<button
 										v-else
 										class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-										@click="formdata.duty_diveducation_placeision = initialFormdata.education_place"
+										@click="formdata.duty_diveducation_place = initialFormdata.education_place"
 									>
 										<UIcon
 											name="i-heroicons-arrow-uturn-left"
