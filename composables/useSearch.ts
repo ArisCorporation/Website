@@ -3,17 +3,29 @@ import { useRouter, useRoute } from 'vue-router'
 import type { LocationQueryRaw } from 'vue-router'
 
 export const useSearch = (
-	search: Ref<string>,
-	search_input?: Ref<string>,
-	options?: { debounce?: boolean, query?: boolean, typingAction?: Function, debounceAction?: Function },
+	search: Ref,
+	search_input?: Ref,
+	options?: { debounce?: boolean, query?: boolean, typingAction?: Function, debounceAction?: Function, query_name?: string, options?: typeof search.value[] },
 ): void => {
 	const { replace } = useRouter()
 	const route = useRoute()
 
-	if (options?.debounce === true && search_input) {
-		if (options?.query === true && route.query?.q) {
-			search.value = route.query.q as string
-			search_input.value = route.query.q as string
+	if(typeof search.value !== "string") {
+		if (route.query[options?.query_name || 'q']) {
+			search.value = options?.options?.find((option: typeof search.value) => option?.id === route.query[options?.query_name || 'q'])
+		}
+
+		watch(search, () => {
+			replace({
+				query: search.value ? ({ ...route.query, [options?.query_name || 'q']: search.value?.id } as LocationQueryRaw) : { ...route.query, [options?.query_name || 'q']: undefined },
+			})
+		})
+		return
+	}
+	 if (options?.debounce === true && search_input) {
+		if (options?.query === true && route.query[options?.query_name || 'q']) {
+			search.value = route.query[options?.query_name || 'q'] as string
+			search_input.value = route.query[options?.query_name || 'q'] as string
 		}
 
 		const debounceSearch = useDebounce(() => {
@@ -21,7 +33,7 @@ export const useSearch = (
 
 			if (options?.query === true) {
 				replace({
-					query: search_input.value ? ({ ...route.query, q: search_input.value } as LocationQueryRaw) : { ...route.query, q: undefined },
+					query: search_input.value ? ({ ...route.query, [options?.query_name || 'q']: search_input.value } as LocationQueryRaw) : { ...route.query, [options?.query_name || 'q']: undefined },
 				})
 			}
 
@@ -34,13 +46,13 @@ export const useSearch = (
 		})
 	}
 	else if (options?.debounce === false) {
-		if (route.query?.q) {
-			search.value = route.query.q as string
+		if (route.query[options?.query_name || 'q']) {
+			search.value = route.query[options?.query_name || 'q'] as string
 		}
 
 		watch(search, () => {
 			replace({
-				query: search.value ? ({ ...route.query, q: search.value } as LocationQueryRaw) : { ...route.query, q: undefined },
+				query: search.value ? ({ ...route.query, [options?.query_name || 'q']: search.value } as LocationQueryRaw) : { ...route.query, [options?.query_name || 'q']: undefined },
 			})
 		})
 	}
