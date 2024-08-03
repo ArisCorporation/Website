@@ -449,7 +449,7 @@ useHead({
 						</TresCanvas>
 					</div>
 				</DefaultPanel>
-				<DefaultPanel bg="bprimary">
+				<DefaultPanel v-if="data.description" bg="bprimary">
 					<Editor
 						v-model="data.description"
 						read-only
@@ -674,6 +674,7 @@ useHead({
 			</div>
 		</div>
 		<TabGroup
+			v-if="tablist.length"
 			:tablist="tablist"
 			:store="selectedTab"
 			:change="(i) => (selectedTab = i)"
