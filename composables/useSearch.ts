@@ -17,7 +17,7 @@ export const useSearch = (
 
 		watch(search, () => {
 			replace({
-				query: search.value ? ({ ...route.query, [options?.query_name || 'q']: search.value?.id } as LocationQueryRaw) : { ...route.query, [options?.query_name || 'q']: undefined },
+				query: search.value?.id ? ({ ...route.query, [options?.query_name || 'q']: search.value?.id } as LocationQueryRaw) : { ...route.query, [options?.query_name || 'q']: undefined },
 			})
 		})
 		return
