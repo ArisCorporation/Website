@@ -1,158 +1,278 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems()
-const userSettings = useUserSettingsStore()
+const { readAsyncItems } = useDirectusItems();
+const userSettings = useUserSettingsStore();
 
-const hideShips = ref(false)
-const search = ref('')
-const search_input_value = ref('')
-const searchInput = ref()
+const hideShips = ref(false);
+const search = ref('');
+const search_input_value = ref('');
+const searchInput = ref();
 
-const page = ref(1)
-const pageCount = ref(12)
-const pageTotal = ref(0)
-const pageFrom = computed(() => (page.value - 1) * pageCount.value + 1)
-const pageTo = computed(() => Math.min(page.value * pageCount.value, pageTotal.value))
+const page = ref(1);
+const pageCount = ref(12);
+const pageTotal = ref(0);
+const pageFrom = computed(() => (page.value - 1) * pageCount.value + 1);
+const pageTo = computed(() => Math.min(page.value * pageCount.value, pageTotal.value));
+
+// const shipType = ref()
+// FILTERS
+const typeOptions = [
+  { id: '', label: 'Alle' },
+  { id: 'ships', label: 'Schiffe' },
+  { id: 'ground', label: 'Fahrzeuge' },
+];
+const sizeOptions = [
+  { id: '', label: 'Alle' },
+  { id: 'xs', label: 'XS - Snub' },
+  { id: 's', label: 'S - Klein' },
+  { id: 'm', label: 'M - Medium' },
+  { id: 'l', label: 'L - Groß' },
+  { id: 'c', label: 'C - Capital' },
+];
+const shipType = ref<{ id: string; label: string } | null>(typeOptions[0]);
+const shipSize = ref<{ id: string; label: string }[]>([sizeOptions[0]]);
+
+watch(shipType, () => {
+  if (!shipType.value) {
+    return (shipType.value = typeOptions[0]);
+  }
+});
+watch(shipSize, (newShipSize, oldShipSize) => {
+  if (!shipSize.value || shipSize.value.length === 0) {
+    return (shipSize.value = [sizeOptions[0]]);
+  }
+  // console.log(newShipSize.find((size) => !oldShipSize.includes(size)))
+  if (shipSize.value.find((size) => !oldShipSize.includes(size))?.label === 'Alle') {
+    return (shipSize.value = [sizeOptions[0]]);
+  } else if (shipSize.value.length !== 1 && shipSize.value[0] !== sizeOptions[0]) {
+    return (shipSize.value = shipSize.value.filter((size) => size?.label !== 'Alle'));
+  }
+  // console.log(shipSize.value = newShipSize.filter((size) => size.label !== 'Alle'))
+
+  // if (shipSize.value.includes(sizeOptions[0])) {
+  //   return (shipSize.value = [sizeOptions[0]]);
+  // }
+});
+
+useSearch(shipType, shipType, {
+  query: true,
+  debounce: false,
+  query_name: 'type',
+  options: typeOptions,
+});
+useSearch(shipSize, shipSize, {
+  query: true,
+  debounce: false,
+  query_name: 'size',
+  options: sizeOptions,
+});
 
 const filter = computed(() => ({
-	...(search.value && {
-		_or: [
-			{ name: { _icontains: search.value } },
-			{ manufacturer: { name: { _icontains: search.value } } },
-			{ manufacturer: { code: { _icontains: search.value } } },
-		],
-		status: { _eq: 'published' },
-	}),
-}))
+  ...(search.value && {
+    _or: [
+      { name: { _icontains: search.value } },
+      { manufacturer: { name: { _icontains: search.value } } },
+      { manufacturer: { code: { _icontains: search.value } } },
+    ],
+    status: { _eq: 'published' },
+  }),
+  ...(shipType.value?.id === 'ships'
+    ? { ground: { _neq: true }, gravlev: { _neq: true } }
+    : shipType.value?.id === 'ground'
+    ? { _or: [{ ground: { _eq: true } }, { gravlev: { _eq: true } }] }
+    : {}),
+  ...(shipSize.value && !shipSize.value.includes(sizeOptions[0])
+    ? {
+        _or: [
+          ...(unref(shipSize).some((size) => size.id === sizeOptions[1].id) ? [{ size: { _eq: 0 } }] : []),
+          ...(unref(shipSize).some((size) => size.id === sizeOptions[2].id) ? [{ size: { _eq: 1 } }] : []),
+          ...(unref(shipSize).some((size) => size.id === sizeOptions[3].id) ? [{ size: { _eq: 2 } }] : []),
+          ...(unref(shipSize).some((size) => size.id === sizeOptions[4].id) ? [{ size: { _eq: 3 } }] : []),
+          ...(unref(shipSize).some((size) => size.id === sizeOptions[5].id) ? [{ size: { _eq: 4 } }] : []),
+        ],
+      }
+    : {}),
+}));
+
+function resetFilters() {
+	shipType.value = typeOptions[0];
+	shipSize.value = [sizeOptions[0]];
+}
 
 const { data: count, pending: countPending } = await readAsyncItems('ships', {
-	query: {
-		limit: -1,
-		fields: ['id'],
-		filter,
-	},
-	watch: [search, page, pageCount],
-})
+  query: {
+    limit: -1,
+    fields: ['id'],
+    filter,
+  },
+  watch: [filter, page, pageCount],
+});
 
 watch(
-	[count],
-	() => {
-		if (count.value) {
-			pageTotal.value = count.value.length
-		}
-	},
-	{ immediate: true },
-)
+  [count],
+  () => {
+    if (count.value) {
+      pageTotal.value = count.value.length;
+    }
+  },
+  { immediate: true },
+);
+watch([filter], () => {
+  page.value = 1;
+});
 
 const { data: ships, pending: shipsPending } = await readAsyncItems('ships', {
-	query: {
-		fields: ['id', 'name', 'slug', 'store_image', 'production_status', 'manufacturer.name', 'manufacturer.slug'],
-		sort: ['name'],
-		limit: pageCount,
-		page,
-		filter,
-	},
-	watch: [count],
-	transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)),
-})
+  query: {
+    fields: ['id', 'name', 'slug', 'store_image', 'production_status', 'manufacturer.name', 'manufacturer.slug'],
+    sort: ['name'],
+    limit: pageCount,
+    page,
+    filter,
+  },
+  watch: [count],
+  transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)),
+});
 
 useSearch(search, search_input_value, {
-	debounce: true,
-	query: true,
-	typingAction: () => (hideShips.value = true),
-	debounceAction: () => (hideShips.value = false),
-})
+  debounce: true,
+  query: true,
+  typingAction: () => (hideShips.value = true),
+  debounceAction: () => (hideShips.value = false),
+});
 
 defineShortcuts({
-	s: {
-		handler: () => {
-			searchInput.value?.input.focus()
-		},
-	},
-})
+  s: {
+    handler: () => {
+      searchInput.value?.input.focus();
+    },
+  },
+});
 
 definePageMeta({
-	layout: 'ship-exkurs',
-})
+  layout: 'ship-exkurs',
+});
 
 useHead({
-	title: 'Ships',
-})
+  title: 'Ships',
+});
 </script>
 
 <template>
-	<div>
-		<div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
-			<div class="flex flex-wrap justify-center mb-6 h-fit basis-full">
-				<UFormGroup
-					size="xl"
-					class="w-full lg:w-[512px] mx-auto 2xl:mx-auto"
-					label="Suchen"
-				>
-					<UInput
-						ref="searchInput"
-						v-model="search_input_value"
-						size="2xl"
-						class="my-auto"
-						icon="i-heroicons-magnifying-glass-20-solid"
-						placeholder="Modell, Hersteller..."
-					/>
-					<button
-						v-if="search_input_value !== '' && !search_input_value"
-						type="button"
-						class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
-						@click="search_input_value = ''"
-					>
-						<UIcon
-							name="i-heroicons-x-mark-16-solid"
-							class="my-auto transition opacity-75 hover:opacity-100"
-						/>
-					</button>
-				</UFormGroup>
-			</div>
-		</div>
-		<hr>
-		<div class="mx-auto mb-2 text-center w-fit">
-			<div class="flex justify-center">
-				<UPagination
-					v-model="page"
-					:page-count="pageCount"
-					:total="pageTotal"
-				/>
-			</div>
-			<div>
-				<span class="text-sm leading-5">
-					Zeigt
-					<span class="font-medium">{{ pageFrom }}</span>
-					bis
-					<span class="font-medium">{{ pageTo }}</span>
-					von
-					<span class="font-medium">{{ pageTotal }}</span>
-					Ergebnissen
-				</span>
-			</div>
-		</div>
-		<div class="flex flex-wrap">
-			<ClientOnly>
-				<TransitionGroup
-					appear
-					enter-active-class="transition-all duration-500"
-					leave-active-class="transition-all duration-0"
-					enter-from-class="-translate-y-4 opacity-0"
-					enter-to-class="translate-y-0 opacity-100"
-					leave-from-class="translate-y-0 opacity-100"
-					leave-to-class="opacity-0 -translate-y-0"
-				>
-					<ShipCard
-						v-for="item in ships"
-						v-if="!hideShips && !countPending && !shipsPending"
-						:key="item.id"
-						:ship-data="item"
-						:detail-view="userSettings.se.shipDetailView"
-						preload-images
-						display-production-state
-					/>
-				</TransitionGroup>
-			</ClientOnly>
-		</div>
-	</div>
+  <div>
+    <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
+      <div class="flex flex-wrap justify-center mb-6 h-fit basis-full">
+        <UFormGroup size="xl" class="w-full lg:w-[512px] mx-auto 2xl:mx-auto" label="Suchen">
+          <UInput
+            ref="searchInput"
+            v-model="search_input_value"
+            size="2xl"
+            class="my-auto"
+            icon="i-heroicons-magnifying-glass-20-solid"
+            placeholder="Modell, Hersteller..."
+          />
+          <button
+            v-if="search_input_value !== '' && !search_input_value"
+            type="button"
+            class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+            @click="search_input_value = ''"
+          >
+            <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+          </button>
+        </UFormGroup>
+      </div>
+    </div>
+    <hr >
+    <div class="flex flex-wrap justify-between mb-6 h-fit basis-full">
+      <ButtonDefault class="my-auto h-fit" :disabled="shipType?.label === 'Alle' && shipSize[0].label === 'Alle' ? true : false" @click="resetFilters">
+				<div class="h-full">Alle anzeigen</div>
+      </ButtonDefault>
+      <UFormGroup label="Typ" class="w-48" :ui="{ container: 'relative' }">
+        <ArisSelectMenu
+          v-model="shipType"
+          :initial-state="shipType"
+          :options="typeOptions"
+          :option-label="(option: any) => option.label"
+          :selected-label="shipType?.label"
+          no-selected-label="Alle"
+        />
+      </UFormGroup>
+      <UFormGroup
+        :label="shipSize.length > 1 || shipSize.some((size) => size.label === 'Alle') ? 'Größen' : 'Größe'"
+        class="w-48"
+        :ui="{ container: 'relative' }"
+      >
+        <ArisSelectMenu
+          v-model="shipSize"
+          :initial-state="shipSize"
+          :options="sizeOptions"
+          :option-label="(option: any) => option.label"
+          :selected-label="
+            shipSize
+              .sort(
+                (a, b) =>
+                  sizeOptions.findIndex((option) => option.id === a.id) -
+                  sizeOptions.findIndex((option) => option.id === b.id),
+              )
+              .map((option) => (shipSize.length > 1 ? option.label.split(' ')[0] : option.label))
+              .join(', ')
+          "
+          no-selected-label="Alle"
+          multiple
+        />
+      </UFormGroup>
+      <UFormGroup
+        label="Kategorie"
+        class="w-48"
+        :ui="{ container: 'relative' }"
+      >
+        <code>Soon</code>
+			</UFormGroup>
+      <UFormGroup
+        label="Hersteller"
+        class="w-48"
+        :ui="{ container: 'relative' }"
+      >
+        <code>Soon</code>
+			</UFormGroup>
+    </div>
+    <hr >
+    <div class="mx-auto mb-2 text-center w-fit">
+      <div class="flex justify-center">
+        <UPagination v-model="page" :page-count="pageCount" :total="pageTotal" />
+      </div>
+      <div>
+        <span class="text-sm leading-5">
+          Zeigt
+          <span class="font-medium">{{ pageFrom }}</span>
+          bis
+          <span class="font-medium">{{ pageTo }}</span>
+          von
+          <span class="font-medium">{{ pageTotal }}</span>
+          Ergebnissen
+        </span>
+      </div>
+    </div>
+    <div class="flex flex-wrap">
+      <ClientOnly>
+        <TransitionGroup
+          appear
+          enter-active-class="transition-all duration-500"
+          leave-active-class="transition-all duration-0"
+          enter-from-class="-translate-y-4 opacity-0"
+          enter-to-class="translate-y-0 opacity-100"
+          leave-from-class="translate-y-0 opacity-100"
+          leave-to-class="opacity-0 -translate-y-0"
+        >
+          <ShipCard
+            v-for="item in ships"
+            v-if="!hideShips && !countPending && !shipsPending"
+            :key="item.id"
+            :ship-data="item"
+            :detail-view="userSettings.se.shipDetailView"
+            preload-images
+            display-production-state
+          />
+        </TransitionGroup>
+      </ClientOnly>
+    </div>
+  </div>
 </template>
