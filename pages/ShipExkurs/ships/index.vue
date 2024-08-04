@@ -37,20 +37,31 @@ watch(shipType, () => {
   }
 });
 watch(shipSize, (newShipSize, oldShipSize) => {
-  if (!shipSize.value || shipSize.value.length === 0) {
-    return (shipSize.value = [sizeOptions[0]]);
-  }
-  // console.log(newShipSize.find((size) => !oldShipSize.includes(size)))
-  if (shipSize.value.find((size) => !oldShipSize.includes(size))?.label === 'Alle') {
-    return (shipSize.value = [sizeOptions[0]]);
-  } else if (shipSize.value.length !== 1 && shipSize.value[0] !== sizeOptions[0]) {
-    return (shipSize.value = shipSize.value.filter((size) => size?.label !== 'Alle'));
-  }
-  // console.log(shipSize.value = newShipSize.filter((size) => size.label !== 'Alle'))
+  function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
 
-  // if (shipSize.value.includes(sizeOptions[0])) {
-  //   return (shipSize.value = [sizeOptions[0]]);
-  // }
+    // If you don't care about the order of the elements inside
+    // the array, you should sort both arrays here.
+    // Please note that calling sort on an array will modify that array.
+    // you might want to clone your array first.
+
+    for (let i = 0; i < a.length; ++i) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }
+
+  if (!arraysEqual(newShipSize, oldShipSize)) {
+    if (!newShipSize || newShipSize.length === 0) {
+      shipSize.value = [sizeOptions[0]];
+    } else if (newShipSize.find((size) => !oldShipSize.includes(size))?.label === 'Alle') {
+      shipSize.value = [sizeOptions[0]];
+    } else if (newShipSize.length !== 1 && newShipSize[0] !== sizeOptions[0]) {
+      shipSize.value = newShipSize.filter((size) => size?.label !== 'Alle');
+    }
+  }
 });
 
 useSearch(shipType, shipType, {
@@ -59,12 +70,16 @@ useSearch(shipType, shipType, {
   query_name: 'type',
   options: typeOptions,
 });
-useSearch(shipSize, shipSize, {
-  query: true,
-  debounce: false,
-  query_name: 'size',
-  options: sizeOptions,
-});
+useSearch(
+  computed(() => shipSize.value?.map((size) => size.id)),
+  shipSize,
+  {
+    query: true,
+    debounce: false,
+    query_name: 'size',
+    options: sizeOptions,
+  },
+);
 
 const filter = computed(() => ({
   ...(search.value && {
@@ -75,27 +90,36 @@ const filter = computed(() => ({
     ],
     status: { _eq: 'published' },
   }),
-  ...(shipType.value?.id === 'ships'
-    ? { ground: { _neq: true }, gravlev: { _neq: true } }
-    : shipType.value?.id === 'ground'
-    ? { _or: [{ ground: { _eq: true } }, { gravlev: { _eq: true } }] }
-    : {}),
-  ...(shipSize.value && !shipSize.value.includes(sizeOptions[0])
-    ? {
-        _or: [
-          ...(unref(shipSize).some((size) => size.id === sizeOptions[1].id) ? [{ size: { _eq: 0 } }] : []),
-          ...(unref(shipSize).some((size) => size.id === sizeOptions[2].id) ? [{ size: { _eq: 1 } }] : []),
-          ...(unref(shipSize).some((size) => size.id === sizeOptions[3].id) ? [{ size: { _eq: 2 } }] : []),
-          ...(unref(shipSize).some((size) => size.id === sizeOptions[4].id) ? [{ size: { _eq: 3 } }] : []),
-          ...(unref(shipSize).some((size) => size.id === sizeOptions[5].id) ? [{ size: { _eq: 4 } }] : []),
-        ],
-      }
-    : {}),
+  _and: [
+    {
+      _or: [
+        ...(shipType.value?.id
+          ? [
+              {
+                gravlev: { _neq: shipType.value?.id === 'ships' ? true : false },
+              },
+              {
+                ground: { _neq: shipType.value?.id === 'ships' ? true : false },
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      _or: [
+        ...(unref(shipSize).some((size) => size.id === sizeOptions[1].id) ? [{ size: { _eq: 0 } }] : []),
+        ...(unref(shipSize).some((size) => size.id === sizeOptions[2].id) ? [{ size: { _eq: 1 } }] : []),
+        ...(unref(shipSize).some((size) => size.id === sizeOptions[3].id) ? [{ size: { _eq: 2 } }] : []),
+        ...(unref(shipSize).some((size) => size.id === sizeOptions[4].id) ? [{ size: { _eq: 3 } }] : []),
+        ...(unref(shipSize).some((size) => size.id === sizeOptions[5].id) ? [{ size: { _eq: 4 } }] : []),
+      ],
+    },
+  ],
 }));
 
 function resetFilters() {
-	shipType.value = typeOptions[0];
-	shipSize.value = [sizeOptions[0]];
+  shipType.value = typeOptions[0];
+  shipSize.value = [sizeOptions[0]];
 }
 
 const { data: count, pending: countPending } = await readAsyncItems('ships', {
@@ -181,11 +205,15 @@ useHead({
       </div>
     </div>
     <hr >
-    <div class="flex flex-wrap justify-between mb-6 h-fit basis-full">
-      <ButtonDefault class="my-auto h-fit" :disabled="shipType?.label === 'Alle' && shipSize[0].label === 'Alle' ? true : false" @click="resetFilters">
-				<div class="h-full">Alle anzeigen</div>
+    <div class="flex flex-wrap justify-between mb-6 xl:flex-nowrap h-fit basis-full">
+      <ButtonDefault
+        class="my-auto h-fit basis-full xl:basis-auto"
+        :disabled="shipType?.label === 'Alle' && shipSize[0].label === 'Alle' ? true : false"
+        @click="resetFilters"
+      >
+        <div class="h-full">Alle anzeigen</div>
       </ButtonDefault>
-      <UFormGroup label="Typ" class="w-48" :ui="{ container: 'relative' }">
+      <UFormGroup label="Typ" class="w-48 pt-2 pr-2 xl:p-0 basis-1/2 xl:basis-auto" :ui="{ container: 'relative' }">
         <ArisSelectMenu
           v-model="shipType"
           :initial-state="shipType"
@@ -197,7 +225,7 @@ useHead({
       </UFormGroup>
       <UFormGroup
         :label="shipSize.length > 1 || shipSize.some((size) => size.label === 'Alle') ? 'Größen' : 'Größe'"
-        class="w-48"
+        class="w-48 pt-2 pl-2 xl:p-0 basis-1/2 xl:basis-auto"
         :ui="{ container: 'relative' }"
       >
         <ArisSelectMenu
@@ -221,18 +249,18 @@ useHead({
       </UFormGroup>
       <UFormGroup
         label="Kategorie"
-        class="w-48"
+        class="w-48 pt-2 pr-2 basis-1/2 xl:basis-auto xl:p-0"
         :ui="{ container: 'relative' }"
       >
         <code>Soon</code>
-			</UFormGroup>
+      </UFormGroup>
       <UFormGroup
         label="Hersteller"
-        class="w-48"
+        class="w-48 pt-2 pl-2 basis-1/2 xl:basis-auto xl:p-0"
         :ui="{ container: 'relative' }"
       >
         <code>Soon</code>
-			</UFormGroup>
+      </UFormGroup>
     </div>
     <hr >
     <div class="mx-auto mb-2 text-center w-fit">
