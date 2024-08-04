@@ -17,7 +17,6 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@iconify/json": "^2.2.225",
     "@nuxt/icon": "^1.0.0",
     "@nuxt/image": "^1.7.0",
     "@nuxt/ui": "^2.17.0",
