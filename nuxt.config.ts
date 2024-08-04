@@ -125,7 +125,10 @@ export default defineNuxtConfig({
 		//   ],
 	},
 
-	sourcemap: true,
+	sourcemap: {
+		client: true,
+		server: false
+	},
 
 	nitro: {
 		rollupConfig: {
@@ -173,10 +176,6 @@ export default defineNuxtConfig({
 
 	headlessui: {
 		prefix: 'Headless',
-	},
-
-	ui: {
-		icons: ['heroicons', 'ic', 'mdi', 'fa6-regular', 'fa6-solid', 'radix-icons', 'lucide', 'svg-spinners', 'cil'],
 	},
 
 	// dayjs: {
