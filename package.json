@@ -29,6 +29,7 @@
     "axios": "^1.7.2",
     "cheerio": "1.0.0-rc.12",
     "nuxt-tiptap-editor": "^1.1.2",
+    "radix-vue": "^1.9.4",
     "shepherd.js": "^13.0.1",
     "three-stdlib": "^2.30.4",
     "toucan-js": "^3.4.0",
@@ -58,6 +59,7 @@
     "nuxt-lodash": "^2.5.3",
     "nuxt-resend": "^0.0.2",
     "sass": "^1.77.6",
+    "shadcn-nuxt": "^0.10.4",
     "wrangler": "^3.63.1"
   }
 }
