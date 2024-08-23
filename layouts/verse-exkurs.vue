@@ -59,13 +59,6 @@ const sidebarItems = [
   },
 ];
 
-defineShortcuts({
-  dead: {
-    usingInput: true,
-    handler: () => (useCookie('devtools').value = JSON.stringify(!JSON.parse(useCookie('devtools').value ?? 'false'))),
-  },
-});
-
 useSeoMeta({
   description:
     'Das hier, ist die Informationsplattform der Astro Research and Industrial Service Corporation. Hier kann man alle Informationen über die Lore des Universums rund um das Spiel "Star Citizen" finden.',
@@ -111,22 +104,6 @@ useHead({
     <div id="sidebar-space" class="hidden lg:block" />
     <div class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen">
       <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
-      <DevOnly>
-        <div v-if="JSON.parse(useCookie('devtools').value ?? 'false')" class="bg-black z-[99] pb-4 px-8">
-          <h6>DEV TOOLS:</h6>
-          <code class="block pb-2">User: {{ user }}</code>
-        </div>
-        <ButtonDefault
-          class="w-fit"
-          @click="useCookie('devtools').value = JSON.stringify(!JSON.parse(useCookie('devtools').value ?? 'false'))"
-        >
-          <Icon
-            name="mdi-light:console"
-            class="w-6 h-6"
-            :class="{ 'text-primary': JSON.parse(useCookie('devtools').value ?? 'false') }"
-          />
-        </ButtonDefault>
-      </DevOnly>
       <div class="container min-h-screen px-4 mx-auto">
         <div class="mt-4">
           <slot />

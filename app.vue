@@ -185,10 +185,6 @@ useHead({
 //   })
 // }
 
-if (!useCookie('devtools').value) {
-	useCookie('devtools').value = 'false'
-}
-
 onBeforeMount(() => {
 	console.time('🕓 Application Loaded')
 })

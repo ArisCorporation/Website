@@ -189,13 +189,6 @@ useSeoMeta({
   twitterCard: 'summary_large_image',
 });
 
-defineShortcuts({
-  dead: {
-    usingInput: true,
-    handler: () => (useCookie('devtools').value = JSON.stringify(!JSON.parse(useCookie('devtools').value ?? 'false'))),
-  },
-});
-
 const img = useImage();
 const wallpaperBgStyle = computed(() => {
   const imgUrl = img(wallpaper?.value);
@@ -211,7 +204,7 @@ useHead({
 definePageMeta({
   layout: false,
   middleware: async function (to, _from) {
-    const signedIn = await useCMS().signedIn()
+    const signedIn = await useCMS().signedIn();
 
     if (signedIn) {
       return navigateTo(to.query.redirect ? decodeURIComponent(to.query.redirect as string) : '/ams');
@@ -222,39 +215,6 @@ definePageMeta({
 
 <template>
   <div>
-    <div v-if="JSON.parse(useCookie('devtools').value ?? 'false')" class="bg-black z-[99] pb-4 px-8 relative">
-      <h6>DEV TOOLS:</h6>
-      <code class="block pb-1">Form: {{ form }}</code>
-      <code class="block">State: {{ state }}</code>
-      <code class="block">
-        <button
-          @click="
-            async () => {
-              await directus.login('dev@ariscorp.de', 'dev');
-              router.push(redirectUri);
-            }
-          "
-        >
-          Fast-Login
-        </button>
-      </code>
-      <code class="block">Background: {{ wallpaper }}</code>
-      <code class="block">Redirect: {{ decodeURIComponent(String(route.query.redirect)) }}</code>
-      <code class="block"
-        >Select Background:
-        <div class="flex justify-between space-x-6">
-          <NuxtImg
-            v-for="item in wallpaperList"
-            :key="item"
-            :src="item"
-            :placeholder="[16, 16, 1, 5]"
-            class="aspect[16/9] min-w-0 flex-1 cursor-pointer object-cover"
-            :class="{ 'border-primary border-2': wallpaper === item }"
-            @click="() => (selectedWallpaper = item)"
-          />
-        </div>
-      </code>
-    </div>
     <div class="flex-wrap w-full max-h-screen min-h-screen px-4 mx-auto sm:flex bg-image" :style="wallpaperBgStyle">
       <NuxtImg
         src="3090187e-6348-4290-a878-af1b2b48c114"

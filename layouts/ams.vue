@@ -92,7 +92,9 @@ const pw_formdata = reactive({
 
 const onPwSubmit = async (event: FormSubmitEvent<pw_Schema>) => {
   try {
-    await directus.request(updateUser(user.value.id, { password: pw_formdata.password, temporary_password: false }, {}));
+    await directus.request(
+      updateUser(user.value.id, { password: pw_formdata.password, temporary_password: false }, {}),
+    );
     await refreshUser();
     if (!user.value.temporary_password) modalStore.unlockModal();
     modalStore.closeModal();
@@ -286,7 +288,7 @@ useHead({
           <div class="absolute right-0 justify-center hidden mt-2 text-center w-14 group-hover:flex">Hilfe</div>
         </div>
       </div>
-      <hr class="my-2" >
+      <hr class="my-2" />
       <div class="container min-h-screen px-4 mx-auto">
         <div class="mt-4">
           <slot />
