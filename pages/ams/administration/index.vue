@@ -927,7 +927,7 @@ definePageMeta({
   middleware: [
     'auth',
     async function (to, from) {
-			const {directus, readMe} = useCMS()
+      const { directus, readMe } = useCMS();
       const user = transformUser(await directus.request(readMe()));
       if (user.position.access_level < 4) {
         return navigateTo({
@@ -3776,7 +3776,7 @@ useHead({
       accept="image/jpg, image/jpeg, image/png, image/gif, image/webp"
       hidden
       @change="setCropperImage"
-    >
+    />
     <div class="max-w-[calc(100vw_-_20rem)] mx-auto mb-4">
       <h1 class="text-center">Verwaltungsdashboard</h1>
       <UTabs
