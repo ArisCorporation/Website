@@ -10,7 +10,7 @@ const { query } = route;
 const config = useRuntimeConfig();
 const redirectUri = ref(route.query.redirect?.toString() ? route.query.redirect : '/ams');
 // console.log(await directus.request(readMe()))
-console.log(await directus.getToken())
+console.log(await directus.getToken());
 const state: { username: string; password: string } = reactive({
   username: '',
   password: '',
@@ -24,19 +24,21 @@ const schema = object({
 
 type Schema = InferType<typeof schema>;
 
-const { data: wallpaperList } = await useAsyncData('LOGIN_WALLPAPER_LIST', () =>
-  directus.request(
-    readFiles({
-      fields: ['id'],
-      filter: {
-        folder: { _eq: '55452a29-4311-4ac9-ab3f-cc8cc3a28395' },
-      },
-      limit: -1,
-    }),
-  ),
+const { data: wallpaperList } = await useAsyncData(
+  'LOGIN_WALLPAPER_LIST',
+  () =>
+    directus.request(
+      readFiles({
+        fields: ['id'],
+        filter: {
+          folder: { _eq: '55452a29-4311-4ac9-ab3f-cc8cc3a28395' },
+        },
+        limit: -1,
+      }),
+    ),
   {
     transform: (data) => data.map((item) => item.id),
-  }
+  },
 );
 
 const selectedWallpaper = ref();
@@ -96,13 +98,6 @@ useSeoMeta({
   twitterCard: 'summary_large_image',
 });
 
-defineShortcuts({
-  dead: {
-    usingInput: true,
-    handler: () => (useCookie('devtools').value = JSON.stringify(!JSON.parse(useCookie('devtools').value ?? 'false'))),
-  },
-});
-
 const img = useImage();
 const wallpaperBgStyle = computed(() => {
   const imgUrl = img(wallpaper?.value);
@@ -118,7 +113,7 @@ useHead({
 definePageMeta({
   layout: false,
   middleware: async function (to, _from) {
-    const signedIn = await useCMS().signedIn()
+    const signedIn = await useCMS().signedIn();
 
     if (signedIn) {
       return navigateTo(to.query.redirect ? decodeURIComponent(to.query.redirect as string) : '/ams');
