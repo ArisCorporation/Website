@@ -59,7 +59,6 @@
     "nuxt-lodash": "^2.5.3",
     "nuxt-resend": "^0.0.2",
     "sass": "^1.77.6",
-    "shadcn-nuxt": "^0.10.4",
     "wrangler": "^3.63.1"
   }
 }
