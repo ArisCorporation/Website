@@ -326,6 +326,11 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     console.error(e);
   }
 }
+
+definePageMeta({
+	middleware: 'auth',
+	layout: false,
+})
 </script>
 
 <template>
