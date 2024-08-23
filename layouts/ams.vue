@@ -52,6 +52,11 @@ const sidebarItems = [
 
 const sidebarUserItems = [
   {
+    name: 'Nachrichten',
+    icon: 'i-heroicons-chat-bubble-left-right-solid',
+    link: '/messages',
+  },
+  {
     name: 'Mein Hangar',
     icon: 'IconsNavigationHangar',
     link: '/hangar',
