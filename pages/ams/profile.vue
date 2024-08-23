@@ -2122,3 +2122,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     </UForm>
   </div>
 </template>
+
+<style lang="postcss">
+.no-list ul {
+  @apply list-none pl-0;
+}
+
+.no-list li {
+  @apply marker:hidden pb-0;
+}
+</style>
