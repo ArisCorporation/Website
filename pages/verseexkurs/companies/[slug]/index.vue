@@ -3,45 +3,55 @@ import { transform } from 'typescript';
 import type { Data } from 'unified/lib';
 
 const route = useRoute();
-const { readItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 const selectedTab = ref(0);
 
-const dataRes = await readItems('companies', {
-  fields: [
-    'name',
-    'banner',
-    'content',
-    'category.id',
-    'category.name',
-    'current_ceo',
-    'founded',
-    'founder',
-    'famous_goods',
-    'headquarter.collection',
-    'headquarter.headquarter:systems.name',
-    'headquarter.headquarter:systems.slug',
-    'headquarter.headquarter:planets.name',
-    'headquarter.headquarter:planets.slug',
-    'headquarter.headquarter:moons.name',
-    'headquarter.headquarter:moons.slug',
-    'headquarter.headquarter:landing_zones.name',
-    'headquarter.headquarter:landing_zones.slug',
-    'headquarter.headquarter:landing_zones.planet.name',
-    'headquarter.headquarter:landing_zones.planet.slug',
-    'headquarter.headquarter:space_stations.name',
-    'headquarter.headquarter:space_stations.slug',
-    'ships.store_image',
-    'ships.name',
-    'ships.slug',
-    'ships.manufacturer.name',
-    'ships.manufacturer.slug',
-  ],
-  filter: {
-    slug: { _eq: route.params.slug },
+const { data } = await useAsyncData(
+  'COMPANY',
+  () =>
+    directus.request(
+      readItems('companies', {
+        fields: [
+          'name',
+          'banner',
+          'content',
+          'category.id',
+          'category.name',
+          'current_ceo',
+          'founded',
+          'founder',
+          'famous_goods',
+          'headquarter.collection',
+          'headquarter.headquarter:systems.name',
+          'headquarter.headquarter:systems.slug',
+          'headquarter.headquarter:planets.name',
+          'headquarter.headquarter:planets.slug',
+          'headquarter.headquarter:moons.name',
+          'headquarter.headquarter:moons.slug',
+          'headquarter.headquarter:landing_zones.name',
+          'headquarter.headquarter:landing_zones.slug',
+          'headquarter.headquarter:landing_zones.planet.name',
+          'headquarter.headquarter:landing_zones.planet.slug',
+          'headquarter.headquarter:space_stations.name',
+          'headquarter.headquarter:space_stations.slug',
+          'ships.store_image',
+          'ships.name',
+          'ships.slug',
+          'ships.manufacturer.name',
+          'ships.manufacturer.slug',
+        ],
+        filter: {
+          slug: { _eq: route.params.slug },
+        },
+        limit: 1,
+      }),
+    ),
+  {
+    transform: (rawCompanies: any[]) => transformCompany(rawCompanies[0]),
   },
-  limit: 1,
-});
-if (!dataRes[0]) {
+);
+
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
@@ -49,32 +59,39 @@ if (!dataRes[0]) {
   });
 }
 
-const data = computed(() => transformCompany(dataRes[0]));
-
 if (
   data.value.headquarter?.collection === 'planets' ||
   data.value.headquarter?.collection === 'moons' ||
   data.value.headquarter?.collection === 'landing_zones'
 ) {
-  const system = await readItems('systems', {
-    fields: ['name', 'slug'],
-    filter: {
-      orbit: data.value.headquarter.planet
-        ? {
-            'object:planets': {
-              name: { _eq: data.value.headquarter.planet?.name },
-            },
-          }
-        : {
-            'object:moons': {
-              name: { _eq: data.value.headquarter.moon?.name },
-            },
+  const system = await useAsyncData(
+    'COMPANY:SYSTEM',
+    () =>
+      directus.request(
+        readItems('systems', {
+          fields: ['name', 'slug'],
+          filter: {
+            orbit: data.value.headquarter.planet
+              ? {
+                  'object:planets': {
+                    name: { _eq: data.value.headquarter.planet?.name },
+                  },
+                }
+              : {
+                  'object:moons': {
+                    name: { _eq: data.value.headquarter.moon?.name },
+                  },
+                },
           },
+          limit: 1,
+        }),
+      ),
+    {
+      transform: (rawSystems: any[]) => transformStarsystem(rawSystems[0]),
     },
-    limit: 1,
-  });
-  if (system && system[0]) {
-    data.value.headquarter.system = transformStarsystem(system[0]);
+  );
+  if (system.value) {
+    data.value.headquarter.system = system.value;
   }
 }
 
@@ -154,7 +171,7 @@ definePageMeta({
           (data?.weapon_mods && data.weapon_mods[0])
         "
       >
-        <hr />
+        <hr >
         <h3>Waren der Firma {{ data?.name }}</h3>
         <UAccordion
           :items="[

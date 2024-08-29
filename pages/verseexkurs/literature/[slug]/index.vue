@@ -1,38 +1,44 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 
-const { data } = await readAsyncItems('literature_categories', {
-  query: {
-    fields: ['id', 'name', 'slug', 'banner', 'books.id', 'books.chapter', 'books.content'],
-    filter: {
-      slug: { _eq: useRoute().params.slug },
+const { data } = await useAsyncData(
+  'LITERATURE:CATEGORIES',
+  () =>
+    directus.request(
+      readItems('literature_categories', {
+        fields: ['id', 'name', 'slug', 'banner', 'books.id', 'books.chapter', 'books.content'],
+        filter: {
+          slug: { _eq: useRoute().params.slug },
+        },
+        deep: {
+          books: {
+            sort: ['chapter'],
+          },
+        },
+        sort: ['name'],
+      }),
+    ),
+  {
+    transform: (data: any[]) => {
+      const obj: any = data[0];
+      const books = obj.books.map((book: any) => {
+        book.content = book.content
+          .match(/<[^>]+>.*?<\/[^>]+>/)[0]
+          .replace('h1>', 'p>')
+          .replace('h2>', 'p>')
+          .replace('h3>', 'p>')
+          .replace('h4>', 'p>')
+          .replace('h5>', 'p>');
+        return book;
+      });
+
+      obj.books = books;
+      return obj;
     },
-    deep: {
-      books: {
-        sort: ['chapter'],
-      },
-    },
-    sort: ['name'],
   },
-  transform: (data: any[]) => {
-    const obj: any = data[0];
-    const books = obj.books.map((book: any) => {
-      book.content = book.content
-        .match(/<[^>]+>.*?<\/[^>]+>/)[0]
-        .replace('h1>', 'p>')
-        .replace('h2>', 'p>')
-        .replace('h3>', 'p>')
-        .replace('h4>', 'p>')
-        .replace('h5>', 'p>');
-      return book;
-    });
+);
 
-    obj.books = books;
-    return obj;
-  },
-});
-
-if (!data) {
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',

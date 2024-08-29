@@ -1,18 +1,22 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 
-const { data } = await readAsyncItems('one_day_in_history', {
-  query: {
-    fields: ['id', 'title', 'banner', 'content', 'date'],
-    filter: {
-      slug: { _eq: useRoute().params.slug },
-    },
-    sort: ['date'],
-  },
-  transform: (data) => data[0],
-});
+const { data } = await useAsyncData(
+  'ODIH',
+  () =>
+    directus.request(
+      readItems('one_day_in_history', {
+        fields: ['id', 'title', 'banner', 'content', 'date'],
+        filter: {
+          slug: { _eq: useRoute().params.slug },
+        },
+        sort: ['date'],
+      }),
+    ),
+  { transform: (data) => data[0] },
+);
 
-if (!data) {
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
