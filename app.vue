@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // import * as Sentry from '@sentry/vue'
 
-const { user } = useDirectusAuth()
+const { directus, readMe } = useCMS()
 const config = useRuntimeConfig()
 
 useSeoMeta({

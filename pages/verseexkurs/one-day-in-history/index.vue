@@ -1,27 +1,34 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 
-const { data } = await readAsyncItems('one_day_in_history', {
-  query: {
-    fields: ['id', 'title', 'slug', 'banner', 'content', 'date'],
-    sort: ['date'],
-  },
-  transform: (data: any[]) => {
-    return data.map((obj: any) => {
-      obj.content = obj.content
-        .match(/<[^>]+>.*?<\/[^>]+>/)[0]
-        .replace('h1>', 'p>')
-        .replace('h2>', 'p>')
-        .replace('h3>', 'p>')
-        .replace('h4>', 'p>')
-        .replace('h5>', 'p>');
+const { data } = await useAsyncData(
+  directus.request(
+    readItems(
+      'one_day_in_history',
+      {
+        fields: ['id', 'title', 'slug', 'banner', 'content', 'date'],
+        sort: ['date'],
+      },
+      {
+        transform: (data: any[]) => {
+          return data.map((obj: any) => {
+            obj.content = obj.content
+              .match(/<[^>]+>.*?<\/[^>]+>/)[0]
+              .replace('h1>', 'p>')
+              .replace('h2>', 'p>')
+              .replace('h3>', 'p>')
+              .replace('h4>', 'p>')
+              .replace('h5>', 'p>');
 
-      return obj;
-    });
-  },
-});
+            return obj;
+          });
+        },
+      },
+    ),
+  ),
+);
 
-if (!data) {
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',

@@ -1,40 +1,46 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 
-const { data } = await readAsyncItems('spectrum_categories', {
-  query: {
-    fields: ['id', 'name', 'slug', 'banner', 'threads.id', 'threads.name', 'threads.slug', 'threads.content'],
-    filter: {
-      slug: { _eq: useRoute().params.slug },
+const { data } = await useAsyncData(
+  'SPECTRUM:CATEGORY',
+  () =>
+    directus.request(
+      readItems('spectrum_categories', {
+        fields: ['id', 'name', 'slug', 'banner', 'threads.id', 'threads.name', 'threads.slug', 'threads.content'],
+        filter: {
+          slug: { _eq: useRoute().params.slug },
+        },
+        deep: {
+          threads: {
+            sort: ['chapter'],
+          },
+        },
+        sort: ['name'],
+      }),
+    ),
+  {
+    transform: (data: any[]) => {
+      const obj: any = data[0];
+
+      if (obj.threads?.length > 1) {
+        const threads = obj.threads.map((thread: any) => {
+          thread.content = thread.content
+            .match(/<[^>]+>.*?<\/[^>]+>/)[0]
+            .replace('h1>', 'p>')
+            .replace('h2>', 'p>')
+            .replace('h3>', 'p>')
+            .replace('h4>', 'p>')
+            .replace('h5>', 'p>');
+          return thread;
+        });
+
+        obj.threads = threads;
+      }
+
+      return obj;
     },
-    deep: {
-      threads: {
-        sort: ['chapter'],
-      },
-    },
-    sort: ['name'],
   },
-  transform: (data: any[]) => {
-    const obj: any = data[0];
-
-    if (obj.threads?.length > 1) {
-      const threads = obj.threads.map((thread: any) => {
-        thread.content = thread.content
-          .match(/<[^>]+>.*?<\/[^>]+>/)[0]
-          .replace('h1>', 'p>')
-          .replace('h2>', 'p>')
-          .replace('h3>', 'p>')
-          .replace('h4>', 'p>')
-          .replace('h5>', 'p>');
-        return thread;
-      });
-
-      obj.threads = threads;
-    }
-
-    return obj;
-  },
-});
+);
 
 useHead({
   title: 'Spectrum - ' + data.value.name,

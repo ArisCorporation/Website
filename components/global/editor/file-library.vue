@@ -6,7 +6,7 @@ interface Folder {
 	children: Folder
 }
 
-const { uploadFiles } = useDirectusFiles()
+const { directus, uploadFiles } = useCMS()
 
 defineProps<{ fileTypes?: 'image' | 'video' | 'audio' }>()
 const emit = defineEmits(['file-selection'])
@@ -41,7 +41,7 @@ async function uploadFile(file: File) {
 	const formData = new FormData()
 	formData.append('file', file)
 
-	const uploadedFiles = await uploadFiles(formData)
+	const uploadedFiles = await directus.request(uploadFiles(formData))
 	onFileSelection(uploadedFiles)
 }
 

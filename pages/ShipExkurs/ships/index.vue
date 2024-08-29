@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 const userSettings = useUserSettingsStore();
 
 const hideShips = ref(false);
@@ -122,14 +122,18 @@ function resetFilters() {
   shipSize.value = [sizeOptions[0]];
 }
 
-const { data: count, pending: countPending } = await readAsyncItems('ships', {
-  query: {
-    limit: -1,
-    fields: ['id'],
-    filter,
-  },
-  watch: [filter, page, pageCount],
-});
+const { data: count, pending: countPending } = await useAsyncData(
+  'SE_HOME:COUNT',
+  () =>
+    directus.request(
+      readItems('ships', {
+        limit: -1,
+        fields: ['id'],
+        filter,
+      }),
+    ),
+  { watch: [filter, page, pageCount] },
+);
 
 watch(
   [count],
@@ -144,17 +148,20 @@ watch([filter], () => {
   page.value = 1;
 });
 
-const { data: ships, pending: shipsPending } = await readAsyncItems('ships', {
-  query: {
-    fields: ['id', 'name', 'slug', 'store_image', 'production_status', 'manufacturer.name', 'manufacturer.slug'],
-    sort: ['name'],
-    limit: pageCount,
-    page,
-    filter,
-  },
-  watch: [count],
-  transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)),
-});
+const { data: ships, pending: shipsPending } = await useAsyncData(
+  'SE_HOME:SHIPS',
+  () =>
+    directus.request(
+      readItems('ships', {
+        fields: ['id', 'name', 'slug', 'store_image', 'production_status', 'manufacturer.name', 'manufacturer.slug'],
+        sort: ['name'],
+        limit: pageCount.value,
+        page: page.value,
+        filter,
+      }),
+    ),
+  { watch: [count], transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)) },
+);
 
 useSearch(search, search_input_value, {
   debounce: true,

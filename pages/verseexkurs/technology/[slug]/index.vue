@@ -1,18 +1,22 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 const { params } = useRoute();
 
-const { data } = await readAsyncItems('technologies', {
-  query: {
-    fields: ['name', 'banner', 'content'],
-    filter: {
-      slug: { _eq: params.slug },
-    },
-  },
-  transform: (data) => data[0],
-});
+const { data } = await useAsyncData(
+  'TECHNOLOGY',
+  () =>
+    directus.request(
+      readItems('technologies', {
+        fields: ['name', 'banner', 'content'],
+        filter: {
+          slug: { _eq: params.slug },
+        },
+      }),
+    ),
+  { transform: (data) => data[0] },
+);
 
-if (!data) {
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',

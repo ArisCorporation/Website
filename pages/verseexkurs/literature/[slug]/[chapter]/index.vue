@@ -1,20 +1,24 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 
-const { data } = await readAsyncItems('literature_books', {
-  query: {
-    fields: ['id', 'chapter', 'content', 'category.banner', 'category.name', 'category.slug', 'category.books.id'],
-    filter: {
-      chapter: { _eq: useRoute().params.chapter },
-      category: {
-        slug: { _eq: useRoute().params.slug },
-      },
-    },
-  },
-  transform: (data) => data[0],
-});
+const { data } = await useAsyncData(
+  'LITERATURE:BOOKS',
+  () =>
+    directus.request(
+      readItems('literature_books', {
+        fields: ['id', 'chapter', 'content', 'category.banner', 'category.name', 'category.slug', 'category.books.id'],
+        filter: {
+          chapter: { _eq: useRoute().params.chapter },
+          category: {
+            slug: { _eq: useRoute().params.slug },
+          },
+        },
+      }),
+    ),
+  { transform: (data) => data[0] },
+);
 
-if (!data) {
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',

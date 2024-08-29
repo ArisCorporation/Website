@@ -1,111 +1,129 @@
 <script setup lang="ts">
-import { object, string, type InferType, boolean } from 'yup'
-import Shepherd from 'shepherd.js'
-import { offset } from '@floating-ui/dom'
-import type { FormSubmitEvent } from '#ui/types'
+import { object, string, type InferType, boolean } from 'yup';
+import Shepherd from 'shepherd.js';
+import { offset } from '@floating-ui/dom';
+import type { FormSubmitEvent } from '#ui/types';
 
-const { readAsyncItems, updateItem, deleteItems, createItems } = useDirectusItems()
-const { readAsyncUsers, updateUser } = useDirectusUsers()
-const { params, path } = useRoute()
-const userSettingsStore = useUserSettingsStore()
-const userSettings = storeToRefs(userSettingsStore)
-const loanerView = computed(() => userSettings.ams.value.fleetLoanerView)
-const hideHangar = ref(false)
-const search = ref('')
-const search_input = ref()
-const search_input_value = ref('')
-const selectedTab = ref(0)
+const { directus, readItems, updateItem, deleteItems, createItems, readMe, readUsers, updateUser } = useCMS();
+const { params, path } = useRoute();
+const userSettingsStore = useUserSettingsStore();
+const userSettings = storeToRefs(userSettingsStore);
+const loanerView = computed(() => userSettings.ams.value.fleetLoanerView);
+const hideHangar = ref(false);
+const search = ref('');
+const search_input = ref();
+const search_input_value = ref('');
+const selectedTab = ref(0);
 const setTab = (index: number) => {
-	selectedTab.value = index
-}
-const modalStore = useModalStore()
-const dataChanged = ref(false)
-const form = ref()
-const selectedDepartment = ref({ name: 'Alle' })
-const hangarRefreshPending = ref(false)
-const onboardingShip = ref()
-const loanerViewClasses = ref()
+  selectedTab.value = index;
+};
+const modalStore = useModalStore();
+const dataChanged = ref(false);
+const form = ref();
+const selectedDepartment = ref({ name: 'Alle' });
+const hangarRefreshPending = ref(false);
+const onboardingShip = ref();
+const loanerViewClasses = ref();
 
-useSearch(search, search_input_value, { debounce: true, query: false, debounceAction: getCurrentFilteredHangar })
+useSearch(search, search_input_value, { debounce: true, query: false, debounceAction: getCurrentFilteredHangar });
 
-const { data: user } = await readAsyncUsers({
-	query: {
-		filter: {
-			...(path.startsWith('/ams/hangar') && { id: useDirectusAuth().user.value?.id }),
-			...(path.startsWith('/ams/employees') && { slug: params?.slug }),
-			hidden: { _eq: false },
-		},
-	},
-	transform: (users: IRawUser[]) => transformUser(users[0]),
-})
+// {
+//         filter: {
+//           ...(path.startsWith('/ams/hangar') && {
+//             id: await directus.request(readMe({ fields: ['id'] })).then((data) => data.id),
+//           }),
+//           ...(path.startsWith('/ams/employees') && { slug: params?.slug }),
+//           hidden: { _eq: false },
+//         },
+//       }
 
-const { data: hangarItems, refresh: refreshHangarItems } = await readAsyncItems('user_hangars', {
-	query: {
-		filter: {
-			user_id: { _eq: user.value?.id },
-			ship_id: { _nnull: true },
-			...(!path.startsWith('/ams/hangar') && { visibility: { _neq: 'hidden' } }),
-		},
-		fields: [
-			'id',
-			'date_created',
-			'name',
-			'planned',
-			'serial',
-			'visibility',
-			'group',
-			'name_public',
-			'user_id.id',
-			'user_id.first_name',
-			'user_id.last_name',
-			'user_id.title',
-			'user_id.slug',
-			'ship_id.id',
-			'ship_id.name',
-			'ship_id.slug',
-			'ship_id.store_image',
-			'ship_id.manufacturer.name',
-			'ship_id.manufacturer.code',
-			'ship_id.manufacturer.slug',
-			'ship_id.production_status',
-			'ship_id.length',
-			'ship_id.height',
-			'ship_id.beam',
-			'ship_id.classification',
-			'ship_id.crew_min',
-			'ship_id.crew_max',
-			'ship_id.price',
-			'ship_id.cargo',
-			'ship_id.production_status',
-			'ship_id.modules.id',
-			'ship_id.modules.name',
-			'ship_id.loaners.loaner_id.id',
-			'ship_id.loaners.loaner_id.name',
-			'ship_id.loaners.loaner_id.slug',
-			'ship_id.loaners.loaner_id.store_image',
-			'ship_id.loaners.loaner_id.manufacturer.name',
-			'ship_id.loaners.loaner_id.manufacturer.code',
-			'ship_id.loaners.loaner_id.manufacturer.slug',
-			'ship_id.loaners.loaner_id.production_status',
-			'ship_id.loaners.loaner_id.length',
-			'ship_id.loaners.loaner_id.height',
-			'ship_id.loaners.loaner_id.beam',
-			'ship_id.loaners.loaner_id.classification',
-			'ship_id.loaners.loaner_id.crew_min',
-			'ship_id.loaners.loaner_id.crew_max',
-			'ship_id.loaners.loaner_id.price',
-			'ship_id.loaners.loaner_id.cargo',
-			'ship_id.loaners.loaner_id.production_status',
-			'department.id',
-			'department.name',
-			'department.logo',
-			'active_module.id',
-			'active_module.name',
-		],
-		limit: -1,
-		sort: ['ship_id.name'],
-	},
-})
+const { data: user } = await useAsyncData(
+  'AMS:HANGAR_USER',
+  () =>
+    directus.request(
+      path.startsWith('/ams/hangar')
+        ? readMe()
+        : readUsers({
+            filter: {
+              slug: { _eq: params?.slug.toString() },
+              hidden: { _eq: false },
+            },
+          }),
+    ),
+  {
+    transform: (data) => transformUser(path.startsWith('/ams/hangar') ? data : data[0]),
+  },
+);
+
+const { data: hangarItems, refresh: refreshHangarItems } = await useAsyncData('AMS:HANGAR_ITEMS', () =>
+  directus.request(
+    readItems('user_hangars', {
+      filter: {
+        user_id: { _eq: user.value?.id },
+        ship_id: { _nnull: true },
+        ...(!path.startsWith('/ams/hangar') && { visibility: { _neq: 'hidden' } }),
+      },
+      fields: [
+        'id',
+        'date_created',
+        'name',
+        'planned',
+        'serial',
+        'visibility',
+        'group',
+        'name_public',
+        'user_id.id',
+        'user_id.first_name',
+        'user_id.last_name',
+        'user_id.title',
+        'user_id.slug',
+        'ship_id.id',
+        'ship_id.name',
+        'ship_id.slug',
+        'ship_id.store_image',
+        'ship_id.manufacturer.name',
+        'ship_id.manufacturer.code',
+        'ship_id.manufacturer.slug',
+        'ship_id.production_status',
+        'ship_id.length',
+        'ship_id.height',
+        'ship_id.beam',
+        'ship_id.classification',
+        'ship_id.crew_min',
+        'ship_id.crew_max',
+        'ship_id.price',
+        'ship_id.cargo',
+        'ship_id.production_status',
+        'ship_id.modules.id',
+        'ship_id.modules.name',
+        'ship_id.loaners.loaner_id.id',
+        'ship_id.loaners.loaner_id.name',
+        'ship_id.loaners.loaner_id.slug',
+        'ship_id.loaners.loaner_id.store_image',
+        'ship_id.loaners.loaner_id.manufacturer.name',
+        'ship_id.loaners.loaner_id.manufacturer.code',
+        'ship_id.loaners.loaner_id.manufacturer.slug',
+        'ship_id.loaners.loaner_id.production_status',
+        'ship_id.loaners.loaner_id.length',
+        'ship_id.loaners.loaner_id.height',
+        'ship_id.loaners.loaner_id.beam',
+        'ship_id.loaners.loaner_id.classification',
+        'ship_id.loaners.loaner_id.crew_min',
+        'ship_id.loaners.loaner_id.crew_max',
+        'ship_id.loaners.loaner_id.price',
+        'ship_id.loaners.loaner_id.cargo',
+        'ship_id.loaners.loaner_id.production_status',
+        'department.id',
+        'department.name',
+        'department.logo',
+        'active_module.id',
+        'active_module.name',
+      ],
+      limit: -1,
+      sort: ['ship_id.name'],
+    }),
+  ),
+);
 
 // const { data: wishlistItems } = await readAsyncItems('user_wishlist', {
 //   query: {
@@ -140,828 +158,828 @@ const { data: hangarItems, refresh: refreshHangarItems } = await readAsyncItems(
 //   },
 // });
 
-const { data: departments } = await readAsyncItems('departments', {
-	query: {
-		fields: ['id', 'name', 'logo'],
-		filter: {
-			status: { _eq: 'published' },
-		},
-		limit: -1,
-		sort: ['name'],
-	},
-	transform: (departments: any[]) => departments.map((department: any) => transformDepartment(department)),
-})
+const { data: departments } = await useAsyncData(
+  'AMS:HANGAR_DEPARTMENTS',
+  () =>
+    directus.request(
+      readItems('departments', {
+        fields: ['id', 'name', 'logo'],
+        filter: {
+          status: { _eq: 'published' },
+        },
+        limit: -1,
+        sort: ['name'],
+      }),
+    ),
+  { transform: (departments: any[]) => departments.map((department: any) => transformDepartment(department)) },
+);
 
-const { data: shipList } = await readAsyncItems('ships', {
-	query: {
-		fields: ['id', 'name', 'slug', 'manufacturer.name', 'manufacturer.slug', 'manufacturer.code'],
-		sort: ['name'],
-		limit: -1,
-	},
-	transform: (ships: any[]) => ships.map((ship: any) => transformShip(ship)),
-})
+const { data: shipList } = await useAsyncData(
+  'AMS:HANGAR_SHIPS',
+  () =>
+    directus.request(
+      readItems('ships', {
+        fields: ['id', 'name', 'slug', 'manufacturer.name', 'manufacturer.slug', 'manufacturer.code'],
+        sort: ['name'],
+        limit: -1,
+      }),
+    ),
+  { transform: (ships: any[]) => ships.map((ship: any) => transformShip(ship)) },
+);
 
-const loanerData: any = []
+const loanerData: any = [];
 
 const refreshData = async () => {
-	await refreshHangarItems()
-	// await refreshNuxtData();
-}
+  await refreshHangarItems();
+  // await refreshNuxtData();
+};
 
-const ships = computed(() => hangarItems.value?.map((obj: any) => transformHangarItem(obj)))
+const ships = computed(() => hangarItems.value?.map((obj: any) => transformHangarItem(obj)));
 // const wishlist = computed(
 //   () => path.startsWith('/ams/hangar') && wishlistItems.value?.map((obj) => transformHangarItem(obj)),
 // );
 // !wishlist.value ||
 if (!ships.value || !departments.value || !shipList.value) {
-	throw createError({
-		statusCode: 500,
-		statusMessage: 'Die Übertragung des Hangarprotokolls konnte nicht vollständig empfangen werden!',
-		fatal: true,
-	})
+  throw createError({
+    statusCode: 500,
+    statusMessage: 'Die Übertragung des Hangarprotokolls konnte nicht vollständig empfangen werden!',
+    fatal: true,
+  });
 }
 
 const schema = object({
-	name: string().nullable(),
-	serial: string().nullable(),
-	group: string().required('Es ist eine Zuordnung erforderlich!'),
-	department: object().nullable(),
-	visibility: string().required('Es ist eine Sichtbarkeit erforderlich!'),
-	show_name: boolean().required('Es ist eine Schiffsnamens-Sichtbarkeit erforderlich!'),
-	module: object().nullable(),
-	planned: boolean().required('Es ist ein Status erforderlich!'),
-})
-type Schema = InferType<typeof schema>
+  name: string().nullable(),
+  serial: string().nullable(),
+  group: string().required('Es ist eine Zuordnung erforderlich!'),
+  department: object().nullable(),
+  visibility: string().required('Es ist eine Sichtbarkeit erforderlich!'),
+  show_name: boolean().required('Es ist eine Schiffsnamens-Sichtbarkeit erforderlich!'),
+  module: object().nullable(),
+  planned: boolean().required('Es ist ein Status erforderlich!'),
+});
+type Schema = InferType<typeof schema>;
 
-const filteredHangar = ref()
-const filteredLiveHangar = ref()
-const currentHangar = ref()
-const currentFilteredHangar = ref()
+const filteredHangar = ref();
+const filteredLiveHangar = ref();
+const currentHangar = ref();
+const currentFilteredHangar = ref();
 
 const refreshHangar = async () => {
-	hangarRefreshPending.value = true
-	await refreshData()
-	await updateHangar()
-	hangarRefreshPending.value = false
-}
+  hangarRefreshPending.value = true;
+  await refreshData();
+  await updateHangar();
+  hangarRefreshPending.value = false;
+};
 
 const updateHangar = () => {
-	const hangar = ships.value
-	let liveHangar = []
+  const hangar = ships.value;
+  let liveHangar = [];
 
-	// if (path.startsWith('/ams/fleet')) {
-	//   if (selectedDepartment.value.name !== 'Alle') {
-	//     hangar = hangar.filter((e: IHangarItem) => e.userData.department?.id === selectedDepartment.value.id);
-	//   }
-	//   if (selectedMember.value.full_name !== 'Alle') {
-	//     hangar = hangar.filter((e: IHangarItem) => e.userData.owner.id === selectedMember.value.id);
-	//   }
-	// }
+  // if (path.startsWith('/ams/fleet')) {
+  //   if (selectedDepartment.value.name !== 'Alle') {
+  //     hangar = hangar.filter((e: IHangarItem) => e.userData.department?.id === selectedDepartment.value.id);
+  //   }
+  //   if (selectedMember.value.full_name !== 'Alle') {
+  //     hangar = hangar.filter((e: IHangarItem) => e.userData.owner.id === selectedMember.value.id);
+  //   }
+  // }
 
-	filteredHangar.value = hangar
+  filteredHangar.value = hangar;
 
-	liveHangar = [...hangar.filter(e => e.ship?.production_status_value === 'flight-ready')]
+  liveHangar = [...hangar.filter((e) => e.ship?.production_status_value === 'flight-ready')];
 
-	hangar
-		.filter(e => e.ship?.production_status_value !== 'flight-ready')
-		.forEach((hangarItem) => {
-			hangarItem.ship.loaners?.forEach((loaner, index) => {
-				console.log('loaner', loaner, hangarItem.ship)
-				liveHangar.push({
-					...hangarItem,
-					id: hangarItem.id + '#loaner-' + index,
-					ship: loaner,
-					sourceShip: hangarItem.ship,
-					loaner: true,
-				})
-			})
-		})
-	filteredLiveHangar.value = liveHangar
+  hangar
+    .filter((e) => e.ship?.production_status_value !== 'flight-ready')
+    .forEach((hangarItem) => {
+      hangarItem.ship.loaners?.forEach((loaner, index) => {
+        console.log('loaner', loaner, hangarItem.ship);
+        liveHangar.push({
+          ...hangarItem,
+          id: hangarItem.id + '#loaner-' + index,
+          ship: loaner,
+          sourceShip: hangarItem.ship,
+          loaner: true,
+        });
+      });
+    });
+  filteredLiveHangar.value = liveHangar;
 
-	if (!loanerView.value) {
-		currentHangar.value = hangar
-		getCurrentFilteredHangar()
-	}
-	else {
-		currentHangar.value = liveHangar
-		getCurrentFilteredHangar()
-	}
-}
+  if (!loanerView.value) {
+    currentHangar.value = hangar;
+    getCurrentFilteredHangar();
+  } else {
+    currentHangar.value = liveHangar;
+    getCurrentFilteredHangar();
+  }
+};
 
 watch([loanerView, selectedDepartment], async () => {
-	hideHangar.value = true
-	loanerViewClasses.value = true
-	await setTimeout(async () => {
-		await updateHangar()
+  hideHangar.value = true;
+  loanerViewClasses.value = true;
+  await setTimeout(async () => {
+    await updateHangar();
 
-		hideHangar.value = false
-		loanerViewClasses.value = false
-	}, 500)
-})
-updateHangar()
+    hideHangar.value = false;
+    loanerViewClasses.value = false;
+  }, 500);
+});
+updateHangar();
 
 const formdata = reactive({
-	name: '',
-	serial: '',
-	group: 'ariscorp',
-	department: null,
-	visibility: 'public',
-	show_name: true,
-	module: null,
-	planned: false,
-})
+  name: '',
+  serial: '',
+  group: 'ariscorp',
+  department: null,
+  visibility: 'public',
+  show_name: true,
+  module: null,
+  planned: false,
+});
 
-const initialFormdata: Schema = reactive({ ...formdata })
+const initialFormdata: Schema = reactive({ ...formdata });
 /// //*
 const setFormData = (data: any) => {
-	formdata.name = data.userData.name ?? ''
-	formdata.serial = data.userData.serial ?? ''
-	formdata.group = data.userData.group ?? 'ariscorp'
-	formdata.department = data.userData.department ?? null
-	formdata.visibility = data.userData.visibility ?? 'public'
-	formdata.show_name = data.userData.show_name ?? true
-	// formdata.module = data.userData.module ?? null;
-	formdata.planned = data.userData.planned ?? false
+  formdata.name = data.userData.name ?? '';
+  formdata.serial = data.userData.serial ?? '';
+  formdata.group = data.userData.group ?? 'ariscorp';
+  formdata.department = data.userData.department ?? null;
+  formdata.visibility = data.userData.visibility ?? 'public';
+  formdata.show_name = data.userData.show_name ?? true;
+  // formdata.module = data.userData.module ?? null;
+  formdata.planned = data.userData.planned ?? false;
 
-	initialFormdata.name = data.userData.name ?? ''
-	initialFormdata.serial = data.userData.serial ?? ''
-	initialFormdata.group = data.userData.group ?? 'ariscorp'
-	initialFormdata.department = data.userData.department ?? null
-	initialFormdata.visibility = data.userData.visibility ?? 'public'
-	initialFormdata.show_name = data.userData.show_name ?? true
-	// initialFormdata.module = data.userData.module ?? null;
-	initialFormdata.planned = data.userData.planned ?? false
-}
+  initialFormdata.name = data.userData.name ?? '';
+  initialFormdata.serial = data.userData.serial ?? '';
+  initialFormdata.group = data.userData.group ?? 'ariscorp';
+  initialFormdata.department = data.userData.department ?? null;
+  initialFormdata.visibility = data.userData.visibility ?? 'public';
+  initialFormdata.show_name = data.userData.show_name ?? true;
+  // initialFormdata.module = data.userData.module ?? null;
+  initialFormdata.planned = data.userData.planned ?? false;
+};
 
 function handleEdit(title: string, data: any) {
-	dataChanged.value = false
-	setFormData(data)
+  dataChanged.value = false;
+  setFormData(data);
 
-	modalStore.setData(data)
-	modalStore.openSlide({ hideCloseButton: true, hideXButton: true, type: 'editShip' })
+  modalStore.setData(data);
+  modalStore.openSlide({ hideCloseButton: true, hideXButton: true, type: 'editShip' });
 }
 
 const onEditSubmit = async (event: FormSubmitEvent<Schema>) => {
-	try {
-		if (!event.data) {
-			throw new Error('Data is null!')
-		}
-		modalStore.closeSlide()
-		await updateItem('user_hangars', modalStore.data.id, {
-			name: event.data.name,
-			name_public: event.data.show_name,
-			serial: event.data.serial,
-			group: event.data.group,
-			visibility: event.data.visibility,
-			department: event.data.department?.id ?? null,
-			planned: event.data.planned,
-			// active_module: event.data.module?.id ?? null,
-		})
-		await refreshHangar()
-	}
-	catch (e) {
-		console.error(e)
-	}
-}
+  try {
+    if (!event.data) {
+      throw new Error('Data is null!');
+    }
+    modalStore.closeSlide();
+    await directus.request(
+      updateItem('user_hangars', modalStore.data.id, {
+        name: event.data.name,
+        name_public: event.data.show_name,
+        serial: event.data.serial,
+        group: event.data.group,
+        visibility: event.data.visibility,
+        department: event.data.department?.id ?? null,
+        planned: event.data.planned,
+        // active_module: event.data.module?.id ?? null,
+      }),
+    );
+    await refreshHangar();
+  } catch (e) {
+    console.error(e);
+  }
+};
 
 const onRemoveSubmit = async (data: any) => {
-	try {
-		if (!data) {
-			throw new Error('Data is null!')
-		}
-		// await setTimeout(async () => {
-		//   currentFilteredHangar.value = currentFilteredHangar.value.filter((e: IHangarItem) => e.id !== data.id);
-		// }, 500);
-		await deleteItems('user_hangars', [data.id])
-		await refreshHangar()
-	}
-	catch (e) {
-		console.error(e)
-	}
-}
+  try {
+    if (!data) {
+      throw new Error('Data is null!');
+    }
+    // await setTimeout(async () => {
+    //   currentFilteredHangar.value = currentFilteredHangar.value.filter((e: IHangarItem) => e.id !== data.id);
+    // }, 500);
+    await directus.request(deleteItems('user_hangars', [data.id]));
+    await refreshHangar();
+  } catch (e) {
+    console.error(e);
+  }
+};
 
 const onWishlistRemoveSubmit = async (data: any) => {
-	try {
-		if (!data) {
-			throw new Error('Data is null!')
-		}
-		await deleteItems('member_wishlists', [data.id])
-		await refreshHangar()
-	}
-	catch (e) {
-		console.error(e)
-	}
-}
+  try {
+    if (!data) {
+      throw new Error('Data is null!');
+    }
+    await directus.request(deleteItems('member_wishlists', [data.id]));
+    await refreshHangar();
+  } catch (e) {
+    console.error(e);
+  }
+};
 
 const onAddSubmit = async (type: string, data: any[]) => {
-	try {
-		if (!data || !user.value.id) {
-			throw new Error('Data is null!')
-		}
+  try {
+    if (!data || !user.value.id) {
+      throw new Error('Data is null!');
+    }
 
-		modalStore.closeModal()
-		if (type === 'addShips') {
-			await createItems(
-				'user_hangars',
-				data.map(ship => ({
-					user_id: user.value.id,
-					ship_id: ship.id,
-					show_name: true,
-					group: 'ariscorp',
-					visibility: 'public',
-					planned: false,
-				})),
-			)
-		}
-		else if (type === 'addWishlist') {
-			await createItems(
-				'member_wishlist',
-				data.map(ship => ({
-					user_id: user?.id,
-					ship_id: ship.id,
-				})),
-			)
-		}
-		await refreshHangar()
-	}
-	catch (e) {
-		console.error(e)
-	}
-}
+    modalStore.closeModal();
+    if (type === 'addShips') {
+      await directus.request(
+        createItems(
+          'user_hangars',
+          data.map((ship) => ({
+            user_id: user.value.id,
+            ship_id: ship.id,
+            show_name: true,
+            group: 'ariscorp',
+            visibility: 'public',
+            planned: false,
+          })),
+        ),
+      );
+    } else if (type === 'addWishlist') {
+      await directus.request(
+        createItems(
+          'member_wishlist',
+          data.map((ship) => ({
+            user_id: user?.id,
+            ship_id: ship.id,
+          })),
+        ),
+      );
+    }
+    await refreshHangar();
+  } catch (e) {
+    console.error(e);
+  }
+};
 
 function getCurrentFilteredHangar() {
-	currentFilteredHangar.value = currentHangar.value
-		.filter(
-			(e: any) =>
-				(e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false)
-				|| e.ship.name.toLowerCase().includes(search.value.toLowerCase())
-				|| e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase())
-				|| e.ship.manufacturer.code.toLowerCase().includes(search.value.toLowerCase()),
-		)
-		.sort((a: any, b: any) => a.ship.name.localeCompare(b.ship.name))
+  currentFilteredHangar.value = currentHangar.value
+    .filter(
+      (e: any) =>
+        (e.userData.name ? e.userData.name.toLowerCase().includes(search.value.toLowerCase()) : false) ||
+        e.ship.name.toLowerCase().includes(search.value.toLowerCase()) ||
+        e.ship.manufacturer.name.toLowerCase().includes(search.value.toLowerCase()) ||
+        e.ship.manufacturer.code.toLowerCase().includes(search.value.toLowerCase()),
+    )
+    .sort((a: any, b: any) => a.ship.name.localeCompare(b.ship.name));
 }
-getCurrentFilteredHangar()
+getCurrentFilteredHangar();
 
 const openAddModal = () => {
-	modalStore.setData([])
-	modalStore.openModal(selectedTab.value === 0 ? 'Hangar: Schiffe hinzufügen' : 'Wunschliste: Schiffe hinzufügen', {
-		hideCloseButton: true,
-		hideXButton: true,
-		type: selectedTab.value === 0 ? 'addShips' : 'addWishlist',
-	})
-}
+  modalStore.setData([]);
+  modalStore.openModal(selectedTab.value === 0 ? 'Hangar: Schiffe hinzufügen' : 'Wunschliste: Schiffe hinzufügen', {
+    hideCloseButton: true,
+    hideXButton: true,
+    type: selectedTab.value === 0 ? 'addShips' : 'addWishlist',
+  });
+};
 
 defineShortcuts({
-	...(path.startsWith('/ams/hangar') && {
-		n: {
-			handler: () => {
-				if (!modalStore.isModalOpen) {
-					openAddModal()
-				}
-			},
-		},
-	}),
-	s: {
-		handler: () => {
-			search_input.value?.input.focus()
-		},
-	},
-	d: {
-		handler: () => {
-			userSettingsStore.AMSToggleHangarDetailView()
-		},
-	},
-})
+  ...(path.startsWith('/ams/hangar') && {
+    n: {
+      handler: () => {
+        if (!modalStore.isModalOpen) {
+          openAddModal();
+        }
+      },
+    },
+  }),
+  s: {
+    handler: () => {
+      search_input.value?.input.focus();
+    },
+  },
+  d: {
+    handler: () => {
+      userSettingsStore.AMSToggleHangarDetailView();
+    },
+  },
+});
 
-const latestShip = computed(() => ships.value.sort((a: any, b: any) => b.id + a.id)[0])
+const latestShip = computed(() => ships.value.sort((a: any, b: any) => b.id + a.id)[0]);
 
 const tour = new Shepherd.Tour({
-	useModalOverlay: true,
-	defaultStepOptions: {
-		classes: 'shadow-md bg-purple-dark',
-		scrollTo: true,
-	},
-	steps: [
-		{
-			id: 'hangar-tabs',
-			text: 'Hier kannst du zwischen deinem Hangar und deiner Wunschliste wechseln.',
-			attachTo: {
-				element: '#hangar-tabs',
-				on: 'top',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						return this.next()
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 12, crossAxis: 0 })],
-			},
-		},
-		{
-			id: 'add-button',
-			text: 'Hier kannst du Schiffe zu deinem Hangar hinzufügen.',
-			attachTo: {
-				element: '#add-button',
-				on: 'left',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						modalStore.setData([])
-						modalStore.openModal('Hangar: Schiffe hinzufügen', {
-							hideCloseButton: true,
-							hideXButton: true,
-							type: 'addShips',
-						})
+  useModalOverlay: true,
+  defaultStepOptions: {
+    classes: 'shadow-md bg-purple-dark',
+    scrollTo: true,
+  },
+  steps: [
+    {
+      id: 'hangar-tabs',
+      text: 'Hier kannst du zwischen deinem Hangar und deiner Wunschliste wechseln.',
+      attachTo: {
+        element: '#hangar-tabs',
+        on: 'top',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 12, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'add-button',
+      text: 'Hier kannst du Schiffe zu deinem Hangar hinzufügen.',
+      attachTo: {
+        element: '#add-button',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            modalStore.setData([]);
+            modalStore.openModal('Hangar: Schiffe hinzufügen', {
+              hideCloseButton: true,
+              hideXButton: true,
+              type: 'addShips',
+            });
 
-						const interval = setInterval(() => {
-							if (modalStore.isModalOpen) {
-								clearInterval(interval)
-								return this.next()
-							}
-						}, 100)
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-			options: {
-				title: 'test',
-				when: {
-					show() {
-						const currentStep = Shepherd.activeTour?.getCurrentStep()
-						const currentStepElement = currentStep?.getElement()
-						const header = currentStepElement?.querySelector('.shepherd-header')
-						const progress = document.createElement('span')
-						progress.style['margin-right'] = '315px'
-						progress.innerText = `${Shepherd.activeTour?.steps.indexOf(currentStep) + 1}/${Shepherd.activeTour?.steps.length}`
-						header?.insertBefore(progress, currentStepElement.querySelector('.shepherd-cancel-icon'))
-					},
-				},
-			},
-		},
-		{
-			id: 'ship-select',
-			text: 'In diesem Dropdown kannst du jegliche Schiffe auswählen.',
-			attachTo: {
-				element: '#ship-select',
-				on: 'bottom',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						modalStore.data = [shipList.value[0]]
-						return this.next()
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-		},
-		{
-			id: 'add-submit-button',
-			text: 'Jetzt fügen wir alle ausgewählten Schiffe zu deinem Hangar hinzu.',
-			attachTo: {
-				element: '#add-submit-button',
-				on: 'bottom',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						hangarRefreshPending.value = true
-						onAddSubmit(modalStore.type, modalStore.data)
-						const interval = setInterval(() => {
-							if (!hangarRefreshPending.value) {
-								clearInterval(interval)
-								return this.next()
-							}
-						}, 100)
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-		},
-		{
-			id: 'edit-button',
-			text: 'Nun kannst du dein Schiff bearbeiten.',
-			attachTo: {
-				element: '#onboarding-edit-button',
-				on: 'left',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						const id = latestShip.value.id
-						const title = `Bearbeiten: ${ships.value.find(e => e.id === id).userData.name ? ships.value.find(e => e.id === id).userData.name + ' - ' : ''}${
-              ships.value.find(e => e.id === id).ship.manufacturer.code
-            } ${ships.value.find(e => e.id === id).ship.name}`
+            const interval = setInterval(() => {
+              if (modalStore.isModalOpen) {
+                clearInterval(interval);
+                return this.next();
+              }
+            }, 100);
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+      options: {
+        title: 'test',
+        when: {
+          show() {
+            const currentStep = Shepherd.activeTour?.getCurrentStep();
+            const currentStepElement = currentStep?.getElement();
+            const header = currentStepElement?.querySelector('.shepherd-header');
+            const progress = document.createElement('span');
+            progress.style['margin-right'] = '315px';
+            progress.innerText = `${Shepherd.activeTour?.steps.indexOf(currentStep) + 1}/${
+              Shepherd.activeTour?.steps.length
+            }`;
+            header?.insertBefore(progress, currentStepElement.querySelector('.shepherd-cancel-icon'));
+          },
+        },
+      },
+    },
+    {
+      id: 'ship-select',
+      text: 'In diesem Dropdown kannst du jegliche Schiffe auswählen.',
+      attachTo: {
+        element: '#ship-select',
+        on: 'bottom',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            modalStore.data = [shipList.value[0]];
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'add-submit-button',
+      text: 'Jetzt fügen wir alle ausgewählten Schiffe zu deinem Hangar hinzu.',
+      attachTo: {
+        element: '#add-submit-button',
+        on: 'bottom',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            hangarRefreshPending.value = true;
+            onAddSubmit(modalStore.type, modalStore.data);
+            const interval = setInterval(() => {
+              if (!hangarRefreshPending.value) {
+                clearInterval(interval);
+                return this.next();
+              }
+            }, 100);
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'edit-button',
+      text: 'Nun kannst du dein Schiff bearbeiten.',
+      attachTo: {
+        element: '#onboarding-edit-button',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            const id = latestShip.value.id;
+            const title = `Bearbeiten: ${
+              ships.value.find((e) => e.id === id).userData.name
+                ? ships.value.find((e) => e.id === id).userData.name + ' - '
+                : ''
+            }${ships.value.find((e) => e.id === id).ship.manufacturer.code} ${
+              ships.value.find((e) => e.id === id).ship.name
+            }`;
 
-						handleEdit(
-							title,
-							ships.value.find(e => e.id === id),
-						)
+            handleEdit(
+              title,
+              ships.value.find((e) => e.id === id),
+            );
 
-						const interval = setInterval(() => {
-							if (modalStore.isSlideOpen) {
-								clearInterval(interval)
-								return this.next()
-							}
-						}, 100)
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-		},
-		{
-			id: 'ship-edit-base',
-			text: 'Hier kannst den Namen und die Seriennummer deines Schiffes angeben.',
-			attachTo: {
-				element: '#ship-edit-base',
-				on: 'left',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						return this.next()
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-		},
-		{
-			id: 'ship-edit-division',
-			text: 'Hier geht es darum, wie du dein Schiff einteilen möchtest. Willst du es in die Flotte der ArisCorp Einteilen, eventuell sogar einer speziellen Abteilung oder gehört es doch nur in deinen privaten Hangar?',
-			attachTo: {
-				element: '#ship-edit-division',
-				on: 'left',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						return this.next()
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-		},
-		{
-			id: 'ship-edit-visibility',
-			text: 'Hier geht es darum, wer dein Schiff sehen darf. Du kannst einstellen, ob es für alle, Mitglieder oder nur dich sichtbar sein soll und ob der Name öffentlich sichtbar sein soll.',
-			attachTo: {
-				element: '#ship-edit-division',
-				on: 'left',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						return this.next()
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-		},
-		{
-			id: 'ship-edit-other',
-			text: 'In diesem Abschnitt kannst du alles andere einstellen. Zum Beispiel ob dein Schiff erst noch (fest) geplant ist, oder eventuell welches Modul du ausgerüstet hast.',
-			attachTo: {
-				element: '#ship-edit-other',
-				on: 'left',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						return this.next()
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-		},
-		{
-			id: 'ship-edit-buttons',
-			text: 'Danach kannst du deine Änderungen speichern oder sie verwerfen.',
-			attachTo: {
-				element: '#ship-edit-buttons',
-				on: 'top',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						modalStore.closeSlide()
-						return this.next()
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-		},
-		{
-			id: 'onboarding-remove-button',
-			text: 'In diesem Abschnitt kannst du alles andere einstellen. Zum Beispiel ob dein Schiff erst noch (fest) geplant ist, oder eventuell welches Modul du ausgerüstet hast.',
-			attachTo: {
-				element: '#onboarding-remove-button',
-				on: 'left',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Weiter',
-					action(): any {
-						onboardingShip.value[0].removePopover = true
-						setTimeout(() => {
-							return this.next()
-						}, 200)
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-		},
-		{
-			id: 'onboarding-remove-confirm-button',
-			text: 'Zu guter letzt kannst du Schiffe noch entfernen.',
-			attachTo: {
-				element: '#onboarding-remove-confirm-button',
-				on: 'top',
-			},
-			buttons: [
-				{
-					text: 'Überspringen',
-					action(): any {
-						return this.complete()
-					},
-					secondary: true,
-				},
-				{
-					text: 'Fertig stellen',
-					action(): any {
-						onRemoveSubmit(latestShip.value)
-						return this.next()
-					},
-				},
-			],
-			floatingUIOptions: {
-				middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
-			},
-		},
-	],
-})
+            const interval = setInterval(() => {
+              if (modalStore.isSlideOpen) {
+                clearInterval(interval);
+                return this.next();
+              }
+            }, 100);
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'ship-edit-base',
+      text: 'Hier kannst den Namen und die Seriennummer deines Schiffes angeben.',
+      attachTo: {
+        element: '#ship-edit-base',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'ship-edit-division',
+      text: 'Hier geht es darum, wie du dein Schiff einteilen möchtest. Willst du es in die Flotte der ArisCorp Einteilen, eventuell sogar einer speziellen Abteilung oder gehört es doch nur in deinen privaten Hangar?',
+      attachTo: {
+        element: '#ship-edit-division',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'ship-edit-visibility',
+      text: 'Hier geht es darum, wer dein Schiff sehen darf. Du kannst einstellen, ob es für alle, Mitglieder oder nur dich sichtbar sein soll und ob der Name öffentlich sichtbar sein soll.',
+      attachTo: {
+        element: '#ship-edit-division',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'ship-edit-other',
+      text: 'In diesem Abschnitt kannst du alles andere einstellen. Zum Beispiel ob dein Schiff erst noch (fest) geplant ist, oder eventuell welches Modul du ausgerüstet hast.',
+      attachTo: {
+        element: '#ship-edit-other',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'ship-edit-buttons',
+      text: 'Danach kannst du deine Änderungen speichern oder sie verwerfen.',
+      attachTo: {
+        element: '#ship-edit-buttons',
+        on: 'top',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            modalStore.closeSlide();
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'onboarding-remove-button',
+      text: 'In diesem Abschnitt kannst du alles andere einstellen. Zum Beispiel ob dein Schiff erst noch (fest) geplant ist, oder eventuell welches Modul du ausgerüstet hast.',
+      attachTo: {
+        element: '#onboarding-remove-button',
+        on: 'left',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Weiter',
+          action(): any {
+            onboardingShip.value[0].removePopover = true;
+            setTimeout(() => {
+              return this.next();
+            }, 200);
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+    {
+      id: 'onboarding-remove-confirm-button',
+      text: 'Zu guter letzt kannst du Schiffe noch entfernen.',
+      attachTo: {
+        element: '#onboarding-remove-confirm-button',
+        on: 'top',
+      },
+      buttons: [
+        {
+          text: 'Überspringen',
+          action(): any {
+            return this.complete();
+          },
+          secondary: true,
+        },
+        {
+          text: 'Fertig stellen',
+          action(): any {
+            onRemoveSubmit(latestShip.value);
+            return this.next();
+          },
+        },
+      ],
+      floatingUIOptions: {
+        middleware: [offset({ mainAxis: 15, crossAxis: 0 })],
+      },
+    },
+  ],
+});
 
 const updateOnboarding = async () => {
-	const onboardings = Array.isArray(user.value.onboardings) ? user.value.onboardings : []
-	await updateUser(user.value.id, { onboardings: [...onboardings, 'hangar'] }, {})
-}
+  const onboardings = Array.isArray(user.value.onboardings) ? user.value.onboardings : [];
+  await directus.request(updateUser(user.value.id, { onboardings: [...onboardings, 'hangar'] }, {}));
+};
 
 const shipsWithCounts = computed(() => {
-	const shipCount = {}
-	// Count each ship's occurrences
-	modalStore.data?.forEach((ship: any) => {
-		const identifier = `${ship.manufacturer.name}:${ship.name}`
-		if (!shipCount[identifier]) {
-			shipCount[identifier] = { ...ship, count: 0 }
-		}
-		shipCount[identifier].count += 1
-	})
-	// Convert the object back into an array
-	return Object.values(shipCount)
-})
+  const shipCount = {};
+  // Count each ship's occurrences
+  modalStore.data?.forEach((ship: any) => {
+    const identifier = `${ship.manufacturer.name}:${ship.name}`;
+    if (!shipCount[identifier]) {
+      shipCount[identifier] = { ...ship, count: 0 };
+    }
+    shipCount[identifier].count += 1;
+  });
+  // Convert the object back into an array
+  return Object.values(shipCount);
+});
 
 onMounted(() => {
-	if (!useDirectusAuth().user.value.onboardings?.find((e: string) => e === 'hangar')) tour.start()
+	if(path.startsWith('/ams/hangar') && user.value.onboardings?.find((e: string) => e === 'hangar')) tour.start();
 
-	tour.on('complete', () => {
-		updateOnboarding()
-	})
-})
+  tour.on('complete', () => {
+    updateOnboarding();
+  });
+});
 
 watch(
-	formdata,
-	() => {
-		if (formdata.group !== 'ariscorp') {
-			formdata.department = null
-		}
+  formdata,
+  () => {
+    if (formdata.group !== 'ariscorp') {
+      formdata.department = null;
+    }
 
-		if (formdata.department === '') {
-			formdata.department = null
-		}
+    if (formdata.department === '') {
+      formdata.department = null;
+    }
 
-		dataChanged.value = !isEqual(formdata, initialFormdata)
-	},
-	{ deep: true },
-)
+    dataChanged.value = !isEqual(formdata, initialFormdata);
+  },
+  { deep: true },
+);
 
 definePageMeta({
-	alias: '/ams/employees/hangar/:slug',
-	middleware: 'auth',
-	layout: false,
-})
+  alias: '/ams/employees/hangar/:slug',
+  middleware: 'auth',
+  layout: false,
+});
 
 useHead({
-	title: path.startsWith('/ams/employees') ? 'Hangar von ' + user.value.full_name : 'Mein Hangar',
-})
+  title: path.startsWith('/ams/employees') ? 'Hangar von ' + user.value.full_name : 'Mein Hangar',
+});
 </script>
 
 <template>
-	<NuxtLayout name="ams">
-		<template #modalContent>
-			<template v-if="modalStore.type === 'addShips' || modalStore.type === 'addWishlist'">
-				<div class="mt-6 space-y-4 text-left">
-					<ul>
-						<li
-							v-for="(ship, index) in shipsWithCounts"
-							:key="index"
-						>
-							<div class="relative grid grid-cols-2 pr-10">
-								<span class="text-tbase">{{ ship.manufacturer.name }}: </span>
-								<span class="text-primary"><span class="text-tbase">{{ ship.count }}x </span>{{ ship.name }}</span>
-								<div class="absolute flex items-center h-full right-4 gap-x-2">
-									<button
-										class="flex w-5 h-5 transition text-dark-gray hover:text-white"
-										@click="modalStore.data = [...modalStore.data, ship]"
-									>
-										<Icon
-											name="heroicons:plus-circle"
-											class="w-full h-full"
-										/>
-									</button>
-									<button
-										class="flex w-5 h-5 transition text-dark-gray hover:text-white"
-										@click="modalStore.data.splice(index, 1)"
-									>
-										<Icon
-											:name="ship.count > 1 ? 'heroicons:minus-circle' : 'heroicons:x-circle'"
-											class="w-full h-full"
-										/>
-									</button>
-								</div>
-							</div>
-						</li>
-					</ul>
-					<USelectMenu
-						id="ship-select"
-						v-model="modalStore.data"
-						:options="shipList"
-						multiple
-						searchable
-						:search-attributes="['name', 'slug', 'manufacturer.name', 'manufacturer.slug', 'manufacturer.code']"
-						searchable-placeholder="Suche..."
-						clear-search-on-close
-						size="xl"
-						:ui-menu="{
-							container: 'z-50 group',
-							ring: 'ring-1 ring-bprimary',
-						}"
-					>
-						<template #label>
-							<span class="text-[13.9px]">Auswählen</span>
-						</template>
-						<template #option="{ option }">
-							<span>{{ option.name }}</span>
-						</template>
-					</USelectMenu>
-					<div class="flex flex-wrap justify-between w-full px-8 mt-6">
-						<ButtonDefault
-							type="button"
-							class="w-1/3"
-							color="danger"
-							@click="modalStore.closeModal"
-						>
-							Schließen
-						</ButtonDefault>
-						<ButtonDefault
-							id="add-submit-button"
-							type="submit"
-							class="w-1/3"
-							color="success"
-							:class="{ grayscale: modalStore.data.length < 1 }"
-							@click="onAddSubmit(modalStore.type, modalStore.data)"
-						>
-							Speichern
-						</ButtonDefault>
-					</div>
-				</div>
-			</template>
-		</template>
-		<!-- <template #slideCard> -->
-		<template #slideHeader>
-			<NuxtImg
-				:src="modalStore.data?.ship.store_image"
-				:placeholder="[16, 16, 1, 5]"
-				class="object-cover w-full mx-auto rounded-lg shadow-xl max-h-36"
-			/>
-		</template>
-		<template #slideContent>
-			<UForm
-				ref="form"
-				:schema="schema"
-				:state="formdata"
-				@submit="onEditSubmit"
-			>
-				<!-- <UCard
+  <NuxtLayout name="ams">
+    <template #modalContent>
+      <template v-if="modalStore.type === 'addShips' || modalStore.type === 'addWishlist'">
+        <div class="mt-6 space-y-4 text-left">
+          <ul>
+            <li v-for="(ship, index) in shipsWithCounts" :key="index">
+              <div class="relative grid grid-cols-2 pr-10">
+                <span class="text-tbase">{{ ship.manufacturer.name }}: </span>
+                <span class="text-primary"
+                  ><span class="text-tbase">{{ ship.count }}x </span>{{ ship.name }}</span
+                >
+                <div class="absolute flex items-center h-full right-4 gap-x-2">
+                  <button
+                    class="flex w-5 h-5 transition text-dark-gray hover:text-white"
+                    @click="modalStore.data = [...modalStore.data, ship]"
+                  >
+                    <Icon name="heroicons:plus-circle" class="w-full h-full" />
+                  </button>
+                  <button
+                    class="flex w-5 h-5 transition text-dark-gray hover:text-white"
+                    @click="modalStore.data.splice(index, 1)"
+                  >
+                    <Icon
+                      :name="ship.count > 1 ? 'heroicons:minus-circle' : 'heroicons:x-circle'"
+                      class="w-full h-full"
+                    />
+                  </button>
+                </div>
+              </div>
+            </li>
+          </ul>
+          <USelectMenu
+            id="ship-select"
+            v-model="modalStore.data"
+            :options="shipList"
+            multiple
+            searchable
+            :search-attributes="['name', 'slug', 'manufacturer.name', 'manufacturer.slug', 'manufacturer.code']"
+            searchable-placeholder="Suche..."
+            clear-search-on-close
+            size="xl"
+            :ui-menu="{
+              container: 'z-50 group',
+              ring: 'ring-1 ring-bprimary',
+            }"
+          >
+            <template #label>
+              <span class="text-[13.9px]">Auswählen</span>
+            </template>
+            <template #option="{ option }">
+              <span>{{ option.name }}</span>
+            </template>
+          </USelectMenu>
+          <div class="flex flex-wrap justify-between w-full px-8 mt-6">
+            <ButtonDefault type="button" class="w-1/3" color="danger" @click="modalStore.closeModal">
+              Schließen
+            </ButtonDefault>
+            <ButtonDefault
+              id="add-submit-button"
+              type="submit"
+              class="w-1/3"
+              color="success"
+              :class="{ grayscale: modalStore.data.length < 1 }"
+              @click="onAddSubmit(modalStore.type, modalStore.data)"
+            >
+              Speichern
+            </ButtonDefault>
+          </div>
+        </div>
+      </template>
+    </template>
+    <!-- <template #slideCard> -->
+    <template #slideHeader>
+      <NuxtImg
+        :src="modalStore.data?.ship.store_image"
+        :placeholder="[16, 16, 1, 5]"
+        class="object-cover w-full mx-auto rounded-lg shadow-xl max-h-36"
+      />
+    </template>
+    <template #slideContent>
+      <UForm ref="form" :schema="schema" :state="formdata" @submit="onEditSubmit">
+        <!-- <UCard
 						class="flex flex-col flex-1 h-screen scrollbar-gray-thin"
 						:ui="{
 							body: {
@@ -974,362 +992,334 @@ useHead({
 						<template #header>
 
 						</template> -->
-				<div
-					id="ship-edit-base"
-					class="px-2"
-				>
-					<TableHr><span class="flex items-center text-lg">Basisdaten</span></TableHr>
-					<UFormGroup
-						label="Schiffsname"
-						name="name"
-						description="Hier kannst du den Namen deines Schiffes eingeben."
-						class="items-center grid-cols-2 gap-2 md:grid"
-						:ui="{ container: 'relative' }"
-					>
-						<!-- TODO: Modellübergreifend einzigartig machen -->
-						<UInput
-							v-model="formdata.name"
-							:icon="
-								formdata.name || initialFormdata.name
-									? formdata.name === initialFormdata.name
-										? 'i-heroicons-x-mark-16-solid'
-										: 'i-heroicons-arrow-uturn-left'
-									: ''
-							"
-							placeholder="UEE Stanton"
-							size="md"
-							autocomplete="off"
-						/>
-						<!-- <template #description> -->
-						<!-- <p class="px-0">Hier kannst du den Namen deines Schiffes eingeben.</p> -->
-						<!-- <p class="px-0">
+        <div id="ship-edit-base" class="px-2">
+          <TableHr><span class="flex items-center text-lg">Basisdaten</span></TableHr>
+          <UFormGroup
+            label="Schiffsname"
+            name="name"
+            description="Hier kannst du den Namen deines Schiffes eingeben."
+            class="items-center grid-cols-2 gap-2 md:grid"
+            :ui="{ container: 'relative' }"
+          >
+            <!-- TODO: Modellübergreifend einzigartig machen -->
+            <UInput
+              v-model="formdata.name"
+              :icon="
+                formdata.name || initialFormdata.name
+                  ? formdata.name === initialFormdata.name
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="UEE Stanton"
+              size="md"
+              autocomplete="off"
+            />
+            <!-- <template #description> -->
+            <!-- <p class="px-0">Hier kannst du den Namen deines Schiffes eingeben.</p> -->
+            <!-- <p class="px-0">
                   Falls du Inspiration brauchst, schau dich mal
                   <NuxtLink target="_blank" to="https://www.fantasynamegenerators.com/spaceship-names.php"
                     >hier</NuxtLink
                   >
                   um.
                 </p> -->
-						<!-- </template> -->
-						<template v-if="formdata.name || initialFormdata.name">
-							<button
-								v-if="formdata.name === initialFormdata.name"
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.name = ''"
-							>
-								<UIcon
-									name="i-heroicons-x-mark-16-solid"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-							<button
-								v-else
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.name = initialFormdata.name"
-							>
-								<UIcon
-									name="i-heroicons-arrow-uturn-left"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-						</template>
-					</UFormGroup>
-					<UFormGroup
-						label="Seriennummer"
-						name="serial"
-						description="Hier kannst du die Seriennummer deines Schiffes eingeben"
-						class="items-center grid-cols-2 gap-2 md:grid"
-						:ui="{ container: 'relative' }"
-					>
-						<UInput
-							v-model="formdata.serial"
-							:icon="
-								formdata.serial || initialFormdata.serial
-									? formdata.serial === initialFormdata.serial
-										? 'i-heroicons-x-mark-16-solid'
-										: 'i-heroicons-arrow-uturn-left'
-									: ''
-							"
-							placeholder="R40"
-							size="md"
-							autocomplete="off"
-						/>
-						<template v-if="formdata.serial || initialFormdata.serial">
-							<button
-								v-if="formdata.serial === initialFormdata.serial"
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.serial = ''"
-							>
-								<UIcon
-									name="i-heroicons-x-mark-16-solid"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-							<button
-								v-else
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.serial = initialFormdata.serial"
-							>
-								<UIcon
-									name="i-heroicons-arrow-uturn-left"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-						</template>
-					</UFormGroup>
-				</div>
-				<div
-					id="ship-edit-division"
-					class="px-2"
-				>
-					<TableHr><span class="flex items-center text-lg">Einteilung</span></TableHr>
-					<UFormGroup
-						label="Einteilung"
-						name="group"
-						description="Hier kannst du dein Schiff der ArisCorp oder deiner privaten Flotte zuweisen."
-						class="items-center grid-cols-2 gap-2 md:grid"
-						:ui="{ container: 'relative' }"
-					>
-						<URadioGroup
-							v-model="formdata.group"
-							:options="[
-								{
-									value: 'private',
-									label: 'Privat',
-									color: 'secondary',
-								},
-								{
-									value: 'ariscorp',
-									label: 'ArisCorp',
-									color: 'primary',
-								},
-							]"
-						/>
-					</UFormGroup>
+            <!-- </template> -->
+            <template v-if="formdata.name || initialFormdata.name">
+              <button
+                v-if="formdata.name === initialFormdata.name"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.name = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.name = initialFormdata.name"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </UFormGroup>
+          <UFormGroup
+            label="Seriennummer"
+            name="serial"
+            description="Hier kannst du die Seriennummer deines Schiffes eingeben"
+            class="items-center grid-cols-2 gap-2 md:grid"
+            :ui="{ container: 'relative' }"
+          >
+            <UInput
+              v-model="formdata.serial"
+              :icon="
+                formdata.serial || initialFormdata.serial
+                  ? formdata.serial === initialFormdata.serial
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              placeholder="R40"
+              size="md"
+              autocomplete="off"
+            />
+            <template v-if="formdata.serial || initialFormdata.serial">
+              <button
+                v-if="formdata.serial === initialFormdata.serial"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.serial = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.serial = initialFormdata.serial"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </UFormGroup>
+        </div>
+        <div id="ship-edit-division" class="px-2">
+          <TableHr><span class="flex items-center text-lg">Einteilung</span></TableHr>
+          <UFormGroup
+            label="Einteilung"
+            name="group"
+            description="Hier kannst du dein Schiff der ArisCorp oder deiner privaten Flotte zuweisen."
+            class="items-center grid-cols-2 gap-2 md:grid"
+            :ui="{ container: 'relative' }"
+          >
+            <URadioGroup
+              v-model="formdata.group"
+              :options="[
+                {
+                  value: 'private',
+                  label: 'Privat',
+                  color: 'secondary',
+                },
+                {
+                  value: 'ariscorp',
+                  label: 'ArisCorp',
+                  color: 'primary',
+                },
+              ]"
+            />
+          </UFormGroup>
 
-					<UFormGroup
-						label="Abteilung"
-						name="department"
-						description="Wenn du willst, kannst du dein Schiff hier einer beliebigen Abteilung zuweisen."
-						class="items-center grid-cols-2 gap-2 md:grid"
-						:ui="{ container: 'relative' }"
-					>
-						<USelectMenu
-							v-model="formdata.department"
-							:disabled="formdata.group !== 'ariscorp'"
-							:options="['', ...departments]"
-							option-attribute="name"
-							searchable
-							clear-search-on-close
-							searchable-placeholder="Suche..."
-							:search-attributes="['name']"
-							:ui="
-								formdata.department || initialFormdata.department
-									? {
-										leading: {
-											padding: {
-												xl: 'ps-10',
-											},
-										},
-									}
-									: { leading: { padding: { xl: 'hidden' } } }
-							"
-							:icon="
-								formdata.department || initialFormdata.department
-									? formdata.department === initialFormdata.department
-										? 'i-heroicons-x-mark-16-solid'
-										: 'i-heroicons-arrow-uturn-left'
-									: ''
-							"
-							size="md"
-						>
-							<template
-								v-if="formdata.department || initialFormdata.department"
-								#leading
-							/>
-							<template #label>
-								<span v-if="formdata.department">{{ formdata.department.name }}</span>
-								<span
-									v-else
-									class="text-[13.9px]"
-								>Keine Abteilung ausgewählt</span>
-							</template>
-							<template #option="{ option }">
-								<span v-if="option">{{ option.name }}</span>
-								<span v-else>Keine Abteilung</span>
-							</template>
-						</USelectMenu>
-						<template v-if="formdata.department || initialFormdata.department">
-							<button
-								v-if="formdata.department === initialFormdata.department"
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.department = ''"
-							>
-								<UIcon
-									name="i-heroicons-x-mark-16-solid"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-							<button
-								v-else
-								class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-								@click="formdata.department = initialFormdata.department"
-							>
-								<UIcon
-									name="i-heroicons-arrow-uturn-left"
-									class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-								/>
-							</button>
-						</template>
-					</UFormGroup>
-				</div>
-				<div
-					id="ship-edit-visibility"
-					class="px-2"
-				>
-					<TableHr><span class="flex items-center text-lg">Sichtbarkeit</span></TableHr>
-					<UFormGroup
-						label="Allgemeine Sichtbarkeit"
-						name="visibility"
-						description="Die Allgemeine Sichtbarkeit bezieht sich auf das gesamte Schiff."
-						class="items-center grid-cols-2 gap-2 md:grid"
-						:ui="{ container: 'relative' }"
-					>
-						<URadioGroup
-							v-model="formdata.visibility"
-							:options="[
-								{
-									value: 'public',
-									label: 'Öffentlich',
-									color: 'success',
-								},
-								{
-									value: 'internal',
-									label: 'Nur intern',
-									color: 'primary',
-								},
-								{
-									value: 'hidden',
-									label: 'Versteckt',
-									color: 'secondary',
-								},
-							]"
-						/>
-						<template #hint>
-							<UPopover mode="hover">
-								<UButton
-									icon="i-heroicons-information-circle"
-									variant="inputInfo"
-								/>
-								<template #panel>
-									<div class="text-xs whitespace-break-spaces">
-										<p class="text-white">
-											Erklärung:
-										</p>
-										<p>
-											<span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner
-											öffentlichen Biografie & internen Hangar
-										</p>
-										<p>
-											<span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
-											Biografie & Hangar
-										</p>
-										<p><span class="text-secondary">Versteckt</span>: In deinem privaten Hangar</p>
-									</div>
-								</template>
-							</UPopover>
-						</template>
-					</UFormGroup>
-					<UFormGroup
-						label="Schiffsnamen"
-						name="show_name"
-						description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
-						class="items-center grid-cols-2 gap-2 md:grid"
-						:ui="{ container: 'relative' }"
-					>
-						<URadioGroup
-							v-model="formdata.show_name"
-							:options="[
-								{
-									value: true,
-									label: 'Öffentlich',
-									color: 'success',
-								},
-								{
-									value: false,
-									label: 'Nur intern',
-									color: 'primary',
-								},
-							]"
-						/>
-						<template #hint>
-							<UPopover mode="hover">
-								<UButton
-									icon="i-heroicons-information-circle"
-									variant="inputInfo"
-								/>
-								<template #panel>
-									<div class="text-xs whitespace-break-spaces">
-										<p class="text-white">
-											Erklärung:
-										</p>
-										<p>
-											<span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner
-											öffentlichen Biografie & internen Hangar
-										</p>
-										<p>
-											<span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
-											Biografie & Hangar
-										</p>
-									</div>
-								</template>
-							</UPopover>
-						</template>
-					</UFormGroup>
-				</div>
-				<div
-					id="ship-edit-other"
-					class="px-2"
-				>
-					<TableHr><span class="flex items-center text-lg">Andere Daten</span></TableHr>
-					<UFormGroup
-						label="Kaufstatus"
-						name="planned"
-						description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
-						class="items-center grid-cols-2 gap-2 md:grid"
-						:ui="{ container: 'relative' }"
-					>
-						<URadioGroup
-							v-model="formdata.planned"
-							:options="[
-								{
-									value: false,
-									label: 'Gekauft',
-									color: 'primary',
-								},
-								{
-									value: true,
-									label: 'Geplant',
-									color: 'secondary',
-								},
-							]"
-						/>
-					</UFormGroup>
-				</div>
+          <UFormGroup
+            label="Abteilung"
+            name="department"
+            description="Wenn du willst, kannst du dein Schiff hier einer beliebigen Abteilung zuweisen."
+            class="items-center grid-cols-2 gap-2 md:grid"
+            :ui="{ container: 'relative' }"
+          >
+            <USelectMenu
+              v-model="formdata.department"
+              :disabled="formdata.group !== 'ariscorp'"
+              :options="['', ...departments]"
+              option-attribute="name"
+              searchable
+              clear-search-on-close
+              searchable-placeholder="Suche..."
+              :search-attributes="['name']"
+              :ui="
+                formdata.department || initialFormdata.department
+                  ? {
+                      leading: {
+                        padding: {
+                          xl: 'ps-10',
+                        },
+                      },
+                    }
+                  : { leading: { padding: { xl: 'hidden' } } }
+              "
+              :icon="
+                formdata.department || initialFormdata.department
+                  ? formdata.department === initialFormdata.department
+                    ? 'i-heroicons-x-mark-16-solid'
+                    : 'i-heroicons-arrow-uturn-left'
+                  : ''
+              "
+              size="md"
+            >
+              <template v-if="formdata.department || initialFormdata.department" #leading />
+              <template #label>
+                <span v-if="formdata.department">{{ formdata.department.name }}</span>
+                <span v-else class="text-[13.9px]">Keine Abteilung ausgewählt</span>
+              </template>
+              <template #option="{ option }">
+                <span v-if="option">{{ option.name }}</span>
+                <span v-else>Keine Abteilung</span>
+              </template>
+            </USelectMenu>
+            <template v-if="formdata.department || initialFormdata.department">
+              <button
+                v-if="formdata.department === initialFormdata.department"
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.department = ''"
+              >
+                <UIcon
+                  name="i-heroicons-x-mark-16-solid"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+              <button
+                v-else
+                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                @click="formdata.department = initialFormdata.department"
+              >
+                <UIcon
+                  name="i-heroicons-arrow-uturn-left"
+                  class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                />
+              </button>
+            </template>
+          </UFormGroup>
+        </div>
+        <div id="ship-edit-visibility" class="px-2">
+          <TableHr><span class="flex items-center text-lg">Sichtbarkeit</span></TableHr>
+          <UFormGroup
+            label="Allgemeine Sichtbarkeit"
+            name="visibility"
+            description="Die Allgemeine Sichtbarkeit bezieht sich auf das gesamte Schiff."
+            class="items-center grid-cols-2 gap-2 md:grid"
+            :ui="{ container: 'relative' }"
+          >
+            <URadioGroup
+              v-model="formdata.visibility"
+              :options="[
+                {
+                  value: 'public',
+                  label: 'Öffentlich',
+                  color: 'success',
+                },
+                {
+                  value: 'internal',
+                  label: 'Nur intern',
+                  color: 'primary',
+                },
+                {
+                  value: 'hidden',
+                  label: 'Versteckt',
+                  color: 'secondary',
+                },
+              ]"
+            />
+            <template #hint>
+              <UPopover mode="hover">
+                <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                <template #panel>
+                  <div class="text-xs whitespace-break-spaces">
+                    <p class="text-white">Erklärung:</p>
+                    <p>
+                      <span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner öffentlichen
+                      Biografie & internen Hangar
+                    </p>
+                    <p>
+                      <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen Biografie
+                      & Hangar
+                    </p>
+                    <p><span class="text-secondary">Versteckt</span>: In deinem privaten Hangar</p>
+                  </div>
+                </template>
+              </UPopover>
+            </template>
+          </UFormGroup>
+          <UFormGroup
+            label="Schiffsnamen"
+            name="show_name"
+            description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
+            class="items-center grid-cols-2 gap-2 md:grid"
+            :ui="{ container: 'relative' }"
+          >
+            <URadioGroup
+              v-model="formdata.show_name"
+              :options="[
+                {
+                  value: true,
+                  label: 'Öffentlich',
+                  color: 'success',
+                },
+                {
+                  value: false,
+                  label: 'Nur intern',
+                  color: 'primary',
+                },
+              ]"
+            />
+            <template #hint>
+              <UPopover mode="hover">
+                <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
+                <template #panel>
+                  <div class="text-xs whitespace-break-spaces">
+                    <p class="text-white">Erklärung:</p>
+                    <p>
+                      <span class="text-success">Öffentlich</span>: In der öffentlichen Flotte, in deiner öffentlichen
+                      Biografie & internen Hangar
+                    </p>
+                    <p>
+                      <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen Biografie
+                      & Hangar
+                    </p>
+                  </div>
+                </template>
+              </UPopover>
+            </template>
+          </UFormGroup>
+        </div>
+        <div id="ship-edit-other" class="px-2">
+          <TableHr><span class="flex items-center text-lg">Andere Daten</span></TableHr>
+          <UFormGroup
+            label="Kaufstatus"
+            name="planned"
+            description="Die Schiffsnamen Sichtbarkeit bezieht sich auf den individuellen Namen."
+            class="items-center grid-cols-2 gap-2 md:grid"
+            :ui="{ container: 'relative' }"
+          >
+            <URadioGroup
+              v-model="formdata.planned"
+              :options="[
+                {
+                  value: false,
+                  label: 'Gekauft',
+                  color: 'primary',
+                },
+                {
+                  value: true,
+                  label: 'Geplant',
+                  color: 'secondary',
+                },
+              ]"
+            />
+          </UFormGroup>
+        </div>
 
-			<!-- </UCard> -->
+        <!-- </UCard> -->
 
-			<!-- <UForm class="h-full" ref="form" :state="formdata" :schema="schema" @submit="onEditSubmit">
+        <!-- <UForm class="h-full" ref="form" :state="formdata" :schema="schema" @submit="onEditSubmit">
           <UCard class="flex flex-col flex-1 h-screen scrollbar-gray-thin"> -->
-			<!-- <template #header>
+        <!-- <template #header>
               <NuxtImg
                 :src="modalStore.data?.ship.store_image"
                 :placeholder="[16, 16, 1, 5]"
                 class="object-cover w-full mx-auto rounded-lg shadow-xl max-h-36"
               />
             </template> -->
-			<!-- <h4 class="mt-0 mb-1 text-left">Basisdaten</h4> -->
-			<!-- <div class="items-center justify-between space-y-4 gap-x-4"> -->
-			<!-- <UFormGroup size="xl" label="Schiffsname" name="name" :ui="formgroupUi">
+        <!-- <h4 class="mt-0 mb-1 text-left">Basisdaten</h4> -->
+        <!-- <div class="items-center justify-between space-y-4 gap-x-4"> -->
+        <!-- <UFormGroup size="xl" label="Schiffsname" name="name" :ui="formgroupUi">
                 <UInput v-model="formdata.name" placeholder="UEE Stanton" icon="i-mdi-rename-outline" />
                 <template #hint>
                   <UPopover mode="hover">
@@ -1355,7 +1345,7 @@ useHead({
                   </UPopover>
                 </template>
               </UFormGroup> -->
-			<!-- <UFormGroup size="xl" label="Seriennummer" name="serial" :ui="formgroupUi">
+        <!-- <UFormGroup size="xl" label="Seriennummer" name="serial" :ui="formgroupUi">
                 <UInput v-model="formdata.serial" placeholder="R40" icon="i-mdi-rename-outline" />
                 <template #hint>
                   <UPopover mode="hover">
@@ -1368,7 +1358,7 @@ useHead({
                   </UPopover>
                 </template>
               </UFormGroup> -->
-			<!-- <h4 class="mt-2 mb-1 text-left">Einteilung:</h4>
+        <!-- <h4 class="mt-2 mb-1 text-left">Einteilung:</h4>
               <UFormGroup size="xl" label="Zuordnung" name="group" :ui="formgroupUi">
                 <ArisRadioGroup
                   v-model="formdata.group"
@@ -1629,7 +1619,7 @@ useHead({
                   </UPopover>
                 </template>
               </UFormGroup> -->
-			<!-- </div>
+        <!-- </div>
             <template #footer>
               <div class="flex flex-wrap justify-between w-full px-8 my-auto">
                 <ButtonDefault type="button" @click="modalStore.closeSlide" class="w-1/3" color="danger"
@@ -1647,89 +1637,74 @@ useHead({
             </template>
           </UCard>
         </UForm> -->
-			</UForm>
-		</template>
-		<template #slideFooter>
-			<div
-				id="ship-edit-buttons"
-				class="flex flex-wrap justify-between w-full px-8 my-auto"
-			>
-				<ButtonDefault
-					type="button"
-					class="w-1/3"
-					color="danger"
-					@click="modalStore.closeSlide"
-				>
-					Schließen
-				</ButtonDefault>
-				<ButtonDefault
-					:type="dataChanged ? 'submit' : 'button'"
-					class="w-1/3"
-					color="success"
-					:disabled="!dataChanged"
-					@click="form.submit()"
-				>
-					Speichern
-				</ButtonDefault>
-			</div>
-		</template>
-		<!-- </template> -->
-		<div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
-			<div class="flex flex-wrap justify-center mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
-				<div class="flex mx-auto sm:mx-0 sm:pr-4 basis-full lg:block lg:p-0">
-					<UFormGroup
-						size="xl"
-						class="w-full 2xl:mx-auto lg:w-96"
-						label="Suchen"
-					>
-						<UInput
-							ref="search_input"
-							v-model="search_input_value"
-							size="2xl"
-							class="my-auto"
-							icon="i-heroicons-magnifying-glass-20-solid"
-							:placeholder="`${selectedTab === 0 ? 'Schiffsname, ' : ''}Modell, Hersteller...`"
-						/>
-						<button
-							v-if="search_input_value !== '' && !search_input_value"
-							type="button"
-							class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
-							@click="search_input_value = ''"
-						>
-							<UIcon
-								name="i-heroicons-x-mark-16-solid"
-								class="my-auto transition opacity-75 hover:opacity-100"
-							/>
-						</button>
-					</UFormGroup>
-				</div>
-			</div>
-			<div
-				class="flex flex-wrap justify-center w-full mx-auto my-auto lg:w-fit h-fit lg:mr-0 lg:gap-4 lg:justify-normal"
-			>
-				<div class="flex mt-6 sm:pr-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
-					<ButtonDefault
-						class="mx-auto sm:mr-0 sm:ml-auto"
-						@click="() => userSettingsStore.AMSToggleHangarDetailView()"
-					>
-						Detail Ansicht:
-						{{ userSettings.ams.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
-					</ButtonDefault>
-				</div>
-				<div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
-					<ButtonDefault
-						class="mx-auto sm:ml-0 sm:mr-auto"
-						@click="() => userSettingsStore.AMSToggleHangarLoanerView()"
-					>
-						Leihschiff-Ansicht: {{ loanerView ? 'Ausschalten' : 'Anschalten' }}
-					</ButtonDefault>
-				</div>
-			</div>
-		</div>
-		<!-- <div class="flex w-full px-6"> -->
-		<!-- search -->
-		<!-- </div> -->
-		<!-- <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
+      </UForm>
+    </template>
+    <template #slideFooter>
+      <div id="ship-edit-buttons" class="flex flex-wrap justify-between w-full px-8 my-auto">
+        <ButtonDefault type="button" class="w-1/3" color="danger" @click="modalStore.closeSlide">
+          Schließen
+        </ButtonDefault>
+        <ButtonDefault
+          :type="dataChanged ? 'submit' : 'button'"
+          class="w-1/3"
+          color="success"
+          :disabled="!dataChanged"
+          @click="form.submit()"
+        >
+          Speichern
+        </ButtonDefault>
+      </div>
+    </template>
+    <!-- </template> -->
+    <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
+      <div class="flex flex-wrap justify-center mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal">
+        <div class="flex mx-auto sm:mx-0 sm:pr-4 basis-full lg:block lg:p-0">
+          <UFormGroup size="xl" class="w-full 2xl:mx-auto lg:w-96" label="Suchen">
+            <UInput
+              ref="search_input"
+              v-model="search_input_value"
+              size="2xl"
+              class="my-auto"
+              icon="i-heroicons-magnifying-glass-20-solid"
+              :placeholder="`${selectedTab === 0 ? 'Schiffsname, ' : ''}Modell, Hersteller...`"
+            />
+            <button
+              v-if="search_input_value !== '' && !search_input_value"
+              type="button"
+              class="absolute top-0 bottom-0 z-20 flex my-auto right-3 h-fit"
+              @click="search_input_value = ''"
+            >
+              <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
+            </button>
+          </UFormGroup>
+        </div>
+      </div>
+      <div
+        class="flex flex-wrap justify-center w-full mx-auto my-auto lg:w-fit h-fit lg:mr-0 lg:gap-4 lg:justify-normal"
+      >
+        <div class="flex mt-6 sm:pr-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
+          <ButtonDefault
+            class="mx-auto sm:mr-0 sm:ml-auto"
+            @click="() => userSettingsStore.AMSToggleHangarDetailView()"
+          >
+            Detail Ansicht:
+            {{ userSettings.ams.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
+          </ButtonDefault>
+        </div>
+        <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
+          <ButtonDefault
+            class="mx-auto sm:ml-0 sm:mr-auto"
+            @click="() => userSettingsStore.AMSToggleHangarLoanerView()"
+          >
+            Leihschiff-Ansicht: {{ loanerView ? 'Ausschalten' : 'Anschalten' }}
+          </ButtonDefault>
+        </div>
+      </div>
+    </div>
+    <!-- <div class="flex w-full px-6"> -->
+    <!-- search -->
+    <!-- </div> -->
+    <!-- <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
       <div class="flex flex-wrap justify-center w-full mx-auto lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal"></div>
       <div
         class="flex flex-wrap justify-center w-full mx-auto my-auto lg:w-fit h-fit lg:mr-0 lg:gap-4 lg:justify-normal"
@@ -1746,121 +1721,112 @@ useHead({
         </div>
       </div>
     </div> -->
-		<TabGroup
-			v-if="path.startsWith('/ams/hangar')"
-			:tablist="[
-				{ id: '1', header: 'Hangar' },
-				{ id: '2', header: 'Wunschliste' },
-			]"
-			:store="selectedTab"
-			:change="setTab"
-		>
-			<template #tablist>
-				<div class="flex flex-wrap items-center justify-between w-full">
-					<div
-						id="hangar-tabs"
-						class="flex flex-wrap"
-					>
-						<HeadlessTab
-							v-slot="{ selected }"
-							class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none animate-link"
-						>
-							<h1
-								class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
-								:class="{ 'text-primary-400': selected, 'opacity-50': !selected }"
-							>
-								Hangar
-							</h1>
-						</HeadlessTab>
-						<HeadlessTab
-							v-slot="{ selected }"
-							class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none animate-link"
-						>
-							<h1
-								class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
-								:class="{ 'text-primary-400': selected, 'opacity-50': !selected }"
-							>
-								Wunschliste
-							</h1>
-						</HeadlessTab>
-					</div>
-					<ButtonDefault
-						id="add-button"
-						class="h-fit"
-						@click="openAddModal"
-					>
-						Schiffe hinzufügen
-					</ButtonDefault>
-				</div>
-			</template>
-			<template #tabcontent>
-				<div class="relative flex flex-wrap">
-					<template v-if="selectedTab === 0">
-						<ClientOnly>
-							<TransitionGroup
-								appear
-								enter-active-class="transition-all duration-500"
-								:leave-active-class="
-									loanerViewClasses
-										? 'w-full transition-all duration-500'
-										: 'absolute w-full transition-all duration-500 md:w-1/2 xl:w-1/3 3xl:w-1/4'
-								"
-								:move-class="loanerViewClasses ? null : 'transition-all duration-500 delay-0'"
-								enter-from-class="-translate-y-4 opacity-0"
-								enter-to-class="translate-y-0 opacity-100"
-								leave-from-class="translate-y-0 opacity-100"
-								:leave-to-class="loanerViewClasses ? 'opacity-0 -translate-y-4' : 'opacity-0 -translate-y-0'"
-							>
-								<ShipCard
-									v-for="item in currentFilteredHangar"
-									v-if="!hideHangar"
-									:key="item.id"
-									:ref="item.id === latestShip.id ? 'onboardingShip' : null"
-									:ship-data="item.ship"
-									:hangar-data="item"
-									:detail-view="userSettings.ams.hangarDetailView"
-									:color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
-									:onboarding="item.id === latestShip.id"
-									preload-images
-									:display-crud="!loanerView"
-									internal-bio
-									display-department
-									display-name
-									display-production-state
-									display-loaner-state
-									display-hidden-state
-									display-planned-state
-									@edit="handleEdit"
-									@remove-confirm="onRemoveSubmit"
-								/>
-							</TransitionGroup>
-							<Transition
-								appear
-								enter-active-class="transition-all duration-500"
-								leave-active-class="transition-all duration-500"
-								enter-from-class="opacity-0"
-								enter-to-class="opacity-100"
-								leave-from-class="opacity-100"
-								leave-to-class="opacity-0"
-							>
-								<div
-									v-if="!currentHangar[0] && !hideHangar"
-									key="errorMsg"
-									:initial="{ opacity: 0 }"
-									:animate="{ opacity: 1 }"
-									:exit="{ opacity: 0 }"
-									class="mx-auto"
-								>
-									<h2 class="text-center text-secondary">
-										Es gibt keine Schiffe in deinem Hangar, die deinen Filterkriterien entsprechen...
-									</h2>
-								</div>
-							</Transition>
-						</ClientOnly>
-					</template>
-					<template v-if="selectedTab === 1">
-						Wishlist
-						<!-- <ShipCard
+    <TabGroup
+      v-if="path.startsWith('/ams/hangar')"
+      :tablist="[
+        { id: '1', header: 'Hangar' },
+        { id: '2', header: 'Wunschliste' },
+      ]"
+      :store="selectedTab"
+      :change="setTab"
+    >
+      <template #tablist>
+        <div class="flex flex-wrap items-center justify-between w-full">
+          <div id="hangar-tabs" class="flex flex-wrap">
+            <HeadlessTab
+              v-slot="{ selected }"
+              class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none animate-link"
+            >
+              <h1
+                class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
+                :class="{ 'text-primary-400': selected, 'opacity-50': !selected }"
+              >
+                Hangar
+              </h1>
+            </HeadlessTab>
+            <HeadlessTab
+              v-slot="{ selected }"
+              class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none animate-link"
+            >
+              <h1
+                class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
+                :class="{ 'text-primary-400': selected, 'opacity-50': !selected }"
+              >
+                Wunschliste
+              </h1>
+            </HeadlessTab>
+          </div>
+          <ButtonDefault id="add-button" class="h-fit" @click="openAddModal"> Schiffe hinzufügen </ButtonDefault>
+        </div>
+      </template>
+      <template #tabcontent>
+        <div class="relative flex flex-wrap">
+          <template v-if="selectedTab === 0">
+            <ClientOnly>
+              <TransitionGroup
+                appear
+                enter-active-class="transition-all duration-500"
+                :leave-active-class="
+                  loanerViewClasses
+                    ? 'w-full transition-all duration-500'
+                    : 'absolute w-full transition-all duration-500 md:w-1/2 xl:w-1/3 3xl:w-1/4'
+                "
+                :move-class="loanerViewClasses ? null : 'transition-all duration-500 delay-0'"
+                enter-from-class="-translate-y-4 opacity-0"
+                enter-to-class="translate-y-0 opacity-100"
+                leave-from-class="translate-y-0 opacity-100"
+                :leave-to-class="loanerViewClasses ? 'opacity-0 -translate-y-4' : 'opacity-0 -translate-y-0'"
+              >
+                <ShipCard
+                  v-for="item in currentFilteredHangar"
+                  v-if="!hideHangar"
+                  :key="item.id"
+                  :ref="item.id === latestShip.id ? 'onboardingShip' : null"
+                  :ship-data="item.ship"
+                  :hangar-data="item"
+                  :detail-view="userSettings.ams.hangarDetailView"
+                  :color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
+                  :onboarding="item.id === latestShip.id"
+                  preload-images
+                  :display-crud="!loanerView"
+                  internal-bio
+                  display-department
+                  display-name
+                  display-production-state
+                  display-loaner-state
+                  display-hidden-state
+                  display-planned-state
+                  @edit="handleEdit"
+                  @remove-confirm="onRemoveSubmit"
+                />
+              </TransitionGroup>
+              <Transition
+                appear
+                enter-active-class="transition-all duration-500"
+                leave-active-class="transition-all duration-500"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+              >
+                <div
+                  v-if="!currentHangar[0] && !hideHangar"
+                  key="errorMsg"
+                  :initial="{ opacity: 0 }"
+                  :animate="{ opacity: 1 }"
+                  :exit="{ opacity: 0 }"
+                  class="mx-auto"
+                >
+                  <h2 class="text-center text-secondary">
+                    Es gibt keine Schiffe in deinem Hangar, die deinen Filterkriterien entsprechen...
+                  </h2>
+                </div>
+              </Transition>
+            </ClientOnly>
+          </template>
+          <template v-if="selectedTab === 1">
+            Wishlist
+            <!-- <ShipCard
               v-if="data?.wishlist[0]"
               v-for="item in wishlist?.filter(
                 (e) =>
@@ -1903,65 +1869,62 @@ useHead({
                 </h2>
               </div>
             </Transition> -->
-					</template>
-				</div>
-			</template>
-		</TabGroup>
-		<div
-			v-else-if="path.startsWith('/ams/employees')"
-			class="flex flex-wrap"
-		>
-			<ClientOnly>
-				<TransitionGroup
-					appear
-					enter-active-class="transition-all duration-500"
-					leave-active-class="transition-all duration-500"
-					enter-from-class="-translate-y-4 opacity-0"
-					enter-to-class="translate-y-0 opacity-100"
-					leave-from-class="translate-y-0 opacity-100"
-					leave-to-class="-translate-y-4 opacity-0"
-				>
-					<ShipCard
-						v-for="item in currentFilteredHangar"
-						v-if="!hideHangar"
-						:key="item.id"
-						:ship-data="item.ship"
-						:hangar-data="item"
-						:detail-view="userSettings.ams.hangarDetailView"
-						:color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
-						preload-images
-						internal-bio
-						display-department
-						display-name
-						display-production-state
-						display-loaner-state
-						display-planned-state
-					/>
-				</TransitionGroup>
-				<Transition
-					appear
-					enter-active-class="transition-all duration-500"
-					leave-active-class="transition-all duration-500"
-					enter-from-class="opacity-0"
-					enter-to-class="opacity-100"
-					leave-from-class="opacity-100"
-					leave-to-class="opacity-0"
-				>
-					<div
-						v-if="!currentHangar[0] && !hideHangar"
-						key="errorMsg"
-						:initial="{ opacity: 0 }"
-						:animate="{ opacity: 1 }"
-						:exit="{ opacity: 0 }"
-						class="mx-auto"
-					>
-						<h2 class="text-center text-secondary">
-							Es gibt keine Schiffe dem Hangar von {{ user.full_name }}, die deinen Filterkriterien entsprechen...
-						</h2>
-					</div>
-				</Transition>
-			</ClientOnly>
-			<!-- <Presence>
+          </template>
+        </div>
+      </template>
+    </TabGroup>
+    <div v-else-if="path.startsWith('/ams/employees')" class="flex flex-wrap">
+      <ClientOnly>
+        <TransitionGroup
+          appear
+          enter-active-class="transition-all duration-500"
+          leave-active-class="transition-all duration-500"
+          enter-from-class="-translate-y-4 opacity-0"
+          enter-to-class="translate-y-0 opacity-100"
+          leave-from-class="translate-y-0 opacity-100"
+          leave-to-class="-translate-y-4 opacity-0"
+        >
+          <ShipCard
+            v-for="item in currentFilteredHangar"
+            v-if="!hideHangar"
+            :key="item.id"
+            :ship-data="item.ship"
+            :hangar-data="item"
+            :detail-view="userSettings.ams.hangarDetailView"
+            :color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
+            preload-images
+            internal-bio
+            display-department
+            display-name
+            display-production-state
+            display-loaner-state
+            display-planned-state
+          />
+        </TransitionGroup>
+        <Transition
+          appear
+          enter-active-class="transition-all duration-500"
+          leave-active-class="transition-all duration-500"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
+          <div
+            v-if="!currentHangar[0] && !hideHangar"
+            key="errorMsg"
+            :initial="{ opacity: 0 }"
+            :animate="{ opacity: 1 }"
+            :exit="{ opacity: 0 }"
+            class="mx-auto"
+          >
+            <h2 class="text-center text-secondary">
+              Es gibt keine Schiffe dem Hangar von {{ user.full_name }}, die deinen Filterkriterien entsprechen...
+            </h2>
+          </div>
+        </Transition>
+      </ClientOnly>
+      <!-- <Presence>
         <Motion
           v-if="!currentHangar"
           :initial="{ opacity: 0 }"
@@ -1975,20 +1938,18 @@ useHead({
           </h2>
         </Motion>
       </Presence> -->
-			<!-- <Presence> -->
-			<div
-				v-if="!currentHangar[0]"
-				key="errorMsg"
-				:initial="{ opacity: 0 }"
-				:animate="{ opacity: 1 }"
-				:exit="{ opacity: 0 }"
-				class="mx-auto"
-			>
-				<h2 class="text-center text-secondary">
-					Ganz schön leer hier...
-				</h2>
-			</div>
-			<!-- <Motion
+      <!-- <Presence> -->
+      <div
+        v-if="!currentHangar[0]"
+        key="errorMsg"
+        :initial="{ opacity: 0 }"
+        :animate="{ opacity: 1 }"
+        :exit="{ opacity: 0 }"
+        class="mx-auto"
+      >
+        <h2 class="text-center text-secondary">Ganz schön leer hier...</h2>
+      </div>
+      <!-- <Motion
           v-if="!currentHangar[0]"
           :initial="{ opacity: 0 }"
           :animate="{ opacity: 1 }"
@@ -1998,9 +1959,9 @@ useHead({
         >
           <h2 class="text-center text-secondary">Ganz schön leer hier...</h2>
         </Motion> -->
-			<!-- </Presence> -->
-		</div>
-	</NuxtLayout>
+      <!-- </Presence> -->
+    </div>
+  </NuxtLayout>
 </template>
 
 <style lang="postcss">

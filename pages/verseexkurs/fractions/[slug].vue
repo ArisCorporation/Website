@@ -1,25 +1,32 @@
 <script setup lang="ts">
 const route = useRoute();
-const { readItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 const selectedTab = ref(0);
 
-const dataRes = await readItems('fractions', {
-  fields: ['name', 'banner', 'content', 'category.id', 'category.name'],
-  filter: {
-    slug: { _eq: route.params.slug },
+const { data } = await useAsyncData(
+  'FRACTION',
+  () =>
+    directus.request(
+      readItems('fractions', {
+        fields: ['name', 'banner', 'content', 'category.id', 'category.name'],
+        filter: {
+          slug: { _eq: route.params.slug },
+        },
+        limit: 1,
+      }),
+    ),
+  {
+    transform: (rawFractions: any[]) => transformFraction(rawFractions[0]),
   },
-  limit: 1,
-});
+);
 
-if (!dataRes[0]) {
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
     fatal: true,
   });
 }
-
-const data = computed(() => transformFraction(dataRes[0]));
 
 useHead({
   title: data.value.name,
