@@ -1,22 +1,30 @@
 <script setup lang="ts">
-const { readItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 const selectedMainTab = ref(0);
 const selectedSubTab = ref(0);
 
-const categories = await readItems('company_categories', {
-  fields: ['name', 'sub_categories.name', 'sub_categories.sub_categories.name'],
-  filter: { superior_category: { _null: true } },
-  sort: ['sort'],
-});
+const {data: categories} = await useAsyncData('COMPANIES:CATEGORIES', () =>
+  directus.request(
+    readItems('company_categories', {
+      fields: ['name', 'sub_categories.name', 'sub_categories.sub_categories.name'],
+      filter: { superior_category: { _null: true } },
+      sort: ['sort'],
+    }),
+  ),
+);
 
-const companies = await readItems('companies', {
-  fields: ['name', 'slug', 'logo', 'category.name'],
-  filter: { status: { _eq: 'published' } },
-  sort: ['name'],
-  limit: -1,
-});
+const {data: companies} = await useAsyncData('COMPANIES', () =>
+  directus.request(
+    readItems('companies', {
+      fields: ['name', 'slug', 'logo', 'category.name'],
+      filter: { status: { _eq: 'published' } },
+      sort: ['name'],
+      limit: -1,
+    }),
+  ),
+);
 
-if (!categories || !companies) {
+if (!categories.value || !companies.value) {
   throw createError({
     statusCode: 500,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
@@ -24,14 +32,14 @@ if (!categories || !companies) {
   });
 }
 
-const mainCategory = computed(() => categories[selectedMainTab.value]);
-const subCategories = computed(() => categories[selectedMainTab.value].sub_categories);
+const mainCategory = computed(() => categories.value[selectedMainTab.value]);
+const subCategories = computed(() => categories.value[selectedMainTab.value].sub_categories);
 const subSubCategories = computed(
-  () => categories[selectedMainTab.value].sub_categories[selectedSubTab.value].sub_categories,
+  () => categories.value[selectedMainTab.value].sub_categories[selectedSubTab.value].sub_categories,
 );
 
 const subTabs = computed(() =>
-  categories[selectedMainTab.value].sub_categories.map((obj) => ({
+  categories.value[selectedMainTab.value].sub_categories.map((obj) => ({
     header: obj.name,
   })),
 );
@@ -73,7 +81,7 @@ definePageMeta({
           :change="(index: number) => (selectedSubTab = index)"
         >
           <template #tabcontent>
-            <div v-if="subSubCategories[0]" v-for="category in subSubCategories" :key="category.name">
+            <div v-for="category in subSubCategories" v-if="subSubCategories[0]" :key="category.name">
               <TableHr
                 v-if="
                   companies.filter(

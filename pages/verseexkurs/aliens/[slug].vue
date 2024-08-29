@@ -1,17 +1,26 @@
 <script setup lang="ts">
 const route = useRoute();
-const { readItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 const selectedTab = ref(0);
 
-const dataRes = await readItems('aliens', {
-  fields: ['name', 'slug', 'banner', 'content', 'tabs'],
-  filter: {
-    slug: { _eq: route.params.slug },
+const { data } = await useAsyncData(
+  'ALIEN',
+  () =>
+    directus.request(
+      readItems('aliens', {
+        fields: ['name', 'slug', 'banner', 'content', 'tabs'],
+        filter: {
+          slug: { _eq: route.params.slug },
+        },
+        limit: 1,
+      }),
+    ),
+  {
+    transform: (rawAliens: any[]) => transformAlien(rawAliens[0]),
   },
-  limit: 1,
-});
+);
 
-if (!dataRes[0]) {
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
@@ -19,7 +28,6 @@ if (!dataRes[0]) {
   });
 }
 
-const data = computed(() => transformAlien(dataRes[0]));
 const current_content = computed(() => data.value.tabs[selectedTab.value]?.content);
 
 useHead({

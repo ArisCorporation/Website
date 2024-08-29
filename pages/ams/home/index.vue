@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const modalStore = useModalStore();
-const user = transformUser(useDirectusAuth().user?.value);
+const {directus, readMe} = useCMS()
+const { data: user } = await useAsyncData('AMS:ME', () => directus.request(readMe()));
 
 const indexItems = [
   {
@@ -21,7 +22,7 @@ const indexItems = [
     name: 'Nachrichten',
     link: '/messages',
     icon: 'e4398951-ffdf-4fd8-a538-d6f4df38d417',
-    released: false,
+    released: true,
     level: 0,
   },
   {

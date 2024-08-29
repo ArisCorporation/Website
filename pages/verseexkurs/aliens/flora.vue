@@ -1,23 +1,31 @@
 <script setup lang="ts">
-const { readItems, readSingleton } = useDirectusItems();
+const { directus, readItems, readSingleton } = useCMS();
 const modalStore = useModalStore();
 const selectedItem = ref();
 const selectedTab = ref(0);
 
-const introduction = await readSingleton('flora_index', {
-  fields: ['content'],
-});
+const { data: introduction } = await useAsyncData('FLORA:INTRODUCTION', () =>
+  directus.request(
+    readSingleton('flora_index', {
+      fields: ['content'],
+    }),
+  ),
+);
 
-const data = await readItems('flora', {
-  fields: ['banner', 'name', 'slug', 'content', 'category'],
-  filter: {
-    status: 'published',
-  },
-  limit: -1,
-  sort: ['name'],
-});
+const { data } = await useAsyncData('FLORA', () =>
+  directus.request(
+    readItems('flora', {
+      fields: ['banner', 'name', 'slug', 'content', 'category'],
+      filter: {
+        status: 'published',
+      },
+      limit: -1,
+      sort: ['name'],
+    }),
+  ),
+);
 
-if (!data || !introduction) {
+if (!data.value || !introduction.value) {
   throw createError({
     statusCode: 500,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',

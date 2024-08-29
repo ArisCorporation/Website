@@ -1,10 +1,8 @@
 <script setup lang="ts">
-const { readSingleton } = useDirectusItems();
+const { directus, readSingleton } = useCMS();
 
-const { content: credits } = await readSingleton('credits', {
-  query: {
-    fields: ['content'],
-  },
+const { data: credits } = await useAsyncData('CREDITS', () => directus.request(readSingleton('credits', { fields: ['content'] })), {
+  transform: (data) => data.content,
 });
 
 if (!credits) {

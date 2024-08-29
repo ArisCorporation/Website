@@ -655,7 +655,9 @@
             <div
               :class="'grid mt-6 gap-x-6'"
               :style="{
-                'grid-template-columns': `repeat(${data.filter((e) => e.category === 'ship' && e.name !== 'Komponenten').length}, minmax(0, 1fr))`,
+                'grid-template-columns': `repeat(${
+                  data.filter((e) => e.category === 'ship' && e.name !== 'Komponenten').length
+                }, minmax(0, 1fr))`,
               }"
             >
               <NuxtLink
@@ -944,7 +946,7 @@
 </template>
 
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 const router = useRouter();
 
 const selected_tab = ref(0);
@@ -1055,12 +1057,14 @@ const technologies = [
   },
 ];
 
-const { data } = await readAsyncItems('technologies', {
-  query: {
-    limit: -1,
-    fields: ['id', 'icon', 'banner', 'name', 'slug', 'description', 'content', 'category'],
-  },
-});
+const { data } = await useAsyncData('TECHNOLOGY', () =>
+  directus.request(
+    readItems('technologies', {
+      limit: -1,
+      fields: ['id', 'icon', 'banner', 'name', 'slug', 'description', 'content', 'category'],
+    }),
+  ),
+);
 
 useHead({
   title: 'Technologien',
