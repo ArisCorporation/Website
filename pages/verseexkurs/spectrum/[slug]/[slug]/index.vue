@@ -1,17 +1,21 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 
-const { data } = await readAsyncItems('spectrum_threads', {
-  query: {
-    fields: ['id', 'name', 'banner', 'content', 'category.banner', 'category.name'],
-    filter: {
-      slug: { _eq: useRoute().params.slug },
-    },
-  },
-  transform: (data) => data[0],
-});
+const { data } = await useAsyncData(
+  'SPECRTUM:THREAD',
+  () =>
+    directus.request(
+      readItems('spectrum_threads', {
+        fields: ['id', 'name', 'banner', 'content', 'category.banner', 'category.name'],
+        filter: {
+          slug: { _eq: useRoute().params.slug },
+        },
+      }),
+    ),
+  { transform: (data) => data[0] },
+);
 
-if (!data) {
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',

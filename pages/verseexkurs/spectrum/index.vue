@@ -1,14 +1,16 @@
 <script setup lang="ts">
-const { readAsyncItems } = useDirectusItems();
+const { directus, readItems } = useCMS();
 
-const { data } = await readAsyncItems('spectrum_categories', {
-  query: {
-    fields: ['id', 'name', 'slug', 'banner', 'content', 'threads.id'],
-    sort: ['name'],
-  },
-});
+const { data } = await useAsyncData('SPECTRUM', () =>
+  directus.request(
+    readItems('spectrum_categories', {
+      fields: ['id', 'name', 'slug', 'banner', 'content', 'threads.id'],
+      sort: ['name'],
+    }),
+  ),
+);
 
-if (!data) {
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',

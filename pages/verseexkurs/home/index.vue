@@ -1,8 +1,12 @@
 <script setup lang="ts">
-const { readSingleton } = useDirectusItems();
-const data = await readSingleton('verse_exkurs', {
-  fields: ['content', 've_links', 'sources'],
-});
+const { directus, readSingleton } = useCMS();
+const { data } = await useAsyncData('VE_HOME', () =>
+  directus.request(
+    readSingleton('verse_exkurs', {
+      fields: ['content', 've_links', 'sources'],
+    }),
+  ),
+);
 
 definePageMeta({
   path: '/verseexkurs',

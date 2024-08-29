@@ -1,8 +1,11 @@
-export default defineNuxtRouteMiddleware((to, _from) => {
-  const { refreshTokenCookie, refresh, tokens, readMe, user } = useDirectusAuth();
+export default defineNuxtRouteMiddleware(async(to, _from) => {
+  const { directus } = useCMS();
   const nuxtApp = useNuxtApp();
 
-  if (!user.value) {
+  // const { data: user } = await useAsyncData('USER', () => directus.request(readMe()));
+  const token = await directus.getToken()
+
+  if (!token) {
     if (nuxtApp.isHydrating) {
       return abortNavigation();
     } else {

@@ -1,27 +1,35 @@
 <script setup lang="ts">
-const { readSingleton } = useDirectusItems();
+const { directus, readSingleton } = useCMS();
 const VeTabs = useVeTabsStore();
 
-const dataRes = await readSingleton('uee', {
-  fields: ['banner', 'content', 'tabs', 'holidays'],
-});
-const data = computed(() => ({
-  banner: dataRes.banner,
-  content: dataRes.content,
-  tablist: dataRes.tabs.map((obj: any) => ({
-    header: obj.title,
-    content: obj.content,
-  })),
-  holidayTablist: dataRes.holidays.map((obj: any) => ({
-    header: obj.name,
-    date: obj.date,
-    content: obj.content,
-  })),
-  sections: dataRes.tabs,
-  holidays: data.holidays,
-}));
+const { data } = await useAsyncData(
+  '',
+  () =>
+    directus.request(
+      readSingleton('uee', {
+        fields: ['banner', 'content', 'tabs', 'holidays'],
+      }),
+    ),
+  {
+    transform: (data) => ({
+      banner: data.banner,
+      content: data.content,
+      tablist: data.tabs.map((obj: any) => ({
+        header: obj.title,
+        content: obj.content,
+      })),
+      holidayTablist: data.holidays.map((obj: any) => ({
+        header: obj.name,
+        date: obj.date,
+        content: obj.content,
+      })),
+      sections: data.tabs,
+      holidays: data.holidays,
+    }),
+  },
+);
 
-if (!data) {
+if (!data.value) {
   throw createError({
     statusCode: 404,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',

@@ -54,7 +54,6 @@
     "@tiptap/extension-underline": "^2.4.0",
     "@vue-email/nuxt": "^0.8.19",
     "nuxt": "^3.12.4",
-    "nuxt-directus-next": "^0.0.15",
     "nuxt-headlessui": "^1.2.0",
     "nuxt-lodash": "^2.5.3",
     "nuxt-resend": "^0.0.2",

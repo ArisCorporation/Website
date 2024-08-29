@@ -2,13 +2,13 @@
 import { object, string, number, boolean, type InferType } from 'yup'
 import type { FormSubmitEvent } from '#ui/types'
 
-const { updateUser } = useDirectusUsers()
+const { directus, readMe, updateUser } = useCMS()
 const modalStore = useModalStore()
 const config = useRuntimeConfig()
 const saveLoading = ref(false)
 const submitSuccess = ref(false)
 
-const user = transformUser(await useDirectusAuth().readMe())
+const user = transformUser(await directus.request(readMe()))
 
 type discordMember = {
 	id: string
