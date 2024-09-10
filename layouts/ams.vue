@@ -9,6 +9,10 @@ const { directus, readMe, updateUser } = useCMS();
 const router = useRouter();
 const modalStore = useModalStore();
 
+defineProps<{
+  noscroll: boolean;
+}>();
+
 const { data: user, refresh: refreshUser } = await useAsyncData('AMS:ME', () => directus.request(readMe()));
 
 YupPassword(yup);
@@ -268,7 +272,10 @@ useHead({
     />
     <div id="sidebar-space" class="hidden lg:block" />
     <!-- lg:max-w-[calc(100vw-16rem)]  lg:ml-64 -->
-    <div class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen">
+    <div
+      class="flex flex-col justify-between flex-1 w-full max-w-full min-h-screen"
+      :class="{ 'overflow-y-clip h-screen': noscroll }"
+    >
       <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
 
       <div v-if="JSON.parse(useCookie('devtools').value)" class="bg-black z-[99] pb-4 px-8">

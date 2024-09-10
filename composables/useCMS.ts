@@ -49,7 +49,7 @@ export const useCMS = () => {
     }
     set(data) {
       authStore.setData(data);
-      console.log('set_token', data);
+      // console.log('set_token', data);
     }
   }
   const storage = new CookieStorage();

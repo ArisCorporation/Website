@@ -4,7 +4,7 @@ import Shepherd from 'shepherd.js';
 import { offset } from '@floating-ui/dom';
 import type { FormSubmitEvent } from '#ui/types';
 
-const { directus, readItems, updateItem, deleteItems, createItems, readMe, readUsers, updateUser } = useCMS();
+const { directus, readItem, readItems, updateItem, deleteItems, createItems, readMe, readUsers, updateUser } = useCMS();
 const { params, path } = useRoute();
 const userSettingsStore = useUserSettingsStore();
 const userSettings = storeToRefs(userSettingsStore);
@@ -24,6 +24,9 @@ const selectedDepartment = ref({ name: 'Alle' });
 const hangarRefreshPending = ref(false);
 const onboardingShip = ref();
 const loanerViewClasses = ref();
+
+const selectedShip = ref();
+const quickViewOpen = ref(false);
 
 useSearch(search, search_input_value, { debounce: true, query: false, debounceAction: getCurrentFilteredHangar });
 
@@ -863,7 +866,12 @@ const shipsWithCounts = computed(() => {
 });
 
 onMounted(() => {
-	if(path.startsWith('/ams/hangar') && user.value.onboardings?.find((e: string) => e === 'hangar')) tour.start();
+  if (
+    path.startsWith('/ams/hangar') &&
+    user.value.onboardings &&
+    user.value.onboardings?.find((e: string) => e !== 'hangar')
+  )
+    tour.start();
 
   tour.on('complete', () => {
     updateOnboarding();
@@ -886,6 +894,101 @@ watch(
   { deep: true },
 );
 
+async function openQuickView(id: string) {
+  const { data: shipData } = await useAsyncData(
+    'HANGAR:SELECTED_SHIP',
+    () =>
+      directus.request(
+        readItem('ships', id, {
+          fields: [
+            'id',
+            'date_updated',
+            'p4k_mode',
+            'p4k_version',
+            'name',
+            'slug',
+            'store_image.id',
+            'store_image.width',
+            'store_image.height',
+            'store_image.focal_point_x',
+            'store_image.focal_point_y',
+            'production_status',
+            'description',
+            'history',
+            'length',
+            'beam',
+            'height',
+            'mass',
+            'cargo',
+            'classification',
+            'size',
+            'crew_min',
+            'crew_max',
+            'quantum_fuel_tanks',
+            'hydrogen_fuel_tanks',
+            'pledge_price',
+            'price',
+            'speed_scm',
+            'speed_max',
+            'acceleration_main',
+            'acceleration_retro',
+            'acceleration_vtol',
+            'acceleration_maneuvering',
+            'insurance_claim_time',
+            'insurance_expedited_time',
+            'insurance_expedited_cost',
+            'manufacturer.name',
+            'manufacturer.slug',
+            'manufacturer.logo',
+            'gallery.directus_files_id',
+            'commercial_video_id',
+            'commercials.commercial_id.id',
+            'commercials.commercial_id.type',
+            'brochure',
+            'hologram',
+            'store_url',
+            'sales_url',
+            'on_sale',
+            'rating.user_created',
+            'rating.introduction',
+            'rating.ratings',
+            'rating.strengths_and_weaknesses',
+            'loaners.loaner_id.id',
+            'loaners.loaner_id.name',
+            'loaners.loaner_id.slug',
+            'loaners.loaner_id.store_image',
+            'loaners.loaner_id.manufacturer.name',
+            'loaners.loaner_id.manufacturer.slug',
+            'loaners.loaner_id.production_status',
+            'variants.variant_id.id',
+            'variants.variant_id.name',
+            'variants.variant_id.slug',
+            'variants.variant_id.store_image',
+            'variants.variant_id.manufacturer.name',
+            'variants.variant_id.manufacturer.slug',
+            'variants.variant_id.production_status',
+            'modules.id',
+            'modules.name',
+            'modules.slug',
+            'modules.gallery.directus_file_id',
+            'modules.manufacturer.name',
+            'modules.manufacturer.slug',
+            'modules.production_status',
+          ],
+          filter: {
+            slug: { _eq: params.slug },
+          },
+        }),
+      ),
+    { transform: (rawShip: any[]) => transformShip(rawShip) },
+  );
+
+  console.log(shipData);
+
+  selectedShip.value = unref(shipData);
+  quickViewOpen.value = true;
+}
+
 definePageMeta({
   alias: '/ams/employees/hangar/:slug',
   middleware: 'auth',
@@ -898,7 +1001,8 @@ useHead({
 </script>
 
 <template>
-  <NuxtLayout name="ams">
+  <NuxtLayout name="ams" :noscroll="quickViewOpen">
+    <ShipQuickView v-model:open="quickViewOpen" :ship="selectedShip" />
     <template #modalContent>
       <template v-if="modalStore.type === 'addShips' || modalStore.type === 'addWishlist'">
         <div class="mt-6 space-y-4 text-left">
@@ -1796,6 +1900,8 @@ useHead({
                   display-loaner-state
                   display-hidden-state
                   display-planned-state
+                  quick-view
+                  @quick-view-open="openQuickView"
                   @edit="handleEdit"
                   @remove-confirm="onRemoveSubmit"
                 />
