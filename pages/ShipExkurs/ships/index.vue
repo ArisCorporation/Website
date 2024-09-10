@@ -129,7 +129,7 @@ const { data: count, pending: countPending } = await useAsyncData(
       readItems('ships', {
         limit: -1,
         fields: ['id'],
-        filter,
+        filter: filter.value,
       }),
     ),
   { watch: [filter, page, pageCount] },
@@ -157,7 +157,7 @@ const { data: ships, pending: shipsPending } = await useAsyncData(
         sort: ['name'],
         limit: pageCount.value,
         page: page.value,
-        filter,
+        filter: filter.value,
       }),
     ),
   { watch: [count], transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)) },
@@ -211,7 +211,7 @@ useHead({
         </UFormGroup>
       </div>
     </div>
-    <hr >
+    <hr />
     <div class="flex flex-wrap justify-between mb-6 xl:flex-nowrap h-fit basis-full">
       <ButtonDefault
         class="my-auto h-fit basis-full xl:basis-auto"
@@ -269,7 +269,7 @@ useHead({
         <code>Soon</code>
       </UFormGroup>
     </div>
-    <hr >
+    <hr />
     <div class="mx-auto mb-2 text-center w-fit">
       <div class="flex justify-center">
         <UPagination v-model="page" :page-count="pageCount" :total="pageTotal" />
