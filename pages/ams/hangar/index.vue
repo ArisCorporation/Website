@@ -975,9 +975,6 @@ async function openQuickView(id: string) {
             'modules.manufacturer.slug',
             'modules.production_status',
           ],
-          filter: {
-            slug: { _eq: params.slug },
-          },
         }),
       ),
     { transform: (rawShip: any[]) => transformShip(rawShip) },
@@ -2005,6 +2002,8 @@ useHead({
             display-production-state
             display-loaner-state
             display-planned-state
+            quick-view
+            @quick-view-open="openQuickView"
           />
         </TransitionGroup>
         <Transition
