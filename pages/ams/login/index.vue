@@ -2,15 +2,14 @@
 import { object, string, type InferType } from 'yup';
 import type { FormSubmitEvent } from '#ui/types';
 
-const { directus, readFiles, readMe, login, logout } = useCMS();
+const { directus, readFiles } = useCMS();
 const error = ref();
 const router = useRouter();
 const route = useRoute();
 const { query } = route;
 const config = useRuntimeConfig();
 const redirectUri = ref(route.query.redirect?.toString() ? route.query.redirect : '/ams');
-// console.log(await directus.request(readMe()))
-console.log(await directus.getToken());
+
 const state: { username: string; password: string } = reactive({
   username: '',
   password: '',
@@ -25,7 +24,7 @@ const schema = object({
 type Schema = InferType<typeof schema>;
 
 const { data: wallpaperList } = await useAsyncData(
-  'LOGIN_WALLPAPER_LIST',
+  'LOGIN:WALLPAPER_LIST',
   () =>
     directus.request(
       readFiles({

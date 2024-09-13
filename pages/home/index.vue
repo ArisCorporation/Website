@@ -33,7 +33,7 @@ const { data: users } = await useAsyncData(
       }),
     ),
   {
-    transform: (rawUsers: IRawUser[]) => rawUsers.map((rawUser: IRawUser) => transformUser(rawUser)),
+    transform: (rawUsers) => rawUsers.map((rawUser) => transformUser(rawUser)),
   },
 );
 // const users = computed(() => usersRes.map((user: IRawUser) => transformUser(user)));
@@ -74,7 +74,7 @@ const { data: userHangars } = await useAsyncData(
   'HOME:HANGARS',
   () =>
     directus.request(
-      readItems('hangars', {
+      readItems('user_hangars', {
         fields: [
           'id',
           'name',

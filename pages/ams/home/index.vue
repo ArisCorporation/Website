@@ -1,7 +1,9 @@
 <script setup lang="ts">
 const modalStore = useModalStore();
-const {directus, readMe} = useCMS()
-const { data: user } = await useAsyncData('AMS:ME', () => directus.request(readMe()));
+const { directus, readMe } = useCMS();
+const { data: user } = await useAsyncData('AMS:ME', () => directus.request(readMe({ fields: ['*', 'role.*'] })), {
+  transform: (user) => transformUser(user),
+});
 
 const indexItems = [
   {
@@ -99,12 +101,12 @@ definePageMeta({
         <NuxtLink
           v-for="item in indexItems"
           :key="item.name"
-          :to="user.position.access_level >= item.level && item.released ? '/ams' + item.link : null"
+          :to="user.position?.access_level >= item.level && item.released ? '/ams' + item.link : null"
           class="w-full h-fit aspect-[1/1] relative flex transition hover:scale-105 active:scale-95 group cursor-pointer text-center text-tbase hover:no-underline"
         >
           <div
             class="block w-full h-full bg-image rounded-xl peer group-hover:opacity-40 transition-group"
-            :class="{ 'opacity-40': user.position.access_level < item.level || !item.released }"
+            :class="{ 'opacity-40': user.position?.access_level < item.level || !item.released }"
             :style="{ backgroundImage: `url(${$config.public.fileBase + item.icon})` }"
           />
           <div class="absolute bottom-0 z-10 flex w-full h-full mt-1 transition-group">
@@ -113,12 +115,12 @@ definePageMeta({
                 <p class="p-0 text-sm">{{ item.name }}</p>
               </div>
               <div class="hidden group-hover:contents">
-                <p v-if="user.position.access_level >= item.level && item.released" class="p-0 text-sm text-white">
+                <p v-if="user.position?.access_level >= item.level && item.released" class="p-0 text-sm text-white">
                   {{ item.name }}
                 </p>
                 <p v-else-if="!item.released" class="p-0 text-white/80">Bald verfügbar...</p>
                 <p
-                  v-else-if="user.position.access_level < item.level"
+                  v-else-if="user.position?.access_level < item.level"
                   class="p-0 text-md redacted-small"
                   data-text="[ KEIN ZUGRIFF ]"
                 >

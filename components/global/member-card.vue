@@ -11,7 +11,7 @@ defineProps({
     default: false,
   },
   data: {
-    type: Object as PropType<IUser>,
+    type: null,
     required: true,
   },
   hidden: {
