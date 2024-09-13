@@ -328,9 +328,9 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 }
 
 definePageMeta({
-	middleware: 'auth',
-	layout: false,
-})
+  middleware: 'auth',
+  layout: false,
+});
 </script>
 
 <template>

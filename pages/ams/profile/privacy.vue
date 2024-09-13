@@ -1,3 +1,3 @@
 <template>
-  <h1>priv</h1>
+  <h1>priv, fleet & hangar quick view on, off; hangar öffentlich anzeigen on, off</h1>
 </template>
