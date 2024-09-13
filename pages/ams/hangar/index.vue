@@ -980,8 +980,6 @@ async function openQuickView(id: string) {
     { transform: (rawShip: any[]) => transformShip(rawShip) },
   );
 
-  console.log(shipData);
-
   selectedShip.value = unref(shipData);
   quickViewOpen.value = true;
 }
