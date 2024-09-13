@@ -144,7 +144,7 @@ function handleHomeButton(item: any) {
                   :name="item.icon"
                   hover
                   class="h-auto"
-                  :class="[item.icon === 'IconsLogosAmsBanner' ? 'w-20 lg:w-24' : 'w-14 lg:w-20']"
+                  :class="[item.icon === 'IconsLogosAmsBanner' ? ' w-20 lg:w-24' : 'w-14 lg:w-20']"
               /></span>
             </NuxtLink>
             <div class="tooltip">

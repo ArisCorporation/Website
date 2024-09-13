@@ -32,6 +32,7 @@ import {
   deleteFolder,
   deleteFolders,
   authentication,
+  realtime,
 } from '@directus/sdk';
 // import { useCookie } from '#app';
 import type { CMSTypes } from '~/types/cms-types';
@@ -69,7 +70,8 @@ export const useCMS = () => {
 
   const directus = createDirectus<CMSTypes>('https://cms.ariscorp.de')
     .with(rest({ credentials: 'include' }))
-    .with(authentication('json', { storage }));
+    .with(authentication('json', { storage }))
+    .with(realtime());
 
   async function signedIn() {
     return (await directus.getToken()) ? true : false;
