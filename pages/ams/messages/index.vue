@@ -1,47 +1,25 @@
 <script lang="ts" setup>
-import { createDirectus, staticToken, realtime } from '@directus/sdk';
-const { url } = useDirectus();
-const client = useDirectusRealtime();
-const { user } = useDirectusAuth();
+// import { createDirectus, staticToken, realtime } from '@directus/sdk';
+// const { user } = useDirectusAuth();
 
-const messageList = ref();
+const { directus, readMe } = useCMS();
+const messageList = ref([]);
 const chats = ref<any[]>([]);
 const selected_chat = ref<any>();
 const selected_chat_users = ref<string>('');
 const message_input = ref<string>('');
 const send_loading = ref<boolean>(false);
 const channelList = useCookie<number[]>('messages:sidebar');
-// const ws_url = url.origin + '/websocket'
-// const access_token = unref(tokens).access_token
+const messageHistory = ref([]);
 
-// const client = createDirectus(ws_url)
-//   .with(staticToken(access_token))
-//   .with(realtime());
+const { data: user, refresh: refreshUser } = await useAsyncData('AMS:ME', () => directus.request(readMe()), {
+  transform: (data) => transformUser(data),
+});
 
-async function send_message(message: string, chat_id: string) {
-  if (!message) return;
-  send_loading.value = true;
-  await client.sendMessage({
-    type: 'items',
-    collection: 'messages',
-    action: 'create',
-    data: {
-      text: message,
-      chat: chat_id,
-    },
-  });
-  send_loading.value = false;
-  const index = chats.value?.findIndex((c) => c.id === chat_id);
-  chats.value[index].messages.push({
-    text: message,
-    user_created: unref(user),
-  });
-  message_input.value = '';
-}
-
-async function subscribe() {
-  await client.subscribe('chats', {
-    event: 'create',
+async function subscribeChat(event) {
+  console.log(unref(user)?.id);
+  const { subscription } = await directus.subscribe('chats', {
+    event,
     query: {
       limit: -1,
       sort: '-sort_date',
@@ -54,56 +32,32 @@ async function subscribe() {
       },
     },
   });
-  await client.subscribe('chats', {
-    event: 'update',
-    query: {
-      limit: -1,
-      sort: '-sort_date',
-      fields: ['*', '*.*.*', 'users.user_id.*'],
-      filter: { users: { user_id: { _eq: unref(user)?.id } } },
-      deep: {
-        messages: {
-          _sort: ['date_created'],
-        },
-      },
-    },
-  });
-  await client.subscribe('messages', {
-    event: 'create',
+
+  for await (const message of subscription) {
+    console.log('receiveChat', message);
+    receiveChat(message);
+  }
+}
+async function subscribeMessages(event) {
+  console.log(unref(user)?.id);
+  const { subscription } = await directus.subscribe('messages', {
+    event,
     query: {
       limit: -1,
       sort: '-date_created',
-      fields: ['*', '*.*.*.*'],
+      fields: ['*', '*.*.*'],
       filter: { chat: { users: { user_id: { _eq: unref(user)?.id } } } },
-      deep: {
-        chat: {
-          messages: {
-            _sort: ['date_created'],
-          },
-        },
-      },
     },
   });
-  await client.subscribe('messages', {
-    event: 'update',
-    query: {
-      limit: -1,
-      sort: '-date_created',
-      fields: ['*', '*.*.*.*'],
-      filter: { chat: { users: { user_id: { _eq: unref(user)?.id } } } },
-      deep: {
-        chat: {
-          messages: {
-            _sort: ['date_created'],
-          },
-        },
-      },
-    },
-  });
+
+  for await (const message of subscription) {
+    console.log('receiveMessage', message);
+    receiveMessage(message);
+  }
 }
 
-async function readAllChats() {
-  const test = await client.sendMessage({
+function readAllChats() {
+  directus.sendMessage({
     type: 'items',
     collection: 'chats',
     action: 'read',
@@ -119,104 +73,88 @@ async function readAllChats() {
       },
     },
   });
-
-  console.log('test', test);
 }
 
-client.onWebSocket('open', function () {
-  console.log({ event: 'onopen' });
-});
-
-client.onWebSocket('message', function (message) {
-  const { type, status, data, event } = message;
-  // console.log({ event: 'onmessage', message });
-
-  if (type === 'ping') {
-    client.sendMessage({
-      type: 'pong',
+function receiveChat(data) {
+  if (data.type == 'subscription' && data.event == 'init') {
+    console.log('subscription started');
+  }
+  if (data.type == 'subscription' && data.event == 'create') {
+    // addMessageToList(message.data[0]);
+  }
+  if (data.type == 'subscription' && data.event == 'update') {
+    console.log('message.data');
+    console.log(data);
+  }
+}
+async function receiveMessage(data) {
+  if (data.type == 'subscription' && data.event == 'init') {
+    console.log('subscription started');
+  }
+  if (data.type == 'subscription' && data.event == 'create') {
+    directus.sendMessage({
+      type: 'items',
+      collection: 'chats',
+      action: 'read',
+      query: {
+        limit: -1,
+        sort: '-sort_date',
+        fields: ['*', '*.*.*', 'users.user_id.*'],
+        filter: { id: { _eq: data.data[0].chat.id } },
+        deep: {
+          messages: {
+            _sort: ['date_created'],
+          },
+        },
+      },
     });
   }
-
-  if (type === 'auth' && status === 'ok') {
-    subscribe();
-    readAllChats();
-    // console.log('subscription started');
+  if (data.type == 'subscription' && data.event == 'update') {
+    console.log('message.data');
+    console.log(data);
   }
-
-  if (chats.value?.length === 0) {
-    if (type === 'items') {
-      chats.value = data;
-    }
-  }
-
-  if (type === 'subscription') {
-    if (event === 'create') {
-      if (data[0].messages || data[0].users) {
-        // console.log('new chat created!', [...unref(chats), ...data]);
-      }
-      if (data[0].chat) {
-        // console.log('new message created', data[0].chat);
-        const index = chats.value?.findIndex((chat) => chat.id === data[0].chat?.id);
-        chats.value[index] = data[0].chat;
-      }
-    }
-    if (event === 'update') {
-      if (data[0].messages || data[0].users) {
-        // console.log('chat updated');
-        data.map((chat) => {
-          const index = chats.value?.findIndex((c) => c.id === chat.id);
-          chats.value[index] = chat;
-        });
-      }
-      if (data[0].chat) {
-        // console.log('message updated');
-        data.map((message) => {
-          const chatToUpdate = chats.value?.find((chat) => chat.id === message.chat);
-          if (chatToUpdate) {
-            chatToUpdate.messages = unref(chats)
-              ?.find((chat) => chat?.id === message.chat)
-              ?.messages?.map((m) => (m?.id === message.id ? message : m));
-          }
-        });
-      }
-    }
-  }
-});
-
-client.onWebSocket('close', function () {
-  // console.log({ event: 'onclose' });
-});
-
-client.onWebSocket('error', function (error) {
-  // console.log({ event: 'onerror', error });
-});
-
-function scrollChatToBottom() {
-  messageList.value.scrollTop = messageList.value.scrollHeight;
 }
 
-watch(
-  [chats, selected_chat],
-  () => {
-    nextTick(() => {
-      scrollChatToBottom();
-    });
-  },
-  { deep: true },
-);
-watch(selected_chat, () => {
-  selected_chat_users.value = chats.value
-    .find((e) => e.id === selected_chat.value)
-    ?.users?.map((obj) => transformUser(obj.user_id).full_name)
-    .join(', ');
-});
+function addMessageToList(message) {
+  messageHistory.value.push(message);
+}
 
-onMounted(async () => {
-  await client.connect();
-});
+const messageSubmit = (event) => {
+  const text = event.target.elements.text.value;
 
-onBeforeUnmount(() => {
-  client.disconnect();
+  directus.sendMessage({
+    type: 'items',
+    collection: 'messages',
+    action: 'create',
+    data: { text },
+  });
+
+  event.target.reset();
+};
+
+onMounted(() => {
+  const cleanup = directus.onWebSocket('message', function (data) {
+    if (data.type == 'auth' && data.status == 'ok') {
+      readAllChats();
+      subscribeChat('create');
+      subscribeChat('update');
+      subscribeMessages('create');
+    }
+
+    if (data.type == 'items') {
+      for (const item of data.data) {
+        if (item.hasOwnProperty('messages') && chats.value?.findIndex((e) => e.id === item.id) > -1) {
+          chats.value[chats.value?.findIndex((e) => e.id === item.id)] = item;
+        }
+        if (item.hasOwnProperty('messages') && chats.value?.findIndex((e) => e.id === item.id) === -1) {
+          chats.value.push(item);
+        }
+      }
+    }
+  });
+
+  directus.connect();
+  onBeforeUnmount(cleanup);
 });
 
 definePageMeta({
@@ -227,7 +165,7 @@ definePageMeta({
 
 <template>
   <NuxtLayout name="ams" :screen="true" no-padding>
-    <div class="lg:w-[calc(100vw_-_16rem_-_7px)] h-full">
+    <div class="lg:w-[calc(100vw_-_18rem_-_7px)] h-full">
       <SplitterGroup
         id="group-1"
         direction="horizontal"
@@ -303,9 +241,9 @@ definePageMeta({
               </div>
             </div>
             <div class="sticky bottom-0 mt-auto bg-bprimary">
-              <hr class="mt-2 mb-1" >
+              <hr class="mt-2 mb-1" />
               <!-- <div class="max-h-[204px] overflow-y-auto"> -->
-                <Editor v-model="message_input" messenger-mode @send="() => send_message(message_input, selected_chat)" />
+              <Editor v-model="message_input" messenger-mode @send="() => send_message(message_input, selected_chat)" />
               <!-- </div> -->
             </div>
           </div>
@@ -315,6 +253,7 @@ definePageMeta({
         </SplitterPanel>
       </SplitterGroup>
     </div>
+
     <!-- <div
       class="relative flex items-stretch w-full h-full max-w-full max-h-full grid-cols-3 divide-x-2 overflow-clip divide-bsecondary"
     >
@@ -417,6 +356,6 @@ definePageMeta({
 <style>
 .ProseMirror {
   height: 130px !important;
-  overflow-y: auto
+  overflow-y: auto;
 }
 </style>
