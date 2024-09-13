@@ -3,18 +3,17 @@
 // const { user } = useDirectusAuth();
 
 const { directus, readMe } = useCMS();
-const messageList = ref([]);
+const messageList = ref();
 const chats = ref<any[]>([]);
 const selected_chat = ref<any>();
 const selected_chat_users = ref<string>('');
-const message_input = ref<string>('');
+const chat_input = ref<string>('');
 const send_loading = ref<boolean>(false);
-const channelList = useCookie<number[]>('messages:sidebar');
+// const channelList = useCookie<number[]>('messages:sidebar');
+const layout = useCookie<number[]>('splitter:layout');
 const messageHistory = ref([]);
 
-const { data: user, refresh: refreshUser } = await useAsyncData('AMS:ME', () => directus.request(readMe()), {
-  transform: (data) => transformUser(data),
-});
+const { data: user, refresh: refreshUser } = await useAsyncData('AMS:RAW_ME', () => directus.request(readMe()));
 
 async function subscribeChat(event) {
   console.log(unref(user)?.id);
@@ -22,7 +21,7 @@ async function subscribeChat(event) {
     event,
     query: {
       limit: -1,
-      sort: '-sort_date',
+      sort: ['-messages.date_created', '-sort_date'],
       fields: ['*', '*.*.*', 'users.user_id.*'],
       filter: { users: { user_id: { _eq: unref(user)?.id } } },
       deep: {
@@ -63,7 +62,7 @@ function readAllChats() {
     action: 'read',
     query: {
       limit: -1,
-      sort: '-sort_date',
+      sort: ['-messages.date_created', '-sort_date'],
       fields: ['*', '*.*.*', 'users.user_id.*'],
       filter: { users: { user_id: { _eq: unref(user)?.id } } },
       deep: {
@@ -92,13 +91,14 @@ async function receiveMessage(data) {
     console.log('subscription started');
   }
   if (data.type == 'subscription' && data.event == 'create') {
+    console.log('recievechat', data);
     directus.sendMessage({
       type: 'items',
       collection: 'chats',
       action: 'read',
       query: {
         limit: -1,
-        sort: '-sort_date',
+        sort: ['-messages.date_created', '-sort_date'],
         fields: ['*', '*.*.*', 'users.user_id.*'],
         filter: { id: { _eq: data.data[0].chat.id } },
         deep: {
@@ -115,22 +115,36 @@ async function receiveMessage(data) {
   }
 }
 
-function addMessageToList(message) {
-  messageHistory.value.push(message);
-}
-
-const messageSubmit = (event) => {
-  const text = event.target.elements.text.value;
-
-  directus.sendMessage({
+async function send_message(message: string, chat_id: string) {
+  if (!message) return;
+  send_loading.value = true;
+  await directus.sendMessage({
     type: 'items',
     collection: 'messages',
     action: 'create',
-    data: { text },
+    data: {
+      text: message,
+      chat: chat_id,
+    },
   });
+  send_loading.value = false;
+  const index = chats.value?.findIndex((c) => c.id === chat_id);
+  chats.value[index].messages.push({
+    text: message,
+    user_created: unref(user),
+  });
+  chat_input.value = '';
+}
 
-  event.target.reset();
-};
+function handleItem(item) {
+  if (item.hasOwnProperty('messages') && chats.value?.findIndex((e) => e.id === item.id) > -1) {
+    console.log('replace', item);
+    chats.value[chats.value?.findIndex((e) => e.id === item.id)] = item;
+  }
+  if (item.hasOwnProperty('messages') && chats.value?.findIndex((e) => e.id === item.id) === -1) {
+    chats.value.push(item);
+  }
+}
 
 onMounted(() => {
   const cleanup = directus.onWebSocket('message', function (data) {
@@ -142,19 +156,51 @@ onMounted(() => {
     }
 
     if (data.type == 'items') {
-      for (const item of data.data) {
-        if (item.hasOwnProperty('messages') && chats.value?.findIndex((e) => e.id === item.id) > -1) {
-          chats.value[chats.value?.findIndex((e) => e.id === item.id)] = item;
+      if (Array.isArray(data.data)) {
+        for (const item of data.data) {
+          handleItem(item);
         }
-        if (item.hasOwnProperty('messages') && chats.value?.findIndex((e) => e.id === item.id) === -1) {
-          chats.value.push(item);
-        }
+      } else {
+        handleItem(data.data);
       }
     }
   });
 
   directus.connect();
   onBeforeUnmount(cleanup);
+});
+
+function scrollChatToBottom() {
+  messageList.value.scrollTop = messageList.value.scrollHeight;
+}
+
+watch(
+  chats,
+  () => {
+    console.log('dsa');
+    chats.value.sort((a, b) => {
+      return (
+        new Date(b.messages[b.messages.length - 1].date_created).getTime() -
+        new Date(a.messages[a.messages.length - 1].date_created).getTime()
+      );
+    });
+  },
+  { deep: true },
+);
+watch(
+  [chats, selected_chat],
+  () => {
+    nextTick(() => {
+      scrollChatToBottom();
+    });
+  },
+  { deep: true },
+);
+watch(selected_chat, () => {
+  selected_chat_users.value = chats.value
+    .find((e) => e.id === selected_chat.value)
+    ?.users?.map((obj) => transformUser(obj.user_id).full_name)
+    .join(', ');
 });
 
 definePageMeta({
@@ -165,95 +211,235 @@ definePageMeta({
 
 <template>
   <NuxtLayout name="ams" :screen="true" no-padding>
-    <div class="lg:w-[calc(100vw_-_18rem_-_7px)] h-full">
+    <div class="h-[calc(100vh_-_25px)]">
       <SplitterGroup
         id="group-1"
         direction="horizontal"
-        class="border border-bsecondary"
-        @layout="channelList = $event"
+        class="border rounded-lg border-bsecondary"
+        @layout="layout = $event"
       >
-        <SplitterPanel id="group-1-panel-1" :default-size="channelList[0]" :min-size="20" class="h-full max-h-full">
-          <div class="flex flex-col flex-1 h-full max-w-full max-h-full overflow-y-auto overflow-x-clip">
-            <div
-              v-for="chat in chats"
-              :key="chat.id"
-              :class="[
-                chat.id === selected_chat
-                  ? 'bg-aris-400/20 border-l-aris-400'
-                  : 'border-aris-400/0 hover:bg-aris-400/10 hover:border-l-aris-400/25',
-              ]"
-              class="max-w-full p-2 py-3 border-b border-l cursor-pointer border-b-bsecondary"
-              @click="() => (selected_chat = chat.id)"
-            >
-              <p class="p-0 overflow-x-hidden whitespace-nowrap text-ellipsis">
-                {{ chat?.users?.map((obj) => transformUser(obj.user_id).full_name).join(', ') }}
-              </p>
-              <p class="p-0 -mt-1 overflow-hidden text-sm max-h-10 text-ellipsis text-tbase/50">
-                {{ chat?.messages[chat?.messages.length - 1]?.text.replace(/<[^>]+>/g, '') }}
-              </p>
+        <SplitterPanel id="group-1-panel-1" :default-size="layout[0]" :min-size="20" class="h-full">
+          <div class="flex items-center flex-shrink-0 h-16 min-w-0 px-4 border-b border-bsecondary gap-x-4">
+            <div class="flex items-center justify-between flex-1 gap-x-1.5 min-w-0">
+              <div class="flex items-stretch min-w-0 gap-1.5">
+                <h1 class="flex items-center gap-1.5 text-white min-w-0 m-0 text-base">
+                  <span class="truncate">Posteingang</span>
+                </h1>
+                <UBadge color="primary" variant="subtle">1</UBadge>
+              </div>
+              <div class="flex items-stretch flex-shrink-0 gap-1.5 w-fit h-8">
+                <div>
+                  <UTabs
+                    :items="[
+                      {
+                        label: 'Alle',
+                      },
+                      {
+                        label: 'Ungelesen',
+                      },
+                    ]"
+                    :ui="{
+                      list: {
+                        height: 'h-8',
+                        background: 'bg-bsecondary',
+                        marker: {
+                          background: 'bg-bprimary',
+                        },
+                        tab: {
+                          height: 'h-6',
+                          padding: 'px-2',
+                          size: 'text-xs',
+                        },
+                      },
+                    }"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col flex-1 p-0 overflow-y-auto border-l border-bsecondary">
+            <div v-for="(chat, index) in chats" :key="chat.id">
+              <div
+                class="p-4 text-sm border-l-2 cursor-pointer text-tbase"
+                :class="[
+                  selected_chat?.id === chat?.id
+                    ? 'bg-aris-900/25 border-aris-400'
+                    : 'hover:border-aris-400/25 hover:bg-aris-900/10 border-transparent',
+                ]"
+                @click="() => (selected_chat = chat.id)"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="relative flex items-stretch min-w-0 gap-3 overflow-hidden">
+                    <span
+                      class="relative truncate"
+                      :class="[index === 1 || selected_chat?.id === chat?.id ? 'text-white' : 'text-light-gray']"
+                      >{{
+                        [
+                          ...chat.users
+                            .map((chat_user: any) =>
+                              chat_user.user_id.id !== user.id ? transformUser(chat_user.user_id).full_name : null,
+                            )
+                            .filter((e) => e),
+                          transformUser(user).full_name,
+                        ].join(', ')
+                      }}
+                      <div v-if="index === 1" class="inline-flex ml-1">
+                        <div class="my-auto rounded-full size-2 bg-aris-400" />
+                      </div>
+                    </span>
+                  </div>
+                  <span class="pl-2 min-w-fit">
+                    {{
+                      new Date(chat.messages[chat.messages.length - 1].date_created).toLocaleDateString('de-DE', {
+                        day: '2-digit',
+                        month: 'short',
+                      })
+                    }}
+                    {{
+                      new Date(chat.messages[chat.messages.length - 1].date_created).toLocaleTimeString('de-DE', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    }}
+                  </span>
+                </div>
+                <!-- <p class="p-0">Meeting Schedule</p> -->
+                <p class="p-0 text-dark-gray line-clamp-1">
+                  {{
+                    chat.messages[chat.messages.length - 1].text.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>?/gm, '')
+                  }}
+                </p>
+              </div>
+              <div class="flex flex-row items-center w-full text-center align-center">
+                <div class="flex w-full border-t border-solid border-bsecondary" />
+              </div>
             </div>
           </div>
         </SplitterPanel>
-        <SplitterResizeHandle id="group-1-resize-1" class="w-0.5 relative h-full bg-btertiary">
+        <SplitterResizeHandle id="group-1-resize-1" class="w-0.5 relative bg-btertiary">
           <div class="absolute top-0 bottom-0 flex w-4 h-5 mx-auto my-auto rounded bg-btertiary -left-2 -right-2">
             <UIcon name="i-radix-icons-drag-handle-dots-2" class="size-5" />
           </div>
         </SplitterResizeHandle>
-        <SplitterPanel id="group-1-panel-2" :default-size="channelList[1]" :min-size="33">
-          <div
-            v-if="selected_chat"
-            ref="messageList"
-            class="relative flex flex-col flex-1 h-full max-w-full max-h-full overflow-y-auto overflow-x-clip"
-          >
-            <div class="sticky top-0 z-10 border-b border-b-btertiary bg-bprimary">
-              <UInput v-model="selected_chat_users" size="xs" />
-            </div>
+        <SplitterPanel
+          id="group-1-panel-2"
+          :default-size="layout[1]"
+          :min-size="33"
+          class="relative flex-col items-stretch flex-1 hidden w-full lg:flex"
+        >
+          <div v-if="!selected_chat" class="items-center justify-center flex-1 hidden lg:flex">
+            <UIcon name="i-heroicons-inbox" class="size-32" />
+          </div>
+          <template v-else>
+            <!-- <div class="sticky top-0 z-10 border-b border-b-btertiary bg-bprimary">
+            <UInput v-model="selected_chat_users" size="xs" />
+          </div> -->
+            <!-- <div class="flex flex-row items-center w-full my-5 text-center align-center">
+            <div class="flex w-full border-t border-solid border-bsecondary" />
+          </div> -->
             <div
-              v-for="message in chats.find((e) => e.id === selected_chat)?.messages"
-              :key="message.id"
-              class="flex flex-col max-w-full px-4 mt-4 list-none"
+              v-if="selected_chat"
+              ref="messageList"
+              class="relative flex flex-col flex-1 h-full max-w-full max-h-full overflow-y-auto overflow-x-clip"
             >
+              <div class="sticky top-0 z-10 border-b border-b-btertiary bg-bprimary">
+                <UInput v-model="selected_chat_users" size="xs" />
+              </div>
               <div
-                class="relative p-2 rounded-2xl bg-bsecondary min-w-[66%] xl:min-w-[33%]"
-                :class="[message.user_created.id === user.id ? 'ml-auto' : 'mr-auto']"
+                v-for="message in chats.find((e) => e.id === selected_chat)?.messages"
+                :key="message.id"
+                class="flex flex-col max-w-full px-4 mt-4 list-none"
               >
-                <div class="flex">
-                  <UAvatar :src="$config.public.fileBase + message.user_created.avatar" alt="Avatar" />
-                  <span class="my-auto ml-2 text-sm">{{ transformUser(message.user_created)?.full_name }}</span>
-                </div>
-                <span class="break-all whitespace-pre-wrap" v-html="message.text" />
-                <span class="flex w-full pt-1 text-xs border-t border-t-btertiary">
-                  <UIcon
-                    v-if="!message.date_created"
-                    name="i-svg-spinners-3-dots-scale"
-                    class="my-auto ml-auto size-[16px]"
-                  />
-                  <span v-else class="mt-auto ml-auto text-xs text-tbase/75">
-                    {{
-                      new Date(message.date_created).getDate() !== new Date().getDate()
-                        ? new Date(message.date_created).toLocaleDateString() + ' '
-                        : ''
-                    }}
-                    {{ new Date(message.date_created).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
-                    Uhr
+                <div
+                  class="relative p-2 rounded-2xl bg-bsecondary min-w-[66%] xl:min-w-[33%]"
+                  :class="[message.user_created.id === user.id ? 'ml-auto' : 'mr-auto']"
+                >
+                  <div class="flex">
+                    <UAvatar :src="$config.public.fileBase + message.user_created.avatar" alt="Avatar" />
+                    <span class="my-auto ml-2 text-sm">{{ transformUser(message.user_created)?.full_name }}</span>
+                  </div>
+                  <span class="break-all whitespace-pre-wrap" v-html="message.text" />
+                  <span class="flex w-full pt-1 text-xs border-t border-t-btertiary">
+                    <UIcon
+                      v-if="!message.date_created"
+                      name="i-svg-spinners-3-dots-scale"
+                      class="my-auto ml-auto size-[16px]"
+                    />
+                    <span v-else class="mt-auto ml-auto text-xs text-tbase/75">
+                      {{
+                        new Date(message.date_created).getDate() !== new Date().getDate()
+                          ? new Date(message.date_created).toLocaleDateString() + ' '
+                          : ''
+                      }}
+                      {{
+                        new Date(message.date_created).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      }}
+                      Uhr
+                    </span>
                   </span>
-                </span>
+                </div>
               </div>
             </div>
-            <div class="sticky bottom-0 mt-auto bg-bprimary">
-              <hr class="mt-2 mb-1" />
-              <!-- <div class="max-h-[204px] overflow-y-auto"> -->
-              <Editor v-model="message_input" messenger-mode @send="() => send_message(message_input, selected_chat)" />
-              <!-- </div> -->
+            <!-- <div class="flex-1 overflow-y-auto">
+            <div>
+              <div
+                class="p-4 text-sm border-l-2 border-transparent cursor-pointer text-tbase hover:border-aris-400/25 hover:bg-aris-900/10"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-stretch min-w-0 gap-3">
+                    <NuxtImg src="33133d2a-85db-41e5-9216-670bbc4d0256" width="64px" height="64px" class="rounded" />
+                    <div>
+                      <span class="flex items-center truncate gap-x-2">
+                        Thomas Blakeney <span class="text-xs text-dark-gray">@thomas.blakeney</span>
+                        <span class="text-xs text-dark-gray">20:04</span>
+                      </span>
+                      <p class="p-0 text-xs text-dark-gray">Verwaltung</p>
+                      <p class="p-0 text-xs text-dark-gray">Logistik (Abteilungsleiter)</p>
+                    </div>
+                  </div>
+                  <span class="min-w-fit"> Date </span>
+                </div>
+                <Editor
+                  model-value="
+                    <p>
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquet orci accumsan
+                      himenaeos eleifend sed sociosqu venenatis posuere interdum blandit integer
+                      duis. Iaculis scelerisque nec ad ipsum sollicitudin leo ligula consectetur
+                      fringilla nulla nulla cubilia.
+                    </p>
+                    <p>
+                      Lorem ultrices eget quam cum sagittis hendrerit parturient vulputate potenti
+                      eros tempor risus. Ullamcorper proin porttitor etiam egestas cubilia gravida
+                      duis netus velit dui dui vel. Maecenas cras urna eleifend condimentum duis per
+                      luctus montes elit diam sollicitudin cras.
+                    </p>
+                  "
+                  read-only
+                />
+              </div>
+              <div class="flex flex-row items-center w-full text-center align-center">
+                <div class="flex w-full border-t border-solid border-bsecondary" />
+              </div>
             </div>
-          </div>
-          <div class="flex size-full">
-            <UIcon name="i-heroicons-inbox" class="m-auto size-24" />
-          </div>
+          </div> -->
+            <div class="flex flex-row items-center w-full my-5 text-center align-center">
+              <div class="flex w-full border-t border-solid border-bsecondary" />
+            </div>
+            <div class="h-48 mx-4 mb-5 border rounded-md overflow-y-clip border-bsecondary">
+              <Editor
+                v-model="chat_input"
+                simple-mode
+                :loading="send_loading"
+                @send="() => send_message(chat_input, selected_chat)"
+              />
+              <!-- <UButton icon="i-heroicons-paper-airplane" color="white" resize class="absolute bottom-6 right-10"
+              >Submit</UButton
+            > -->
+            </div>
+          </template>
         </SplitterPanel>
       </SplitterGroup>
     </div>
-
     <!-- <div
       class="relative flex items-stretch w-full h-full max-w-full max-h-full grid-cols-3 divide-x-2 overflow-clip divide-bsecondary"
     >

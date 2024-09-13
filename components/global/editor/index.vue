@@ -6,7 +6,7 @@ const fullscreen_state = ref(false);
 const fileLibrary = ref(false);
 const fileLibraryType = ref();
 
-const props = defineProps<{ modelValue: string; readOnly?: boolean; messengerMode?: boolean }>();
+const props = defineProps<{ modelValue: string; readOnly?: boolean; simpleMode?: boolean; loading?: boolean }>();
 const { modelValue, readOnly } = toRefs(props);
 const emit = defineEmits(['update:modelValue', 'send']);
 
@@ -36,7 +36,7 @@ const editor = useEditor({
     TiptapImage.configure({
       inline: true,
     }),
-    ...(!props.messengerMode
+    ...(!props.simpleMode
       ? [
           TiptapStarterKit,
           TiptapHeading.configure({
@@ -106,12 +106,14 @@ function onFileSelection(file: any) {
 defineShortcuts({
   meta_enter: {
     usingInput: true,
-    whenever: [toRef(props, 'messengerMode')],
+    whenever: [toRef(props, 'simpleMode')],
     handler: () => {
       emit('send');
     },
   },
 });
+
+const editorHeight = computed(() => (props.simpleMode ? '100%' : 'auto'));
 
 watch(modelValue, (value) => {
   // HTML
@@ -137,9 +139,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div>
+  <div :class="{ 'h-full': simpleMode }">
     <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" />
-    <div v-if="editor && !readOnly && !messengerMode" id="editor_container">
+    <div v-if="editor && !readOnly && !simpleMode" id="editor_container">
       <UCard
         :ui="{
           header: { background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
@@ -161,7 +163,7 @@ onBeforeUnmount(() => {
           <div class="flex -mx-2.5">
             <hr
               class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-            >
+            />
           </div>
           <div class="sm:hidden">
             <div class="flex flex-row justify-between py-2 gap-x-2">
@@ -184,7 +186,7 @@ onBeforeUnmount(() => {
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
                 @click="editor.chain().focus().setColor"
-              >
+              />
             </div>
             <div class="flex flex-row py-2 gap-x-6">
               <div class="flex flex-row gap-x-2">
@@ -200,7 +202,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              >
+              />
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <EditorButtonDivider :editor="editor" />
@@ -231,7 +233,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              >
+              />
             </div>
           </div>
           <div class="hidden sm:block md:hidden">
@@ -254,7 +256,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              >
+              />
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <div class="flex flex-row gap-x-2">
@@ -294,7 +296,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              >
+              />
             </div>
           </div>
           <div class="hidden md:block xl:hidden">
@@ -326,7 +328,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              >
+              />
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <EditorButtonDivider :editor="editor" />
@@ -357,7 +359,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              >
+              />
             </div>
           </div>
           <div class="hidden xl:block">
@@ -413,7 +415,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              >
+              />
             </div>
           </div>
         </template>
@@ -446,8 +448,8 @@ onBeforeUnmount(() => {
         </template>
       </UCard>
     </div>
-    <div v-else-if="editor && messengerMode">
-      <div class="m-2 border rounded-xl border-bsecondary">
+    <div v-else-if="editor && simpleMode">
+      <div class="relative m-2 rounded-xl">
         <div class="px-1 border-b border-b-bsecondary">
           <div class="flex flex-row justify-between py-2 gap-x-2">
             <div class="flex flex-row gap-x-2">
@@ -481,11 +483,11 @@ onBeforeUnmount(() => {
           <TiptapEditorContent :editor="editor" name="msgInput" />
         </div>
 
-        <div class="flex px-2 py-2 border-t border-bsecondary">
-          <UTooltip text="Senden" class="ml-auto">
-            <UButton icon="i-mdi-send" class="rounded-full" size="xs" @click="$emit('send')" />
-          </UTooltip>
-        </div>
+        <!-- <div class="flex px-2 py-2 border-t border-bsecondary"> -->
+        <UTooltip text="Senden" class="absolute ml-auto bottom-1 right-5">
+          <UButton :loading="loading" icon="i-mdi-send" class="rounded-full" size="xs" @click="$emit('send')" />
+        </UTooltip>
+        <!-- </div> -->
       </div>
     </div>
     <div v-else-if="editor && readOnly">
