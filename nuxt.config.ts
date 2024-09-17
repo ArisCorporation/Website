@@ -125,6 +125,12 @@ export default defineNuxtConfig({
     //   ],
   },
 
+  build: {
+    rollupOptions: {
+      external: ['@directus/sdk'],
+    },
+  },
+
   sourcemap: {
     client: true,
     server: false,
