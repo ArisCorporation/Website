@@ -17,6 +17,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@directus/sdk": "^17.0.1",
     "@nuxt/icon": "^1.0.0",
     "@nuxt/image": "^1.7.0",
     "@nuxt/ui": "^2.17.0",

@@ -115,11 +115,11 @@ export default defineNuxtConfig({
         propsDestructure: true,
       },
     },
-    build: {
-      rollupOptions: {
-        external: ['@directus/sdk'],
-      },
-    },
+    // build: {
+    //   rollupOptions: {
+    //     external: ['@directus/sdk'],
+    //   },
+    // },
     //   plugins: [
     //     // Put the Sentry vite plugin after all other plugins
     //     sentryVitePlugin({
