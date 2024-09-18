@@ -8,8 +8,10 @@ import YupPassword from 'yup-password';
 YupPassword(yup);
 
 const { width } = useWindowSize();
-const { directus, readMe, readItems, updateUser, deleteUsers, uploadFiles, deleteFile } = useCMS();
-const { data: user } = await useAsyncData('AMS:ME', () => directus.request(readMe()));
+const { directus, readMe, readItems, updateUser, deleteUsers, readRoles, uploadFiles, deleteFile } = useCMS();
+const { data: user } = await useAsyncData('AMS:ME', () => directus.request(readMe()), {
+  transform: (user: any) => transformUser(user),
+});
 const config = useRuntimeConfig();
 const modalStore = useModalStore();
 const userTable = ref();
@@ -28,12 +30,20 @@ const discordMembers: discordMember[] = await useFetch('/api/ams/notifications/d
   },
 );
 
-const { data: roleOptions } = await useFetch(
-  `${config.public.backendUrl}/roles?fields=id,label,name,access_level&sort=access_level&limit=-1`,
+const { data: roleOptions } = await useAsyncData(
+  'AMS:ROLE_OPTIONS',
+  () =>
+    directus.request(
+      readRoles({
+        fields: ['id', 'label', 'name', 'access_level'],
+        limit: -1,
+        sort: ['access_level'],
+      }),
+    ),
   {
-    transform: (data) =>
-      data.data
-        .filter((e) => (user.position.access_level >= 5 ? true : e.access_level < 5))
+    transform: (roles: any[]) =>
+      roles
+        .filter((e) => (unref(user).position.access_level >= 5 ? true : e.access_level < 5))
         .map((role: any) => ({
           id: role.id,
           position: role.name === 'Administrator' ? 'Verwaltung + Administration' : role.label,
@@ -41,6 +51,20 @@ const { data: roleOptions } = await useFetch(
         })),
   },
 );
+
+// const { data: roleOptions } = await useFetch(
+//   `${config.public.backendUrl}/roles?fields=id,label,name,access_level&sort=access_level&limit=-1`,
+//   {
+//     transform: (data) =>
+//       data.data
+//         .filter((e) => (user.position.access_level >= 5 ? true : e.access_level < 5))
+//         .map((role: any) => ({
+//           id: role.id,
+//           position: role.name === 'Administrator' ? 'Verwaltung + Administration' : role.label,
+//           access_level: role.access_level,
+//         })),
+//   },
+// );
 
 // USER - Actions
 function resetUserFormData() {
@@ -673,7 +697,7 @@ const handleRolesEdit = (user: any) => {
   roles_values_content_writer.value = userData.roles_value?.includes('content_writer') ? true : false;
 
   roles_formdata.head_of_department = userData.head_of_department || false;
-  roles_formdata.department = departments.value.find((e: any) => e.id === userData.department_id) || '';
+  roles_formdata.department = unref(departments).find((e: any) => e.id === userData.department_id) || '';
   roles_formdata.roles_value = userData.roles_value || null;
   roles_formdata.role = roleOptions.value.find((e: any) => e.id === userData.position.id) || null;
 
@@ -1176,7 +1200,7 @@ useHead({
             </template>
           </UFormGroup>
           <UFormGroup
-            label="Nachname"
+            label="Nachnamee"
             name="lastname"
             description="Nachname des Mitgliedes"
             class="items-center grid-cols-2 gap-2 md:grid"
@@ -3385,51 +3409,6 @@ useHead({
         validate-on="submit"
       >
         <div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
-          <UFormGroup
-            label="Nachname"
-            name="last_name"
-            description="Hier kannst du einen Nachnamen angeben. Der Nachname ist optional."
-            class="items-center grid-cols-2 gap-2 md:grid"
-            :ui="{ container: 'relative' }"
-          >
-            <div class="relative">
-              <UInput
-                v-model="edit_formdata.last_name"
-                :icon="
-                  edit_formdata.last_name || initialEditFormdata.last_name
-                    ? edit_formdata.last_name === initialEditFormdata.last_name
-                      ? 'i-heroicons-x-mark-16-solid'
-                      : 'i-heroicons-arrow-uturn-left'
-                    : ''
-                "
-                placeholder="Roberts"
-                size="md"
-                autocomplete="off"
-              />
-              <template v-if="edit_formdata.last_name || initialEditFormdata.last_name">
-                <button
-                  v-if="edit_formdata.last_name === initialEditFormdata.last_name"
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                  @click="edit_formdata.last_name = ''"
-                >
-                  <UIcon
-                    name="i-heroicons-x-mark-16-solid"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-                <button
-                  v-else
-                  class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
-                  @click="edit_formdata.last_name = initialEditFormdata.last_name"
-                >
-                  <UIcon
-                    name="i-heroicons-arrow-uturn-left"
-                    class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
-                  />
-                </button>
-              </template>
-            </div>
-          </UFormGroup>
           <UFormGroup
             label="Kontakt Email"
             name="contact_email"
