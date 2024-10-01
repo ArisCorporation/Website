@@ -5,7 +5,7 @@ import { offset } from '@floating-ui/dom';
 import type { FormSubmitEvent } from '#ui/types';
 
 const { directus, readItem, readItems, updateItem, deleteItems, createItems, readMe, readUsers, updateUser } = useCMS();
-const { params, path } = useRoute();
+const { params, path, hash } = useRoute();
 const userSettingsStore = useUserSettingsStore();
 const userSettings = storeToRefs(userSettingsStore);
 const loanerView = computed(() => userSettings.ams.value.fleetLoanerView);
@@ -893,6 +893,10 @@ watch(
   },
   { deep: true },
 );
+
+if (hash === '#add') {
+  openAddModal();
+}
 
 async function openQuickView(id: string) {
   const { data: shipData } = await useAsyncData(
