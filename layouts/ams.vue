@@ -277,23 +277,6 @@ useHead({
       :class="{ 'overflow-y-clip h-screen': noscroll }"
     >
       <SidebarOverlay :state="SidebarStore.MobileSidebar" @click="SidebarStore.toggleMobileSidebar" />
-
-      <div v-if="JSON.parse(useCookie('devtools').value)" class="bg-black z-[99] pb-4 px-8">
-        <h6>DEV TOOLS:</h6>
-        <code class="block pb-2">User: {{ user }}</code>
-      </div>
-      <DevOnly>
-        <ButtonDefault
-          class="w-fit"
-          @click="useCookie('devtools').value = JSON.stringify(!JSON.parse(useCookie('devtools').value))"
-        >
-          <Icon
-            name="mdi-light:console"
-            class="w-6 h-6"
-            :class="{ 'text-primary': JSON.parse(useCookie('devtools').value) }"
-          />
-        </ButtonDefault>
-      </DevOnly>
       <div class="flex flex-wrap w-full px-4 mt-4">
         <Icon name="IconsLogosAmsBanner" class="w-1/4 aspect-[33/11] -mb-2 h-auto" />
         <div class="relative mt-auto ml-auto group">
