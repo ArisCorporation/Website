@@ -63,6 +63,12 @@ const ams_commands = [
 
 const ams_pages = [
   {
+    id: 'ams-hangar',
+    label: 'Hangar',
+    icon: 'IconsNavigationHangar',
+    to: '/ams/hangar',
+  },
+  {
     id: 'ams-profile',
     label: 'Profil',
     avatar: {
@@ -70,38 +76,50 @@ const ams_pages = [
     },
     to: '/ams/profile',
   },
+  {
+    id: 'ams-fleet',
+    label: 'Flotte',
+    icon: 'IconsNavigationFleet',
+    to: '/ams/fleet',
+  },
+  {
+    id: 'ams-employees',
+    label: 'Mitarbeiter',
+    icon: 'IconsNavigationMembers',
+    to: '/ams/employees',
+  },
 ];
 
-const commands = [
-  {
-    id: 'new-file',
-    label: 'Add new file',
-    icon: 'i-heroicons-document-plus',
-    click: () => toast.add({ title: 'New file added!' }),
-    // shortcuts: [metaSymbol, 'N'],
-  },
-  {
-    id: 'new-folder',
-    label: 'Add new folder',
-    icon: 'i-heroicons-folder-plus',
-    click: () => toast.add({ title: 'New folder added!' }),
-    // shortcuts: [metaSymbol, 'F'],
-  },
-  {
-    id: 'hashtag',
-    label: 'Add hashtag',
-    icon: 'i-heroicons-hashtag',
-    click: () => toast.add({ title: 'Hashtag added!' }),
-    // shortcuts: [metaSymbol, 'H'],
-  },
-  {
-    id: 'label',
-    label: 'Add label',
-    icon: 'i-heroicons-tag',
-    click: () => toast.add({ title: 'Label added!' }),
-    // shortcuts: [metaSymbol, 'L'],
-  },
-];
+// const commands = [
+//   {
+//     id: 'new-file',
+//     label: 'Add new file',
+//     icon: 'i-heroicons-document-plus',
+//     click: () => toast.add({ title: 'New file added!' }),
+//     // shortcuts: [metaSymbol, 'N'],
+//   },
+//   {
+//     id: 'new-folder',
+//     label: 'Add new folder',
+//     icon: 'i-heroicons-folder-plus',
+//     click: () => toast.add({ title: 'New folder added!' }),
+//     // shortcuts: [metaSymbol, 'F'],
+//   },
+//   {
+//     id: 'hashtag',
+//     label: 'Add hashtag',
+//     icon: 'i-heroicons-hashtag',
+//     click: () => toast.add({ title: 'Hashtag added!' }),
+//     // shortcuts: [metaSymbol, 'H'],
+//   },
+//   {
+//     id: 'label',
+//     label: 'Add label',
+//     icon: 'i-heroicons-tag',
+//     click: () => toast.add({ title: 'Label added!' }),
+//     // shortcuts: [metaSymbol, 'L'],
+//   },
+// ];
 
 const groups = computed(() => [
   // commandPaletteRef.value?.query
@@ -119,13 +137,13 @@ const groups = computed(() => [
     label: 'Sektionen',
     commands: pages,
   },
-  {
-    key: 'commands',
-    label: 'Aktionen',
-    commands,
-  },
+  // {
+  //   key: 'commands',
+  //   label: 'Aktionen',
+  //   commands,
+  // },
   ...(user.value ? [{ key: 'amsCommands', commands: ams_commands, label: 'A.M.S. Aktionen' }] : []),
-  ...(user.value ? [{ key: 'amsCommands', commands: ams_pages, label: 'A.M.S. Seiten' }] : []),
+  ...(user.value ? [{ key: 'amsPages', commands: ams_pages, label: 'A.M.S. Seiten' }] : []),
   {
     key: 'employees',
     label: (q) => q && `Mitarbeiter passend zu “${q}”...`,
