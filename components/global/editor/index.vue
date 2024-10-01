@@ -113,7 +113,7 @@ defineShortcuts({
   },
 });
 
-const editorHeight = computed(() => (props.simpleMode ? '100%' : 'auto'));
+// const editorHeight = computed(() => (props.simpleMode ? '100%' : 'auto'));
 
 watch(modelValue, (value) => {
   // HTML
@@ -129,6 +129,8 @@ watch(modelValue, (value) => {
   editor?.value?.commands.setContent(value, false);
 });
 
+const editorHeight = computed(() => (props.simpleMode ? '120px' : '100%'));
+
 // base: 'max-h-[calc(100dvh_-_300px)] sm:max-h-[calc(100dvh_-_250px)] xl:max-h-[calc(100dvh_-_200px)] overflow-y-scroll',
 onMounted(() => {
   document.addEventListener('fullscreenchange', fullscreenchanged);
@@ -139,15 +141,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div :class="{ 'h-full': simpleMode }">
+  <div :class="[simpleMode ? 'h-full' : 'h-[calc(100vh_-_50px)] overflow-y-auto']">
     <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" />
     <div v-if="editor && !readOnly && !simpleMode" id="editor_container">
       <UCard
         :ui="{
-          header: { background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
-          body: {
-            base: 'max-h-[calc(100dvh_-_275px)] sm:max-h-[calc(100dvh_-_229px)] xl:max-h-[calc(100dvh_-_182px)] overflow-y-scroll',
-          },
+          header: { base: 'sticky top-0 z-10', background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
         }"
         class="overflow-clip"
       >
@@ -500,5 +499,9 @@ onBeforeUnmount(() => {
 .tiptap:focus {
   outline: none;
   border: none;
+}
+.ProseMirror {
+  height: v-bind('editorHeight') !important;
+  overflow-y: auto;
 }
 </style>

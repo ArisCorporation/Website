@@ -539,9 +539,9 @@ definePageMeta({
   </NuxtLayout>
 </template>
 
-<style>
+<!-- <style>
 .ProseMirror {
   height: 130px !important;
   overflow-y: auto;
 }
-</style>
+</style> -->
