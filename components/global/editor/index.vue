@@ -141,7 +141,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div :class="[simpleMode ? 'h-full' : 'h-[calc(100vh_-_50px)] overflow-y-auto']">
+  <div :class="[!readOnly ? (simpleMode ? 'h-full' : 'h-[calc(100vh_-_50px)] overflow-y-auto') : '']">
     <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" />
     <div v-if="editor && !readOnly && !simpleMode" id="editor_container">
       <UCard
