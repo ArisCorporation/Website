@@ -38,33 +38,35 @@ const { data } = await useAsyncData('TIMELINE:ITEMS', () =>
 );
 
 const { data: users } = await useAsyncData(
-  directus.request(
-    readUsers({
-      fields: [
-        'id',
-        'first_name',
-        'last_name',
-        'title',
-        'slug',
-        'avatar',
-        'department.name',
-        'department.logo',
-        'leading_department.name',
-        'leading_department.logo',
-        'head_of_department',
-        'role.id',
-        'role.label',
-        'role.name',
-        'birthdate',
-        'birthplace.name',
-      ],
-      filter: {
-        birthdate: { _nnull: true },
-        hidden: { _eq: false },
-      },
-      limit: -1,
-    }),
-  ),
+  'TIMELINE:USERS',
+  () =>
+    directus.request(
+      readUsers({
+        fields: [
+          'id',
+          'first_name',
+          'last_name',
+          'title',
+          'slug',
+          'avatar',
+          'department.name',
+          'department.logo',
+          'leading_department.name',
+          'leading_department.logo',
+          'head_of_department',
+          'role.id',
+          'role.label',
+          'role.name',
+          'birthdate',
+          'birthplace.name',
+        ],
+        filter: {
+          birthdate: { _nnull: true },
+          hidden: { _eq: false },
+        },
+        limit: -1,
+      }),
+    ),
   { transform: (data) => data.map((user) => transformUser(user)) },
 );
 
@@ -367,8 +369,8 @@ definePageMeta({
         </ul>
       </div>
     </template>
-    <div class="flex flex-col max-h-screen min-h-screen py-1">
-      <div class="relative flex-grow h-[calc(100vh_-_530px)]">
+    <div class="flex flex-col max-h-screen min-h-screen py-1 mb-5 -mt-4">
+      <div class="relative flex-grow h-[calc(100vh_-_580px)]">
         <div class="absolute top-0 bottom-0 my-auto -left-4 h-fit">
           <button class="opacity-50 size-10 animate-link hover:opacity-100" @click="selectPreviousItem">
             <UIcon name="i-heroicons-chevron-left-16-solid" class="size-full" />
@@ -421,7 +423,7 @@ definePageMeta({
             </h1>
             <Editor :model-value="selectedEvent.description" read-only class="text-justify" />
             <div v-if="selectedEvent.link">
-              <hr class="hr-short" >
+              <hr class="hr-short" />
               <div class="animate-link w-fit">
                 <NuxtLink :to="selectedEvent.link"> Mehr lesen </NuxtLink>
               </div>
@@ -436,7 +438,7 @@ definePageMeta({
         </div>
       </div>
       <div class="flex my-2">
-        <hr >
+        <hr />
 
         <ButtonDefault class="mx-2" @click="modalStore.openModal('Hilfe', { hideCloseButton: true })">
           <UIcon name="i-heroicons-information-circle" class="flex m-auto size-5" />
@@ -477,6 +479,7 @@ definePageMeta({
           :viewport-min="totalRange.start"
           :viewport-max="totalRange.end"
           :min-viewport-duration="totalRange.end"
+          :active-items="[selectedEvent.id]"
           class="map"
           @pointermove="handleViewportDrag"
           @pointerdown="handleViewportDrag"
@@ -521,6 +524,10 @@ definePageMeta({
 
   :deep(.item) {
     pointer-events: none;
+  }
+
+  :deep(.active) {
+    --item-background: #fff !important;
   }
 }
 </style>
