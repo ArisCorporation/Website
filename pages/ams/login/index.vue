@@ -105,8 +105,8 @@ const wallpaperBgStyle = computed(() => {
 
 useHead({
   link: [
-    { rel: 'preload', href: config.public.fileBase + wallpaper?.value },
-    { rel: 'preload', href: img(wallpaper?.value) },
+    { rel: 'preload', as: 'image', href: config.public.fileBase + wallpaper?.value },
+    { rel: 'preload', as: 'image', href: img(wallpaper?.value) },
   ],
   title: 'Log In - A.M.S. - Astro Research and Industrial Service Corporation',
 });
