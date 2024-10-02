@@ -12,7 +12,12 @@ const changeTab = (index) => {
 };
 
 definePageMeta({
-  middleware: 'auth',
+  // middleware: 'auth',
+  middleware: () => {
+    return navigateTo({
+      path: '/ams',
+    });
+  },
   layout: 'ams',
 });
 

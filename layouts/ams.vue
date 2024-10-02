@@ -47,11 +47,11 @@ const sidebarItems = [
     link: '/administration',
     level: 4,
   },
-  {
-    name: 'Toolbox',
-    link: '/toolbox',
-    level: 0,
-  },
+  // {
+  //   name: 'Toolbox',
+  //   link: '/toolbox',
+  //   level: 0,
+  // },
 ];
 
 const sidebarUserItems = [
