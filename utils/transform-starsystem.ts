@@ -47,20 +47,24 @@ export default function (obj: any) {
         ? obj.affiliation === 'uee'
           ? 'UEE'
           : obj.affiliation === 'in_development'
-            ? 'In Entwicklung'
-            : obj.affiliation === 'unclaimed'
-              ? 'Nicht Beansprucht'
-              : obj.affiliation === 'banu'
-                ? 'Banu'
-                : obj.affiliation === 'xian'
-                  ? `Xi'An`
-                  : obj.affiliation === 'vanduul' && 'Vanduul'
+          ? 'In Entwicklung'
+          : obj.affiliation === 'unclaimed'
+          ? 'Nicht Beansprucht'
+          : obj.affiliation === 'banu'
+          ? 'Banu'
+          : obj.affiliation === 'xian'
+          ? `Xi'An`
+          : obj.affiliation === 'vanduul' && 'Vanduul'
         : null,
       affiliation_value: obj.affiliation,
     }),
     ...(obj.discovery_year && { discovery_year: obj.discovery_year }),
     ...(obj.population && { population: obj.population }),
     ...(obj.economy && { economy: obj.economy }),
-    ...(obj.danger_level && { danger_level: obj.danger_level }),
+    ...(obj.hasOwnProperty('danger_level') && { danger_level: obj.danger_level }),
+    ...(obj.star_type && {
+      star_type: obj.star_type === 'single' ? 'Einzel' : obj.star_type === 'binary' ? 'Binär' : '',
+    }),
+    ...(obj.star_class && { star_class: obj.star_class }),
   };
 }

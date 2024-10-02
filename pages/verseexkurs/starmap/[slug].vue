@@ -22,6 +22,9 @@ const { data } = await useAsyncData(
           'population',
           'economy',
           'danger_level',
+          'size',
+          'star_type',
+          'star_class',
           'orbit.collection',
           'orbit.object:stars.name',
           'orbit.object:stars.banner',
@@ -378,31 +381,25 @@ definePageMeta({
               </DefaultPanel>
               <TableParent v-if="true" title="Infobox" class="w-full" panel-classes="h-full" bg="primary">
                 <TableHr><span class="text-xl text-industrial-400">Astronomisch</span></TableHr>
-                <TableRow v-if="data.size" title="Systemgröße" :content="data?.size" full-width inline />
-                <TableRow v-if="data.planets" title="Planeten" :content="data?.planets.length" full-width inline />
+                <TableRow v-if="data.size" title="Systemgröße" :content="data?.size" suffix="AE" full-width inline />
+                <TableRow v-if="data.star_type" title="Sternentyp" :content="data?.star_type" inline />
+                <TableRow v-if="data.star_type" title="Sternenklasse" :content="data?.star_class" inline />
+                <TableRow v-if="data.planets" title="Planeten" :content="data?.planets.length" inline />
                 <TableRow
                   v-if="data.planets.map((obj: any) => obj.moons).length"
                   title="Monde"
                   :content="
 										data.planets.map((obj: any) => obj.moons.length).reduce((sum: number, a: number) => sum + a, 0)
 									"
-                  full-width
                   inline
                 />
                 <TableRow
                   v-if="data.asteroid_belts"
                   title="Asteroidengürtel"
                   :content="data?.asteroid_belts.length"
-                  full-width
                   inline
                 />
-                <TableRow
-                  v-if="data.jumppoints"
-                  title="Jumppoints"
-                  :content="data?.jumppoints.length"
-                  full-width
-                  inline
-                />
+                <TableRow v-if="data.jumppoints" title="Jumppoints" :content="data?.jumppoints.length" inline />
                 <TableHr><span class="text-xl text-industrial-400">Politik & Wirtschaft</span></TableHr>
                 <TableRow v-if="data.affiliation" title="Zugehörigkeit" full-width inline>
                   <span class="inline-flex items-center gap-x-1 text-aris-400">
@@ -417,24 +414,18 @@ definePageMeta({
                   </span>
                 </TableRow>
                 <TableRow
-                  v-if="data.discovery_year"
+                  v-if="data.name === 'Sol' ? true : data.discovery_year"
                   title="Entdeckungsjahr"
-                  :content="data.discovery_year"
-                  full-width
-                />
-                <TableRow
-                  v-if="data.population"
-                  title="Bevölkerung"
-                  :content="data.population + ' / 10'"
-                  full-width
+                  :content="data.name === 'Sol' ? String(0) : data.discovery_year"
                   inline
                 />
-                <TableRow v-if="data.economy" title="Wirtschaft" :content="data.economy + ' / 10'" full-width inline />
+                <TableRow v-if="data.population" title="Bevölkerung" :content="data.population + ' / 10'" inline />
+                <TableRow v-if="data.economy" title="Wirtschaft" :content="data.economy + ' / 10'" inline />
+                <TableRow title="Gefahrenstufe" :content="data.danger_level.toString() + ' / 10'" inline />
+                <TableHr><span class="text-xl text-industrial-400">Landezonen</span></TableHr>
                 <TableRow
-                  v-if="data.danger_level"
-                  title="Gefahrenstufe"
-                  :content="data.danger_level + ' / 10'"
-                  full-width
+                  :content="data.planets.map((obj: any) => obj.landing_zones.map((lz: any) => lz.name)).flat().sort().join(', ')"
+                  is-list
                 />
               </TableParent>
             </div>
