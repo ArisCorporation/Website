@@ -13,6 +13,7 @@ const pageTo = computed(() => Math.min(page.value * pageCount.value, pageTotal.v
 const filters = reactive({
   status: { _eq: 'published' },
   ...useDirectusSearch(search.value, ['name', 'user_created.first_name', 'user_created.last_name']),
+  ...(selectedChannel.value !== 'Alle' ? { channel: { name: { _eq: selectedChannel } } } : {}),
 });
 
 watch(search, () => {
@@ -59,11 +60,15 @@ const { data: commLinks } = await useAsyncData(
   { watch: [search, page, pageCount, selectedChannel] },
 );
 
+watch(selectedChannel, () => {
+  filters.channel = selectedChannel.value !== 'Alle' ? { name: { _eq: selectedChannel.value } } : {};
+});
+
 const { data: channels } = await useAsyncData(
   'COMM-LINKS:CHANNELS',
   () =>
     directus.request(
-      readItems('comm_links_channels', {
+      readItems('comm_link_channels', {
         fields: ['id', 'name', 'description'],
         limit: -1,
         sort: ['name'],
@@ -103,7 +108,7 @@ useHead({
         :placeholder="[16, 16, 1, 5]"
         class="w-full h-auto mx-auto aspect-[1118/351]"
       />
-      <hr >
+      <hr />
       <div class="w-full sm:flex sm:space-x-12">
         <div class="w-full">
           <label for="channelSelect">Channel:</label>
