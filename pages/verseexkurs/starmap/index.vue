@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { directus, readItems, readSingleton } = useCMS();
 const historyIndex = ref(0);
+const selectedSystem = ref();
 
 const affiliations = ref(['uee', 'banu', 'vanduul', 'xian', 'unclaimed', 'development']);
 const affiliation_options = [
@@ -197,7 +198,10 @@ useHead({
                       :popper="{ placement: 'right' }"
                       mode="hover"
                       :style="{ left: `${system.starmap_position_left}%`, top: `${system.starmap_position_top}%` }"
-                      class="absolute w-[1.65%] h-auto aspect-[1/1] z-10"
+                      class="absolute w-[1.65%] h-auto aspect-[1/1]"
+                      :class="[selectedSystem === system.id ? 'z-50' : 'z-10']"
+                      @mouseover="selectedSystem = system.id"
+                      @mouseleave="selectedSystem = null"
                     >
                       <NuxtLink
                         :to="system.status === 'published' && '/verseexkurs/starmap/' + system.slug"
@@ -217,7 +221,7 @@ useHead({
                         />
                       </NuxtLink>
                       <template #panel>
-                        <div class="items-center p-4 mx-auto">
+                        <div class="z-50 items-center p-4 mx-auto">
                           <NuxtImg
                             :src="system?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
                             :placeholder="[16, 16, 1, 5]"
@@ -229,7 +233,7 @@ useHead({
                           </h3>
                           <hr
                             class="-mx-1 mb-3 mt-2 relative bg-bprimary text-primary-400 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-                          >
+                          />
                           <div class="px-2 border rounded-lg bg-bprimary border-btertiary">
                             <div class="p-2">
                               <TableRow title="Zugehörigkeit">
