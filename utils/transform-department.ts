@@ -1,6 +1,5 @@
 export default function (obj: any) {
   const getShips = () => obj.ships?.map((i: any) => transformHangarItem(i));
-  // TODO: HoD FROM MEMBER TO USER
   return {
     ...(obj.id && { id: obj.id }),
     ...(obj.logo && { logo: obj.logo }),

@@ -1,7 +1,6 @@
 export default function (obj: any, shipList?: any) {
   const getShip = () => (obj.ship_id ? transformShip(obj.ship_id, shipList || null) : null);
   const getDepartment = () => (obj.department ? transformDepartment(obj.department) : null);
-  // TODO: OWNER FROM MEMBER TO USER
   const getModule = () => (obj.active_module ? transformShipModule(obj.active_module) : null);
 
   return {
