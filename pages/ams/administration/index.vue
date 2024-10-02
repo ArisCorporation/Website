@@ -1883,7 +1883,7 @@ useHead({
           >
             <div class="w-1/3">
               <USelectMenu
-                v-model="birthdate_day"
+                v-model="edit_birthdate_day"
                 placeholder="Tag"
                 :options="Array.from({ length: 31 }, (_, index) => (index + 1).toString().padStart(2, '0'))"
                 size="md"
@@ -1891,7 +1891,7 @@ useHead({
             </div>
             <div class="w-1/3">
               <USelectMenu
-                v-model="birthdate_month"
+                v-model="edit_birthdate_month"
                 placeholder="Monat"
                 :options="[
                   { name: 'Januar', value: '01' },
@@ -1913,7 +1913,7 @@ useHead({
               />
             </div>
             <UInput
-              v-model="birthdate_year"
+              v-model="edit_birthdate_year"
               class="w-1/3"
               placeholder="Jahr"
               inputmode="numeric"
@@ -1921,8 +1921,7 @@ useHead({
               size="md"
             />
             <div class="absolute bottom-0 right-0 text-xs italic text-light-gray w-fit">
-              <!-- :TEMP:DAYJS: -->
-              <!-- <span>Alter: {{ $dayjs().add(930, 'years').diff(edit_formdata.birthdate, 'year') }} Jahre</span> -->
+              <span>Alter: {{ $dayjs().add(930, 'years').diff(edit_formdata.birthdate, 'year') }} Jahre</span>
             </div>
           </UFormGroup>
           <UFormGroup

@@ -55,6 +55,7 @@
     "@tiptap/extension-text-style": "^2.4.0",
     "@tiptap/extension-underline": "^2.4.0",
     "@vue-email/nuxt": "^0.8.19",
+    "dayjs-nuxt": "^2.1.11",
     "nuxt": "^3.12.4",
     "nuxt-headlessui": "^1.2.0",
     "nuxt-lodash": "^2.5.3",

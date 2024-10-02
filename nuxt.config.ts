@@ -60,6 +60,7 @@ export default defineNuxtConfig({
     'nuxt-resend',
     '@tresjs/nuxt',
     'radix-vue/nuxt',
+    'dayjs-nuxt',
   ],
 
   // plugins: ['~/plugins/vue-cropper.ts'],
@@ -181,6 +182,13 @@ export default defineNuxtConfig({
 
   headlessui: {
     prefix: 'Headless',
+  },
+
+  dayjs: {
+    locales: ['de'],
+    plugins: ['relativeTime', 'utc', 'timezone'],
+    defaultLocale: 'de',
+    defaultTimezone: 'Europe/Berlin',
   },
 
   // dayjs: {
