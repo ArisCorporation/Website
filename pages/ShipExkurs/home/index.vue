@@ -1,10 +1,18 @@
 <script setup lang="ts">
 definePageMeta({
-	path: '/shipexkurs',
-	layout: 'ship-exkurs',
-})
+  path: '/shipexkurs',
+  layout: 'ship-exkurs',
+  middleware: () => {
+    return navigateTo({
+      path: '/ams/login',
+      query: {
+        redirect: '/shipexkurs/ships',
+      },
+    });
+  },
+});
 </script>
 
 <template>
-	<div>Index</div>
+  <div>Index</div>
 </template>
