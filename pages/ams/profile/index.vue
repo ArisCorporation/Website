@@ -728,8 +728,7 @@ definePageMeta({
             size="md"
           />
           <div class="absolute bottom-0 right-0 text-xs italic text-light-gray w-fit">
-            <!-- :TEMP:DAYJS: -->
-            <!-- <span>Alter: {{ $dayjs().add(930, 'years').diff(formdata.birthdate, 'year') }} Jahre</span> -->
+            <span>Alter: {{ $dayjs().add(930, 'years').diff(formdata.birthdate, 'year') }} Jahre</span>
           </div>
         </UFormGroup>
         <UFormGroup

@@ -254,7 +254,7 @@ useHead({
         </NuxtLink>
       </div>
     </div>
-    <hr class="my-3" >
+    <hr class="my-3" />
     <div class="grid grid-cols-3 gap-4">
       <div class="col-span-3 space-y-4 xl:col-span-1">
         <div class="w-full">
@@ -283,8 +283,7 @@ useHead({
           <TableRow title="Bürgerlicher Name" :content="data.full_name" />
           <TableRow title="Geschlecht" :content="data.sex" />
           <TableHr />
-          <!-- :TEMP:DAYJS: -->
-          <!-- <TableRow
+          <TableRow
             title="Geburtsdatum"
             :content="data.birthdate && $dayjs(data.birthdate).format('DD. MMM YYYY')"
             class="sm:hidden"
@@ -297,7 +296,7 @@ useHead({
           <TableRow
             title="Geburtsdatum"
             :content="data.birthdate && $dayjs().add(930, 'years').diff(data.birthdate, 'years') + ' Jahre Alt'"
-          /> -->
+          />
           <TableHr />
           <TableRow title="Geburtsort">
             <template v-if="data.birthplace">
