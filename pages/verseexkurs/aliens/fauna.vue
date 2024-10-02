@@ -55,7 +55,7 @@ definePageMeta({
         <span class="text-primary">Fauna</span>
       </template>
       <h4>Dieses Biestarium ist nur ein kleiner Teil der Tierwelt im Verse und wird noch erweitert !</h4>
-      <hr >
+      <hr />
       <div class="grid grid-cols-3 gap-6 px-8 md:grid-cols-4 lg:gap-8 lg:grid-cols-5 xl:gap-12">
         <div v-for="item in data" :key="item.id" class="w-full group hover:cursor-pointer" @click="openModal(item)">
           <NuxtImg :src="item.banner" :placeholder="[16, 16, 1, 5]" class="object-cover w-full aspect-[1/1]" />
