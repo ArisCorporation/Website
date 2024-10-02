@@ -31,12 +31,12 @@ const { data } = await useAsyncData('TIMELINE:ITEMS', () =>
           'linked_item.item:spectrum_threads.slug',
           'linked_item.item:spectrum_threads.category.slug',
         ],
-        limit: -1,
       },
+      limit: -1,
     }),
   ),
 );
-
+console.log(data.value);
 const { data: users } = await useAsyncData(
   'TIMELINE:USERS',
   () =>
