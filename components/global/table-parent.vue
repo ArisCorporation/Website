@@ -15,11 +15,16 @@ defineProps({
     required: false,
     default: '',
   },
+  bg: {
+    type: String,
+    required: false,
+    default: 'secondary',
+  },
 });
 </script>
 
 <template>
-  <DefaultPanel :panel-classes="panelClasses" :inner-classes="innerClasses">
+  <DefaultPanel :panel-classes="panelClasses" :inner-classes="innerClasses" :bg="bg">
     <div class="grid px-4 py-3 xl:grid-cols-4 bg-bprimary">
       <p
         v-if="title"

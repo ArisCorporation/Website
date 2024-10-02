@@ -7,69 +7,72 @@ const modalData = ref();
 const { query } = useRoute();
 
 // DATA
-const { data } = await useAsyncData('STARMAP:SYSTEMS', () =>
-  directus.request(
-    readItems('systems', {
-      fields: [
-        'banner',
-        'overview_image',
-        'name',
-        'content',
-        'affiliation',
-        'discovery_year',
-        'population',
-        'economy',
-        'danger_level',
-        'orbit.collection',
-        'orbit.object:stars.name',
-        'orbit.object:stars.banner',
-        'orbit.object:stars.size',
-        'orbit.object:stars.type',
-        'orbit.object:stars.content',
-        'orbit.object:planets.name',
-        'orbit.object:planets.astronomical_designation',
-        'orbit.object:planets.slug',
-        'orbit.object:planets.banner',
-        'orbit.object:planets.size',
-        'orbit.object:planets.age',
-        'orbit.object:planets.orbital_period',
-        'orbit.object:planets.distance',
-        'orbit.object:planets.type',
-        'orbit.object:planets.habitable',
-        'orbit.object:planets.fairchanceact',
-        'orbit.object:planets.population',
-        'orbit.object:planets.economy',
-        'orbit.object:planets.danger_level',
-        'orbit.object:planets.content',
-        'orbit.object:planets.landing_zones.name',
-        'orbit.object:planets.landing_zones.slug',
-        'orbit.object:planets.landing_zones.banner',
-        'orbit.object:planets.landing_zones.content',
-        'orbit.object:planets.orbit.collection',
-        'orbit.object:planets.orbit.object.name',
-        'orbit.object:planets.orbit.object.slug',
-        'orbit.object:planets.orbit.object:planets.astronomical_designation',
-        'orbit.object:planets.orbit.object:moons.astronomical_designation',
-        'orbit.object:planets.orbit.object.banner',
-        'orbit.object:planets.orbit.object:space_stations.type',
-        'orbit.object:asteroid_belts.name',
-        'orbit.object:asteroid_belts.slug',
-        'orbit.object:asteroid_belts.banner',
-        'orbit.object:asteroid_belts.content',
-        'orbit.object:jumppoints.size',
-        'orbit.object:jumppoints.systems.systems_id.name',
-        'orbit.object:jumppoints.systems.systems_id.slug',
-        'orbit.object:jumppoints.systems.systems_id.banner',
-      ],
-      filter: {
-        status: 'published',
-        slug: { _eq: params.slug },
-      },
-      limit: 1,
-    }),
-  ),{
-		transform: (rawSystems: any[]) => transformStarsystem(rawSystems[0]),
-	}
+const { data } = await useAsyncData(
+  'STARMAP:SYSTEMS',
+  () =>
+    directus.request(
+      readItems('systems', {
+        fields: [
+          'banner',
+          'overview_image',
+          'name',
+          'content',
+          'affiliation',
+          'discovery_year',
+          'population',
+          'economy',
+          'danger_level',
+          'orbit.collection',
+          'orbit.object:stars.name',
+          'orbit.object:stars.banner',
+          'orbit.object:stars.size',
+          'orbit.object:stars.type',
+          'orbit.object:stars.content',
+          'orbit.object:planets.name',
+          'orbit.object:planets.astronomical_designation',
+          'orbit.object:planets.slug',
+          'orbit.object:planets.banner',
+          'orbit.object:planets.size',
+          'orbit.object:planets.age',
+          'orbit.object:planets.orbital_period',
+          'orbit.object:planets.distance',
+          'orbit.object:planets.type',
+          'orbit.object:planets.habitable',
+          'orbit.object:planets.fairchanceact',
+          'orbit.object:planets.population',
+          'orbit.object:planets.economy',
+          'orbit.object:planets.danger_level',
+          'orbit.object:planets.content',
+          'orbit.object:planets.landing_zones.name',
+          'orbit.object:planets.landing_zones.slug',
+          'orbit.object:planets.landing_zones.banner',
+          'orbit.object:planets.landing_zones.content',
+          'orbit.object:planets.orbit.collection',
+          'orbit.object:planets.orbit.object.name',
+          'orbit.object:planets.orbit.object.slug',
+          'orbit.object:planets.orbit.object:planets.astronomical_designation',
+          'orbit.object:planets.orbit.object:moons.astronomical_designation',
+          'orbit.object:planets.orbit.object.banner',
+          'orbit.object:planets.orbit.object:space_stations.type',
+          'orbit.object:asteroid_belts.name',
+          'orbit.object:asteroid_belts.slug',
+          'orbit.object:asteroid_belts.banner',
+          'orbit.object:asteroid_belts.content',
+          'orbit.object:jumppoints.size',
+          'orbit.object:jumppoints.systems.systems_id.name',
+          'orbit.object:jumppoints.systems.systems_id.slug',
+          'orbit.object:jumppoints.systems.systems_id.banner',
+        ],
+        filter: {
+          status: 'published',
+          slug: { _eq: params.slug },
+        },
+        limit: 1,
+      }),
+    ),
+  {
+    transform: (rawSystems: any[]) => transformStarsystem(rawSystems[0]),
+  },
 );
 
 if (!data.value) {
@@ -373,10 +376,10 @@ definePageMeta({
               <DefaultPanel class="mb-auto">
                 <NuxtImg :src="data?.overview_image" :placeholder="[16, 16, 1, 5]" class="object-cover w-full h-full" />
               </DefaultPanel>
-              <TableParent v-if="true" title="Infobox" class="w-full" panel-classes="h-full">
+              <TableParent v-if="true" title="Infobox" class="w-full" panel-classes="h-full" bg="primary">
                 <TableHr><span class="text-xl text-industrial-400">Astronomisch</span></TableHr>
-                <TableRow v-if="data.size" title="Systemgröße" :content="data?.size" full-width />
-                <TableRow v-if="data.planets" title="Planeten" :content="data?.planets.length" full-width />
+                <TableRow v-if="data.size" title="Systemgröße" :content="data?.size" full-width inline />
+                <TableRow v-if="data.planets" title="Planeten" :content="data?.planets.length" full-width inline />
                 <TableRow
                   v-if="data.planets.map((obj: any) => obj.moons).length"
                   title="Monde"
@@ -384,17 +387,25 @@ definePageMeta({
 										data.planets.map((obj: any) => obj.moons.length).reduce((sum: number, a: number) => sum + a, 0)
 									"
                   full-width
+                  inline
                 />
                 <TableRow
                   v-if="data.asteroid_belts"
                   title="Asteroidengürtel"
                   :content="data?.asteroid_belts.length"
                   full-width
+                  inline
                 />
-                <TableRow v-if="data.jumppoints" title="Jumppoints" :content="data?.jumppoints.length" full-width />
+                <TableRow
+                  v-if="data.jumppoints"
+                  title="Jumppoints"
+                  :content="data?.jumppoints.length"
+                  full-width
+                  inline
+                />
                 <TableHr><span class="text-xl text-industrial-400">Politik & Wirtschaft</span></TableHr>
-                <TableRow v-if="data.affiliation" title="Zugehörigkeit" full-width>
-                  <span class="flex items-center gap-x-1 text-aris-400">
+                <TableRow v-if="data.affiliation" title="Zugehörigkeit" full-width inline>
+                  <span class="inline-flex items-center gap-x-1 text-aris-400">
                     {{ data.affiliation }}
                     <Icon
                       :name="
@@ -411,8 +422,14 @@ definePageMeta({
                   :content="data.discovery_year"
                   full-width
                 />
-                <TableRow v-if="data.population" title="Bevölkerung" :content="data.population + ' / 10'" full-width />
-                <TableRow v-if="data.economy" title="Wirtschaft" :content="data.economy + ' / 10'" full-width />
+                <TableRow
+                  v-if="data.population"
+                  title="Bevölkerung"
+                  :content="data.population + ' / 10'"
+                  full-width
+                  inline
+                />
+                <TableRow v-if="data.economy" title="Wirtschaft" :content="data.economy + ' / 10'" full-width inline />
                 <TableRow
                   v-if="data.danger_level"
                   title="Gefahrenstufe"
@@ -421,7 +438,7 @@ definePageMeta({
                 />
               </TableParent>
             </div>
-            <Editor :model-value="data.content" />
+            <Editor :model-value="data.content" read-only />
           </div>
           <div v-else-if="selectedMainTab === 1">
             <p class="text-aris-400">
