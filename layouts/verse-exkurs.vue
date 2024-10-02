@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const SidebarStore = useSidebarStore();
+const modalStore = useModalStore();
 
 const sidebarItems = [
   {
@@ -81,12 +82,12 @@ useHead({
 
 <template>
   <div class="lg:grid lg:grid-cols-[16rem,_1fr]">
-    <TheModal>
+    <TheModal v-model="modalStore.isModalOpen">
       <template #content>
         <slot name="modalContent" />
       </template>
     </TheModal>
-    <Slideover>
+    <Slideover v-model="modalStore.isSlideOpen">
       <template v-if="$slots.slideCard" #slideCard>
         <slot name="slideCard" />
       </template>
