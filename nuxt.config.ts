@@ -72,7 +72,7 @@ export default defineNuxtConfig({
     discordGuildId: process.env.NUXT_DISCORD_GUILD_ID,
     public: {
       appVersion: version,
-      buildNumber: process.env.COMMIT_REF || process.env.NUXT_PUBLIC_BUILD_NUMBER,
+      buildNumber: process.env.SOURCE_COMMIT,
       environment: process.env.NUXT_PUBLIC_ENV,
       url: process.env.NUXT_PUBLIC_URL,
       backendUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL,
