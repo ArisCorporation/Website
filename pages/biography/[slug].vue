@@ -294,7 +294,7 @@ useHead({
             class="hidden sm:block"
           />
           <TableRow
-            title="Geburtsdatum"
+            title="Alter"
             :content="data.birthdate && $dayjs().add(930, 'years').diff(data.birthdate, 'years') + ' Jahre Alt'"
           />
           <TableHr />
