@@ -7,27 +7,6 @@ const { copy, isSupported: clipboardIsSupported } = useClipboard();
 const toast = useToast();
 const homepageTabsStore = useHomepageTabsStore();
 const userSettingsStore = useUserSettingsStore();
-const { userSettings } = storeToRefs(userSettingsStore);
-
-const { x, y } = useMouse();
-const { y: windowY } = useWindowScroll();
-
-const contextIsOpen = ref(false);
-const virtualElement = ref({ getBoundingClientRect: () => ({}) });
-
-function onContextMenu() {
-  const top = unref(y) - unref(windowY);
-  const left = unref(x);
-
-  virtualElement.value.getBoundingClientRect = () => ({
-    width: 0,
-    height: 0,
-    top,
-    left,
-  });
-
-  contextIsOpen.value = true;
-}
 
 const selectedTab = ref(0);
 
@@ -254,7 +233,7 @@ useHead({
         </NuxtLink>
       </div>
     </div>
-    <hr class="my-3" />
+    <hr class="my-3" >
     <div class="grid grid-cols-3 gap-4">
       <div class="col-span-3 space-y-4 xl:col-span-1">
         <div class="w-full">
@@ -429,7 +408,7 @@ useHead({
             <div class="flex mb-3 ml-auto">
               <ButtonDefault class="mx-auto sm:mr-0 sm:ml-auto" @click="userSettingsStore.AMSToggleHangarDetailView">
                 Detail Ansicht:
-                {{ userSettings.ams.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
+                {{ userSettingsStore.ams.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
               </ButtonDefault>
             </div>
             <div class="flex flex-wrap">
@@ -447,18 +426,15 @@ useHead({
                     v-for="item in data.hangar"
                     v-if="data.hangar[0]"
                     :key="item.id"
-                    v-model="contextIsOpen"
                     :ship-data="item.ship"
                     :hangar-data="item"
-                    :detail-view="userSettings.ams.hangarDetailView"
+                    :detail-view="userSettingsStore.ams.hangarDetailView"
                     :color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
                     preload-images
                     internal-bio
                     display-department
                     :display-name="item.userData.show_name"
                     display-production-state
-                    :virtual-element="virtualElement"
-                    @contextmenu.prevent="onContextMenu"
                   />
                 </TransitionGroup>
                 <Transition
