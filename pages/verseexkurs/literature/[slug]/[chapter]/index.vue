@@ -60,6 +60,22 @@ definePageMeta({
           </ButtonDefault>
         </div>
         <Editor v-model="data.content" read-only />
+        <div class="flex flex-wrap justify-between mb-2">
+          <ButtonDefault
+            v-if="data.chapter > 1"
+            :to="`/verseexkurs/literature/${data.category.slug}/${data.chapter - 1}`"
+            class="mr-auto text-tbase"
+          >
+            Zurück zu Teil: {{ data.chapter - 1 }}
+          </ButtonDefault>
+          <ButtonDefault
+            v-if="data.chapter < data.category.books.length"
+            :to="`/verseexkurs/literature/${data.category.slug}/${data.chapter + 1}`"
+            class="ml-auto text-tbase"
+          >
+            Weiter zu Teil: {{ data.chapter + 1 }}
+          </ButtonDefault>
+        </div>
       </div>
     </template>
   </VerseExkursBaseArticle>

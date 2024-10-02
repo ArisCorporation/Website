@@ -6,6 +6,9 @@ const homepageTabsStore = useHomepageTabsStore();
 const scrollMargin = ref('scroll-m-0');
 
 const { data: homeData } = await useAsyncData('HOME', () => directus.request(readSingleton('home')));
+const { data: globalData } = await useAsyncData('HOME:GLOBAL_DATA', () =>
+  directus.request(readSingleton('global_data')),
+);
 
 const { data: users } = await useAsyncData(
   'HOME:USERS',
@@ -224,7 +227,27 @@ definePageMeta({
       :tablist="aristabs"
       title="über"
       between
-    />
+    >
+      <template #tabcontent>
+        <template v-if="homepageTabsStore.selectedArisTab === 0">
+          <Editor :model-value="homeData?.ariscorp_description" read-only />
+          <ImageHoverEffect
+            src="2983446c-d4a8-4df4-b63d-aa46f0f8eabe"
+            alt="Made by the Community"
+            class="w-1/4 mx-auto"
+          />
+        </template>
+        <template v-if="homepageTabsStore.selectedArisTab === 1">
+          <Editor :model-value="homeData?.ariscorp_history" read-only />
+        </template>
+        <template v-if="homepageTabsStore.selectedArisTab === 2">
+          <Editor :model-value="homeData?.ariscorp_manifest" read-only />
+        </template>
+        <template v-if="homepageTabsStore.selectedArisTab === 3">
+          <Editor :model-value="homeData?.ariscorp_charta" read-only />
+        </template>
+      </template>
+    </TabGroup>
     <div id="fleet" class="scroll-m-[-840px] md:scroll-m-[-990px] lg:scroll-m-[-750px] xl:scroll-m-[-600px]" />
     <TabGroup
       id="our"
@@ -236,7 +259,7 @@ definePageMeta({
       between
     />
     <HomeSectionCommLink id="comm-link" :class="scrollMargin" :data="commLinks" />
-    <HomeSectionRecruitment id="recruitment" :class="scrollMargin" :data="{ dcLink: homeData.discord_link }" />
+    <HomeSectionRecruitment id="recruitment" :class="scrollMargin" :data="{ dcLink: globalData.discord_link }" />
     <HomeSectionPartner id="partners" :class="scrollMargin" :data="partners" />
   </div>
 </template>
