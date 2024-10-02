@@ -36,7 +36,7 @@ const pages = [
     // avatar: {
     //   src: 'https://cms.ariscorp.de/assets/ffe7c93d-6f9e-4335-aae7-8a3db4551b95',
     // },
-    to: '/shipexkurs',
+    to: '/shipexkurs/ships',
     // shortcuts: [metaSymbol, 'Shift', 'S'],
   },
   {

@@ -50,7 +50,7 @@ const bannerItems = [
   {
     name: 'ShipExkurs',
     icon: 'IconsLogosSeBanner',
-    link: '/shipexkurs',
+    link: '/shipexkurs/ships',
   },
   {
     name: 'VerseExkurs',
