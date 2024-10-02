@@ -682,14 +682,20 @@
                       {{ data.find((e) => e.id === selectedTech)?.name }}
                     </h3>
                     <div class="grid grid-cols-3 mx-8 gap-x-2">
-                      <NuxtImg :src="data.find((e) => e.id === selectedTech)?.banner" class="col-span-1 rounded" />
+                      <NuxtImg
+                        :src="data.find((e) => e.id === selectedTech)?.banner"
+                        class="col-span-1 rounded aspect-[21/9] object-cover"
+                      />
                       <p class="col-span-2 text-justify">{{ data.find((e) => e.id === selectedTech)?.description }}</p>
                     </div>
                   </div>
                   <div v-else>
                     <h3 class="text-center text-industrial-400">Komponenten</h3>
                     <div class="grid grid-cols-3 mx-8 gap-x-2">
-                      <NuxtImg :src="data.find((e) => e.name === 'Komponenten')?.banner" class="col-span-1 rounded" />
+                      <NuxtImg
+                        :src="data.find((e) => e.name === 'Komponenten')?.banner"
+                        class="col-span-1 rounded aspect-[21/9] object-cover w-full h-auto"
+                      />
                       <p class="col-span-2 text-justify">
                         {{ data.find((e) => e.name === 'Komponenten')?.description }}
                       </p>
