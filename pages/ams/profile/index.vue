@@ -433,7 +433,7 @@ definePageMeta({
         <UFormGroup
           label="Benutzername"
           name="username"
-          description="Oben siehst du deinen neuen Login-Namen, und unten siehst du den Biografie-Link."
+          description="Hier sieht du deinen (neuen) Login-Namen und Biografie-Link."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative space-y-2' }"
         >
@@ -467,7 +467,7 @@ definePageMeta({
         <UFormGroup
           label="Avatar"
           name="avatar"
-          description="Hier kannst du sehen ob du Abteilungsleiter bist."
+          description="Hier kannst du deinen Avatar ändern. Einfach eine Datei auswählen und im Anschluss zuschneiden."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -525,7 +525,7 @@ definePageMeta({
         <UFormGroup
           label="Rollen"
           name="roles"
-          description="Hier kannst du deine Rollen sehen. Du kannst mit der Verwaltung sprechen, falls du mehr oder weniger Rollen möchtest."
+          description="Hier kannst du deine Rollen sehen. Du kannst mit der Verwaltung sprechen, falls du mehr oder weniger Rollen übernehmen möchtest."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -548,7 +548,7 @@ definePageMeta({
         <UFormGroup
           label="Abteilungsposition"
           name="head_of_department"
-          description="Hier kannst du sehen welche Position du in der Abteilung hast."
+          description="Hier kannst du sehen welche Position du in deiner Abteilung hast."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -570,7 +570,7 @@ definePageMeta({
         <UFormGroup
           label="Abteilung"
           name="department"
-          description="Hier kannst du sehen ob du Abteilungsleiter bist."
+          description="Hier kannst du auswählen, in welche Abteilung du bist."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -647,7 +647,7 @@ definePageMeta({
         <UFormGroup
           label="Geschlecht"
           name="sex"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du dein Geschlecht auswählen."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -662,7 +662,7 @@ definePageMeta({
         <UFormGroup
           label="Aktueller Wohnort"
           name="current_residence"
-          description="Hier kannst du sehen ob du Abteilungsleiter bist."
+          description="Hier kannst du deinen aktuellen Wohnort angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -684,7 +684,7 @@ definePageMeta({
         <UFormGroup
           label="Geburtsdatum"
           name="birthdate"
-          description="TBD"
+          description="Hier kannst du dein Geburtsdatum angeben. Basierend darauf, wird dein Alter angezeigt. Dein Geburtstag wird außerdem automatisch in der VerseExkurs angezeigt."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative flex pb-4 gap-x-4' }"
         >
@@ -734,7 +734,7 @@ definePageMeta({
         <UFormGroup
           label="Geburtsort"
           name="birthplace"
-          description="Hier kannst du sehen ob du Abteilungsleiter bist."
+          description="Hier kannst du deinen Geburtsort angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -756,7 +756,7 @@ definePageMeta({
         <UFormGroup
           label="Haarfarbe"
           name="hair_color"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deine Haarfarbe angeben."
           class="grid items-center gap-2 md:grid-cols-2"
           :ui="{ container: 'relative' }"
         >
@@ -801,7 +801,7 @@ definePageMeta({
         <UFormGroup
           label="Augenfarbe"
           name="eye_color"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deine Augenfarbe angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -846,7 +846,7 @@ definePageMeta({
         <UFormGroup
           label="Gewicht"
           name="weight"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du dein Gewicht in Kg angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -893,7 +893,7 @@ definePageMeta({
         <UFormGroup
           label="Größe"
           name="height"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deine Größe in CM angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -948,7 +948,7 @@ definePageMeta({
         <UFormGroup
           label="Bürgerstatus"
           name="citizen"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deinen Bürgerstatus auswählen."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -972,7 +972,7 @@ definePageMeta({
             v-if="formdata.citizen"
             label="Bürgerstatus - Begründung"
             name="citizen_reason"
-            description="Hier kannst du deinen RSI Handle angeben."
+            description="Hier kannst du angeben, warum du deinen Bürgerstatus erhalten hast."
             class="items-center grid-cols-2 gap-2 md:grid"
             :ui="{ container: 'relative' }"
           >
@@ -988,7 +988,7 @@ definePageMeta({
         </Transition>
         <UFormGroup
           label="Was trifft zu?"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Was davon hast du gemacht?"
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1029,7 +1029,7 @@ definePageMeta({
             <UFormGroup
               :required="formdata.duty_period"
               label="Dienstzeitraum"
-              description="Hier kannst du deinen RSI Handle angeben."
+              description="In welchem Zeitraum hast du gedient? (z.B. 01/2940 - 12/2950)"
               class="items-center grid-cols-2 gap-2 md:grid"
               :ui="{ container: 'relative' }"
             >
@@ -1074,7 +1074,7 @@ definePageMeta({
               :required="formdata.duty_period"
               label="Dienstende"
               name="duty_end"
-              description="Hier kannst du deinen RSI Handle angeben."
+              description="Wie hast du deinen Dienst quittiert."
               class="items-center grid-cols-2 gap-2 md:grid"
               :ui="{ container: 'relative' }"
             >
@@ -1096,7 +1096,7 @@ definePageMeta({
               :required="formdata.duty_state"
               label="Division"
               name="duty_division"
-              description="Hier kannst du deinen RSI Handle angeben."
+              description="In welcher Division hast du gedient?"
               class="items-center grid-cols-2 gap-2 md:grid"
               :ui="{ container: 'relative' }"
             >
@@ -1136,7 +1136,7 @@ definePageMeta({
             <UFormGroup
               :required="formdata.education_name"
               label="Ausbildung"
-              description="Hier kannst du deinen RSI Handle angeben."
+              description="Welche Ausbildung hast du hinter dir?"
               class="items-center grid-cols-2 gap-2 md:grid"
               :ui="{ container: 'relative' }"
             >
@@ -1180,7 +1180,7 @@ definePageMeta({
             <UFormGroup
               :required="formdata.education_period"
               label="Dienstzeitraum"
-              description="Hier kannst du deinen RSI Handle angeben."
+              description="In weelchem Zeitraum hast du deine Ausbildung absolviert? (z.B. 01/2940 - 12/2950)"
               class="items-center grid-cols-2 gap-2 md:grid"
               :ui="{ container: 'relative' }"
             >
@@ -1225,7 +1225,7 @@ definePageMeta({
               :required="formdata.education_state"
               label="Hochschule"
               name="duty_division"
-              description="Hier kannst du deinen RSI Handle angeben."
+              description="COMING SOON."
               class="items-center grid-cols-2 gap-2 md:grid"
               :ui="{ container: 'relative' }"
             >
@@ -1249,11 +1249,11 @@ definePageMeta({
                 >
                   <template #label>
                     <span v-if="formdata.education_place">{{ formdata.education_place?.name }}</span>
-                    <span v-else>Keine Division ausgewählt</span>
+                    <span v-else>COMING SOON</span>
                   </template>
                   <template #option="{ option }">
                     <span v-if="option.name">{{ option.name }}</span>
-                    <span v-else>Keine Division</span>
+                    <span v-else>COMING SOON</span>
                   </template>
                 </USelectMenu>
                 <template v-if="formdata.education_place || initialFormdata.education_place">
@@ -1286,14 +1286,14 @@ definePageMeta({
           <div class="flex items-start gap-4">
             <div>
               <p class="p-0 font-semibold dark:text-white">Geschmäcker</p>
-              <p class="p-0 mt-1 text-sm text-tbase/50">Nun geht es um deinen Bürgerstatus.</p>
+              <p class="p-0 mt-1 text-sm text-tbase/50">Nun geht es um deine Geschmäcker.</p>
             </div>
           </div>
         </div>
         <UFormGroup
           label="Hobbies"
           name="hobbies"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deine Hobbies angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1338,7 +1338,7 @@ definePageMeta({
         <UFormGroup
           label="Freizeitgestaltung"
           name="activities"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du angeben, was du gerne in deiner Freizeit machst."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1383,7 +1383,7 @@ definePageMeta({
         <UFormGroup
           label="Talente"
           name="talents"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deine Talente angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1428,7 +1428,7 @@ definePageMeta({
         <UFormGroup
           label="Angewohnheiten"
           name="habits"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deine Angewohnheiten angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1473,7 +1473,7 @@ definePageMeta({
         <UFormGroup
           label="Tics & Marotten"
           name="tics"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deine Tics & Marotten angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1518,7 +1518,7 @@ definePageMeta({
         <UFormGroup
           label="Ängste"
           name="fears"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deine Ängste angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1563,7 +1563,7 @@ definePageMeta({
         <UFormGroup
           label="Hervorstechender Charakterzug"
           name="character"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du diene hervorstechenden Charakterzüge angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1608,7 +1608,7 @@ definePageMeta({
         <UFormGroup
           label="Rästelhafte Züge"
           name="mysterious"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deine rätselhaften Züge angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1653,7 +1653,7 @@ definePageMeta({
         <UFormGroup
           label="Musik"
           name="music"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du angeben, welche Musik du gerne hörst."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1698,7 +1698,7 @@ definePageMeta({
         <UFormGroup
           label="Filme"
           name="movies"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du angeben, welche Filme du gerne schaust."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1743,7 +1743,7 @@ definePageMeta({
         <UFormGroup
           label="Bücher"
           name="books"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du angeben, welche Bücher du gerne liest."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1788,7 +1788,7 @@ definePageMeta({
         <UFormGroup
           label="Kleidung"
           name="clothing"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du angeben, welche Kleidung du gerne trägst."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1833,7 +1833,7 @@ definePageMeta({
         <UFormGroup
           label="Speisen"
           name="food"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du angeben, welche Speisen du gerne isst."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1878,7 +1878,7 @@ definePageMeta({
         <UFormGroup
           label="Getränke"
           name="drink"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du angeben, welche Getränke du gerne trinkst."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1923,7 +1923,7 @@ definePageMeta({
         <UFormGroup
           label="Alkohol"
           name="alcohol"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du angeben, welchen Alkohol du gerne trinkst."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -1968,7 +1968,7 @@ definePageMeta({
         <UFormGroup
           label="Farben"
           name="colors"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du deine Lieblingsfarben angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -2013,7 +2013,7 @@ definePageMeta({
         <UFormGroup
           :label="formdata.sex === 'female' ? 'Sie' : 'Er' + ' liebt...'"
           name="loves"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du Dinge angeben, die du liebst."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -2058,7 +2058,7 @@ definePageMeta({
         <UFormGroup
           :label="formdata.sex === 'female' ? 'Sie' : 'Er' + ' hasst...'"
           name="hates"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du Dinge angeben, die du hasst."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
@@ -2103,7 +2103,7 @@ definePageMeta({
         <UFormGroup
           label="Medizinisch Relevantes"
           name="medical_informations"
-          description="Hier kannst du deinen RSI Handle angeben."
+          description="Hier kannst du all deine medizinisch relevanten Informationen angeben."
           class="items-center grid-cols-2 gap-2 md:grid"
           :ui="{ container: 'relative' }"
         >
