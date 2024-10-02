@@ -54,10 +54,10 @@ defineProps({
 
 <template>
   <div :class="{ 'col-span-6': fullWidth, 'col-span-2': third, 'col-span-3': !fullWidth && !third }">
-    <p class="pt-1 text-sm uppercase" :class="{ 'inline-block mr-1': inline }">{{ title }}:</p>
+    <p v-if="title" class="pt-1 text-sm uppercase" :class="{ 'inline-block mr-1': inline }">{{ title }}:</p>
     <slot>
       <template v-if="content">
-        <ul v-if="isList" className="p-0 pl-6">
+        <ul v-if="isList" class="p-0 pl-6">
           <li
             v-for="(item, index) in content.split(', ')"
             :key="index"
