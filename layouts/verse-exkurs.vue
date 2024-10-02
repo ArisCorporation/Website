@@ -13,11 +13,11 @@ const sidebarItems = [
     icon: 'IconsNavigationTimeline',
     link: '/timeline',
   },
-  {
-    name: 'Ein Tag in der Geschichte',
-    icon: 'ic:baseline-history-edu',
-    link: '/one-day-in-history',
-  },
+  // {
+  //   name: 'Ein Tag in der Geschichte',
+  //   icon: 'ic:baseline-history-edu',
+  //   link: '/one-day-in-history',
+  // },
   {
     name: 'UEE',
     icon: 'IconsNavigationUee',
