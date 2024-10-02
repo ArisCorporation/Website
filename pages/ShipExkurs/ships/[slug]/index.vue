@@ -345,7 +345,7 @@ useHead({
         </NuxtLink>
       </div>
     </div>
-    <hr class="my-3" >
+    <hr class="my-3" />
     <div class="grid grid-cols-3 gap-4">
       <div class="col-span-3 space-y-4 xl:col-span-2">
         <DefaultPanel bg="bprimary">
@@ -413,7 +413,9 @@ useHead({
           </div>
         </DefaultPanel>
         <DefaultPanel v-if="data.description" bg="bprimary">
-          <Editor v-model="data.description" read-only />
+          <div class="p-4">
+            <Editor v-model="data.description" read-only />
+          </div>
         </DefaultPanel>
       </div>
       <div class="col-span-3 space-y-4 xl:col-span-1">
@@ -694,7 +696,7 @@ useHead({
                   />
                 </div>
               </div>
-              <hr class="mx-4 my-4" >
+              <hr class="mx-4 my-4" />
               <div class="flex px-6 pb-2 basis-full">
                 <div class="mx-auto">
                   <Editor v-model="data.rating.introduction" read-only />
@@ -705,7 +707,7 @@ useHead({
         </template>
       </template>
     </TabGroup>
-    <hr >
+    <hr />
     <div class="flex flex-nowrap">
       <div v-if="data.variants" class="w-full px-2">
         <h3 class="text-industrial-400">Varianten</h3>
