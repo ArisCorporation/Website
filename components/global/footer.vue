@@ -58,7 +58,7 @@ const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
           <p class="*:after:content-['_-_'] *:after:text-tbase">
             <span>&copy; ArisCorp - V{{ $config.public.appVersion }}</span>
             <span><NuxtLink to="/credits" class="hover:brightness-85 animate-link">Credits</NuxtLink></span>
-            <span><NuxtLink to="/bug-report" class="hover:brightness-85 animate-link">Bug-Report Tool</NuxtLink></span>
+            <!-- <span><NuxtLink to="/bug-report" class="hover:brightness-85 animate-link">Bug-Report Tool</NuxtLink></span> -->
             <span><NuxtLink to="/ams" class="hover:brightness-85 animate-link">A.M.S.</NuxtLink></span>
             <span class="after:!content-[]">
               <NuxtLink target="_blank" to="https://releases.ariscorp.de" class="hover:brightness-85 animate-link">
