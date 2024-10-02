@@ -432,10 +432,11 @@ definePageMeta({
             <Editor :model-value="data.content" read-only />
           </div>
           <div v-else-if="selectedMainTab === 1">
-            <p class="text-aris-400">
-              Orbit-View
+            <h2 class="">
+              COMING SOON
+              <!-- Orbit-View -->
               <!-- {{ data.value.orbit }} -->
-            </p>
+            </h2>
           </div>
           <div v-else-if="selectedMainTab === 2">
             <div>
