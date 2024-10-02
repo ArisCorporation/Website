@@ -32,14 +32,14 @@ if (!categories.value || !fractions.value) {
   });
 }
 
-const mainCategory = computed(() => categories[selectedMainTab.value]);
-const subCategories = computed(() => categories[selectedMainTab.value].sub_categories);
+const mainCategory = computed(() => categories.value[selectedMainTab.value]);
+const subCategories = computed(() => categories.value[selectedMainTab.value].sub_categories);
 const subSubCategories = computed(
-  () => categories[selectedMainTab.value].sub_categories[selectedSubTab.value].sub_categories,
+  () => categories.value[selectedMainTab.value].sub_categories[selectedSubTab.value].sub_categories,
 );
 
 const subTabs = computed(() =>
-  categories[selectedMainTab.value].sub_categories.map((obj) => ({
+  categories.value[selectedMainTab.value].sub_categories.map((obj) => ({
     header: obj.name,
   })),
 );
