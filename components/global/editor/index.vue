@@ -141,12 +141,19 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div :class="[!readOnly ? (simpleMode ? 'h-full' : 'h-[calc(100vh_-_50px)] overflow-y-auto') : '']">
+  <div :class="[!readOnly ? (simpleMode ? 'h-full' : 'h-[calc(100vh_-_50px)] overflow-y-auto rounded-xl') : '']">
     <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" />
     <div v-if="editor && !readOnly && !simpleMode" id="editor_container">
       <UCard
         :ui="{
-          header: { base: 'sticky top-0 z-10', background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
+          header: { base: 'sticky top-0 z-10 rounded-t-lg', background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
+          footer: {
+            base: 'sticky bottom-0 z-10 rounded-b-lg',
+            background: 'bg-bsecondary',
+            padding: 'px-4 py-3 sm:px-6',
+          },
+          body: { base: 'border-x !border-bsecondary' },
+          ring: '',
         }"
         class="overflow-clip"
       >
@@ -419,7 +426,7 @@ onBeforeUnmount(() => {
           </div>
         </template>
 
-        <div class="">
+        <div class="min-h-screen">
           <TiptapEditorContent :editor="editor" class="" />
         </div>
 
