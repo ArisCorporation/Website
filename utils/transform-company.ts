@@ -1,20 +1,47 @@
 export default function (obj: any) {
   return {
-    id: obj.id,
-    name: obj.firmen_name,
-    code: obj.code,
-    slug: obj.slug,
-    logo: obj.firmen_trans_logo,
-    banner: obj.firmen_banner,
-    content: obj.text,
-    // category: getCategory(),
-    handweapon: obj.handweapon,
-    headquarter: obj.headquarter,
-    headquarterSystem: obj.headquarterSystem,
-    currentCeo: obj.current_ceo,
-    founding: obj.founding,
-    founder: obj.founder,
-    famousGoods: obj.famous_goods,
+    ...(obj.id && { id: obj.id }),
+    ...(obj.name && { name: obj.name }),
+    ...(obj.code && { code: obj.code }),
+    ...(obj.slug && { slug: obj.slug }),
+    ...(obj.logo && { logo: obj.logo }),
+    ...(obj.banner && { banner: obj.banner }),
+    ...(obj.content && { content: obj.content }),
+    ...(obj.category && { category: { id: obj.category.id, name: obj.category.name } }),
+    ...(obj.headquarter &&
+      obj.headquarter[0] && {
+        headquarter: {
+          collection: obj.headquarter[0].collection,
+          ...(obj.headquarter[0].collection === 'planets' && {
+            planet: transformPlanet(obj.headquarter[0].headquarter),
+          }),
+          ...(obj.headquarter[0].collection === 'moons' && { moon: transformMoon(obj.headquarter[0].headquarter) }),
+          ...(obj.headquarter[0].collection === 'landing_zones' &&
+            transformLandingZone(obj.headquarter[0].headquarter)),
+          // ...(obj.headquarter[0].collection === 'landing_zones' && obj.headquarter[0].headquarter.planet
+          //   ? {
+          //       name: obj.headquarter[0].headquarter.name,
+          //       slug: obj.headquarter[0].headquarter.slug,
+          //       planet: {
+          //         name: obj.headquarter[0].headquarter.planet.name,
+          //         slug: obj.headquarter[0].headquarter.planet.slug,
+          //       },
+          //     }
+          //   : {}),
+          // ...(obj.headquarter[0].collection === 'landing_zones' && obj.headquarter[0].headquarter.moon
+          //   ? {
+          //       name: obj.headquarter[0].headquarter.name,
+          //       slug: obj.headquarter[0].headquarter.slug,
+          //       moon: { name: obj.headquarter[0].headquarter.moon.name, slug: obj.headquarter[0].headquarter.moon.slug },
+          //     }
+          //   : {}),
+        },
+      }),
+    ...(obj.current_ceo && { current_ceo: obj.current_ceo }),
+    ...(obj.founded && { founded: obj.founded }),
+    ...(obj.founder && { founder: obj.founder }),
+    ...(obj.famous_goods && { famous_goods: obj.famous_goods }),
+    ...(obj.ships && { ships: obj.ships.map((ship: any) => transformShip(ship)) }),
     // weapons: getWeapons(),
     // ships: getShips(),
     // modules: getModules(),

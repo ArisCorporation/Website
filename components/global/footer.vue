@@ -1,36 +1,33 @@
-<script setup>
+<script setup lang="ts">
 const footerLang = useState('footerLang', () => 'de');
-const { getItems } = useDirectusItems();
+const { directus, readSingleton } = useCMS();
 
 const { data: footer } = await useAsyncData(
-  'footer',
+  'GLOBAL:FOOTER',
   () =>
-    getItems({
-      collection: 'footer',
-      params: {
-        fields: ['footer_text_titel', 'footer_text'],
-        filter: {
-          _or: [{ footer_text_titel: 'de' }, { footer_text_titel: 'en' }],
-        },
-      },
-    }),
+    directus.request(
+      readSingleton('footer', {
+        fields: ['translations.languages_code', 'translations.content'],
+        status: { _eq: 'published' },
+      }),
+    ),
   {
-    transform: (data) => {
-      return data.map((footer) => ({
-        title: footer.footer_text_titel,
-        content: footer.footer_text,
-      }));
-    },
+    transform: (rawFooter: any) =>
+      rawFooter.translations.map((rawLanguage: any) => ({
+        code: rawLanguage.languages_code,
+        content: rawLanguage.content,
+      })),
   },
 );
+// const footer = computed(() => footerRes?.translations?.map((e) => ({ code: e.languages_code, content: e.content })));
 
-const de = await parseMarkdown(footer.value?.find((e) => e.title === 'de').content);
-const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').content);
+const de = footer.value?.find((e: any) => e.code === 'de-DE').content;
+const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
 </script>
 
 <template>
   <footer class="w-full bg-black border-t border-t-1 border-secondary print:hidden">
-    <div class="container px-4 pt-4 pb-2 mx-auto sm:px-0">
+    <div class="container px-4 pt-4 pb-2 mx-auto">
       <div class="flex">
         <h4>//Disclaimer</h4>
         <div class="flex ml-4 space-x-2">
@@ -42,49 +39,80 @@ const en = await parseMarkdown(footer.value?.find((e) => e.title === 'en').conte
           </button>
         </div>
       </div>
-      <p v-if="footerLang == 'de'">
-        <ContentRenderer :value="de" />
-      </p>
-      <p v-if="footerLang == 'en'">
-        <ContentRenderer :value="en" />
-      </p>
-      <div class="flex justify-between w-full">
-        <p>
-          <span>&copy; ArisCorp - </span>
-          <span><NuxtLink to="/credits">Credits</NuxtLink> - </span>
-          <span><NuxtLink to="/bug-report">Bug-Report Tool</NuxtLink></span>
-        </p>
-        <div class="flex space-x-2 w-fit">
-          <div class="w-12 h-12">
-            <NuxtLink
-              aria-label="Die Website von dem Spiel Star Citizen"
-              to="https://robertsspaceindustries.com/star-citizen"
-              target="_blank"
-            >
-              <Icon name="IconsLogosStarcitizen" class="w-full h-full" hover-effect />
-            </NuxtLink>
+      <div class="flex flex-wrap justify-center xl:justify-between xl:flex-nowrap">
+        <div class="flex flex-col justify-between w-full xl:w-2/3">
+          <div class="">
+            <template v-if="footer">
+              <p v-if="footerLang === 'de'" class="italic">
+                {{ de }}
+              </p>
+              <p v-if="footerLang === 'en'" class="italic">
+                {{ en }}
+              </p>
+            </template>
+            <template v-else>
+              <p>FEHLER: DISCLAIMER KONNTE NICHT GELADEN WERDEN...</p>
+              <p>ERROR: CANNOT LOAD DISCLAIMER...</p>
+            </template>
           </div>
-          <div class="w-12 h-12">
-            <NuxtLink
-              aria-label="Die Website von dem Spiel Squadron42"
-              to="https://robertsspaceindustries.com/squadron42"
-              target="_blank"
-            >
-              <Icon name="IconsLogosSquadron42" class="w-full h-full" hover-effect />
-            </NuxtLink>
-          </div>
-          <div class="w-12 h-12">
-            <NuxtLink aria-label="Die Website von RSI" to="https://robertsspaceindustries.com/" target="_blank">
-              <Icon name="IconsLogosRsi" class="w-full h-full" hover-effect />
-            </NuxtLink>
-          </div>
-          <div class="w-12 h-12">
-            <NuxtLink aria-label="Die Website von CIG" to="https://cloudimperiumgames.com/" target="_blank">
-              <Icon name="IconsLogosCig" class="w-full h-full" hover-effect />
-            </NuxtLink>
+          <p class="*:after:content-['_-_'] *:after:text-tbase">
+            <span>&copy; ArisCorp - V{{ $config.public.appVersion }}</span>
+            <span><NuxtLink to="/credits" class="hover:brightness-85 animate-link">Credits</NuxtLink></span>
+            <!-- <span><NuxtLink to="/bug-report" class="hover:brightness-85 animate-link">Bug-Report Tool</NuxtLink></span> -->
+            <span><NuxtLink to="/ams" class="hover:brightness-85 animate-link">A.M.S.</NuxtLink></span>
+            <span class="after:!content-[]">
+              <NuxtLink target="_blank" to="https://releases.ariscorp.de" class="hover:brightness-85 animate-link">
+                Release-Notes
+              </NuxtLink>
+            </span>
+          </p>
+        </div>
+        <div class="flex flex-col justify-between w-full xl:w-1/3">
+          <NuxtImg
+            src="2983446c-d4a8-4df4-b63d-aa46f0f8eabe"
+            loading="lazy"
+            :placeholder="[16, 16, 1, 5]"
+            alt="Made by the Community-Logo"
+            class="w-1/3 max-w-[125px] mx-auto my-4 xl:w-1/2 xl:m-auto"
+          />
+          <div class="flex mx-auto mt-auto space-x-2 xl:mt-4 w-fit">
+            <div class="footer-icon">
+              <NuxtLink
+                aria-label="Die Website von dem Spiel Star Citizen"
+                to="https://robertsspaceindustries.com/star-citizen"
+                target="_blank"
+              >
+                <Icon name="IconsLogosStarcitizen" class="w-full h-full" hover-effect />
+              </NuxtLink>
+            </div>
+            <div class="footer-icon">
+              <NuxtLink
+                aria-label="Die Website von dem Spiel Squadron42"
+                to="https://robertsspaceindustries.com/squadron42"
+                target="_blank"
+              >
+                <Icon name="IconsLogosSquadron42" class="w-full h-full" hover-effect />
+              </NuxtLink>
+            </div>
+            <div class="footer-icon">
+              <NuxtLink aria-label="Die Website von RSI" to="https://robertsspaceindustries.com/" target="_blank">
+                <Icon name="IconsLogosRsi" class="w-full h-full" hover-effect />
+              </NuxtLink>
+            </div>
+            <div class="footer-icon">
+              <NuxtLink aria-label="Die Website von CIG" to="https://cloudimperiumgames.com/" target="_blank">
+                <Icon name="IconsLogosCig" class="w-full h-full" hover-effect />
+              </NuxtLink>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </footer>
 </template>
+
+<style scoped>
+.footer-icon {
+  @apply w-16 h-16 animate-link;
+}
+</style>

@@ -11,43 +11,65 @@ defineProps({
     default: false,
   },
   data: {
-    type: Object as PropType<IMember>,
+    type: null,
     required: true,
+  },
+  hidden: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
 });
 </script>
 
 <template>
-  <div class="relative w-full px-4 mb-4 text-center basis-1/2 lg:basis-1/3 xl:basis-1/4">
-    <div class="aspect-[270/320] mx-auto relative max-w-[270px] w-full group rounded-sm border-secondary border-b-2">
-      <div class="absolute flex w-full h-full">
+  <!-- <Presence exit-before-enter>
+    <Motion
+      v-if="!hidden"
+      :key="data.id"
+      :initial="{ opacity: 0, y: -15 }"
+      :animate="{ opacity: 1, y: 0 }"
+      :exit="{ opacity: 0, y: -15 }"
+      :transition="{ duration: 0.5 }"
+      class="relative w-full px-4 mb-4 text-center basis-1/2 lg:basis-1/3 xl:basis-1/4"
+    > -->
+  <div v-if="!hidden" :key="data.id" class="relative w-full px-4 mb-4 text-center basis-1/2 lg:basis-1/3 xl:basis-1/4">
+    <div class="aspect-potrait mx-auto relative max-w-[270px] w-full group rounded-sm border-secondary border-b-2">
+      <div class="absolute flex w-full h-full text-xs sm:text-base">
         <div class="z-20 m-auto opacity-0 group-hover:opacity-100 transition-short-group">
           <hr />
           <p>
             Position:
-            <span class="text-secondary">{{ data.position }}</span>
+            <span class="text-secondary">{{ data.position?.name }}</span>
           </p>
-          <template v-if="data.roles[0]">
+          <template v-if="data.roles">
             <hr />
             <p>&ldquo;{{ data.roles?.join(', ') }}&ldquo;</p>
           </template>
           <hr />
           <p class="flex justify-center space-x-4">
-            <NuxtLink :to="(ams ? '/ams/' : '/') + 'bigoraphy/' + data.slug">BIOGRAFIE</NuxtLink>
-            <NuxtLink v-if="hangarLink" :to="'/ams/hangar/' + data.slug">HANGAR</NuxtLink>
+            <NuxtLink :to="ams ? data.biography_ams_link : data.biography_link" class="animate-link hover:brightness-85"
+              >BIOGRAFIE</NuxtLink
+            >
+            <NuxtLink v-if="hangarLink" :to="data.hangar_link" class="animate-link hover:brightness-85"
+              >HANGAR</NuxtLink
+            >
           </p>
         </div>
       </div>
       <div class="absolute z-10 w-full h-full bg-black opacity-0 group-hover:opacity-50 transition-short-group" />
       <NuxtImg
-        :alt="'Potrait von ' + data.fullName"
-        :src="data.potrait || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492'"
-        class="z-0 w-full h-full"
+        :src="data.avatar"
+        :placeholder="[16, 16, 1, 5]"
+        :alt="'Potrait von ' + data.full_name"
+        class="z-0 object-cover w-full h-full"
       />
     </div>
-    <h4>{{ data.fullName }}</h4>
-    <h6 class="pt-0 text-light-gray">{{ data.position }}</h6>
+    <h4>{{ data.full_name }}</h4>
+    <h6 class="pt-0 text-light-gray">{{ data.position?.name }}</h6>
   </div>
+  <!-- </Motion> -->
+  <!-- </Presence> -->
 </template>
 
 <style scoped lang="postcss">

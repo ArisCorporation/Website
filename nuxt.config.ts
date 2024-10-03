@@ -1,4 +1,9 @@
+import { defineNuxtConfig } from 'nuxt/config';
+// import { sentryVitePlugin } from '@sentry/vite-plugin';
+import vue from '@vitejs/plugin-vue';
+import { version } from './package.json';
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
 export default defineNuxtConfig({
   devtools: {
     enabled: true,
@@ -14,52 +19,136 @@ export default defineNuxtConfig({
       viewport: 'width=device-width, initial-scale=1',
     },
   },
+
   css: ['~/assets/css/main.css', '~/assets/css/tailwind.css'],
 
+  // modules: [
+  //   '@vueuse/nuxt',
+  //   '@nuxt/image',
+  //   'nuxt-icon',
+  //   'nuxt-headlessui',
+  //   'nuxt-directus-next',
+  //   // '@nuxt/content',
+  //   '@nuxtjs/mdc',
+  //   '@pinia/nuxt',
+  //   // '@vueuse/motion/nuxt',
+  //   '@pinia-plugin-persistedstate/nuxt',
+  //   '@vue-email/nuxt',
+  //   // '@nuxtjs/tailwindcss',
+  //   '@nuxt/ui',
+  //   'dayjs-nuxt',
+  //   'nuxt-lodash',
+  //   'nuxt-tiptap-editor',
+  //   // '@nuxt/test-utils/module',
+  //   // 'nuxt-markdown-render',
+  //   'nuxt-resend',
+  //   '@nuxt/eslint',
+  // ],
   modules: [
-    '@nuxtjs/tailwindcss',
-    '@vueuse/nuxt',
+    '@vue-email/nuxt',
+    '@nuxt/ui',
+    '@nuxt/eslint',
     '@nuxt/image',
-    'nuxt-icon',
-    'nuxt-headlessui',
-    'nuxt-directus',
-    '@nuxt/content',
     '@pinia/nuxt',
-    '@vueuse/motion/nuxt',
     '@pinia-plugin-persistedstate/nuxt',
+    'nuxt-tiptap-editor',
+    '@vueuse/nuxt',
+    // 'dayjs-nuxt',
+    '@nuxt/icon',
+    'nuxt-headlessui',
+    'nuxt-lodash',
+    'nuxt-resend',
+    '@tresjs/nuxt',
+    'radix-vue/nuxt',
     'dayjs-nuxt',
   ],
 
+  // plugins: ['~/plugins/vue-cropper.ts'],
+
   runtimeConfig: {
     authSecret: process.env.NUXT_AUTH_SECRET,
-    cmsToken: process.env.NUXT_CMS_TOKEN,
+    // cmsToken: process.env.NUXT_CMS_TOKEN,
+    discordBotToken: process.env.NUXT_DISCORD_BOT_TOKEN,
+    discordGuildId: process.env.NUXT_DISCORD_GUILD_ID,
     public: {
-      environment: process.env.NUXT_PUBLIC_ENVIRONMENT,
+      appVersion: version,
+      buildNumber: process.env.SOURCE_COMMIT,
+      environment: process.env.NUXT_PUBLIC_ENV,
       url: process.env.NUXT_PUBLIC_URL,
+      backendUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
-      motion: {
-        directives: {
-          'default-button': {
-            initial: {
-              scale: 1,
-            },
-            hovered: {
-              scale: 1.1,
-            },
-            tapped: {
-              scale: 0.97,
-            },
-          },
-        },
+      mbutton: { initial: { scale: 1 }, visible: { scale: 1 }, hovered: { scale: 1 }, tapped: { scale: 0.97 } },
+      // SENTRY VARS
+      sentry: {
+        dsn: process.env.NUXT_PUBLIC_SENTRY_DSN,
+        environment: process.env.NUXT_PUBLIC_ENV,
       },
+      // NUXT_PUBLIC_SENTRY_DSN_PUBLIC: process.env.NUXT_PUBLIC_SENTRY_DSN_PUBLIC,
+      // NUXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE: parseFloat(process.env.NUXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE ?? '0'),
+      // NUXT_PUBLIC_SENTRY_REPLAY_SAMPLE_RATE: parseFloat(process.env.NUXT_PUBLIC_SENTRY_REPLAY_SAMPLE_RATE ?? '0'),
+      // NUXT_PUBLIC_SENTRY_ERROR_REPLAY_SAMPLE_RATE: parseFloat(
+      //   process.env.NUXT_PUBLIC_SENTRY_ERROR_REPLAY_SAMPLE_RATE ?? '0',
+      // ),
+      // NUXT_SENTRY_AUTH_TOKEN: process.env.NUXT_SENTRY_AUTH_TOKEN,
+    },
+  },
+
+  // imports: {
+  //   presets: [
+  //     {
+  //       from: '@sentry/vue',
+  //       imports: [
+  //         {
+  //           as: 'Sentry',
+  //           name: '*',
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // },
+
+  // sourcemap: true,
+  // SENTRY CONFIG
+  vite: {
+    vue: {
+      script: {
+        defineModel: true,
+        propsDestructure: true,
+      },
+    },
+    // build: {
+    //   rollupOptions: {
+    //     external: ['@directus/sdk'],
+    //   },
+    // },
+    //   plugins: [
+    //     // Put the Sentry vite plugin after all other plugins
+    //     sentryVitePlugin({
+    //       authToken: process.env.SENTRY_AUTH_TOKEN,
+    //       org: 'ariscorp',
+    //       project: 'homepage',
+    //     }),
+    //   ],
+  },
+
+  sourcemap: {
+    client: true,
+    server: false,
+  },
+
+  nitro: {
+    rollupConfig: {
+      plugins: [vue()],
     },
   },
 
   components: [
+    // For All Components
     {
       path: '~/components',
       global: true,
     },
+    // For Global-Components
     {
       path: '~/components/global',
       prefix: '',
@@ -70,25 +159,52 @@ export default defineNuxtConfig({
   image: {
     provider: 'directus',
     directus: {
-      baseURL: 'https://cms.ariscorp.de/assets/',
+      baseURL: process.env.NUXT_PUBLIC_FILE_BASE,
       modifiers: {
         format: 'webp',
       },
     },
   },
 
-  directus: {
-    url: 'https://cms.ariscorp.de',
-  },
+  // directus: {
+  // 	url: process.env.NUXT_DIRECTUS_URL,
+  // 	authConfig: {
+  // 		refreshTokenCookieName: 'ams_refresh_token',
+  // 	},
+  // 	moduleConfig: {
+  // 		autoRefresh: {
+  // 			enableMiddleware: false,
+  // 			redirectTo: '/ams/login',
+  // 			to: ['/ams'],
+  // 		},
+  // 	},
+  // },
 
   headlessui: {
     prefix: 'Headless',
   },
 
   dayjs: {
-    locales: ['en', 'de'],
+    locales: ['de'],
     plugins: ['relativeTime', 'utc', 'timezone'],
     defaultLocale: 'de',
     defaultTimezone: 'Europe/Berlin',
   },
+
+  // dayjs: {
+  // 	locales: ['en', 'de'],
+  // 	plugins: ['relativeTime', 'utc', 'timezone'],
+  // 	defaultLocale: 'de',
+  // 	defaultTimezone: 'Europe/Berlin',
+  // },
+
+  typescript: {
+    shim: false,
+  },
+
+  tiptap: {
+    prefix: 'Tiptap', // prefix for Tiptap imports, composables not included
+  },
+
+  compatibilityDate: '2024-07-12',
 });
