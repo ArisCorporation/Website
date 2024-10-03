@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 defineProps({
   hover: {
     type: Boolean,
@@ -15,6 +15,7 @@ defineProps({
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 3072 3072"
     class="group"
+    fill="currentColor"
   >
     <path
       :class="{ 'hover-effect': hover }"
