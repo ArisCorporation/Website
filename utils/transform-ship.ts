@@ -1,105 +1,225 @@
+import transformUtilStoreImage from './transform-util-store_image'
+
 interface IVariant {
-  id: String;
-  name: String;
-  slug: String;
+	id: string
+	name: string
+	slug: string
 }
 interface ILoaner {
-  id: String;
-  name: String;
-  slug: String;
+	id: string
+	name: string
+	slug: string
 }
 
-export default function (obj: any, shipList?: any) {
-  const getVariants = () => {
-    const variants: Array<IVariant> = [];
-    obj.variants?.map((i: IVariant) => variants.push(transformShip(shipList?.find((e: IVariant) => e.id === i.id))));
-    return variants;
-  };
-  const getLoaners = () => {
-    const loaners: Array<ILoaner> = [];
-    obj.loaners?.map((i: ILoaner) => loaners.push(transformShip(shipList?.find((e: ILoaner) => e.id === i.id))));
-    return loaners;
-  };
-  const getManufacturer = () => (obj.manufacturer ? transformCompany(obj.manufacturer) : null);
-  const getProductionState = () => {
-    if (obj.productionStatus === 'in-concept') return 'Im Konzept';
-    if (obj.productionStatus === 'in-production') return 'In Produktion';
-    if (obj.productionStatus === 'flight-ready') return 'Flugfertig';
-  };
+export default function transformShip(obj: any, shipList?: any) {
+	// const getVariants = () => {
+	//   if (!shipList) return;
+	//   const variants: Array<IVariant> = [];
+	//   obj.variants?.map((i: IVariant) => variants.push(transformShip(shipList?.find((e: IVariant) => e.id === i.id))));
+	//   return variants;
+	// };
+	const getVariants = () => {
+		return obj.variants.filter((e: any) => e?.variant_id).map((variant: any) => transformShip(variant.variant_id))
+		// const loaners = [];
+		// const loanerData = [];
+		// obj.loaners.forEach((rawLoaner) => {
+		//   if (!loaners.includes(rawLoaner.id)) {
+		//     loaners.push(rawLoaner.id);
+		//     loanerData.push(transformShip(shipList.find((e) => e.id === rawLoaner.id)));
+		//   }
+		// });
+		// return loanerData;
+	}
+	const getLoaners = () => {
+		if (!obj.loaners || obj.production_status === 'flight-ready') return
+		return obj.loaners.filter((e: any) => e?.loaner_id).map((loaner: any) => transformShip(loaner.loaner_id))
+		// const loaners = [];
+		// const loanerData = [];
+		// obj.loaners.forEach((rawLoaner) => {
+		//   if (!loaners.includes(rawLoaner.id)) {
+		//     loaners.push(rawLoaner.id);
+		//     loanerData.push(transformShip(shipList.find((e) => e.id === rawLoaner.id)));
+		//   }
+		// });
+		// return loanerData;
+	}
+	const getAllLoaners = () => {
+		if (!obj.loaners) return
+		return obj.loaners.filter((e: any) => e?.loaner_id).map((loaner: any) => transformShip(loaner.loaner_id))
+		// const loaners = [];
+		// const loanerData = [];
+		// obj.loaners.forEach((rawLoaner) => {
+		//   if (!loaners.includes(rawLoaner.id)) {
+		//     loaners.push(rawLoaner.id);
+		//     loanerData.push(transformShip(shipList.find((e) => e.id === rawLoaner.id)));
+		//   }
+		// });
+		// return loanerData;
+	}
+	const getManufacturer = () => (obj.manufacturer ? transformCompany(obj.manufacturer) : null)
+	const getProductionState = () => {
+		if (obj.productionStatus === 'in-concept') return 'Im Konzept'
+		if (obj.productionStatus === 'in-production') return 'In Produktion'
+		if (obj.productionStatus === 'flight-ready') return 'Flugfertig'
+	}
 
-  return {
-    id: obj.id,
-    erkulId: obj.erkulIdentifier,
-    smId: obj.smIdentifier,
-    flId: obj.flIdentifier,
-    scId: obj.scIdentifier,
-    apiId: obj.apiid,
-    rsiId: obj.rsiId,
-    name: obj.name,
-    p4kName: obj.p4kname,
-    rsiName: obj.rsiName,
-    slug: obj.slug,
-    flSlug: obj.flSlug,
-    rsiSlug: obj.rsiSlug,
-    p4kMode: obj.p4kMode,
-    p4kId: obj.p4kId,
-    p4kVersion: obj.p4kVersion,
-    manufacturer: getManufacturer(),
-    storePage: obj.storeUrl,
-    salesPage: obj.salesPageUrl,
-    length: obj.length,
-    beam: obj.beam,
-    height: obj.height,
-    mass: obj.mass,
-    cargo: obj.cargo,
-    price: obj.price,
-    pledgePrice: obj.pledgePrice,
-    onSale: obj.onSale,
-    productionState: getProductionState(),
-    readyPatch: obj.readyPatch,
-    career: obj.career,
-    hydrogenTank: obj.hydrogenTank,
-    quantumTank: obj.quantumTank,
-    minCrew: obj.minCrew,
-    maxCrew: obj.maxCrew,
-    scmSpeed: obj.scmSpeed,
-    maxSpeed: obj.maxSpeed,
-    maxGroundSpeed: obj.maxGroundSpeed,
-    zeroToScm: obj.zeroToScm,
-    zeroToMax: obj.zeroToMax,
-    scmToZero: obj.scmToZero,
-    maxToZero: obj.maxToZero,
-    pitchMax: obj.pitchMax,
-    yawMax: obj.yawMax,
-    rollMax: obj.rollMax,
-    xaxisAcceleration: obj.xaxisAcceleration,
-    yaxisAcceleration: obj.yaxisAcceleration,
-    zaxisAcceleration: obj.zaxisAcceleration,
-    brochure: obj.brochure?.id,
-    holo: obj.holo?.id,
-    holoColored: obj.holoColored,
-    hardpoints: obj.hardoints,
-    weaponHardpoints: obj.weaponHardpoints,
-    variants: getVariants(),
-    loaners: getLoaners(),
-    paints: obj.paints,
-    classification: obj.classification,
-    focus: obj.focus,
-    lastUpdatedAt: obj.lastUpdatedAt,
-    insuranceClaimTime: obj.insuranceClaimTime,
-    insuranceExpeditedClaimTime: obj.insuranceExpeditedClaimTime,
-    insuranceExpeditedCost: obj.insuranceExpeditedCost,
-    storeImage: obj.storeImage?.id,
-    // gallery: getGallery(),
-    commercialVideo: obj.commercialVideoId,
-    tags: obj.tags,
-    // groundVehicle: getGroundVehicle(),
-    role: obj.role,
-    description: obj.description,
-    history: obj.history,
-    // rating: getRating,
-    size: obj.size,
-    sortSize: obj.sortSize,
-    // modules: getModules(),
-  };
+	const getRating = () => {
+		const score = obj.rating.ratings.reduce(
+			(total: number, rating: any) =>
+				total
+				+ (rating.grade === 'bad'
+        	? 5
+        	: rating.grade === 'medium'
+        		? 10
+        		: rating.grade === 'good'
+        			? 15
+        			: rating.grade === 'very_good'
+        				? 20
+        				: 0),
+			0,
+		)
+		return {
+			...obj.rating,
+			...(obj.rating.user_created && { user_created: transformUser(obj.rating.user_created) }),
+			...(obj.rating.ratings && {
+				ratings: obj.rating.ratings.map((rating: any) => ({
+					category: rating.category,
+					reason: rating.reason,
+					grade: rating.grade,
+					grade_points:
+            rating.grade === 'bad'
+            	? 5
+            	: rating.grade === 'medium'
+            		? 10
+            		: rating.grade === 'good'
+            			? 15
+            			: rating.grade === 'very_good'
+            				? 20
+            				: 0,
+					grade_label:
+            rating.grade === 'bad'
+            	? 'Schlecht'
+            	: rating.grade === 'medium'
+            		? 'Mittel'
+            		: rating.grade === 'good'
+            			? 'Gut'
+            			: rating.grade === 'very_good'
+            				? 'Sehr Gut'
+            				: 'Unbekannt',
+				})),
+				score,
+			}),
+		}
+	}
+
+	return {
+		...(obj.id && { id: obj.id }),
+		...(obj.date_created && { date_created: obj.date_created }),
+		...(obj.date_updated && { date_updated: obj.date_updated }),
+		...(obj.erkul_id && { erkul_id: obj.erkul_id }),
+		...(obj.p4k_id && { p4k_id: obj.p4k_id }),
+		...(obj.fl_id && { fl_id: obj.fl_id }),
+		...(obj.sm_id && { sm_id: obj.sm_id }),
+		...(obj.name && { name: obj.name }),
+		...(obj.p4k_name && { p4k_name: obj.p4k_name }),
+		...(obj.slug && { slug: obj.slug }),
+		...(obj.p4k_mode && { p4k_mode: obj.p4k_mode }),
+		...(obj.p4k_version && { p4k_version: obj.p4k_version }),
+		...(obj.manufacturer && { manufacturer: getManufacturer() }),
+		...(obj.store_url && { store_url: obj.store_url }),
+		...(obj.sales_url && { sales_url: obj.sales_url }),
+		...(obj.length && { length: obj.length }),
+		...(obj.beam && { beam: obj.beam }),
+		...(obj.height && { height: obj.height }),
+		...(obj.mass && { mass: obj.mass }),
+		...(obj.cargo && { cargo: obj.cargo }),
+		...(obj.price && {
+			price:
+        obj.price
+        	.split('.')[0]
+        	?.toString()
+        	.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.')
+        	+ ','
+        	+ obj.price.split('.')[1].slice(0, 2),
+		}),
+		...(obj.pledge_price && {
+			pledge_price:
+        obj.pledge_price
+        	.split('.')[0]
+        	?.toString()
+        	.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.')
+        	+ ','
+        	+ obj.pledge_price.split('.')[1].slice(0, 2),
+		}),
+		...(obj.on_sale && { on_sale: obj.on_sale }),
+		...(obj.production_status && {
+			production_status:
+        obj.production_status === 'flight-ready'
+        	? 'Flugfertig'
+        	: obj.production_status === 'in-production'
+        		? 'In Produktion'
+        		: 'In Konzept',
+			production_status_value: obj.production_status,
+		}),
+		...(obj.live_patch && { live_patch: obj.live_patch }),
+		...(obj.production_note && { production_note: obj.production_note }),
+		...(obj.crew_min && { crew_min: obj.crew_min }),
+		...(obj.crew_max && { crew_max: obj.crew_max }),
+		...(obj.scm_speed && { scm_speed: obj.scm_speed }),
+		...(obj.max_speed && { max_speed: obj.max_speed }),
+		...(obj.zero_to_scm && { zero_to_scm: obj.zero_to_scm }),
+		...(obj.zero_to_max && { zero_to_max: obj.zero_to_max }),
+		...(obj.scm_to_zero && { scm_to_zero: obj.scm_to_zero }),
+		...(obj.max_to_zero && { max_to_zero: obj.max_to_zero }),
+		...(obj.quantum_fuel_tanks && { quantum_fuel_tanks: obj.quantum_fuel_tanks }),
+		...(obj.hydrogen_fuel_tanks && { hydrogen_fuel_tanks: obj.hydrogen_fuel_tanks }),
+		...(obj.pitch && { pitch: obj.pitch }),
+		...(obj.yaw && { yaw: obj.yaw }),
+		...(obj.roll && { roll: obj.roll }),
+		...(obj.acceleration_main && { acceleration_main: obj.acceleration_main }),
+		...(obj.acceleration_retro && { acceleration_retro: obj.acceleration_retro }),
+		...(obj.acceleration_vtol && { acceleration_vtol: obj.acceleration_vtol }),
+		...(obj.acceleration_maneuvering && { acceleration_maneuvering: obj.acceleration_maneuvering }),
+		...(obj.brochure && { brochure: obj.brochure }),
+		...(obj.hologram && { hologram: obj.hologram }),
+		...(obj.holoColored && { holoColored: obj.holoColored }),
+		// variants: getVariants(),
+		...(obj.loaners && obj.loaners[0] && { loaners: getLoaners() }),
+		...(obj.loaners && obj.loaners[0] && { all_loaners: getAllLoaners() }),
+		...(obj.variants && obj.variants[0] && { variants: getVariants() }),
+		// loaners: shipList,
+		// paints: obj.paints,
+		// classification: obj.classification,
+		// focus: obj.focus,
+		// lastUpdatedAt: obj.lastUpdatedAt,
+		...(obj.insurance_claim_time && {
+			insurance_claim_time: parseFloat(obj.insurance_claim_time),
+		}),
+		...(obj.insurance_expedited_time && { insurance_expedited_time: parseFloat(obj.insurance_expedited_time) }),
+		...(obj.insurance_expedited_cost && {
+			insurance_expedited_cost:
+        obj.insurance_expedited_cost
+        	.split('.')[0]
+        	?.toString()
+        	.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.')
+        	+ ','
+        	+ obj.insurance_expedited_cost.split('.')[1].slice(0, 2),
+		}),
+		...transformUtilStoreImage(obj, 'store_image'),
+		...(obj.gallery && { gallery: obj.gallery.map((obj: any) => obj.directus_files_id) }),
+		...(obj.commercial_video_id && { commercial_video_id: obj.commercial_video_id }),
+		...(obj.commercials && typeof obj.commercials[0] === 'object' && obj.commercials[0].commercial_id
+			? { commercials: obj.commercials.map(obj => ({ id: obj.commercial_id.id, type: obj.commercial_id.type })) }
+			: {}),
+		...(obj.rating && typeof obj.rating === 'object' ? { rating: getRating() } : {}),
+		// tags: obj.tags,
+		// groundVehicle: getGroundVehicle(),
+		// role: obj.role,
+		...(obj.description && { description: obj.description }),
+		...(obj.history && { history: obj.history }),
+		// rating: getRating,
+		// size: obj.size,
+		// sortSize: obj.sortSize,
+		...(obj.modules && obj.modules[0] && { modules: obj.modules.map(module => transformShipModule(module)) }),
+	}
 }

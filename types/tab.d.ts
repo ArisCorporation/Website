@@ -2,10 +2,11 @@ export { ITab };
 
 declare global {
   interface ITab {
-    id: string;
+    id?: string;
     header?: string;
     content?: any;
     component?: string;
     componentData?: any;
+    slot?: string;
   }
 }

@@ -11,7 +11,7 @@
     {
       "name": "VerseExkurs",
       "description": "Gehe direkt zum VerseExkurs",
-      "url": "/VerseExkurs",
+      "url": "/verseexkurs",
       "/icons": [
         {
           "src": "/icons/shortcuts/ve.svg",
@@ -23,7 +23,7 @@
     {
       "name": "ShipExkurs",
       "description": "Gehe direkt zum ShipExkurs",
-      "url": "/ShipExkurs",
+      "url": "/shipexkurs",
       "/icons": [
         {
           "src": "/icons/shortcuts/se.svg",

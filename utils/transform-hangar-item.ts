@@ -1,20 +1,22 @@
-export default function (obj: any) {
-  const getShip = () => (obj.ships_id ? transformShip(obj.ships_id) : null);
+export default function (obj: any, shipList?: any) {
+  const getShip = () => (obj.ship_id ? transformShip(obj.ship_id, shipList || null) : null);
   const getDepartment = () => (obj.department ? transformDepartment(obj.department) : null);
-  const getOwner = () => (obj.member_id ? transformMember(obj.member_id) : null);
+  const getModule = () => (obj.active_module ? transformShipModule(obj.active_module) : null);
 
   return {
     id: obj.id,
+    date_created: obj.date_created,
     ship: getShip(),
     userData: {
-      owner: getOwner(),
+      owner: obj.user_id ? transformUser(obj.user_id) : null,
       name: obj.name,
+      show_name: obj.name_public,
       serial: obj.serial,
       group: obj.group,
       visibility: obj.visibility,
       planned: obj.planned,
       department: getDepartment(),
-      // active_module: transformShipModule(obj.active_module),
+      module: getModule(),
     },
   };
 }

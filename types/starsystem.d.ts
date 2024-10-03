@@ -2,25 +2,25 @@ export { IStarsystem };
 
 declare global {
   interface IStarsystem {
-    id: String;
-    banner: String;
-    name: String;
-    slug: String;
-    text: String;
-    isSystem: Boolean;
-    starType: String;
-    starClass: String;
+    id: string;
+    banner: string;
+    name: string;
+    slug: string;
+    text: string;
+    isSystem: boolean;
+    starType: string;
+    starClass: string;
     size: number;
-    planets: number;
-    moons: number;
-    asteroidBelt: number;
-    jumppoints: number;
-    affiliation: String;
-    discoveryYear: String;
-    mainPlanet: String;
+    affiliation: string;
+    discoveryYear: string;
     population: number;
     economy: number;
     dangerLevel: number;
-    companies: Array<ICompany>;
+    mainPlanet: IPlanet;
+    companies: ICompany[];
+    asteroidBelt: IAsteroidBelt[];
+    jumppoints: IJumppoints[];
+    planets: IPlanet[];
+    moons: IMoon[];
   }
 }

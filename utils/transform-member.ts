@@ -1,4 +1,5 @@
 export default function (obj: any) {
+  const getPronom = () => (obj.sex === 'female' ? 'Sie' : 'Er');
   const getRoles = () => {
     const roles: Array<String> = [];
     if (obj.roles?.includes('recruitment')) roles.push('Rekrutierung');
@@ -14,8 +15,25 @@ export default function (obj: any) {
     if (obj.position_level === 'employee') return 'Mitarbeiter';
     if (obj.position_level === 'administration') return 'Verwaltung';
   };
+  const getCitizenReason = () => {
+    if (obj.citizenReason === 'military') return 'Militärdienst';
+    else if (obj.citizenReason === 'education') return 'Besondere Bildung';
+    else if (obj.citizenReason === 'social') return 'Soziales Engagement';
+    else return null;
+  };
   const getFullName = () =>
     (obj.title ? obj.title + ' ' : '') + obj.firstname + (obj.lastname ? ' ' + obj.lastname : '');
+
+  const getDepartment: any = () => {
+    if (obj.head_of_department) {
+      return obj.head_department ? transformDepartment(obj.head_department[0]) : null;
+    } else {
+      return obj.department ? transformDepartment(obj.department) : null;
+    }
+  };
+  const getBirthSystem = () => (obj.birthSystem ? transformStarsystem(obj.birthSystem) : null);
+  const getCurrentSystem = () => (obj.currentResidenceSystem ? transformStarsystem(obj.currentResidenceSystem) : null);
+  const getHangar = () => (obj.ships ? obj.ships.map((i) => transformHangarItem(i)) : null);
 
   return {
     id: obj.id,
@@ -24,25 +42,30 @@ export default function (obj: any) {
     title: obj.title,
     fullName: getFullName(),
     slug: obj.slug,
-    potrait: obj.member_potrait?.id,
+    potrait: obj.member_potrait?.id || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492',
     sex: obj.sex,
+    pronom: getPronom(),
     roles: getRoles(),
     position: getPosition(),
     head_of_department: obj.head_of_department,
-    department: obj.head_of_department ? obj.head_department : obj.department,
+    department: getDepartment(),
     birthdate: obj.birthdate,
-    birthsystem: obj.birthSystem,
+    birthsystem: getBirthSystem(),
     birthplace: obj.birthPlace,
-    currentsystem: obj.currentResidenceSystem,
+    currentsystem: getCurrentSystem(),
     currentplace: obj.currentResidence,
     ueestate: obj.ueeState,
-    citizenreason: obj.citizenReason,
-    dutyperiod: obj.dutyPeriod,
-    dutyreason: obj.dutyReason,
-    dutyinfo: obj.dutyInfo,
-    eduname: obj.educationName,
-    eduperiod: obj.educationPeriod,
-    eduplace: obj.educationPlace,
+    citizenreason: getCitizenReason(),
+    duty: {
+      dutyperiod: obj.dutyPeriod,
+      dutyreason: obj.dutyReason,
+      dutyinfo: obj.dutyInfo,
+    },
+    education: {
+      eduname: obj.educationName,
+      eduperiod: obj.educationPeriod,
+      eduplace: obj.educationPlace,
+    },
     haircolor: obj.hairColor,
     eyecolor: obj.eyeColor,
     height: obj.height,
@@ -67,6 +90,7 @@ export default function (obj: any) {
     hates: obj.hates,
     medicalinfo: obj.text,
     biography: obj.biography,
-    account: obj.account,
+    hangar: getHangar(),
+    // account: getAccount(),
   };
 }
