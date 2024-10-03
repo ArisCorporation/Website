@@ -9,9 +9,10 @@
             Willkommen <span class="text-secondary">bei der</span>
           </h1>
           <NuxtImg
+            src="62eb0e48-6a0e-432f-b90d-fbd6aca6eaac"
+            preload
             sizes="200px sm:300px md:400px lg:600px xl:750px 2xl:850px"
             class="mx-auto"
-            src="62eb0e48-6a0e-432f-b90d-fbd6aca6eaac"
             alt="ArisCorp Banner"
           />
         </div>
@@ -22,11 +23,12 @@
         muted
         controlslist="nofullscreen nodownload"
         loop
-        src="https://cms.ariscorp.de/assets/893966c7-3541-4605-a00f-633f5234ddd4"
+        :src="$config.public.fileBase + '893966c7-3541-4605-a00f-633f5234ddd4'"
       />
     </div>
-    <div class="container px-4 mx-auto">
+    <div class="container px-4 mx-auto" :class="{ 'mt-24': $route.path != '/' }">
       <slot />
     </div>
+    <Footer />
   </div>
 </template>

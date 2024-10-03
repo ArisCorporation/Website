@@ -2,18 +2,20 @@ export { IHangarItem };
 
 declare global {
   interface IHangarItem {
-    id: String;
+    id: string;
     ship: IShip;
+    loaner?: boolean;
+    sourceShip?: IShip;
     userData: {
       owner: IMember;
-      name: String;
-      publicName: Boolean;
-      serial: String;
-      group: String;
-      visibility: String;
-      planned: Boolean;
+      name: string;
+      showName: boolean;
+      serial: string;
+      group: string;
+      visibility: string;
+      planned: boolean;
       department: IDepartment;
-      active_module: IShipModule;
+      module: IShipModule;
     };
   }
 }
