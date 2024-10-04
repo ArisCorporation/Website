@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { object, string, type InferType } from 'yup';
 import type { FormSubmitEvent } from '#ui/types';
+import * as Sentry from '@sentry/browser';
 
-const { directus, readFiles } = useCMS();
+const { directus, readFiles, readMe } = useCMS();
 const error = ref();
 const router = useRouter();
 const route = useRoute();
@@ -49,6 +50,15 @@ const onSubmit = async (event: FormSubmitEvent<Schema>) => {
   // TODO: Add complex error handling
   try {
     await directus.login(event.data.username + '@ariscorp.de', event.data.password);
+    const { data: user } = await useAsyncData('AMS:ME', () => directus.request(readMe()));
+
+    Sentry.setContext('User', {
+      ID: transformUser(user).id,
+      'First Name': transformUser(user).first_name,
+      'Last Name': transformUser(user).last_name,
+      Email: transformUser(user).email,
+      'Discord-Name': transformUser(user).discord_name,
+    });
     router.push(unref(redirectUri.value.toString()));
   } catch (e) {
     console.error('There was an error:', e);
