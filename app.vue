@@ -1,8 +1,9 @@
 <script setup lang="ts">
-// import * as Sentry from '@sentry/vue'
-
+import * as Sentry from '@sentry/browser';
 const { directus, readMe } = useCMS();
 const config = useRuntimeConfig();
+
+const { data: user } = await useAsyncData('AMS:ME', () => directus.request(readMe()));
 
 useSeoMeta({
   description:
@@ -175,15 +176,15 @@ useHead({
   ],
 });
 
-// if (user.value) {
-//   Sentry.setContext('User', {
-//     'ID': user.value.id,
-//     'First Name': user.value.first_name,
-//     'Last Name': user.value.last_name,
-//     'Email': user.value.email,
-//     'Discord-Name': user.value.discord_name,
-//   })
-// }
+if (user.value) {
+  Sentry.setContext('User', {
+    ID: user.value.id,
+    'First Name': user.value.first_name,
+    'Last Name': user.value.last_name,
+    Email: user.value.email,
+    'Discord-Name': user.value.discord_name,
+  });
+}
 
 onBeforeMount(() => {
   console.time('🕓 Application Loaded');
