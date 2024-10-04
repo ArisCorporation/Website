@@ -61,6 +61,7 @@ export default defineNuxtConfig({
     '@tresjs/nuxt',
     'radix-vue/nuxt',
     'dayjs-nuxt',
+    '@sentry/nuxt/module',
   ],
 
   // plugins: ['~/plugins/vue-cropper.ts'],
@@ -70,6 +71,10 @@ export default defineNuxtConfig({
     // cmsToken: process.env.NUXT_CMS_TOKEN,
     discordBotToken: process.env.NUXT_DISCORD_BOT_TOKEN,
     discordGuildId: process.env.NUXT_DISCORD_GUILD_ID,
+    sentryAuthToken: process.env.NUXT_SENTRY_AUTH_TOKEN,
+    sentry: {
+      dsn: process.env.NUXT_SENTRY_DSN,
+    },
     public: {
       appVersion: version,
       buildNumber: process.env.SOURCE_COMMIT,
@@ -78,11 +83,6 @@ export default defineNuxtConfig({
       backendUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
       mbutton: { initial: { scale: 1 }, visible: { scale: 1 }, hovered: { scale: 1 }, tapped: { scale: 0.97 } },
-      // SENTRY VARS
-      sentry: {
-        dsn: process.env.NUXT_PUBLIC_SENTRY_DSN,
-        environment: process.env.NUXT_PUBLIC_ENV,
-      },
       // NUXT_PUBLIC_SENTRY_DSN_PUBLIC: process.env.NUXT_PUBLIC_SENTRY_DSN_PUBLIC,
       // NUXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE: parseFloat(process.env.NUXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE ?? '0'),
       // NUXT_PUBLIC_SENTRY_REPLAY_SAMPLE_RATE: parseFloat(process.env.NUXT_PUBLIC_SENTRY_REPLAY_SAMPLE_RATE ?? '0'),
@@ -129,11 +129,6 @@ export default defineNuxtConfig({
     //       project: 'homepage',
     //     }),
     //   ],
-  },
-
-  sourcemap: {
-    client: true,
-    server: false,
   },
 
   nitro: {
@@ -204,6 +199,15 @@ export default defineNuxtConfig({
 
   tiptap: {
     prefix: 'Tiptap', // prefix for Tiptap imports, composables not included
+  },
+
+  sentry: {
+    debug: true,
+    sourceMapsUploadOptions: {
+      org: 'ariscorp',
+      project: 'website',
+      authToken: process.env.NUXT_SENTRY_AUTH_TOKEN,
+    },
   },
 
   compatibilityDate: '2024-07-12',
