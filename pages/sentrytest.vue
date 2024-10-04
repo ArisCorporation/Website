@@ -1,10 +1,9 @@
-<script setup lang="ts">
-function throwError() {
-  throw new Error('Sentry Error');
-}
+<script setup>
+const triggerError = () => {
+  throw new Error('Nuxt Button Error');
+};
 </script>
+
 <template>
-  <div>
-    <button @click="throwError">Throw</button>
-  </div>
+  <SentryTestButton @click="triggerError" />
 </template>
