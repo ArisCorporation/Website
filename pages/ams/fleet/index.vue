@@ -27,7 +27,6 @@ const hangarRefreshPending = ref(false);
 const onboardingShip = ref();
 
 const selectedShip = ref();
-const quickViewOpen = ref(false);
 
 useSearch(search, search_input_value, { debounce: true, query: false, debounceAction: getCurrentFilteredHangar });
 
@@ -291,96 +290,6 @@ defineShortcuts({
   },
 });
 
-async function openQuickView(id: string) {
-  const { data: shipData } = await useAsyncData(
-    'FLEET:SELECTED_SHIP',
-    () =>
-      directus.request(
-        readItem('ships', id, {
-          fields: [
-            'id',
-            'date_updated',
-            'p4k_mode',
-            'p4k_version',
-            'name',
-            'slug',
-            'store_image.id',
-            'store_image.width',
-            'store_image.height',
-            'store_image.focal_point_x',
-            'store_image.focal_point_y',
-            'production_status',
-            'description',
-            'history',
-            'length',
-            'beam',
-            'height',
-            'mass',
-            'cargo',
-            'classification',
-            'size',
-            'crew_min',
-            'crew_max',
-            'quantum_fuel_tanks',
-            'hydrogen_fuel_tanks',
-            'pledge_price',
-            'price',
-            'speed_scm',
-            'speed_max',
-            'acceleration_main',
-            'acceleration_retro',
-            'acceleration_vtol',
-            'acceleration_maneuvering',
-            'insurance_claim_time',
-            'insurance_expedited_time',
-            'insurance_expedited_cost',
-            'manufacturer.name',
-            'manufacturer.slug',
-            'manufacturer.logo',
-            'gallery.directus_files_id',
-            'commercial_video_id',
-            'commercials.commercial_id.id',
-            'commercials.commercial_id.type',
-            'brochure',
-            'hologram',
-            'store_url',
-            'sales_url',
-            'on_sale',
-            'rating.user_created',
-            'rating.introduction',
-            'rating.ratings',
-            'rating.strengths_and_weaknesses',
-            'loaners.loaner_id.id',
-            'loaners.loaner_id.name',
-            'loaners.loaner_id.slug',
-            'loaners.loaner_id.store_image',
-            'loaners.loaner_id.manufacturer.name',
-            'loaners.loaner_id.manufacturer.slug',
-            'loaners.loaner_id.production_status',
-            'variants.variant_id.id',
-            'variants.variant_id.name',
-            'variants.variant_id.slug',
-            'variants.variant_id.store_image',
-            'variants.variant_id.manufacturer.name',
-            'variants.variant_id.manufacturer.slug',
-            'variants.variant_id.production_status',
-            'modules.id',
-            'modules.name',
-            'modules.slug',
-            'modules.gallery.directus_file_id',
-            'modules.manufacturer.name',
-            'modules.manufacturer.slug',
-            'modules.production_status',
-          ],
-        }),
-      ),
-    { transform: (rawShip: any[]) => transformShip(rawShip) },
-  );
-
-  selectedShip.value = unref(shipData);
-  quickViewOpen.value = true;
-}
-
 definePageMeta({
   middleware: 'auth',
   layout: false,
@@ -392,8 +301,7 @@ useHead({
 </script>
 
 <template>
-  <NuxtLayout name="ams" :noscroll="quickViewOpen">
-    <ShipQuickView v-model:open="quickViewOpen" :ship="selectedShip" />
+  <NuxtLayout name="ams">
     <div class="flex flex-wrap justify-between px-6 mt-6 mb-4 gap-x-4">
       <div
         class="flex flex-wrap justify-center mx-auto mb-6 lg:w-fit h-fit lg:ml-0 lg:gap-4 lg:justify-normal basis-full"
@@ -561,8 +469,6 @@ useHead({
             display-loaner-state
             display-owner
             display-planned-state
-            quick-view
-            @quick-view-open="openQuickView"
           />
         </TransitionGroup>
         <Transition
