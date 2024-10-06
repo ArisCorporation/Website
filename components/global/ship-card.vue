@@ -11,106 +11,130 @@
 
 const removePopover = ref(false);
 const emit = defineEmits(['edit', 'removeOpen', 'removeConfirm', 'module-open', 'quickViewOpen']);
-const props = defineProps({
-  shipData: {
-    type: null,
-    required: true,
-  },
-  hangarData: {
-    type: null,
-    required: false,
-    default: null,
-  },
-  displayOwner: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  displayPlannedState: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  displayCrud: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  hideEdit: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  internalBio: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  displayDepartment: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  displayName: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  displayProductionState: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  displayLoanerState: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  displayHiddenState: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  preloadImages: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  detailView: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  hidden: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  color: {
-    type: String,
-    required: false,
-    default: 'primary',
-  },
-  onboarding: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  virtualElement: {
-    type: null,
-    required: false,
-  },
-  moduleView: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-  quickView: {
-    type: Boolean,
-    required: false,
-    default: false,
-  },
-});
+const props = defineProps<{
+  shipData: any;
+  hangarData?: any;
+  displayOwner?: boolean;
+  displayPlannedState?: boolean;
+  displayCrud?: boolean;
+  hideEdit?: boolean;
+  internalBio?: boolean;
+  displayDepartment?: boolean;
+  displayName?: boolean;
+  displayProductionState?: boolean;
+  displayLoanerState?: boolean;
+  displayHiddenState?: boolean;
+  preloadImages?: boolean;
+  detailView?: boolean;
+  hidden?: boolean;
+  color?: string;
+  onboarding?: boolean;
+  virtualElement?: any;
+  moduleView?: boolean;
+  quickView?: boolean;
+  type?: string;
+}>();
+
+// {
+//   shipData: {
+//     type: null,
+//     required: true,
+//   },
+//   hangarData: {
+//     type: null,
+//     required: false,
+//     default: null,
+//   },
+//   displayOwner: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   displayPlannedState: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   displayCrud: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   hideEdit: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   internalBio: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   displayDepartment: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   displayName: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   displayProductionState: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   displayLoanerState: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   displayHiddenState: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   preloadImages: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   detailView: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   hidden: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   color: {
+//     type: String,
+//     required: false,
+//     default: 'primary',
+//   },
+//   onboarding: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   virtualElement: {
+//     type: null,
+//     required: false,
+//   },
+//   moduleView: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+//   quickView: {
+//     type: Boolean,
+//     required: false,
+//     default: false,
+//   },
+// }
 
 defineExpose({ removePopover });
 
@@ -127,10 +151,16 @@ const handleEdit = () => {
 
 <template>
   <div class="static block px-2 pb-3 basis-full md:basis-1/2 xl:basis-1/3 3xl:basis-1/4">
-    <DefaultPanel :color="color" :class="{ 'animate-link': !displayCrud }">
+    <DefaultPanel :color="color ?? 'primary'" :class="{ 'animate-link': !displayCrud }">
       <div class="relative h-fit">
         <NuxtLink
-          :to="quickView ? '' : !moduleView ? '/shipexkurs/ships/' + shipData.slug : ''"
+          :to="
+            quickView
+              ? ''
+              : !moduleView
+              ? (type === 'attachments' ? '/verseexkurs/technology/attachments/' : '/shipexkurs/ships/') + shipData.slug
+              : ''
+          "
           :role="!moduleView ? 'link' : 'button'"
           class="block relative transition-all duration-500 ease h-[200px] bg-image group peer"
           @click="quickView ? $emit('quickViewOpen', shipData.id) : moduleView ? $emit('module-open', shipData) : null"
@@ -190,7 +220,7 @@ const handleEdit = () => {
             Geplant
           </div>
           <NuxtLink
-            :to="'/shipexkurs/ships/' + shipData.slug"
+            :to="(type === 'attachments' ? '/technology/attachments/' : '/shipexkurs/ships/') + shipData.slug"
             class="m-0 transition hover:no-underline basis-full opacity-80 text-secondary hover:opacity-100"
           >
             <div class="animate-link w-fit">
