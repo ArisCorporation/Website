@@ -432,7 +432,7 @@ useHead({
           <TableRow title="Frachtkapazität" :content="data.cargo" />
           <TableHr />
           <TableRow title="Klassifizierung" :content="null" />
-          <TableRow title="Größe" :content="null" />
+          <TableRow title="Größe" :content="data.size" />
           <TableHr />
           <TableRow title="Min Crew" :content="data.crew_min" />
           <TableRow title="Max Crew" :content="data.crew_max" />
