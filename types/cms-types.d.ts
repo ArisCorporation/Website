@@ -699,7 +699,7 @@ export type Home = {
   date_created?: string | null;
   date_updated?: string | null;
   id: string;
-  "tabs-l1d_de": string;
+  'tabs-l1d_de': string;
   user_created?: string | DirectusUsers | null;
   user_updated?: string | DirectusUsers | null;
 };
@@ -783,7 +783,7 @@ export type Messages = {
 };
 
 export type Moons = {
-  "accordion-0p1dwu": string;
+  'accordion-0p1dwu': string;
   age?: number | null;
   astronomical_data: string;
   astronomical_designation?: string | null;
@@ -864,7 +864,7 @@ export type PersonalWeaponAttachments = {
   sight: string;
   size?: string | null;
   slug?: string | null;
-  statistic?: unknown | null;
+  statistic?: { property: string; value: number } | null;
   store_image?: string | DirectusFiles | null;
   user_created?: string | DirectusUsers | null;
   user_updated?: string | DirectusUsers | null;
@@ -918,7 +918,7 @@ export type PersonalWeapons = {
 };
 
 export type Planets = {
-  "accordion-ivoza6": string;
+  'accordion-ivoza6': string;
   age?: number | null;
   astronomical_data: string;
   astronomical_designation?: string | null;
@@ -1116,7 +1116,7 @@ export type Ships = {
   store_image?: string | DirectusFiles | null;
   store_url?: string | null;
   tabs: string;
-  "tabs--zj795": string;
+  'tabs--zj795': string;
   tank_size_hydrogen?: number | null;
   tank_size_quantum?: number | null;
   tanks: string;
@@ -1209,7 +1209,7 @@ export type Starmap = {
   history_introduction?: string | null;
   id: string;
   jumppoint_connections?: string | null;
-  "tabs-xprykd": string;
+  'tabs-xprykd': string;
   user_created?: string | DirectusUsers | null;
   user_updated?: string | DirectusUsers | null;
 };
@@ -1229,7 +1229,7 @@ export type Stars = {
 };
 
 export type Systems = {
-  "accordion-odtwbd": string;
+  'accordion-odtwbd': string;
   affiliation?: string | null;
   astronomic: string;
   banner?: string | DirectusFiles | null;
