@@ -943,6 +943,23 @@
                   </div>
                 </div>
               </DefaultPanel>
+              <div class="grid grid-cols-1 px-2 gap-x-4">
+                <!-- <NuxtLink
+                  to="/verseexkurs/technology/weapons"
+                  class="flex opacity-75 animate-link hover:opacity-100"
+                >
+                  <NuxtImg src="ecc40f84-3743-4e12-a6b2-2f697bfd99ae" class="m-auto" />
+                </NuxtLink> -->
+                <NuxtLink
+                  to="/verseexkurs/technology/attachments"
+                  class="flex opacity-75 animate-link hover:opacity-100"
+                >
+                  <NuxtImg src="72e4d24c-0469-4873-8034-f785af65619f" class="m-auto" />
+                </NuxtLink>
+                <!-- <NuxtLink to="/verseexkurs/technology/armor" class="opacity-75 animate-link hover:opacity-100">
+                  <NuxtImg src="3ba7bb79-a9f8-4e8a-9d6e-4e14616695ca" />
+                </NuxtLink> -->
+              </div>
             </div>
           </div>
         </div>
