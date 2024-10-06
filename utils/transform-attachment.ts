@@ -3,6 +3,12 @@ import type { PersonalWeaponAttachments } from '@/types/cms-types';
 
 export default function transformShip(obj: PersonalWeaponAttachments) {
   const getManufacturer = () => (obj.manufacturer ? transformCompany(obj.manufacturer) : null);
+  const getCategoryLabel = () => {
+    if (obj.category === 'sight') return 'Visier';
+    if (obj.category === 'barrel') return 'Lauf';
+    if (obj.category === 'underbarrel') return 'Unterlauf';
+    if (obj.category === 'magazine') return 'Magazin';
+  };
 
   return {
     ...(obj.id && { id: obj.id }),
@@ -13,7 +19,10 @@ export default function transformShip(obj: PersonalWeaponAttachments) {
     ...(obj.slug && { slug: obj.slug }),
     ...(obj.gallery && { gallery: obj.gallery.map((obj: any) => obj.directus_files_id) }),
     ...(obj.manufacturer && { manufacturer: getManufacturer() }),
-    ...(obj.category && { category: obj.category }),
+    ...(obj.category && {
+      category: obj.category,
+      category_label: getCategoryLabel(),
+    }),
     ...(obj.classification && { classification: obj.classification }),
     ...(obj.size && { size: obj.size }),
     ...(obj.weight && { weight: obj.weight }),
