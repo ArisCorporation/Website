@@ -944,12 +944,9 @@
                 </div>
               </DefaultPanel>
               <div class="grid grid-cols-1 px-2 gap-x-4">
-                <!-- <NuxtLink
-                  to="/verseexkurs/technology/weapons"
-                  class="flex opacity-75 animate-link hover:opacity-100"
-                >
+                <NuxtLink to="/verseexkurs/technology/weapons" class="flex opacity-75 animate-link hover:opacity-100">
                   <NuxtImg src="ecc40f84-3743-4e12-a6b2-2f697bfd99ae" class="m-auto" />
-                </NuxtLink> -->
+                </NuxtLink>
                 <NuxtLink
                   to="/verseexkurs/technology/attachments"
                   class="flex opacity-75 animate-link hover:opacity-100"

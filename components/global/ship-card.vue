@@ -158,7 +158,11 @@ const handleEdit = () => {
             quickView
               ? ''
               : !moduleView
-              ? (type === 'attachments' ? '/verseexkurs/technology/attachments/' : '/shipexkurs/ships/') + shipData.slug
+              ? (type === 'attachments'
+                  ? '/verseexkurs/technology/attachments/'
+                  : type === 'weapons'
+                  ? '/verseexkurs/technology/weapons/'
+                  : '/shipexkurs/ships/') + shipData.slug
               : ''
           "
           :role="!moduleView ? 'link' : 'button'"
