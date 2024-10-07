@@ -57,7 +57,7 @@ const handleShare = () => {
     toast.add({ title: 'Es konnte leider nichts in die Zwischenablage kopiert werden.', color: 'red' });
   }
 };
-console.log(data.value);
+
 definePageMeta({
   layout: false,
 });
@@ -99,7 +99,7 @@ useHead({
       <div class="col-span-3 space-y-4 xl:col-span-1">
         <TableParent title="Spezifikation">
           <TableRow title="Typ" :content="data.category_label" />
-          <TableRow title="Klassifizierung" :content="data.classification?.name" />
+          <TableRow title="Klassifizierung" :content="data.classification.name" />
           <TableHr />
           <TableRow title="Größe" :content="data.size" prefix="S" />
           <TableRow title="Gewicht" :content="data.weight" suffix="Kg" />
