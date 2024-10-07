@@ -899,8 +899,8 @@ export type PersonalWeapons = {
   date_created?: string | null;
   date_updated?: string | null;
   effective_range?: string | null;
-  fire_modes?: unknown | null;
-  fire_rates?: unknown | null;
+  fire_modes?: string[] | null;
+  fire_rates?: any | null;
   id: string;
   locktime?: number | null;
   magazine?: string | PersonalWeaponAttachments | null;
@@ -910,7 +910,7 @@ export type PersonalWeapons = {
   name?: string | null;
   sight?: string | PersonalWeaponAttachments | null;
   slug?: string | null;
-  statistics?: unknown | null;
+  statistics?: { property: string; value: number } | null;
   store_image?: string | DirectusFiles | null;
   user_created?: string | DirectusUsers | null;
   user_updated?: string | DirectusUsers | null;

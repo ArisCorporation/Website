@@ -2,7 +2,7 @@
 const { directus, readItems } = useCMS();
 const userSettings = useUserSettingsStore();
 
-const hideAttachments = ref(false);
+const hideWeapons = ref(false);
 const search = ref('');
 const search_input_value = ref('');
 const searchInput = ref();
@@ -13,25 +13,48 @@ const pageTotal = ref(0);
 const pageFrom = computed(() => (page.value - 1) * pageCount.value + 1);
 const pageTo = computed(() => Math.min(page.value * pageCount.value, pageTotal.value));
 
-// const attachmentType = ref()
+// const weaponType = ref()
 // FILTERS
 const typeOptions = [
   { id: '', label: 'Alle' },
-  { id: 'sight', label: 'Visier' },
-  { id: 'barrel', label: 'Lauf' },
-  { id: 'underbarrel', label: 'Unterlauf' },
+  { id: 'crossbow', label: 'Armbrust' },
+  { id: 'grenade_launcher', label: 'Granatwerfer' },
+  { id: 'hmg', label: 'Schweres Maschinengewehr' },
+  { id: 'lmg', label: 'Leichtes Maschinengewehr' },
+  { id: 'pistol', label: 'Pistole' },
+  { id: 'railgun', label: 'Railgun' },
+  { id: 'rocket_launcher', label: 'Raketenwerfer' },
+  { id: 'sniper_rifle', label: 'Scharfschützengewehr' },
+  { id: 'shotgun', label: 'Schrotflinte' },
+  { id: 'smg', label: 'MP' },
+  { id: 'assault_rifle', label: 'Sturmgewehr' },
+  { id: 'taser', label: 'Taser' },
 ];
-const sizeOptions = [
+const dmgOptions = [
   { id: '', label: 'Alle' },
-  { id: '1', label: '1' },
-  { id: '2', label: '2' },
-  { id: '3', label: '3' },
+  { id: 'electrons', label: 'Elektronen' },
+  { id: 'ballistic', label: 'Ballistisch' },
+  { id: 'laser', label: 'Laser' },
+  { id: 'plasma', label: 'Plasma' },
+  { id: 'explosive', label: 'Explosiv' },
 ];
-const manuOptions = ref([{ id: '', label: 'Alle' }]);
 
-const attachmentType = ref<{ id: string; label: string } | null>(typeOptions[0]);
-const attachmentSize = ref<{ id: string; label: string }[]>([sizeOptions[0]]);
-const attachmentManu = ref<{ id: string; label: string }[]>([manuOptions.value[0]]);
+const manuOptions = ref([{ id: '', label: 'Alle' }]);
+const weaponType = ref<{ id: string; label: string } | null>(typeOptions[0]);
+const weaponDmg = ref<{ id: string; label: string }[]>(dmgOptions[0]);
+const weaponManu = ref<{ id: string; label: string }[]>([manuOptions.value[0]]);
+
+// const manuOptions = computed(() => {
+// const manus = weapons?.value?.forEach((weapon) => {
+//   if (manuOptions.value.find((manu) => manu.id === weapon.manufacturer.id)) {
+//     return;
+//   } else {
+//     manuOptions.value.push({ id: weapon.manufacturer.id, label: weapon.manufacturer.name });
+//   }
+// });
+
+//   return [{ id: '', label: 'Alle' }, manus.sort((a, b) => a.label.localeCompare(b.label))];
+// });
 
 function arraysEqual(a, b) {
   if (a === b) return true;
@@ -49,47 +72,41 @@ function arraysEqual(a, b) {
   return true;
 }
 
-watch(attachmentType, () => {
-  if (!attachmentType.value) {
-    return (attachmentType.value = typeOptions[0]);
+watch(weaponType, () => {
+  if (!weaponType.value) {
+    return (weaponType.value = typeOptions[0]);
   }
 });
-watch(attachmentSize, (newAttachmentSize, oldAttachmentSize) => {
-  if (!arraysEqual(newAttachmentSize, oldAttachmentSize)) {
-    if (!newAttachmentSize || newAttachmentSize.length === 0) {
-      attachmentSize.value = [sizeOptions[0]];
-    } else if (newAttachmentSize.find((size) => !oldAttachmentSize.includes(size))?.label === 'Alle') {
-      attachmentSize.value = [sizeOptions[0]];
-    } else if (newAttachmentSize.length !== 1 && newAttachmentSize[0] !== sizeOptions[0]) {
-      attachmentSize.value = newAttachmentSize.filter((size) => size?.label !== 'Alle');
-    }
+watch(weaponDmg, () => {
+  if (!weaponDmg.value) {
+    return (weaponDmg.value = dmgOptions[0]);
   }
 });
 
-watch(attachmentManu, (newAttachmentManu, oldAttachmentManu) => {
-  if (!arraysEqual(newAttachmentManu, oldAttachmentManu)) {
-    if (
-      (!oldAttachmentManu.includes(manuOptions.value[0]) && newAttachmentManu.includes(manuOptions.value[0])) ||
-      !newAttachmentManu.length
-    ) {
-      attachmentManu.value = [manuOptions.value[0]];
-    } else {
-      attachmentManu.value = newAttachmentManu.filter((manu) => manu?.label !== 'Alle');
-    }
-  }
-});
-
-useSearch(attachmentType, attachmentType, {
+useSearch(weaponType, weaponType, {
   query: true,
   debounce: false,
   query_name: 'type',
   options: typeOptions,
 });
-useSearch(attachmentSize, attachmentSize, {
+useSearch(weaponDmg, weaponDmg, {
   query: true,
   debounce: false,
-  query_name: 'size',
-  options: sizeOptions,
+  query_name: 'dmg',
+  options: dmgOptions,
+});
+
+watch(weaponManu, (newWeaponManu, oldWeaponManu) => {
+  if (!arraysEqual(newWeaponManu, oldWeaponManu)) {
+    if (
+      (!oldWeaponManu.includes(manuOptions.value[0]) && newWeaponManu.includes(manuOptions.value[0])) ||
+      !newWeaponManu.length
+    ) {
+      weaponManu.value = [manuOptions.value[0]];
+    } else {
+      weaponManu.value = newWeaponManu.filter((manu) => manu?.label !== 'Alle');
+    }
+  }
 });
 
 const filter = computed(() => ({
@@ -103,10 +120,10 @@ const filter = computed(() => ({
   _and: [
     {
       _or: [
-        ...(attachmentType.value?.id
+        ...(weaponType.value?.id
           ? [
               {
-                category: { _eq: attachmentType.value?.id },
+                classification: { _eq: weaponType.value?.id },
               },
             ]
           : []),
@@ -114,36 +131,70 @@ const filter = computed(() => ({
     },
     {
       _or: [
-        !attachmentManu.value.includes(manuOptions.value[0]) && {
-          manufacturer: { _in: attachmentManu.value.map((manu) => manu.id) },
-        },
+        !weaponManu.value.includes(manuOptions.value[0]) && weaponManu.value.length
+          ? {
+              manufacturer: { _in: weaponManu.value.map((manu) => manu.id) },
+            }
+          : {},
       ].filter(Boolean),
     },
-    !attachmentSize.value.includes(sizeOptions[0])
-      ? {
-          _or: [
-            {
-              size: { _in: attachmentSize.value.map((size) => size.id) },
-            },
-          ].filter(Boolean),
-        }
-      : {},
     {
-      category: { _neq: 'magazine' },
+      _or: [
+        ...(weaponDmg.value?.id
+          ? [
+              {
+                damage_type: { _eq: weaponDmg.value?.id },
+              },
+            ]
+          : []),
+      ],
+    },
+  ],
+}));
+const manuFilter = computed(() => ({
+  ...(search.value && {
+    _or: [
+      { name: { _icontains: search.value } },
+      { manufacturer: { name: { _icontains: search.value } } },
+      { manufacturer: { code: { _icontains: search.value } } },
+    ],
+  }),
+  _and: [
+    {
+      _or: [
+        ...(weaponType.value?.id
+          ? [
+              {
+                classification: { _eq: weaponType.value?.id },
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      _or: [
+        ...(weaponDmg.value?.id
+          ? [
+              {
+                damage_type: { _eq: weaponDmg.value?.id },
+              },
+            ]
+          : []),
+      ],
     },
   ],
 }));
 
 function resetFilters() {
-  attachmentType.value = typeOptions[0];
-  attachmentSize.value = [sizeOptions[0]];
+  weaponType.value = typeOptions[0];
+  weaponDmg.value = dmgOptions[0];
 }
 
 const { data: count, pending: countPending } = await useAsyncData(
-  'VE_TECH_ATTACHMENTS:COUNT',
+  'VE_TECH_WEAPONS:COUNT',
   () =>
     directus.request(
-      readItems('personal_weapon_attachments', {
+      readItems('personal_weapons', {
         limit: -1,
         fields: ['id'],
         filter: filter.value,
@@ -165,11 +216,11 @@ watch([filter], () => {
   page.value = 1;
 });
 
-const { data: attachments, pending: attachmentsPending } = await useAsyncData(
-  'VE_TECH_ATTACHMENTS:ATTACHMENTS',
+const { data: weapons, pending: weaponsPending } = await useAsyncData(
+  'VE_TECH_WEAPONS:WEAPONS',
   () =>
     directus.request(
-      readItems('personal_weapon_attachments', {
+      readItems('personal_weapons', {
         fields: ['id', 'name', 'slug', 'store_image', 'manufacturer.id', 'manufacturer.name', 'manufacturer.slug'],
         sort: ['name'],
         limit: pageCount.value,
@@ -179,25 +230,49 @@ const { data: attachments, pending: attachmentsPending } = await useAsyncData(
     ),
   {
     watch: [count],
-    transform: (rawAttachments: any[]) =>
-      rawAttachments.map((rawAttachment: any) => transformAttachment(rawAttachment)),
+    transform: (rawWeapons: any[]) => rawWeapons.map((rawWeapon: any) => transformWeapon(rawWeapon)),
   },
 );
 
-attachments.value?.forEach((attachment) => {
-  if (manuOptions.value.find((manu) => manu.id === attachment.manufacturer.id)) {
-    return;
-  } else {
-    manuOptions.value.push({ id: attachment.manufacturer.id, label: attachment.manufacturer.name });
-  }
-});
-manuOptions.value = manuOptions.value.sort((a, b) => a.label.localeCompare(b.label));
+const { data: weaponsManuRes } = await useAsyncData('VE_TECH_WEAPONS:WEAPONS_MANU', () =>
+  directus.request(
+    readItems('personal_weapons', {
+      fields: ['manufacturer.id', 'manufacturer.name'],
+      sort: ['name'],
+      limit: -1,
+    }),
+  ),
+);
+
+function setManuOptions() {
+  const options: any[] = [];
+
+  weaponsManuRes.value?.forEach((weapon) => {
+    if (options.find((manu) => manu.id === weapon.manufacturer.id)) {
+      return;
+    } else {
+      options.push({ id: weapon.manufacturer.id, label: weapon.manufacturer.name });
+    }
+  });
+
+  manuOptions.value = [manuOptions.value[0], ...options.sort((a, b) => a.label.localeCompare(b.label))];
+}
+setManuOptions();
+
+// weapons.value?.forEach((weapon) => {
+//   if (manuOptions.value.find((manu) => manu.id === weapon.manufacturer.id)) {
+//     return;
+//   } else {
+//     manuOptions.value.push({ id: weapon.manufacturer.id, label: weapon.manufacturer.name });
+//   }
+// });
+// manuOptions.value = manuOptions.value.sort((a, b) => a.label.localeCompare(b.label));
 
 useSearch(search, search_input_value, {
   debounce: true,
   query: true,
-  typingAction: () => (hideAttachments.value = true),
-  debounceAction: () => (hideAttachments.value = false),
+  typingAction: () => (hideWeapons.value = true),
+  debounceAction: () => (hideWeapons.value = false),
 });
 
 defineShortcuts({
@@ -213,7 +288,7 @@ definePageMeta({
 });
 
 useHead({
-  title: 'Attachments',
+  title: 'Waffen',
 });
 </script>
 
@@ -243,65 +318,55 @@ useHead({
     </div>
     <hr />
     <div class="flex flex-wrap justify-between mb-6 xl:flex-nowrap h-fit basis-full">
-      <ButtonDefault
+      <!-- <ButtonDefault
         class="my-auto h-fit basis-full xl:basis-auto"
-        :disabled="attachmentType?.label === 'Alle' && attachmentSize[0].label === 'Alle' ? true : false"
+        :disabled="weaponType?.label === 'Alle' && weaponDmg[0].label === 'Alle' ? true : false"
         @click="resetFilters"
       >
         <div class="h-full">Alle anzeigen</div>
-      </ButtonDefault>
-      <UFormGroup label="Typ" class="w-48 pt-2 pr-2 xl:p-0 basis-1/2 xl:basis-auto" :ui="{ container: 'relative' }">
+      </ButtonDefault> -->
+      <UFormGroup label="Typ" class="w-64 pt-2 pr-2 xl:p-0 basis-1/2 xl:basis-auto" :ui="{ container: 'relative' }">
         <ArisSelectMenu
-          v-model="attachmentType"
-          :initial-state="attachmentType"
+          v-model="weaponType"
+          :initial-state="weaponType"
           :options="typeOptions"
           :option-label="(option: any) => option.label"
-          :selected-label="attachmentType?.label"
+          :selected-label="weaponType?.label"
           no-selected-label="Alle"
         />
       </UFormGroup>
       <UFormGroup
-        :label="attachmentSize.length > 1 || attachmentSize.some((size) => size.label === 'Alle') ? 'Größen' : 'Größe'"
-        class="w-48 pt-2 pl-2 xl:p-0 basis-1/2 xl:basis-auto"
+        label="Schadenstyp"
+        class="w-64 pt-2 pl-2 xl:p-0 basis-1/2 xl:basis-auto"
         :ui="{ container: 'relative' }"
       >
         <ArisSelectMenu
-          v-model="attachmentSize"
-          :initial-state="attachmentSize"
-          :options="sizeOptions"
+          v-model="weaponDmg"
+          :initial-state="weaponDmg"
+          :options="dmgOptions"
           :option-label="(option: any) => option.label"
-          :selected-label="
-            attachmentSize
-              .sort(
-                (a, b) =>
-                  sizeOptions.findIndex((option) => option.id === a.id) -
-                  sizeOptions.findIndex((option) => option.id === b.id),
-              )
-              .map((option) => (attachmentSize.length > 1 ? option.label.split(' ')[0] : option.label))
-              .join(', ')
-          "
+          :selected-label="weaponDmg?.label"
           no-selected-label="Alle"
-          multiple
         />
       </UFormGroup>
       <UFormGroup
         label="Hersteller"
-        class="w-48 pt-2 pr-2 xl:p-0 basis-full xl:basis-auto"
+        class="w-64 pt-2 pr-2 xl:p-0 basis-full xl:basis-auto"
         :ui="{ container: 'relative' }"
       >
         <ArisSelectMenu
-          v-model="attachmentManu"
-          :initial-state="attachmentManu"
+          v-model="weaponManu"
+          :initial-state="weaponManu"
           :options="manuOptions"
           :option-label="(option: any) => option.label"
           :selected-label="
-            attachmentManu
+            weaponManu
               .sort(
                 (a, b) =>
                   manuOptions.findIndex((option) => option.id === a.id) -
                   manuOptions.findIndex((option) => option.id === b.id),
               )
-              .map((option) => (attachmentManu.length > 1 ? option.label.split(' ')[0] : option.label))
+              .map((option) => (weaponManu.length > 1 ? option.label.split(' ')[0] : option.label))
               .join(', ')
           "
           no-selected-label="Alle"
@@ -341,12 +406,12 @@ useHead({
           leave-to-class="opacity-0 -translate-y-0"
         >
           <ShipCard
-            v-for="item in attachments"
-            v-if="!hideAttachments && !countPending && !attachmentsPending"
+            v-for="item in weapons"
+            v-if="!hideWeapons && !countPending && !weaponsPending"
             :key="item.id"
             :ship-data="item"
             preload-images
-            type="attachments"
+            type="weapons"
           />
         </TransitionGroup>
       </ClientOnly>
