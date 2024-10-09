@@ -20,7 +20,6 @@ const typeOptions = [
   { id: 'sight', label: 'Visier' },
   { id: 'barrel', label: 'Lauf' },
   { id: 'underbarrel', label: 'Unterlauf' },
-  { id: 'magazine', label: 'Magazin' },
 ];
 const sizeOptions = [
   { id: '', label: 'Alle' },
@@ -133,6 +132,9 @@ const filter = computed(() => ({
           ].filter(Boolean),
         }
       : {},
+    {
+      category: { _neq: 'magazine' },
+    },
   ],
 }));
 
