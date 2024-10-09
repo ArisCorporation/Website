@@ -10,33 +10,37 @@ const { data } = await useAsyncData(
   'ATTACHMENT:DATA',
   () =>
     directus.request(
-      readItems('personal_weapon_attachments', {
+      readItems('personal_weapons', {
         fields: [
           'id',
           'name',
           'slug',
           'store_image',
-          'gallery.directus_files_id',
-          'content',
-          'weight',
-          'size',
-          'price',
-          'zoom_level',
-          'rangefinder',
           'manufacturer.name',
           'manufacturer.slug',
           'manufacturer.logo',
-          'classification.name',
-          'category',
-          'max_rounds',
-          'statistic',
+          'classification',
+          'weight',
+          'damage_type',
+          'fire_modes',
+          'fire_rates',
+          'muzzle_velocity',
+          'magazine.name',
+          'magazine.max_rounds',
+          'sight.name',
+          'barrel.name',
+          'underbarrel.name',
+          'content',
+          'max_range',
+          'effective_range',
+          'statistics',
         ],
         filter: {
           slug: { _eq: params.slug },
         },
       }),
     ),
-  { transform: (rawAttachments: any[]) => transformAttachment(rawAttachments[0]) },
+  { transform: (rawWeapons: any[]) => transformWeapon(rawWeapons[0]) },
 );
 
 if (!data.value) {
@@ -61,7 +65,7 @@ const handleShare = () => {
 definePageMeta({
   layout: false,
 });
-
+console.log(data.value);
 useHead({
   title: data.value?.name,
 });
@@ -85,24 +89,14 @@ useHead({
     <div class="grid grid-cols-3 gap-4 mb-4">
       <div class="col-span-3 space-y-4 xl:col-span-2">
         <DefaultPanel bg="bprimary">
-          <div class="h-[300px] lg:h-[600px] xl:h-[700px] w-full z-50 relative">
+          <div class="h-[300px] lg:h-[550px] xl:h-[600px] w-full z-50 relative">
             <NuxtImg :src="selectedImg ? selectedImg : data.store_image" class="object-cover size-full" />
-          </div>
-        </DefaultPanel>
-
-        <DefaultPanel bg="primary">
-          <div class="col-span-2 p-4">
-            <Editor v-model="data.content" read-only />
           </div>
         </DefaultPanel>
       </div>
       <div class="col-span-3 space-y-4 xl:col-span-1">
         <TableParent title="Spezifikation">
-          <TableRow title="Typ" :content="data.category_label" />
-          <TableRow title="Klassifizierung" :content="data.classification.name" />
-          <TableHr />
-          <TableRow title="Größe" :content="data.size" prefix="S" />
-          <TableRow title="Gewicht" :content="data.weight" suffix="Kg" />
+          <TableRow title="Klassifizierung" :content="data.classification_label" full-width />
           <TableHr />
           <TableRow
             title="Hersteller"
@@ -110,75 +104,122 @@ useHead({
             :link="'/verseexkurs/companies/' + data.manufacturer.slug"
             full-width
           />
+          <TableRow title="Gewicht" :content="data.weight" suffix="Kg" />
           <TableHr />
-          <TableRow title="Basis Preis" :content="data.price" suffix="aUEC" full-width />
+          <TableRow title="Schadenstyp" :content="data.damage_type_label" />
+          <TableRow title="Feuermodi" :content="data.fire_modes.join(', ')" is-list />
+          <TableRow
+            title="Feuerrate/n"
+            :content="data.fire_rates.map((fr: any) => fr.value ? `${fr.value}/${fr.label}` : '').filter(Boolean).join(', ')"
+            is-list
+            full-width
+          />
+          <TableRow title="Mündungs Geschwindigkeit" :content="data.muzzle_velocity" full-width />
         </TableParent>
-        <TableParent v-if="data.category !== 'underbarrel'" title="Statistiken">
-          <template v-if="data.category === 'sight'">
-            <TableRow title="Zoomstufe" :content="data.zoom_level" prefix="x fach" full-width />
-            <TableRow title="Integrierte Nullung" :content="data.auto_zeroing ? 'Ja' : 'Nein'" full-width />
-            <TableRow title="Integrierter Entfernungsmesser" :content="data.rangefinder ? 'Ja' : 'Nein'" full-width />
-          </template>
-          <template v-if="data.category === 'barrel'">
-            <TableRow v-if="!!data.statistic.find((e) => e.property === 'damage')" title="Schaden" third>
-              <span
-                :class="[
-                  data.statistic.find((e) => e.property === 'damage').value < 0 ? 'text-danger' : 'text-success',
-                ]"
-              >
-                {{ data.statistic.find((e) => e.property === 'damage').value < 0 ? '+' : '-' }}
-                {{ String(data.statistic.find((e) => e.property === 'damage').value).replace('-', '') }}%
-              </span>
-            </TableRow>
-            <TableRow v-if="!!data.statistic.find((e) => e.property === 'recoil')" title="Rückstoß" third>
-              <span
-                :class="[
-                  data.statistic.find((e) => e.property === 'recoil').value < 0 ? 'text-success' : 'text-danger',
-                ]"
-              >
-                {{ data.statistic.find((e) => e.property === 'recoil').value < 0 ? '-' : '+' }}
-                {{ String(data.statistic.find((e) => e.property === 'recoil').value).replace('-', '') }}%
-              </span>
-            </TableRow>
-            <TableRow v-if="!!data.statistic.find((e) => e.property === 'noise_level')" title="Lärmpegel" third>
-              <span
-                :class="[
-                  data.statistic.find((e) => e.property === 'noise_level').value < 0 ? 'text-success' : 'text-danger',
-                ]"
-              >
-                {{ data.statistic.find((e) => e.property === 'noise_level').value < 0 ? '-' : '+' }}
-                {{ String(data.statistic.find((e) => e.property === 'noise_level').value).replace('-', '') }}%
-              </span>
-            </TableRow>
-          </template>
-          <template v-if="data.category === 'magazine'">
-            <TableRow title="Kapazität" :content="data.max_rounds" prefix="x fach" full-width />
-          </template>
+        <TableParent title="Attachments">
+          <TableRow
+            title="Magazine"
+            :content="data.magazine.name ? `${data.magazine?.name} (${data.magazine?.max_rounds} Schuss)` : null"
+            full-width
+          />
+          <TableHr />
+          <TableRow title="Visierung" :content="data.sight?.name" third />
+          <TableRow title="Lauf" :content="data.barrel?.name" third />
+          <TableRow title="Unterlauf" :content="data.underbarrel?.name" third />
         </TableParent>
-        <DefaultPanel
-          v-if="data.gallery.length > 1 ? true : data.gallery[0] === data.store_image ? data.gallery.length > 2 : false"
-          bg="primary"
-        >
-          <div class="flex">
-            <div
-              v-for="img in [...(data.gallery[0] === data.store_image ? [] : [data.store_image]), ...data.gallery]"
-              :key="img"
-              class="aspect-[1/1] h-auto p-4"
-              :style="{ width: `calc(100% / ${1 / [data.store_image, ...data.gallery].length})` }"
-            >
-              <NuxtImg
-                :src="img"
-                class="object-cover cursor-pointer size-full"
-                :class="{ 'border border-primary': selectedImg ? selectedImg === img : img === data.store_image }"
-                @click="selectedImg = img"
-              />
-            </div>
-          </div>
-        </DefaultPanel>
         <ButtonDefault class="w-full" @click="handleShare"
           ><UIcon name="i-heroicons-share" class="flex m-auto size-5" />
         </ButtonDefault>
       </div>
     </div>
+    <hr />
+    <DefaultPanel bg="primary" class="mb-3">
+      <div class="grid grid-cols-2 p-4">
+        <div>
+          <h4 class="italic text-industrial-400">Statistiken</h4>
+          <div>
+            <p>
+              Maximale Reichweite: <span class="text-aris-400">{{ data.max_range ?? 'N/A' }}</span>
+            </p>
+            <p>
+              Effektive Reichweite: <span class="text-aris-400">{{ data.effective_range ?? 'N/A' }}</span>
+            </p>
+            <TableHr class="pl-2 pr-6" />
+            <table class="table-auto">
+              <tr>
+                <th class="py-2 pr-6 text-left">Entfernung</th>
+                <template
+                  v-for="distance in [
+                    'zero_meters',
+                    '15m',
+                    '20m',
+                    '25m',
+                    '30m',
+                    '40m',
+                    '50m',
+                    '100m',
+                    '200m',
+                    '400m',
+                    '800m',
+                    '1000m',
+                  ]"
+                  :key="distance"
+                >
+                  <th v-if="data.statistics?.find((e) => e[distance])" class="px-2">
+                    {{ distance.replace('zero_meters', '0M').replace('_', ' ').toUpperCase() }}
+                  </th>
+                </template>
+              </tr>
+              <tr v-for="stat in ['alpha_damage', 'dps_single', 'dps_burst', 'dps_fully_automatic']" :key="stat">
+                <th
+                  v-if="
+                    data.statistics?.some(
+                      (e) => e.property === stat && Object.values(e).some((value) => value !== null && value !== stat),
+                    )
+                  "
+                  class="py-2 pr-6 text-left"
+                >
+                  {{
+                    stat
+                      .replace('damage', 'schaden')
+                      .replace('single', 'einzel')
+                      .replace('burst', 'salve')
+                      .replace('fully_automatic', 'Vollautomatisch')
+                      .replace('_', ' ')
+                      .toUpperCase()
+                  }}
+                </th>
+                <template
+                  v-for="distance in [
+                    'zero_meters',
+                    '15m',
+                    '20m',
+                    '25m',
+                    '30m',
+                    '40m',
+                    '50m',
+                    '100m',
+                    '200m',
+                    '400m',
+                    '800m',
+                    '1000m',
+                  ]"
+                  :key="distance"
+                >
+                  <td v-if="data.statistics?.some((e) => e[distance])" class="px-2 text-center text-primary">
+                    {{ data.statistics?.find((e) => e.property === stat)?.[distance] }}
+                  </td>
+                </template>
+              </tr>
+            </table>
+            <TableHr class="pl-2 pr-6" />
+          </div>
+        </div>
+        <div>
+          <h4 class="italic text-industrial-400">Beschreibung</h4>
+          <Editor v-model="data.content" read-only />
+        </div>
+      </div>
+    </DefaultPanel>
   </NuxtLayout>
 </template>
