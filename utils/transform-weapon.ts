@@ -9,6 +9,7 @@ export default function transformShip(obj: PersonalWeapons) {
     if (obj.classification === 'grenade_launcher') return 'Granatwerfer';
     if (obj.classification === 'hmg') return 'Schweres Maschinengewehr';
     if (obj.classification === 'lmg') return 'Leichtes Maschinengewehr';
+    if (obj.classification === 'smg') return 'Maschinenpistole';
     if (obj.classification === 'pistol') return 'Pistole';
     if (obj.classification === 'railgun') return 'Schienenkanone';
     if (obj.classification === 'rocket_launcher') return 'Raketenwerfer';
@@ -19,18 +20,24 @@ export default function transformShip(obj: PersonalWeapons) {
     if (obj.classification === 'taser') return 'Elektroschocker';
   };
   const getDamageType = () => {
-    if (obj.damage_type === 'crossbow') return 'Armbrust';
-    if (obj.damage_type === 'grenade_launcher') return 'Granatwerfer';
-    if (obj.damage_type === 'hmg') return 'Schweres Maschinengewehr';
-    if (obj.damage_type === 'lmg') return 'Leichtes Maschinengewehr';
-    if (obj.damage_type === 'pistol') return 'Pistole';
-    if (obj.damage_type === 'railgun') return 'Schienenkanone';
-    if (obj.damage_type === 'rocket_launcher') return 'Raketenwerfer';
-    if (obj.damage_type === 'sniper_rifle') return 'Scharfschützengewehr';
-    if (obj.damage_type === 'shotgun') return 'Schrotflinte';
-    if (obj.damage_type === 'smg') return 'Maschinenpistole';
-    if (obj.damage_type === 'assault_rifle') return 'Sturmgewehr';
-    if (obj.damage_type === 'taser') return 'Elektroschocker';
+    if (obj.damage_type === 'ballistic') return 'Ballistisch';
+    if (obj.damage_type === 'explosive') return 'Explosiv';
+    if (obj.damage_type === 'electrons') return 'Elektronen';
+    if (obj.damage_type === 'laser') return 'Laser';
+    if (obj.damage_type === 'plasma') return 'Plasma';
+  };
+  const getFireMode = (fm: string) => {
+    if (fm === 'charge') return 'Aufladen';
+    if (fm === 'fully_automatic') return 'Vollautomatisch';
+    if (fm === 'single_shot' || fm === 'single') return 'Einzel';
+    if (fm === 'burst_shot' || fm === 'burst') return 'Salve';
+  };
+  const getFireRates = (rates: { name: string; value: number }[]) => {
+    return rates.map((rate) => ({
+      name: rate.name,
+      value: rate.value,
+      label: getFireMode(rate.name),
+    }));
   };
 
   return {
@@ -50,18 +57,20 @@ export default function transformShip(obj: PersonalWeapons) {
       damage_type_label: getDamageType(),
     }),
     ...(obj.fire_modes && {
-      fire_modes: obj.damage_type,
+      fire_modes: obj.fire_modes.map((fm: string) => getFireMode(fm)),
     }),
     ...(obj.weight && { weight: obj.weight }),
     ...(obj.calibre && { calibre: obj.calibre }),
     ...(obj.statistics && { statistics: obj.statistics }),
-    ...(obj.fire_rates && { fire_rates: obj.fire_rates }),
+    ...(obj.fire_rates && { fire_rates: getFireRates(obj.fire_rates) }),
     ...(obj.muzzle_velocity && { muzzle_velocity: obj.muzzle_velocity }),
     ...(obj.locktime && { locktime: obj.locktime }),
     ...(obj.effective_range && { effective_range: obj.effective_range }),
     ...(obj.max_range && { max_range: obj.max_range }),
     ...(obj.sight && { sight: transformAttachment(obj.sight) }),
     ...(obj.magazine && { magazine: transformAttachment(obj.magazine) }),
+    ...(obj.barrel && { barrel: transformAttachment(obj.barrel) }),
+    ...(obj.underbarrel && { underbarrel: transformAttachment(obj.underbarrel) }),
     ...(obj.content && { content: obj.content }),
   };
 }
