@@ -90,6 +90,16 @@ const { data } = await useAsyncData(
           'hangar_items.ship_id.production_status',
           'hangar_items.ship_id.manufacturer.name',
           'hangar_items.ship_id.manufacturer.slug',
+          'hangar_items.ship_id.classification',
+          'hangar_items.ship_id.crew_min',
+          'hangar_items.ship_id.crew_max',
+          'hangar_items.ship_id.price',
+          'hangar_items.ship_id.cargo',
+          'hangar_items.ship_id.length',
+          'hangar_items.ship_id.beam',
+          'hangar_items.ship_id.height',
+          'hangar_items.active_module.id',
+          'hangar_items.active_module.name',
         ],
         filter: {
           slug: { _eq: params.slug },
@@ -120,7 +130,7 @@ if (!data.value) {
     fatal: true,
   });
 }
-
+console.log(data.value);
 const { data: places } = await useAsyncData(
   'BIOGRAPHY:SYSTEMS',
   () =>
@@ -233,7 +243,7 @@ useHead({
         </NuxtLink>
       </div>
     </div>
-    <hr class="my-3" >
+    <hr class="my-3" />
     <div class="grid grid-cols-3 gap-4">
       <div class="col-span-3 space-y-4 xl:col-span-1">
         <div class="w-full">
