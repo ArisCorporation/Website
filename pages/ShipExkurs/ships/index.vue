@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { directus, readItems } = useCMS();
+const { directus, readItems, readField } = useCMS();
 const userSettings = useUserSettingsStore();
 
 const hideShips = ref(false);
@@ -28,31 +28,34 @@ const sizeOptions = [
   { id: 'l', label: 'L - Groß' },
   { id: 'c', label: 'C - Capital' },
 ];
+const manuOptions = ref([{ id: '', label: 'Alle', code: 'Alle' }]);
+const classOptions = ref([{ id: '', label: 'Alle' }]);
 const shipType = ref<{ id: string; label: string } | null>(typeOptions[0]);
 const shipSize = ref<{ id: string; label: string }[]>([sizeOptions[0]]);
+const shipManu = ref<{ id: string; label: string; code: string }[]>([manuOptions.value[0]]);
+const shipClass = ref<{ id: string; label: string }>(classOptions.value[0]);
 
 watch(shipType, () => {
   if (!shipType.value) {
     return (shipType.value = typeOptions[0]);
   }
 });
-watch(shipSize, (newShipSize, oldShipSize) => {
-  function arraysEqual(a, b) {
-    if (a === b) return true;
-    if (a == null || b == null) return false;
-    if (a.length !== b.length) return false;
+function arraysEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
 
-    // If you don't care about the order of the elements inside
-    // the array, you should sort both arrays here.
-    // Please note that calling sort on an array will modify that array.
-    // you might want to clone your array first.
+  // If you don't care about the order of the elements inside
+  // the array, you should sort both arrays here.
+  // Please note that calling sort on an array will modify that array.
+  // you might want to clone your array first.
 
-    for (let i = 0; i < a.length; ++i) {
-      if (a[i] !== b[i]) return false;
-    }
-    return true;
+  for (let i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) return false;
   }
-
+  return true;
+}
+watch(shipSize, (newShipSize, oldShipSize) => {
   if (!arraysEqual(newShipSize, oldShipSize)) {
     if (!newShipSize || newShipSize.length === 0) {
       shipSize.value = [sizeOptions[0]];
@@ -60,6 +63,18 @@ watch(shipSize, (newShipSize, oldShipSize) => {
       shipSize.value = [sizeOptions[0]];
     } else if (newShipSize.length !== 1 && newShipSize[0] !== sizeOptions[0]) {
       shipSize.value = newShipSize.filter((size) => size?.label !== 'Alle');
+    }
+  }
+});
+watch(shipManu, (newShipManu, oldShipManu) => {
+  if (!arraysEqual(newShipManu, oldShipManu)) {
+    if (
+      (!oldShipManu.includes(manuOptions.value[0]) && newShipManu.includes(manuOptions.value[0])) ||
+      !newShipManu.length
+    ) {
+      shipManu.value = [manuOptions.value[0]];
+    } else {
+      shipManu.value = newShipManu.filter((manu) => manu?.label !== 'Alle');
     }
   }
 });
@@ -100,6 +115,26 @@ const filter = computed(() => ({
               },
               {
                 ground: { _neq: shipType.value?.id === 'ships' ? true : false },
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      _or: [
+        !shipManu.value.includes(manuOptions.value[0]) && shipManu.value.length
+          ? {
+              manufacturer: { _in: shipManu.value.map((manu) => manu.id) },
+            }
+          : {},
+      ].filter(Boolean),
+    },
+    {
+      _or: [
+        ...(shipClass.value?.id
+          ? [
+              {
+                classification: { _eq: shipClass.value?.id },
               },
             ]
           : []),
@@ -162,6 +197,43 @@ const { data: ships, pending: shipsPending } = await useAsyncData(
     ),
   { watch: [count], transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)) },
 );
+
+const { data: shipsManuRes } = await useAsyncData('SE_HOME:SHIPS_MANU', () =>
+  directus.request(
+    readItems('ships', {
+      fields: ['manufacturer.id', 'manufacturer.name', 'manufacturer.code'],
+      sort: ['name'],
+      limit: -1,
+    }),
+  ),
+);
+const { data: shipsClassRes } = await useAsyncData(
+  'SE_HOME:SHIPS_CLASSES',
+  () => directus.request(readField('ships', 'classification')),
+  {
+    transform: (rawField: any) =>
+      rawField?.meta?.options?.choices.map((choice: { value: string; text: string }) => ({
+        id: choice.value,
+        label: choice.text,
+      })),
+  },
+);
+classOptions.value.push(...shipsClassRes.value);
+
+function setManuOptions() {
+  const options: any[] = [];
+
+  shipsManuRes.value?.forEach((ship) => {
+    if (options.find((manu) => manu.id === ship.manufacturer?.id)) {
+      return;
+    } else {
+      options.push({ id: ship.manufacturer?.id, label: ship.manufacturer?.name, code: ship.manufacturer?.code });
+    }
+  });
+
+  manuOptions.value = [manuOptions.value[0], ...options.sort((a, b) => a.label.localeCompare(b.label))];
+}
+setManuOptions();
 
 useSearch(search, search_input_value, {
   debounce: true,
@@ -256,17 +328,42 @@ useHead({
       </UFormGroup>
       <UFormGroup
         label="Kategorie"
-        class="w-48 pt-2 pr-2 basis-1/2 xl:basis-auto xl:p-0"
+        class="w-48 pt-2 pl-2 basis-1/2 xl:basis-auto xl:p-0"
         :ui="{ container: 'relative' }"
       >
-        <code>Soon</code>
+        <ArisSelectMenu
+          v-model="shipClass"
+          :initial-state="shipClass"
+          :options="classOptions"
+          :option-label="(option: any) => option.label"
+          :selected-label="shipClass?.label"
+          no-selected-label="Alle"
+        />
       </UFormGroup>
+      <!-- class="w-64 pt-2 pr-2 xl:p-0 basis-full xl:basis-auto" -->
       <UFormGroup
         label="Hersteller"
         class="w-48 pt-2 pl-2 basis-1/2 xl:basis-auto xl:p-0"
         :ui="{ container: 'relative' }"
       >
-        <code>Soon</code>
+        <ArisSelectMenu
+          v-model="shipManu"
+          :initial-state="shipManu"
+          :options="manuOptions"
+          :option-label="(option: any) => option.label"
+          :selected-label="
+            shipManu
+              .sort(
+                (a, b) =>
+                  manuOptions.findIndex((option) => option.id === a.id) -
+                  manuOptions.findIndex((option) => option.id === b.id),
+              )
+              .map((option) => (shipManu.length > 1 ? option.code.split(' ')[0] : option.label))
+              .join(', ')
+          "
+          no-selected-label="Alle"
+          multiple
+        />
       </UFormGroup>
     </div>
     <hr />

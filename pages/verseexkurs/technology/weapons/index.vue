@@ -151,39 +151,6 @@ const filter = computed(() => ({
     },
   ],
 }));
-const manuFilter = computed(() => ({
-  ...(search.value && {
-    _or: [
-      { name: { _icontains: search.value } },
-      { manufacturer: { name: { _icontains: search.value } } },
-      { manufacturer: { code: { _icontains: search.value } } },
-    ],
-  }),
-  _and: [
-    {
-      _or: [
-        ...(weaponType.value?.id
-          ? [
-              {
-                classification: { _eq: weaponType.value?.id },
-              },
-            ]
-          : []),
-      ],
-    },
-    {
-      _or: [
-        ...(weaponDmg.value?.id
-          ? [
-              {
-                damage_type: { _eq: weaponDmg.value?.id },
-              },
-            ]
-          : []),
-      ],
-    },
-  ],
-}));
 
 function resetFilters() {
   weaponType.value = typeOptions[0];
