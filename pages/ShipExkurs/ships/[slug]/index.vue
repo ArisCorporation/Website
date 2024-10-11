@@ -372,6 +372,7 @@ useHead({
               :src="data.store_image"
               class="object-cover size-full"
               :style="{ 'object-position': data.store_image_properties.object_position }"
+              loading="lazy"
             />
             <TresCanvas
               v-else-if="!store_image_view && data.hologram"

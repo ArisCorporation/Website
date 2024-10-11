@@ -173,7 +173,7 @@ const handleEdit = () => {
             :src="shipData.store_image"
             :placeholder="[16, 16, 1, 5]"
             :preload="preloadImages"
-            height="500"
+            height="200"
             class="absolute object-cover w-full h-full"
             draggable="false"
           />
