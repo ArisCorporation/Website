@@ -45,6 +45,7 @@ const { data } = await useAsyncData(
           'mass',
           'cargo',
           'classification',
+          'focuses',
           'size',
           'crew_min',
           'crew_max',
@@ -73,6 +74,7 @@ const { data } = await useAsyncData(
           'store_url',
           'sales_url',
           'on_sale',
+          'classification',
           'rating.user_created',
           'rating.introduction',
           'rating.ratings',
@@ -432,8 +434,9 @@ useHead({
           />
           <TableRow title="Frachtkapazität" :content="data.cargo" />
           <TableHr />
-          <TableRow title="Klassifizierung" :content="null" />
-          <TableRow title="Größe" :content="data.size" />
+          <TableRow title="Klassifizierung" :content="data.classification_label" />
+          <TableRow title="Größe" :content="data.size_label && `${data.size_label_short} - ${data.size_label}`" />
+          <TableRow title="Fokusse" :content="data.focus_labels.join(', ')" is-list full-width />
           <TableHr />
           <TableRow title="Min Crew" :content="data.crew_min" />
           <TableRow title="Max Crew" :content="data.crew_max" />

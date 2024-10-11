@@ -62,6 +62,184 @@ export default function transformShip(obj: any, shipList?: any) {
     if (obj.productionStatus === 'in-production') return 'In Produktion';
     if (obj.productionStatus === 'flight-ready') return 'Flugfertig';
   };
+  const getSizeLabels: () => { size_label_short: string; size_label: string } | undefined = () => {
+    switch (obj.size) {
+      case 'v':
+        return { size_label_short: 'V', size_label: 'Bodenfahrzeug' };
+      case '1':
+        return { size_label_short: 'XXS', size_label: 'Snub' };
+      case '2':
+        return { size_label_short: 'XS', size_label: 'Sehr Klein' };
+      case '3':
+        return { size_label_short: 'S', size_label: 'Klein' };
+      case '4':
+        return { size_label_short: 'M', size_label: 'Mittel' };
+      case '5':
+        return { size_label_short: 'L', size_label: 'Groß' };
+      case '6':
+        return { size_label_short: 'XL', size_label: 'Capital' };
+      default:
+        return { size_label_short: obj.size, size_label: obj.size };
+    }
+  };
+  const getClassLabel: () => string | undefined = () => {
+    switch (obj.classification) {
+      case 'starter':
+        return 'Starter';
+      case 'exploration':
+        return 'Erkundung';
+      case 'cargo':
+        return 'Fracht';
+      case 'combat':
+        return 'Kampf';
+      case 'racing':
+        return 'Rennen';
+      case 'specialized':
+        return 'Spezialisiert';
+      case 'multi-role':
+        return 'Mehrzweck';
+      case 'personal_transport':
+        return 'Personentransport';
+      case 'support':
+        return 'Unterstützung';
+      case 'industrial':
+        return 'Industriell';
+      default:
+        return obj.classification;
+    }
+  };
+  const getFocusLabels: () => string | undefined = () => {
+    return obj.focuses.map((focus: string) => {
+      switch (focus) {
+        case 'light_freight':
+          return 'Leichte Fracht';
+        case 'medium_freight':
+          return 'Mittlere Fracht';
+        case 'heavy_freight':
+          return 'Schwere Fracht';
+        case 'light_transport':
+          return 'Leichter Transport';
+        case 'medium_transport':
+          return 'Mittlerer Transport';
+        case 'heavy_transport':
+          return 'Schwerer Transport';
+        case 'military_transport':
+          return 'Militärischer Transport';
+        case 'light_data':
+          return 'Leichte Daten';
+        case 'medium_data':
+          return 'Mittlere Daten';
+        case 'heavy_data':
+          return 'Schwere Daten';
+        case 'light_refining':
+          return 'Leichte Raffinierung';
+        case 'medium_refining':
+          return 'Mittlere Raffinierung';
+        case 'heavy_refining':
+          return 'Schwere Raffinierung';
+        case 'light_salvage':
+          return 'Leichte Bergung';
+        case 'medium_salvage':
+          return 'Mittlere Bergung';
+        case 'heavy_salvage':
+          return 'Schwere Bergung';
+        case 'light_mining':
+          return 'Leichter Bergbau';
+        case 'medium_mining':
+          return 'Mittlerer Bergbau';
+        case 'heavy_mining':
+          return 'Schwerer Bergbau';
+        case 'light_repair':
+          return 'Leichte Reparatur';
+        case 'medium_repair':
+          return 'Mittlere Reparatur';
+        case 'heavy_repair':
+          return 'Schwere Reparatur';
+        case 'light_refueling':
+          return 'Leichtes Betanken';
+        case 'medium_refueling':
+          return 'Mittleres Betanken';
+        case 'heavy_refueling':
+          return 'Schweres Betanken';
+        case 'light_construction':
+          return 'Leichte Konstruktion';
+        case 'medium_construction':
+          return 'Mittlere Konstruktion';
+        case 'heavy_construction':
+          return 'Schwere Konstruktion';
+        case 'light_science':
+          return 'Leichte Wissenschaft';
+        case 'medium_science':
+          return 'Mittlere Wissenschaft';
+        case 'heavy_science':
+          return 'Schwere Wissenschaft';
+        case 'light_carrier':
+          return 'Leichter Träger';
+        case 'medium_carrier':
+          return 'Mittlerer Träger';
+        case 'heavy_carrier':
+          return 'Schwerer Träger';
+        case 'luxury':
+          return 'Luxus';
+        case 'modular':
+          return 'Modular';
+        case 'medical':
+          return 'Medizinisch';
+        case 'touring':
+          return 'Touring';
+        case 'expedition':
+          return 'Expedition';
+        case 'exploration':
+          return 'Erkundung';
+        case 'pathfinder':
+          return 'Pfadfinder';
+        case 'reporting':
+          return 'Berichterstattung';
+        case 'light_fighter':
+          return 'Leichter Jäger';
+        case 'medium_fighter':
+          return 'Mittlerer Jäger';
+        case 'heavy_fighter':
+          return 'Schwerer Jäger';
+        case 'light_gunship':
+          return 'Leichtes Kanonenboot';
+        case 'medium_gunship':
+          return 'Mittleres Kanonenboot';
+        case 'heavy_gunship':
+          return 'Schweres Kanonenboot';
+        case 'snub':
+          return 'Snub';
+        case 'frigate':
+          return 'Fregatte';
+        case 'destroyer':
+          return 'Zerstörer';
+        case 'corvette':
+          return 'Korvette';
+        case 'recon':
+          return 'Aufklärung';
+        case 'bomber':
+          return 'Bomber';
+        case 'interdiction':
+          return 'Interdiction';
+        case 'dropship':
+          return 'Landungsschiff';
+        case 'stealth':
+          return 'Stealth';
+        case 'minelayer':
+          return 'Minelayer';
+        case 'e-war':
+          return 'E-War';
+        case 'anti_air':
+          return 'Luftabwehr';
+        case 'ground_combat':
+          return 'Bodenkampf';
+        case 'tow_ship':
+          return 'Abschleppschiff';
+        default:
+          return focus;
+      }
+    });
+  };
 
   const getRating = () => {
     const score = obj.rating.ratings.reduce(
@@ -183,7 +361,10 @@ export default function transformShip(obj: any, shipList?: any) {
     ...(obj.brochure && { brochure: obj.brochure }),
     ...(obj.hologram && { hologram: obj.hologram }),
     ...(obj.holoColored && { holoColored: obj.holoColored }),
-    ...(obj.size && { size: obj.size }),
+    ...(obj.size && {
+      size: obj.size,
+      ...getSizeLabels(),
+    }),
     // variants: getVariants(),
     ...(obj.loaners && obj.loaners[0] && { loaners: getLoaners() }),
     ...(obj.loaners && obj.loaners[0] && { all_loaners: getAllLoaners() }),
@@ -191,6 +372,8 @@ export default function transformShip(obj: any, shipList?: any) {
     // loaners: shipList,
     // paints: obj.paints,
     // classification: obj.classification,
+    ...(obj.classification && { classification: obj.classification, classification_label: getClassLabel() }),
+    ...(obj.focuses && { focuses: obj.focuses, focus_labels: getFocusLabels() }),
     // focus: obj.focus,
     // lastUpdatedAt: obj.lastUpdatedAt,
     ...(obj.insurance_claim_time && {
