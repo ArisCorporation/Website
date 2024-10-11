@@ -436,13 +436,13 @@ useHead({
           <Editor :model-value="data.history[historyIndex].description" />
         </template>
         <template v-if="selectedTab === 2">
-          <Editor :model-value="data.distances" />
+          <Editor :model-value="data.distances" read-only />
         </template>
         <template v-if="selectedTab === 3">
-          <Editor :model-value="data.jumppoint_connections" />
+          <Editor :model-value="data.jumppoint_connections" read-only />
         </template>
         <template v-if="selectedTab === 4">
-          <Editor :model-value="data.borders" />
+          <Editor :model-value="data.borders" read-only />
         </template>
       </template>
     </TabGroup>
