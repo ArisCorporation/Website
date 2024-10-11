@@ -6,7 +6,13 @@ const fullscreen_state = ref(false);
 const fileLibrary = ref(false);
 const fileLibraryType = ref();
 
-const props = defineProps<{ modelValue: string; readOnly?: boolean; simpleMode?: boolean; loading?: boolean }>();
+const props = defineProps<{
+  modelValue: string;
+  readOnly?: boolean;
+  simpleMode?: boolean;
+  loading?: boolean;
+  disableHeadings?: boolean;
+}>();
 const { modelValue, readOnly } = toRefs(props);
 const emit = defineEmits(['update:modelValue', 'send']);
 
