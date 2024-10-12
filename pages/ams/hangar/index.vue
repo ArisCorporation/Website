@@ -1860,7 +1860,7 @@ useHead({
                 Hangar
               </h1>
             </HeadlessTab>
-            <HeadlessTab
+            <!-- <HeadlessTab
               v-slot="{ selected }"
               class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none animate-link"
             >
@@ -1870,7 +1870,7 @@ useHead({
               >
                 Wunschliste
               </h1>
-            </HeadlessTab>
+            </HeadlessTab> -->
           </div>
           <ButtonDefault id="add-button" class="h-fit" @click="openAddModal"> Schiffe hinzufügen </ButtonDefault>
         </div>
