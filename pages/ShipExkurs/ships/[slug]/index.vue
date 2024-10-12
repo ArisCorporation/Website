@@ -625,8 +625,14 @@ useHead({
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '5')">
           <DefaultPanel bg="bprimary" class="mb-3">
             <div class="flex flex-wrap px-2">
-              <div class="flex flex-col basis-full md:basis-1/2">
+              <div class="flex-col basis-full md:basis-1/2">
                 <h2 class="mt-4"><span class="text-aris-400">ArisCorp</span> Wertung</h2>
+                <div class="flex pr-6 basis-full">
+                  <div class="mx-auto">
+                    <Editor v-model="data.rating.introduction" read-only />
+                  </div>
+                </div>
+                <TableHr class="px-2 pb-2 my-4" />
                 <ul>
                   <li
                     v-for="(item, index) in data.rating.strengths_and_weaknesses"
@@ -698,12 +704,6 @@ useHead({
                     :active-count="10 * (data.rating.score / 100)"
                     :dash-spacing="0 / 4"
                   />
-                </div>
-              </div>
-              <hr class="mx-4 my-4" />
-              <div class="flex px-6 pb-2 basis-full">
-                <div class="mx-auto">
-                  <Editor v-model="data.rating.introduction" read-only />
                 </div>
               </div>
             </div>
