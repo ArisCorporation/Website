@@ -22,11 +22,13 @@ const typeOptions = [
 ];
 const sizeOptions = [
   { id: '', label: 'Alle' },
-  { id: 'xs', label: 'XS - Snub' },
-  { id: 's', label: 'S - Klein' },
-  { id: 'm', label: 'M - Medium' },
-  { id: 'l', label: 'L - Groß' },
-  { id: 'c', label: 'C - Capital' },
+  { id: 'v', label: 'V - Bodenfahrzeug' },
+  { id: '1', label: 'XXS - Snub' },
+  { id: '2', label: 'XS - Sehr Klein' },
+  { id: '3', label: 'S - Klein' },
+  { id: '4', label: 'M - Mittel' },
+  { id: '5', label: 'L - Groß' },
+  { id: '6', label: 'XL - Capital' },
 ];
 const manuOptions = ref([{ id: '', label: 'Alle', code: 'Alle' }]);
 const classOptions = ref([{ id: '', label: 'Alle' }]);
@@ -142,12 +144,12 @@ const filter = computed(() => ({
     },
     {
       _or: [
-        ...(unref(shipSize).some((size) => size.id === sizeOptions[1].id) ? [{ size: { _eq: 0 } }] : []),
-        ...(unref(shipSize).some((size) => size.id === sizeOptions[2].id) ? [{ size: { _eq: 1 } }] : []),
-        ...(unref(shipSize).some((size) => size.id === sizeOptions[3].id) ? [{ size: { _eq: 2 } }] : []),
-        ...(unref(shipSize).some((size) => size.id === sizeOptions[4].id) ? [{ size: { _eq: 3 } }] : []),
-        ...(unref(shipSize).some((size) => size.id === sizeOptions[5].id) ? [{ size: { _eq: 4 } }] : []),
-      ],
+        !shipSize.value.includes(sizeOptions[0]) && shipSize.value.length
+          ? {
+              size: { _in: shipSize.value.map((manu) => manu.id) },
+            }
+          : {},
+      ].filter(Boolean),
     },
   ],
 }));
@@ -181,6 +183,7 @@ watch(
 );
 watch([filter], () => {
   page.value = 1;
+  console.log(shipSize);
 });
 
 const { data: ships, pending: shipsPending } = await useAsyncData(
