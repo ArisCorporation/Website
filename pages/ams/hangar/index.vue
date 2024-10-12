@@ -1804,7 +1804,7 @@ useHead({
             @click="() => userSettingsStore.AMSToggleHangarDetailView()"
           >
             Detail Ansicht:
-            {{ userSettings.ams.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
+            {{ userSettings.ams.value.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
         <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
@@ -1900,7 +1900,7 @@ useHead({
                   :ref="item.id === latestShip.id ? 'onboardingShip' : null"
                   :ship-data="item.ship"
                   :hangar-data="item"
-                  :detail-view="userSettings.ams.hangarDetailView"
+                  :detail-view="userSettings.ams.value.hangarDetailView"
                   :color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
                   :onboarding="item.id === latestShip.id"
                   preload-images
@@ -2010,7 +2010,7 @@ useHead({
             :key="item.id"
             :ship-data="item.ship"
             :hangar-data="item"
-            :detail-view="userSettings.ams.hangarDetailView"
+            :detail-view="userSettings.ams.value.hangarDetailView"
             :color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
             preload-images
             internal-bio
