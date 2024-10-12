@@ -432,7 +432,7 @@ useHead({
             :content="data.mass && Math.round((data.mass / 1000 + Number.EPSILON) * 100) / 100"
             suffix="T"
           />
-          <TableRow title="Frachtkapazität" :content="data.cargo" />
+          <TableRow title="Frachtkapazität" :content="data.cargo" suffix="SCU" />
           <TableHr />
           <TableRow title="Klassifizierung" :content="data.classification_label" />
           <TableRow title="Größe" :content="data.size_label && `${data.size_label_short} - ${data.size_label}`" />
