@@ -588,7 +588,7 @@ definePageMeta({
             empty-label="Keine Abteilung"
             no-selected-label="Keine Abteilung ausgewählt"
           />
-        </arisselectmenu></UFormGroup>
+        </UFormGroup>
         <UFormGroup
           label="RSI Handle"
           name="rsi_handle"
