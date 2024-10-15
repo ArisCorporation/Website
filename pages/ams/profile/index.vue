@@ -76,7 +76,7 @@ const { data: systems } = await useAsyncData(
     transform: (systems: any[]) => systems.map((system: any) => transformStarsystem(system)),
   },
 );
-
+console.log(departments);
 const landing_zones = computed(() => {
   return landing_zones_res.value
     .map((landing_zone: any) => {
@@ -583,7 +583,7 @@ definePageMeta({
             clear-search-on-close
             searchable-placeholder="Suche..."
             :search-attributes="['name']"
-            :option-label="formdata.department.name"
+            :option-label="(option: any) => option.name"
             :selected-label="formdata.department.name"
             empty-label="Keine Abteilung"
             no-selected-label="Keine Abteilung ausgewählt"
