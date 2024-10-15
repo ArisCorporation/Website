@@ -583,12 +583,12 @@ definePageMeta({
             clear-search-on-close
             searchable-placeholder="Suche..."
             :search-attributes="['name']"
-            :option-label="formdata.department.name"
+            :option-label="(option: any) => option.name"
             :selected-label="formdata.department.name"
             empty-label="Keine Abteilung"
             no-selected-label="Keine Abteilung ausgewählt"
           />
-        </UFormGroup>
+        </arisselectmenu></UFormGroup>
         <UFormGroup
           label="RSI Handle"
           name="rsi_handle"
