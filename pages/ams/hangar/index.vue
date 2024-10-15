@@ -394,7 +394,7 @@ const onAddSubmit = async (type: string, data: any[]) => {
           data.map((ship) => ({
             user_id: user.value.id,
             ship_id: ship.id,
-            show_name: true,
+            name_public: true,
             group: 'ariscorp',
             visibility: 'public',
             planned: false,
