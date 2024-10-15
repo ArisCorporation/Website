@@ -269,6 +269,7 @@ useHead({
       base-url="/ams"
       :sidebar-items="sidebarItems"
       :user-sidebar-items="sidebarUserItems"
+      permission-control
     />
     <div id="sidebar-space" class="hidden lg:block" />
     <!-- lg:max-w-[calc(100vw-16rem)]  lg:ml-64 -->
