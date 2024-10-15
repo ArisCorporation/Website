@@ -316,7 +316,7 @@ const setFormData = (data: any) => {
   initialFormdata.group = data.userData.group ?? 'ariscorp';
   initialFormdata.department = data.userData.department ?? null;
   initialFormdata.visibility = data.userData.visibility ?? 'public';
-  initialFormdata.show_name = data.userData.show_name ?? true;
+  initialFormdata.show_name = data.userData.name_public ?? true;
   // initialFormdata.module = data.userData.module ?? null;
   initialFormdata.planned = data.userData.planned ?? false;
 };
