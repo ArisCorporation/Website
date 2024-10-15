@@ -307,7 +307,7 @@ const setFormData = (data: any) => {
   formdata.group = data.userData.group ?? 'ariscorp';
   formdata.department = data.userData.department ?? null;
   formdata.visibility = data.userData.visibility ?? 'public';
-  formdata.show_name = data.userData.show_name ?? true;
+  formdata.show_name = data.userData.name_public ?? true;
   // formdata.module = data.userData.module ?? null;
   formdata.planned = data.userData.planned ?? false;
 
