@@ -39,6 +39,8 @@ import {
   createFolders,
   deleteFolder,
   deleteFolders,
+  readFields,
+  readField,
   authentication,
   realtime,
 } from '@directus/sdk';
@@ -142,5 +144,7 @@ export const useCMS = () => {
     createFolders,
     deleteFolder,
     deleteFolders,
+    readFields,
+    readField,
   };
 };

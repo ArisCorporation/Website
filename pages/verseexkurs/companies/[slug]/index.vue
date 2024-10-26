@@ -91,8 +91,8 @@ if (
       transform: (rawSystems: any[]) => transformStarsystem(rawSystems[0]),
     },
   );
-  if (system.value) {
-    data.value.headquarter.system = system.value;
+  if (system?.data?.value) {
+    data.value.headquarter.system = system?.data?.value;
   }
 }
 

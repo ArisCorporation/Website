@@ -1,12 +1,27 @@
 <script setup lang="ts">
 import cheerio from 'cheerio';
-import { TiptapArisCorpPanel, TiptapArisCorpPanelWithBg, TiptapVideo } from '~/composables/tiptapExt';
+import {
+  TiptapArisCorpPanel,
+  TiptapArisCorpPanelWithBg,
+  TiptapVideo,
+  TiptapImgAlign,
+  TiptapTableAlign,
+  TiptapTableRow,
+  TiptapTableHeader,
+  TiptapTableCell,
+} from '~/composables/tiptapExt';
 
 const fullscreen_state = ref(false);
 const fileLibrary = ref(false);
 const fileLibraryType = ref();
 
-const props = defineProps<{ modelValue: string; readOnly?: boolean; simpleMode?: boolean; loading?: boolean }>();
+const props = defineProps<{
+  modelValue: string;
+  readOnly?: boolean;
+  simpleMode?: boolean;
+  loading?: boolean;
+  disableHeadings?: boolean;
+}>();
 const { modelValue, readOnly } = toRefs(props);
 const emit = defineEmits(['update:modelValue', 'send']);
 
@@ -33,9 +48,15 @@ const editor = useEditor({
     TiptapLink.configure({
       openOnClick: false,
     }),
-    TiptapImage.configure({
+    TiptapImgAlign.configure({
       inline: true,
     }),
+    TiptapTableAlign.configure({
+      resizable: true,
+    }),
+    TiptapTableRow,
+    TiptapTableHeader,
+    TiptapTableCell,
     ...(!props.simpleMode
       ? [
           TiptapStarterKit,
@@ -44,7 +65,7 @@ const editor = useEditor({
           }),
           TiptapTextAlign.configure({
             defaultAlignment: 'left',
-            types: ['heading', 'paragraph'],
+            types: ['heading', 'paragraph', 'image', 'img', 'table  '],
             alignments: ['left', 'center', 'right', 'justify'],
           }),
           TiptapSubscript,
@@ -141,12 +162,19 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div :class="[!readOnly ? (simpleMode ? 'h-full' : 'h-[calc(100vh_-_50px)] overflow-y-auto') : '']">
+  <div :class="[!readOnly ? (simpleMode ? 'h-full' : 'h-[calc(100vh_-_50px)] overflow-y-auto rounded-xl') : '']">
     <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" />
     <div v-if="editor && !readOnly && !simpleMode" id="editor_container">
       <UCard
         :ui="{
-          header: { base: 'sticky top-0 z-10', background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
+          header: { base: 'sticky top-0 z-10 rounded-t-lg', background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
+          footer: {
+            base: 'sticky bottom-0 z-10 rounded-b-lg',
+            background: 'bg-bsecondary',
+            padding: 'px-4 py-3 sm:px-6',
+          },
+          body: { base: 'border-x !border-bsecondary' },
+          ring: '',
         }"
         class="overflow-clip"
       >
@@ -419,7 +447,7 @@ onBeforeUnmount(() => {
           </div>
         </template>
 
-        <div class="">
+        <div class="min-h-screen">
           <TiptapEditorContent :editor="editor" class="" />
         </div>
 

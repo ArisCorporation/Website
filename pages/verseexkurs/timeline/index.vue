@@ -12,31 +12,29 @@ let previousDragTimePos = 0;
 const { data } = await useAsyncData('TIMELINE:ITEMS', () =>
   directus.request(
     readItems('timeline_items', {
-      query: {
-        fields: [
-          'id',
-          'title',
-          'dates',
-          'category',
-          'description',
-          'banner',
-          'linked_item.collection',
-          'linked_item.item:systems.slug',
-          'linked_item.item:companies.slug',
-          'linked_item.item:literature_categories.slug',
-          'linked_item.item:fractions.slug',
-          'linked_item.item:spectrum_categories.slug',
-          'linked_item.item:ships.slug',
-          'linked_item.item:directus_users.slug',
-          'linked_item.item:spectrum_threads.slug',
-          'linked_item.item:spectrum_threads.category.slug',
-        ],
-      },
+      fields: [
+        'id',
+        'title',
+        'dates',
+        'category',
+        'description',
+        'banner',
+        'linked_item.collection',
+        'linked_item.item:systems.slug',
+        'linked_item.item:companies.slug',
+        'linked_item.item:literature_categories.slug',
+        'linked_item.item:fractions.slug',
+        'linked_item.item:spectrum_categories.slug',
+        'linked_item.item:ships.slug',
+        'linked_item.item:directus_users.slug',
+        'linked_item.item:spectrum_threads.slug',
+        'linked_item.item:spectrum_threads.category.slug',
+      ],
       limit: -1,
     }),
   ),
 );
-console.log(data.value);
+
 const { data: users } = await useAsyncData(
   'TIMELINE:USERS',
   () =>
@@ -143,22 +141,26 @@ let items = data.value.map((item) => ({
         ? '#eaa75f'
         : '',
   },
-  link:
-    item.linked_item[0]?.collection === 'systems'
-      ? `/verseexkurs/starmap/${item.linked_item[0]?.item?.slug}`
-      : item.linked_item[0]?.collection === 'companies'
-      ? `/verseexkurs/companies/${item.linked_item[0]?.item?.slug}`
-      : item.linked_item[0]?.collection === 'literature_categories'
-      ? `/verseexkurs/literatures/${item.linked_item[0]?.item?.slug}`
-      : item.linked_item[0]?.collection === 'fractions'
-      ? `/verseexkurs/fractions/${item.linked_item[0]?.item?.slug}`
-      : item.linked_item[0]?.collection === 'spectrum_categories'
-      ? `/verseexkurs/spectrum/${item.linked_item[0]?.item?.slug}`
-      : item.linked_item[0]?.collection === 'ships'
-      ? `/shipexkurs/ships/${item.linked_item[0]?.item?.slug}`
-      : item.linked_item[0]?.collection === 'spectrum_threads'
-      ? `/verseexkurs/spectrum/${item.linked_item[0]?.item?.category?.slug}/${item.linked_item[0]?.item?.slug}`
-      : null,
+  link: (() => {
+    switch (item.linked_item[0]?.collection) {
+      case 'systems':
+        return `/verseexkurs/starmap/${item.linked_item[0]?.item?.slug}`;
+      case 'companies':
+        return `/verseexkurs/companies/${item.linked_item[0]?.item?.slug}`;
+      case 'literature_categories':
+        return `/verseexkurs/literatures/${item.linked_item[0]?.item?.slug}`;
+      case 'fractions':
+        return `/verseexkurs/fractions/${item.linked_item[0]?.item?.slug}`;
+      case 'spectrum_categories':
+        return `/verseexkurs/spectrum/${item.linked_item[0]?.item?.slug}`;
+      case 'ships':
+        return `/shipexkurs/ships/${item.linked_item[0]?.item?.slug}`;
+      case 'spectrum_threads':
+        return `/verseexkurs/spectrum/${item.linked_item[0]?.item?.category?.slug}/${item.linked_item[0]?.item?.slug}`;
+      default:
+        return null;
+    }
+  })(),
 }));
 
 items.push(
@@ -278,7 +280,6 @@ function handleViewportDrag({ time, event, item }) {
       if (item?.id !== 'selection') {
         return;
       }
-      console.log('pointerdown');
 
       isDraggingMapViewport = true;
       previousDragTimePos = time;
@@ -287,7 +288,6 @@ function handleViewportDrag({ time, event, item }) {
       if (!isDraggingMapViewport) {
         return;
       }
-      console.log('pointermove');
 
       const delta = time - previousDragTimePos;
       const length = viewport.value.end - viewport.value.start;
@@ -520,6 +520,7 @@ definePageMeta({
     &:active {
       cursor: grabbing;
     }
+    @apply border-2 border-aris-400 rounded;
   }
 
   :deep(.item) {

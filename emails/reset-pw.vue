@@ -27,11 +27,11 @@ expireDate.setHours(expireDate.getHours() + 24);
     <EHtml>
       <EHead>
         <EFont
-          font-family="Nasalization"
-          fallback-font-family="Helvetica"
+          font-family="Orbitron"
+          fallback-font-family="sans-serif"
           :web-font="{
-            url: 'https://cms.ariscorp.de/assets/0d4228c9-07eb-4815-a897-70064880a405.woff',
-            format: 'woff',
+            url: 'https://ariscorp.de/assets/fa84a65e-5f2f-429e-a50f-cd88daac2684.ttf',
+            format: 'truetype',
           }"
           :font-weight="400"
           font-style="normal"

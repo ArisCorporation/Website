@@ -116,14 +116,14 @@ function handleHomeButton(item: any) {
             >
               <NuxtLink
                 :to="'/#' + item.hash"
-                class="block px-3 py-2 rounded md:p-0 md:border-0 not-active animate-link"
+                class="block px-3 py-2 rounded md:p-0 md:border-0 not-active md:animate-link"
                 :class="{
                   active: route.hash == item.hash,
                   'not-active': route.hash != item.hash,
                 }"
                 @click="() => handleHomeButton(item)"
               >
-                <span class="block md:hidden">{{ item.name }}</span>
+                <span class="block md:hidden w-fit animate-link">{{ item.name }}</span>
                 <span class="hidden md:block"><Icon :name="item.icon" hover class="w-12 h-auto lg:w-16" /></span>
               </NuxtLink>
             </UTooltip>
@@ -135,10 +135,10 @@ function handleHomeButton(item: any) {
           <li v-for="item in bannerItems" :key="item.name" class="relative w-full my-auto group md:w-fit">
             <NuxtLink
               :to="item.link"
-              class="block px-3 py-2 rounded md:p-0 md:border-0 not-active animate-link"
+              class="block px-3 py-2 rounded md:p-0 md:border-0 not-active md:animate-link"
               @click="toggleMenu"
             >
-              <span class="block md:hidden">{{ item.name }}</span>
+              <span class="block md:hidden w-fit animate-link">{{ item.name }}</span>
               <span class="hidden md:block"
                 ><Icon
                   :name="item.icon"
