@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import cheerio from 'cheerio';
-import { TiptapArisCorpPanel, TiptapArisCorpPanelWithBg, TiptapVideo } from '~/composables/tiptapExt';
+import {
+  TiptapArisCorpPanel,
+  TiptapArisCorpPanelWithBg,
+  TiptapVideo,
+  TiptapImgAlign,
+} from '~/composables/tiptapExt';
 
 const fullscreen_state = ref(false);
 const fileLibrary = ref(false);
@@ -39,7 +44,7 @@ const editor = useEditor({
     TiptapLink.configure({
       openOnClick: false,
     }),
-    TiptapImage.configure({
+    TiptapImgAlign.configure({
       inline: true,
     }),
     ...(!props.simpleMode
@@ -50,7 +55,7 @@ const editor = useEditor({
           }),
           TiptapTextAlign.configure({
             defaultAlignment: 'left',
-            types: ['heading', 'paragraph'],
+            types: ['heading', 'paragraph', 'image', 'img', 'table  '],
             alignments: ['left', 'center', 'right', 'justify'],
           }),
           TiptapSubscript,
