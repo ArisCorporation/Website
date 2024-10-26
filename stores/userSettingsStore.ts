@@ -12,6 +12,8 @@ interface State {
   se: {
     shipDetailView: boolean;
     pageCount: number;
+    model_orbit: boolean;
+    model_zoom: boolean;
   };
   ve: {
     tech_weaponsPageCount: number;
@@ -36,6 +38,8 @@ export const useUserSettingsStore = defineStore('userSettings', {
     se: {
       shipDetailView: false,
       pageCount: 12,
+      model_orbit: true,
+      model_zoom: true,
     },
     ve: {
       tech_weaponsPageCount: 12,
