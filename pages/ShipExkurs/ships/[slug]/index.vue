@@ -2,6 +2,9 @@
 import { computed, ref, shallowRef, toRefs, watchEffect } from 'vue';
 import { Spherical, Vector3 } from 'three';
 
+const userSettings = useUserSettingsStore();
+const { se: settings } = storeToRefs(userSettings);
+
 const { directus, readItems } = useCMS();
 const { params } = useRoute();
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
@@ -9,8 +12,6 @@ const toast = useToast();
 const config = useRuntimeConfig();
 const carousel = ref();
 const store_image_view = ref(true);
-const auto_rotate = ref(true);
-const camera_zoom = ref(true);
 const orbit_controls = ref();
 const modalStore = useModalStore();
 
@@ -177,9 +178,9 @@ const stars_props = {
   transparent: true,
   alphaTest: 0.01,
   alphaMap: null,
-  count: 500,
+  count: 750,
   depth: 50,
-  radius: 100,
+  radius: 1000,
 };
 
 const stars_position = ref();
@@ -358,13 +359,21 @@ useHead({
               </ButtonDefault>
             </div>
             <div v-if="!store_image_view" class="absolute z-40 space-x-2 rotate-10 bottom-1 right-2">
-              <UTooltip :text="`Auto-Rotation ${camera_zoom ? 'deaktivieren' : 'aktivieren'}`">
-                <ButtonDefault :active="auto_rotate" class="size-fit" @click="auto_rotate = !auto_rotate">
+              <UTooltip :text="`Auto-Rotation ${settings.model_orbit ? 'deaktivieren' : 'aktivieren'}`">
+                <ButtonDefault
+                  :active="settings.model_orbit"
+                  class="size-fit"
+                  @click="settings.model_orbit = !settings.model_orbit"
+                >
                   <UIcon name="i-lucide-orbit" class="flex size-5" />
                 </ButtonDefault>
               </UTooltip>
-              <UTooltip :text="`Zoom ${camera_zoom ? 'deaktivieren' : 'aktivieren'}`">
-                <ButtonDefault :active="camera_zoom" class="size-fit" @click="camera_zoom = !camera_zoom">
+              <UTooltip :text="`Zoom ${settings.model_zoom ? 'deaktivieren' : 'aktivieren'}`">
+                <ButtonDefault
+                  :active="settings.model_zoom"
+                  class="size-fit"
+                  @click="settings.model_zoom = !settings.model_zoom"
+                >
                   <UIcon name="i-heroicons-magnifying-glass-16-solid" class="flex size-5" />
                 </ButtonDefault>
               </UTooltip>
@@ -386,9 +395,10 @@ useHead({
               <TresPerspectiveCamera :position="[0, 20, 80]" />
               <TcientosOrbitControls
                 ref="orbit_controls"
-                :enable-zoom="camera_zoom"
-                :auto-rotate="auto_rotate"
+                :enable-zoom="settings.model_zoom"
+                :auto-rotate="settings.model_orbit"
                 :auto-rotate-speed="1"
+                :max-distance="9999999"
                 make-default
               />
               <!-- <TcientosStars
