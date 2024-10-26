@@ -5,6 +5,10 @@ import {
   TiptapArisCorpPanelWithBg,
   TiptapVideo,
   TiptapImgAlign,
+  TiptapTableAlign,
+  TiptapTableRow,
+  TiptapTableHeader,
+  TiptapTableCell,
 } from '~/composables/tiptapExt';
 
 const fullscreen_state = ref(false);
@@ -47,6 +51,12 @@ const editor = useEditor({
     TiptapImgAlign.configure({
       inline: true,
     }),
+    TiptapTableAlign.configure({
+      resizable: true,
+    }),
+    TiptapTableRow,
+    TiptapTableHeader,
+    TiptapTableCell,
     ...(!props.simpleMode
       ? [
           TiptapStarterKit,
