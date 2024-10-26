@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { directus, readItems, readField } = useCMS();
 const userSettings = useUserSettingsStore();
+const { se: settings } = storeToRefs(userSettings);
 
 const hideShips = ref(false);
 const search = ref('');
@@ -8,10 +9,9 @@ const search_input_value = ref('');
 const searchInput = ref();
 
 const page = ref(1);
-const pageCount = ref(12);
 const pageTotal = ref(0);
-const pageFrom = computed(() => (page.value - 1) * pageCount.value + 1);
-const pageTo = computed(() => Math.min(page.value * pageCount.value, pageTotal.value));
+const pageFrom = computed(() => (page.value - 1) * settings.value.pageCount + 1);
+const pageTo = computed(() => Math.min(page.value * settings.value.pageCount, pageTotal.value));
 
 // const shipType = ref()
 // FILTERS
@@ -169,7 +169,7 @@ const { data: count, pending: countPending } = await useAsyncData(
         filter: filter.value,
       }),
     ),
-  { watch: [filter, page, pageCount] },
+  { watch: [filter, page, computed(() => settings.value.pageCount)] },
 );
 
 watch(
@@ -193,7 +193,7 @@ const { data: ships, pending: shipsPending } = await useAsyncData(
       readItems('ships', {
         fields: ['id', 'name', 'slug', 'store_image', 'production_status', 'manufacturer.name', 'manufacturer.slug'],
         sort: ['name'],
-        limit: pageCount.value,
+        limit: settings.value.pageCount,
         page: page.value,
         filter: filter.value,
       }),
@@ -370,9 +370,14 @@ useHead({
       </UFormGroup>
     </div>
     <hr />
-    <div class="mx-auto mb-2 text-center w-fit">
-      <div class="flex justify-center">
-        <UPagination v-model="page" :page-count="pageCount" :total="pageTotal" />
+
+    <div class="w-full mx-auto mb-2 text-center">
+      <div class="relative flex justify-center">
+        <UPagination v-model="page" :page-count="settings.pageCount" :total="pageTotal" />
+        <div class="w-fit flex gap-1.5 items-center right-0 absolute">
+          <span class="text-sm leading-5">Einträge pro Seite:</span>
+          <USelectMenu v-model="settings.pageCount" :options="[3, 6, 12, 21, 48, 102, 500]" size="sm" />
+        </div>
       </div>
       <div>
         <span class="text-sm leading-5">

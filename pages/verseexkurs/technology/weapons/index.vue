@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { directus, readItems } = useCMS();
 const userSettings = useUserSettingsStore();
+const { ve: settings } = storeToRefs(userSettings);
 
 const hideWeapons = ref(false);
 const search = ref('');
@@ -8,10 +9,9 @@ const search_input_value = ref('');
 const searchInput = ref();
 
 const page = ref(1);
-const pageCount = ref(12);
 const pageTotal = ref(0);
-const pageFrom = computed(() => (page.value - 1) * pageCount.value + 1);
-const pageTo = computed(() => Math.min(page.value * pageCount.value, pageTotal.value));
+const pageFrom = computed(() => (page.value - 1) * settings.value.tech_weaponsPageCount + 1);
+const pageTo = computed(() => Math.min(page.value * settings.value.tech_weaponsPageCount, pageTotal.value));
 
 // const weaponType = ref()
 // FILTERS
@@ -167,7 +167,7 @@ const { data: count, pending: countPending } = await useAsyncData(
         filter: filter.value,
       }),
     ),
-  { watch: [filter, page, pageCount] },
+  { watch: [filter, page, () => settings.value.tech_weaponsPageCount] },
 );
 
 watch(
@@ -190,7 +190,7 @@ const { data: weapons, pending: weaponsPending } = await useAsyncData(
       readItems('personal_weapons', {
         fields: ['id', 'name', 'slug', 'store_image', 'manufacturer.id', 'manufacturer.name', 'manufacturer.slug'],
         sort: ['name'],
-        limit: pageCount.value,
+        limit: settings.value.tech_weaponsPageCount,
         page: page.value,
         filter: filter.value,
       }),
@@ -345,9 +345,13 @@ useHead({
       
     </div> -->
     <hr />
-    <div class="mx-auto mb-2 text-center w-fit">
-      <div class="flex justify-center">
-        <UPagination v-model="page" :page-count="pageCount" :total="pageTotal" />
+    <div class="w-full mx-auto mb-2 text-center">
+      <div class="relative flex justify-center">
+        <UPagination v-model="page" :page-count="settings.tech_weaponsPageCount" :total="pageTotal" />
+        <div class="w-fit flex gap-1.5 items-center right-0 absolute">
+          <span class="text-sm leading-5">Einträge pro Seite:</span>
+          <USelectMenu v-model="settings.tech_weaponsPageCount" :options="[3, 6, 12, 21, 48, 102, 500]" size="sm" />
+        </div>
       </div>
       <div>
         <span class="text-sm leading-5">

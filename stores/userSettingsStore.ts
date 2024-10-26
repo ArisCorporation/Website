@@ -11,6 +11,11 @@ interface State {
   };
   se: {
     shipDetailView: boolean;
+    pageCount: number;
+  };
+  ve: {
+    tech_weaponsPageCount: number;
+    tech_attachmentsPageCount: number;
   };
 }
 
@@ -30,6 +35,11 @@ export const useUserSettingsStore = defineStore('userSettings', {
     },
     se: {
       shipDetailView: false,
+      pageCount: 12,
+    },
+    ve: {
+      tech_weaponsPageCount: 12,
+      tech_attachmentsPageCount: 12,
     },
   }),
   actions: {
