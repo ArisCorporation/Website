@@ -126,7 +126,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        nasa: ['nasalization', 'sans-serif'],
+        nasa: ['orbitron', 'sans-serif'],
       },
       brightness: {
         85: '.85',

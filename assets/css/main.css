@@ -1,6 +1,60 @@
-@font-face {
+/* @font-face {
   font-family: 'nasalization';
   src: url('~/assets/fonts/nasalization-rg.otf') format('opentype');
   font-style: normal;
   font-weight: 500;
+} */
+
+/* orbitron-regular */
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/orbitron/Orbitron-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* orbitron-medium */
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 500;
+  src: url('/fonts/orbitron/Orbitron-Medium.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* orbitron-semi-bold */
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 600;
+  src: url('/fonts/orbitron/Orbitron-SemiBold.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* orbitron-bold */
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/orbitron/Orbitron-Bold.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* orbitron-extra-bold */
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 800;
+  src: url('/fonts/orbitron/Orbitron-ExtraBold.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* orbitron-black */
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 900;
+  src: url('/fonts/orbitron/Orbitron-Black.ttf') format('truetype');
+  font-display: swap;
 }
