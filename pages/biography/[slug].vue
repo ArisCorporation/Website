@@ -80,6 +80,8 @@ const { data } = await useAsyncData(
           'biography',
           'hangar_items.id',
           'hangar_items.name',
+          'hangar_items.name_public',
+          'hangar_items.planned',
           'hangar_items.group',
           'hangar_items.department.id',
           'hangar_items.department.name',
@@ -239,7 +241,7 @@ useHead({
       </div>
       <div>
         <NuxtLink to="/verseexkurs/companies/ariscorp">
-          <Icon name="IconsLogosAriscorp" class="h-20 -mb-4 md:-mb-8 md:h-40 w-fit" />
+          <Icon name="IconsLogosAriscorp" class="h-20 -mb-4 md:-mb-8 md:h-40 w-fit animate-link" />
         </NuxtLink>
       </div>
     </div>
@@ -445,6 +447,7 @@ useHead({
                     display-department
                     :display-name="item.userData.show_name"
                     display-production-state
+                    display-planned-state
                   />
                 </TransitionGroup>
                 <Transition
