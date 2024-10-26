@@ -2,6 +2,9 @@
 import { computed, ref, shallowRef, toRefs, watchEffect } from 'vue';
 import { Spherical, Vector3 } from 'three';
 
+const userSettings = useUserSettingsStore();
+const { se: settings } = storeToRefs(userSettings);
+
 const { directus, readItems } = useCMS();
 const { params } = useRoute();
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
@@ -9,8 +12,6 @@ const toast = useToast();
 const config = useRuntimeConfig();
 const carousel = ref();
 const store_image_view = ref(true);
-const auto_rotate = ref(true);
-const camera_zoom = ref(true);
 const orbit_controls = ref();
 const modalStore = useModalStore();
 
@@ -45,6 +46,7 @@ const { data } = await useAsyncData(
           'mass',
           'cargo',
           'classification',
+          'focuses',
           'size',
           'crew_min',
           'crew_max',
@@ -73,6 +75,7 @@ const { data } = await useAsyncData(
           'store_url',
           'sales_url',
           'on_sale',
+          'classification',
           'rating.user_created',
           'rating.introduction',
           'rating.ratings',
@@ -175,9 +178,9 @@ const stars_props = {
   transparent: true,
   alphaTest: 0.01,
   alphaMap: null,
-  count: 500,
+  count: 750,
   depth: 50,
-  radius: 100,
+  radius: 1000,
 };
 
 const stars_position = ref();
@@ -356,13 +359,21 @@ useHead({
               </ButtonDefault>
             </div>
             <div v-if="!store_image_view" class="absolute z-40 space-x-2 rotate-10 bottom-1 right-2">
-              <UTooltip :text="`Auto-Rotation ${camera_zoom ? 'deaktivieren' : 'aktivieren'}`">
-                <ButtonDefault :active="auto_rotate" class="size-fit" @click="auto_rotate = !auto_rotate">
+              <UTooltip :text="`Auto-Rotation ${settings.model_orbit ? 'deaktivieren' : 'aktivieren'}`">
+                <ButtonDefault
+                  :active="settings.model_orbit"
+                  class="size-fit"
+                  @click="settings.model_orbit = !settings.model_orbit"
+                >
                   <UIcon name="i-lucide-orbit" class="flex size-5" />
                 </ButtonDefault>
               </UTooltip>
-              <UTooltip :text="`Zoom ${camera_zoom ? 'deaktivieren' : 'aktivieren'}`">
-                <ButtonDefault :active="camera_zoom" class="size-fit" @click="camera_zoom = !camera_zoom">
+              <UTooltip :text="`Zoom ${settings.model_zoom ? 'deaktivieren' : 'aktivieren'}`">
+                <ButtonDefault
+                  :active="settings.model_zoom"
+                  class="size-fit"
+                  @click="settings.model_zoom = !settings.model_zoom"
+                >
                   <UIcon name="i-heroicons-magnifying-glass-16-solid" class="flex size-5" />
                 </ButtonDefault>
               </UTooltip>
@@ -372,6 +383,7 @@ useHead({
               :src="data.store_image"
               class="object-cover size-full"
               :style="{ 'object-position': data.store_image_properties.object_position }"
+              loading="lazy"
             />
             <TresCanvas
               v-else-if="!store_image_view && data.hologram"
@@ -383,9 +395,10 @@ useHead({
               <TresPerspectiveCamera :position="[0, 20, 80]" />
               <TcientosOrbitControls
                 ref="orbit_controls"
-                :enable-zoom="camera_zoom"
-                :auto-rotate="auto_rotate"
+                :enable-zoom="settings.model_zoom"
+                :auto-rotate="settings.model_orbit"
                 :auto-rotate-speed="1"
+                :max-distance="9999999"
                 make-default
               />
               <!-- <TcientosStars
@@ -429,10 +442,11 @@ useHead({
             :content="data.mass && Math.round((data.mass / 1000 + Number.EPSILON) * 100) / 100"
             suffix="T"
           />
-          <TableRow title="Frachtkapazität" :content="data.cargo" />
+          <TableRow title="Frachtkapazität" :content="data.cargo" suffix="SCU" />
           <TableHr />
-          <TableRow title="Klassifizierung" :content="null" />
-          <TableRow title="Größe" :content="data.size" />
+          <TableRow title="Klassifizierung" :content="data.classification_label" />
+          <TableRow title="Größe" :content="data.size_label && `${data.size_label_short} - ${data.size_label}`" />
+          <TableRow title="Fokusse" :content="data.focus_labels.join(', ')" is-list full-width />
           <TableHr />
           <TableRow title="Min Crew" :content="data.crew_min" />
           <TableRow title="Max Crew" :content="data.crew_max" />
@@ -620,9 +634,15 @@ useHead({
         </template>
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '5')">
           <DefaultPanel bg="bprimary" class="mb-3">
-            <div class="flex flex-wrap px-2">
-              <div class="flex flex-col basis-full md:basis-1/2">
+            <div class="flex flex-wrap px-2 pb-2">
+              <div class="flex-col basis-full md:basis-1/2">
                 <h2 class="mt-4"><span class="text-aris-400">ArisCorp</span> Wertung</h2>
+                <div class="flex pr-6 basis-full">
+                  <div class="mx-auto">
+                    <Editor v-model="data.rating.introduction" read-only />
+                  </div>
+                </div>
+                <TableHr class="px-2 pb-2 my-4" />
                 <ul>
                   <li
                     v-for="(item, index) in data.rating.strengths_and_weaknesses"
@@ -637,6 +657,23 @@ useHead({
                     {{ item.name }}
                   </li>
                 </ul>
+                <div class="flex items-center mx-auto mt-12 mb-4 w-fit">
+                  <div class="mr-4">
+                    <p class="p-0 text-xl text-white fon-bold">
+                      {{ data.name }}
+                    </p>
+                    <p class="p-0">Erreichte eine Punktzahl von:</p>
+                  </div>
+
+                  <ArcCounter
+                    width="6rem"
+                    height="6rem"
+                    :text="data.rating.score + '%'"
+                    :dash-count="10"
+                    :active-count="10 * (data.rating.score / 100)"
+                    :dash-spacing="0 / 4"
+                  />
+                </div>
               </div>
               <div class="basis-full md:basis-1/2">
                 <h2 class="mt-4 text-aris-400">Unsere Einschätzung</h2>
@@ -675,31 +712,6 @@ useHead({
                   <p class="py-0 pl-4">
                     {{ data.rating.ratings.find((e) => e.category === 'conclusion')?.reason }}
                   </p>
-                </div>
-              </div>
-              <div class="flex basis-full">
-                <div class="flex items-center mx-auto mt-8 mb-4">
-                  <div class="mr-4">
-                    <p class="p-0 text-xl text-white fon-bold">
-                      {{ data.name }}
-                    </p>
-                    <p class="p-0">Erreichte eine Punktzahl von:</p>
-                  </div>
-
-                  <ArcCounter
-                    width="6rem"
-                    height="6rem"
-                    :text="data.rating.score + '%'"
-                    :dash-count="10"
-                    :active-count="10 * (data.rating.score / 100)"
-                    :dash-spacing="0 / 4"
-                  />
-                </div>
-              </div>
-              <hr class="mx-4 my-4" />
-              <div class="flex px-6 pb-2 basis-full">
-                <div class="mx-auto">
-                  <Editor v-model="data.rating.introduction" read-only />
                 </div>
               </div>
             </div>

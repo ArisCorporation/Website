@@ -334,20 +334,30 @@ const onEditSubmit = async (event: FormSubmitEvent<Schema>) => {
     if (!event.data) {
       throw new Error('Data is null!');
     }
-    modalStore.closeSlide();
-    await directus.request(
-      updateItem('user_hangars', modalStore.data.id, {
-        name: event.data.name,
-        name_public: event.data.show_name,
-        serial: event.data.serial,
-        group: event.data.group,
-        visibility: event.data.visibility,
-        department: event.data.department?.id ?? null,
-        planned: event.data.planned,
-        // active_module: event.data.module?.id ?? null,
-      }),
-    );
-    await refreshHangar();
+    try {
+      await directus.request(
+        updateItem('user_hangars', modalStore.data.id, {
+          name: event.data.name,
+          name_public: event.data.show_name,
+          serial: event.data.serial,
+          group: event.data.group,
+          visibility: event.data.visibility,
+          department: event.data.department?.id ?? null,
+          planned: event.data.planned,
+          // active_module: event.data.module?.id ?? null,
+        }),
+      );
+
+      modalStore.closeSlide();
+      await refreshHangar();
+    } catch (e) {
+      form.value.setErrors([
+        {
+          message: 'Der Name muss Flottenweit einzigartig sein!',
+          path: 'name',
+        },
+      ]);
+    }
   } catch (e) {
     console.error(e);
   }
@@ -1081,7 +1091,7 @@ useHead({
       />
     </template>
     <template #slideContent>
-      <UForm ref="form" :schema="schema" :state="formdata" @submit="onEditSubmit">
+      <UForm ref="form" :schema="schema" :state="formdata" :errors="editFormErrors" @submit="onEditSubmit">
         <!-- <UCard
 						class="flex flex-col flex-1 h-screen scrollbar-gray-thin"
 						:ui="{
@@ -1098,6 +1108,7 @@ useHead({
         <div id="ship-edit-base" class="px-2">
           <TableHr><span class="flex items-center text-lg">Basisdaten</span></TableHr>
           <UFormGroup
+            v-slot="{ error }"
             label="Schiffsname"
             name="name"
             description="Hier kannst du den Namen deines Schiffes eingeben."
@@ -1131,22 +1142,24 @@ useHead({
             <template v-if="formdata.name || initialFormdata.name">
               <button
                 v-if="formdata.name === initialFormdata.name"
-                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                class="absolute top-0 bottom-0 z-20 flex mt-2 left-3 h-fit"
                 @click="formdata.name = ''"
               >
                 <UIcon
                   name="i-heroicons-x-mark-16-solid"
                   class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                  :class="{ 'text-red-500': error }"
                 />
               </button>
               <button
                 v-else
-                class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+                class="absolute top-0 bottom-0 z-20 flex mt-2 left-3 h-fit"
                 @click="formdata.name = initialFormdata.name"
               >
                 <UIcon
                   name="i-heroicons-arrow-uturn-left"
                   class="w-5 h-5 my-auto transition opacity-75 hover:opacity-100"
+                  :class="{ 'text-red-500': error }"
                 />
               </button>
             </template>
@@ -1791,7 +1804,7 @@ useHead({
             @click="() => userSettingsStore.AMSToggleHangarDetailView()"
           >
             Detail Ansicht:
-            {{ userSettings.ams.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
+            {{ userSettings.ams.value.hangarDetailView ? 'Ausschalten' : 'Anschalten' }}
           </ButtonDefault>
         </div>
         <div class="flex mt-6 sm:pl-4 basis-1/2 lg:basis-auto lg:block lg:p-0">
@@ -1847,7 +1860,7 @@ useHead({
                 Hangar
               </h1>
             </HeadlessTab>
-            <HeadlessTab
+            <!-- <HeadlessTab
               v-slot="{ selected }"
               class="m-1 outline-none sm:p-1 md:p-3 focus-visible:outline-none animate-link"
             >
@@ -1857,7 +1870,7 @@ useHead({
               >
                 Wunschliste
               </h1>
-            </HeadlessTab>
+            </HeadlessTab> -->
           </div>
           <ButtonDefault id="add-button" class="h-fit" @click="openAddModal"> Schiffe hinzufügen </ButtonDefault>
         </div>
@@ -1887,7 +1900,7 @@ useHead({
                   :ref="item.id === latestShip.id ? 'onboardingShip' : null"
                   :ship-data="item.ship"
                   :hangar-data="item"
-                  :detail-view="userSettings.ams.hangarDetailView"
+                  :detail-view="userSettings.ams.value.hangarDetailView"
                   :color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
                   :onboarding="item.id === latestShip.id"
                   preload-images
@@ -1997,7 +2010,7 @@ useHead({
             :key="item.id"
             :ship-data="item.ship"
             :hangar-data="item"
-            :detail-view="userSettings.ams.hangarDetailView"
+            :detail-view="userSettings.ams.value.hangarDetailView"
             :color="item.userData.group === 'ariscorp' ? 'primary' : 'white'"
             preload-images
             internal-bio

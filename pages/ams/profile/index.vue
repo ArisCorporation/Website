@@ -76,7 +76,7 @@ const { data: systems } = await useAsyncData(
     transform: (systems: any[]) => systems.map((system: any) => transformStarsystem(system)),
   },
 );
-
+console.log(departments);
 const landing_zones = computed(() => {
   return landing_zones_res.value
     .map((landing_zone: any) => {

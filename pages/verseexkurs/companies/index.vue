@@ -3,7 +3,7 @@ const { directus, readItems } = useCMS();
 const selectedMainTab = ref(0);
 const selectedSubTab = ref(0);
 
-const {data: categories} = await useAsyncData('COMPANIES:CATEGORIES', () =>
+const { data: categories } = await useAsyncData('COMPANIES:CATEGORIES', () =>
   directus.request(
     readItems('company_categories', {
       fields: ['name', 'sub_categories.name', 'sub_categories.sub_categories.name'],
@@ -13,10 +13,10 @@ const {data: categories} = await useAsyncData('COMPANIES:CATEGORIES', () =>
   ),
 );
 
-const {data: companies} = await useAsyncData('COMPANIES', () =>
+const { data: companies } = await useAsyncData('COMPANIES', () =>
   directus.request(
     readItems('companies', {
-      fields: ['name', 'slug', 'logo', 'category.name'],
+      fields: ['name', 'slug', 'code', 'logo', 'category.name'],
       filter: { status: { _eq: 'published' } },
       sort: ['name'],
       limit: -1,
@@ -48,7 +48,7 @@ const changeMainTab = async (index: number) => {
   selectedSubTab.value = 0;
   selectedMainTab.value = index;
 };
-
+console.log(companies.value.find((e) => e.code?.toLowerCase() === 'ariscorp'));
 useHead({
   title: 'Firmen',
 });
@@ -81,6 +81,18 @@ definePageMeta({
           :change="(index: number) => (selectedSubTab = index)"
         >
           <template #tabcontent>
+            <NuxtLink
+              :to="
+                '/verseexkurs/companies/' + (companies?.find((e) => e.code?.toLowerCase() === 'ariscorp')?.slug ?? '')
+              "
+              class="block w-1/4 mx-auto transition opacity-50 hover:opacity-100 animate-link"
+            >
+              <ImageHoverEffect
+                :src="companies?.find((e) => e.code?.toLowerCase() === 'ariscorp')?.logo ?? ''"
+                :alt="'Logo von ' + (companies?.find((e) => e.code?.toLowerCase() === 'ariscorp')?.name ?? '')"
+                class="w-full h-full"
+              />
+            </NuxtLink>
             <div v-for="category in subSubCategories" v-if="subSubCategories[0]" :key="category.name">
               <TableHr
                 v-if="
@@ -122,9 +134,19 @@ definePageMeta({
           </template>
         </TabGroup>
         <template v-else>
+          <NuxtLink
+            :to="'/verseexkurs/companies/' + (companies?.find((e) => e.code?.toLowerCase() === 'ariscorp')?.slug ?? '')"
+            class="block w-1/4 mx-auto transition opacity-50 hover:opacity-100 animate-link"
+          >
+            <ImageHoverEffect
+              :src="companies?.find((e) => e.code?.toLowerCase() === 'ariscorp')?.logo ?? ''"
+              :alt="'Logo von ' + (companies?.find((e) => e.code?.toLowerCase() === 'ariscorp')?.name ?? '')"
+              class="w-full h-full"
+            />
+          </NuxtLink>
           <div class="company-grid">
             <NuxtLink
-              v-for="company in companies
+              v-for="company in companies?.filter(e => e.code?.toLowerCase() !== 'ariscorp')
                 .filter((obj: any) => obj.category.name === mainCategory.name)
                 .sort((a, b) => a.name.localeCompare(b.name))"
               :key="company.slug"
