@@ -634,7 +634,7 @@ useHead({
         </template>
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '5')">
           <DefaultPanel bg="bprimary" class="mb-3">
-            <div class="flex flex-wrap px-2">
+            <div class="flex flex-wrap px-2 pb-2">
               <div class="flex-col basis-full md:basis-1/2">
                 <h2 class="mt-4"><span class="text-aris-400">ArisCorp</span> Wertung</h2>
                 <div class="flex pr-6 basis-full">
@@ -657,6 +657,23 @@ useHead({
                     {{ item.name }}
                   </li>
                 </ul>
+                <div class="flex items-center mx-auto mt-12 mb-4 w-fit">
+                  <div class="mr-4">
+                    <p class="p-0 text-xl text-white fon-bold">
+                      {{ data.name }}
+                    </p>
+                    <p class="p-0">Erreichte eine Punktzahl von:</p>
+                  </div>
+
+                  <ArcCounter
+                    width="6rem"
+                    height="6rem"
+                    :text="data.rating.score + '%'"
+                    :dash-count="10"
+                    :active-count="10 * (data.rating.score / 100)"
+                    :dash-spacing="0 / 4"
+                  />
+                </div>
               </div>
               <div class="basis-full md:basis-1/2">
                 <h2 class="mt-4 text-aris-400">Unsere Einschätzung</h2>
@@ -695,25 +712,6 @@ useHead({
                   <p class="py-0 pl-4">
                     {{ data.rating.ratings.find((e) => e.category === 'conclusion')?.reason }}
                   </p>
-                </div>
-              </div>
-              <div class="flex basis-full">
-                <div class="flex items-center mx-auto mt-8 mb-4">
-                  <div class="mr-4">
-                    <p class="p-0 text-xl text-white fon-bold">
-                      {{ data.name }}
-                    </p>
-                    <p class="p-0">Erreichte eine Punktzahl von:</p>
-                  </div>
-
-                  <ArcCounter
-                    width="6rem"
-                    height="6rem"
-                    :text="data.rating.score + '%'"
-                    :dash-count="10"
-                    :active-count="10 * (data.rating.score / 100)"
-                    :dash-spacing="0 / 4"
-                  />
                 </div>
               </div>
             </div>
