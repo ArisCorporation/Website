@@ -307,7 +307,7 @@ const setFormData = (data: any) => {
   formdata.group = data.userData.group ?? 'ariscorp';
   formdata.department = data.userData.department ?? null;
   formdata.visibility = data.userData.visibility ?? 'public';
-  formdata.show_name = data.userData.show_name ?? true;
+  formdata.show_name = data.userData.name_public ?? true;
   // formdata.module = data.userData.module ?? null;
   formdata.planned = data.userData.planned ?? false;
 
@@ -316,7 +316,7 @@ const setFormData = (data: any) => {
   initialFormdata.group = data.userData.group ?? 'ariscorp';
   initialFormdata.department = data.userData.department ?? null;
   initialFormdata.visibility = data.userData.visibility ?? 'public';
-  initialFormdata.show_name = data.userData.show_name ?? true;
+  initialFormdata.show_name = data.userData.name_public ?? true;
   // initialFormdata.module = data.userData.module ?? null;
   initialFormdata.planned = data.userData.planned ?? false;
 };
@@ -404,7 +404,7 @@ const onAddSubmit = async (type: string, data: any[]) => {
           data.map((ship) => ({
             user_id: user.value.id,
             ship_id: ship.id,
-            show_name: true,
+            name_public: true,
             group: 'ariscorp',
             visibility: 'public',
             planned: false,

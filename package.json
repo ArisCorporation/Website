@@ -1,6 +1,6 @@
 {
   "name": "ariscorp-homepage",
-  "version": "4.0.0",
+  "version": "4.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -26,9 +26,6 @@
     "@sentry/browser": "^8.33.1",
     "@sentry/core": "^8.33.1",
     "@sentry/nuxt": "^8.33.1",
-    "@tiptap/extension-table-cell": "^2.9.1",
-    "@tiptap/extension-table-header": "^2.9.1",
-    "@tiptap/extension-table-row": "^2.9.1",
     "@tresjs/nuxt": "^3.0.1",
     "@vitejs/plugin-vue": "^5.1.2",
     "@vue-email/render": "^0.0.9",
@@ -62,6 +59,9 @@
     "@tiptap/extension-text-align": "^2.4.0",
     "@tiptap/extension-text-style": "^2.4.0",
     "@tiptap/extension-underline": "^2.4.0",
+    "@tiptap/extension-table-cell": "^2.9.1",
+    "@tiptap/extension-table-header": "^2.9.1",
+    "@tiptap/extension-table-row": "^2.9.1",
     "@vue-email/nuxt": "^0.8.19",
     "dayjs-nuxt": "^2.1.11",
     "nuxt": "^3.12.4",
