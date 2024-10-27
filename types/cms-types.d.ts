@@ -130,6 +130,7 @@ export type Departments = {
   head_of_department: any[] | DirectusUsers[];
   id: string;
   logo?: string | DirectusFiles | null;
+  store_image?: string | DirectusFiles | null;
   name?: string | null;
   ships: any[] | UserHangars[];
   slug?: string | null;

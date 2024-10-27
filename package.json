@@ -1,6 +1,6 @@
 {
   "name": "ariscorp-homepage",
-  "version": "4.1",
+  "version": "4.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -41,15 +41,7 @@
     "vue-cropperjs": "^5.0.0",
     "vue-timeline-chart": "^2.3.1",
     "yup": "^1.4.0",
-    "yup-password": "^0.4.0"
-  },
-  "devDependencies": {
-    "@iconify-json/ci": "^1.1.13",
-    "@nuxt/eslint": "^0.3.13",
-    "@pinia-plugin-persistedstate/nuxt": "^1.2.1",
-    "@sentry/node": "^8.15.0",
-    "@sentry/profiling-node": "^8.15.0",
-    "@sentry/vue": "^8.15.0",
+    "yup-password": "^0.4.0",
     "@tiptap/extension-character-count": "^2.4.0",
     "@tiptap/extension-color": "^2.4.0",
     "@tiptap/extension-image": "^2.4.0",
@@ -61,7 +53,15 @@
     "@tiptap/extension-underline": "^2.4.0",
     "@tiptap/extension-table-cell": "^2.9.1",
     "@tiptap/extension-table-header": "^2.9.1",
-    "@tiptap/extension-table-row": "^2.9.1",
+    "@tiptap/extension-table-row": "^2.9.1"
+  },
+  "devDependencies": {
+    "@iconify-json/ci": "^1.1.13",
+    "@nuxt/eslint": "^0.3.13",
+    "@pinia-plugin-persistedstate/nuxt": "^1.2.1",
+    "@sentry/node": "^8.15.0",
+    "@sentry/profiling-node": "^8.15.0",
+    "@sentry/vue": "^8.15.0",
     "@vue-email/nuxt": "^0.8.19",
     "dayjs-nuxt": "^2.1.11",
     "nuxt": "^3.12.4",
