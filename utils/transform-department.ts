@@ -4,6 +4,7 @@ export default function (obj: any) {
     ...(obj.id && { id: obj.id }),
     ...(obj.logo && { logo: obj.logo }),
     ...(obj.name && { name: obj.name }),
+    ...(obj.store_image && { store_image: obj.store_image.id ?? obj.store_image }),
     ...(obj.gallery && { gallery: obj.gallery.map((image: any) => image.directus_files_id) }),
     ...(obj.description && { description: obj.description }),
     // ships: getShips(),

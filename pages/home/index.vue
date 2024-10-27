@@ -50,6 +50,7 @@ const { data: departments } = await useAsyncData(
           'id',
           'name',
           'logo',
+          'store_image.id',
           'gallery.directus_files_id',
           'description',
           'employees.first_name',
