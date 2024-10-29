@@ -31,7 +31,7 @@ const { data: wallpaperList } = await useAsyncData(
       readFiles({
         fields: ['id'],
         filter: {
-          folder: { _eq: '55452a29-4311-4ac9-ab3f-cc8cc3a28395' },
+          folder: { _eq: 'da8e91e5-46b4-424a-875b-69b38ca4bcfb' },
         },
         limit: -1,
       }),
@@ -135,7 +135,11 @@ definePageMeta({
 
 <template>
   <div>
-    <div class="flex-wrap w-full max-h-screen min-h-screen px-4 mx-auto sm:flex bg-image" :style="wallpaperBgStyle">
+    <div
+      class="flex-wrap w-full max-h-screen min-h-screen px-4 mx-auto sm:flex bg-image"
+      style="background-position-y: 80%"
+      :style="wallpaperBgStyle"
+    >
       <NuxtImg
         src="3090187e-6348-4290-a878-af1b2b48c114"
         :placeholder="[16, 7, 1, 5]"

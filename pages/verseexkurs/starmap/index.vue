@@ -223,7 +223,7 @@ useHead({
                       <template #panel>
                         <div class="z-50 items-center p-4 mx-auto">
                           <NuxtImg
-                            :src="system?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                            :src="system?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
                             :placeholder="[16, 16, 1, 5]"
                             class="w-56 h-20 mx-auto border rounded border-btertiary"
                             :class="{ 'object-cover': system.banner }"

@@ -659,10 +659,10 @@ useHead({
                 </ul>
                 <div class="flex items-center mx-auto mt-12 mb-4 w-fit">
                   <div class="mr-4">
-                    <p class="p-0 text-xl text-white fon-bold">
-                      {{ data.name }}
+                    <p class="p-0 text-xl text-white">
+                      Die {{ data.manufacturer.name }} <span class="font-bold">{{ data.name }}</span>
                     </p>
-                    <p class="p-0">Erreichte eine Punktzahl von:</p>
+                    <p class="p-0">Erreichte eine Wertung von:</p>
                   </div>
 
                   <ArcCounter
