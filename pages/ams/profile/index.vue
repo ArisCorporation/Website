@@ -273,6 +273,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     return;
   }
 
+  if (updatedUser.hasOwnProperty('birthplace')) {
+    updatedUser.birthplace = updatedUser.birthplace?.id;
+  }
+  if (updatedUser.hasOwnProperty('current_residence')) {
+    updatedUser.current_residence = updatedUser.current_residence?.id;
+  }
+
   // if (updatedUser.hasOwnProperty('department')) {
   // 	updatedUser.department?.id ? updatedUser.department = updatedUser.department.id : updatedUser.department = null
   // }
@@ -584,7 +591,7 @@ definePageMeta({
             searchable-placeholder="Suche..."
             :search-attributes="['name']"
             :option-label="(option: any) => option.name"
-            :selected-label="formdata.department.name"
+            :selected-label="formdata.department?.name"
             empty-label="Keine Abteilung"
             no-selected-label="Keine Abteilung ausgewählt"
           />
