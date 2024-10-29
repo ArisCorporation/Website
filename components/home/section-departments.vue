@@ -70,7 +70,7 @@ const props = defineProps({
                 <span class="m-auto text-center">Diese Abteilungen hat noch keinen Abteilungsleiter gefunden</span>
               </div>
               <NuxtImg
-                :src="department.head_of_department?.avatar || '8658f40d-77d9-44c4-8f0d-af820855a3bc'"
+                :src="department.head_of_department?.avatar || 'c46969b5-8414-49cd-ab90-cb71dd2a3e57'"
                 :placeholder="[16, 16, 1, 5]"
                 width="200"
                 class="aspect-potrait"
