@@ -70,7 +70,7 @@ async function saveAvatar() {
     const formData = new FormData();
 
     formData.append('title', `${user.value.full_name} - Avatar.png`);
-    formData.append('folder', '8658f40d-77d9-44c4-8f0d-af820855a3bc');
+    formData.append('folder', 'c46969b5-8414-49cd-ab90-cb71dd2a3e57');
     formData.append('file', blob, `${user.value.slug}-avatar.png`);
 
     try {
@@ -80,7 +80,7 @@ async function saveAvatar() {
       avatarUploadLoading.value = false;
       modalStore.closeModal();
 
-      if (old_avatar !== '8658f40d-77d9-44c4-8f0d-af820855a3bc') await directus.request(deleteFile(old_avatar));
+      if (old_avatar !== 'c46969b5-8414-49cd-ab90-cb71dd2a3e57') await directus.request(deleteFile(old_avatar));
     } catch (e) {
       console.error(e);
     } finally {
