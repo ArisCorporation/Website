@@ -463,7 +463,7 @@ const edit_user = ref();
 async function saveAvatar() {
   await cropper.value.getCroppedCanvas().toBlob(async (blob: Blob) => {
     const old_avatar =
-      edit_user.value?.avatar === '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492' ? null : edit_user.value?.avatar;
+      edit_user.value?.avatar === '8658f40d-77d9-44c4-8f0d-af820855a3bc' ? null : edit_user.value?.avatar;
     const formData = new FormData();
     console.log(edit_user);
 
