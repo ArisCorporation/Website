@@ -464,12 +464,12 @@ const edit_user = ref();
 async function saveAvatar() {
   await cropper.value.getCroppedCanvas().toBlob(async (blob: Blob) => {
     const old_avatar =
-      edit_user.value?.avatar === '8658f40d-77d9-44c4-8f0d-af820855a3bc' ? null : edit_user.value?.avatar;
+      edit_user.value?.avatar === 'c46969b5-8414-49cd-ab90-cb71dd2a3e57' ? null : edit_user.value?.avatar;
     const formData = new FormData();
     console.log(edit_user);
 
     formData.append('title', `${edit_user.value.full_name} - Avatar.png`);
-    formData.append('folder', '8658f40d-77d9-44c4-8f0d-af820855a3bc');
+    formData.append('folder', 'c46969b5-8414-49cd-ab90-cb71dd2a3e57');
     formData.append('file', blob, `${edit_user.value.slug}-avatar.png`);
 
     try {
@@ -479,7 +479,7 @@ async function saveAvatar() {
       avatarUploadLoading.value = false;
       modalStore.closeModal();
 
-      await directus.request(deleteFile(old_avatar));
+      if (old_avatar !== 'c46969b5-8414-49cd-ab90-cb71dd2a3e57') await directus.request(deleteFile(old_avatar));
     } catch (e) {
       console.error(e);
     } finally {
