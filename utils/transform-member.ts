@@ -1,7 +1,7 @@
 export default function (obj: any) {
   const getPronom = () => (obj.sex === 'female' ? 'Sie' : 'Er');
   const getRoles = () => {
-    const roles: Array<String> = [];
+    const roles: Array<string> = [];
     if (obj.roles?.includes('recruitment')) roles.push('Rekrutierung');
     if (obj.roles?.includes('marketing')) roles.push('Marketing & Presse');
     if (obj.roles?.includes('content_writer')) roles.push('Inhaltsersteller');
@@ -42,7 +42,7 @@ export default function (obj: any) {
     title: obj.title,
     fullName: getFullName(),
     slug: obj.slug,
-    potrait: obj.member_potrait?.id || '0b7eafde-0933-4d1a-a32f-b4f8dd5bb492',
+    potrait: obj.member_potrait?.id || '8658f40d-77d9-44c4-8f0d-af820855a3bc',
     sex: obj.sex,
     pronom: getPronom(),
     roles: getRoles(),
