@@ -469,7 +469,7 @@ async function saveAvatar() {
     console.log(edit_user);
 
     formData.append('title', `${edit_user.value.full_name} - Avatar.png`);
-    formData.append('folder', 'c46969b5-8414-49cd-ab90-cb71dd2a3e57');
+    formData.append('folder', '8658f40d-77d9-44c4-8f0d-af820855a3bc');
     formData.append('file', blob, `${edit_user.value.slug}-avatar.png`);
 
     try {
