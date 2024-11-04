@@ -3756,7 +3756,7 @@ useHead({
       hidden
       @change="setCropperImage"
     />
-    <div class="max-w-[calc(100vw_-_20rem)] mx-auto mb-4">
+    <div class="lg:max-w-[calc(100vw_-_20rem)] mx-auto mb-4">
       <h1 class="text-center">Verwaltungsdashboard</h1>
       <UTabs
         :items="[{ label: 'Home' }, { label: 'Verwaltungsübersicht' }, { label: 'Benutzer' }, { label: 'Hangars' }]"
