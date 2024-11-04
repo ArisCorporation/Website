@@ -255,6 +255,12 @@ watch(formdata, () => {
   if (formdata.department === '') {
     formdata.department = null;
   }
+  if (formdata.birthplace === '') {
+    formdata.birthplace = null;
+  }
+  if (formdata.current_residence === '') {
+    formdata.current_residence = null;
+  }
 });
 
 const initialFormdata = reactive({ ...formdata });
@@ -274,10 +280,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   }
 
   if (updatedUser.hasOwnProperty('birthplace')) {
-    updatedUser.birthplace = updatedUser.birthplace?.id;
+    updatedUser.birthplace = updatedUser.birthplace?.id ?? null;
   }
   if (updatedUser.hasOwnProperty('current_residence')) {
-    updatedUser.current_residence = updatedUser.current_residence?.id;
+    updatedUser.current_residence = updatedUser.current_residence?.id ?? null;
   }
 
   // if (updatedUser.hasOwnProperty('department')) {
@@ -683,7 +689,7 @@ definePageMeta({
             searchable-placeholder="Suche..."
             :search-attributes="['name']"
             :option-label="(option: any) => option.path_label || option.name"
-            :selected-label="formdata.current_residence.path_label || formdata.current_residence.name"
+            :selected-label="formdata.current_residence?.path_label || formdata.current_residence?.name"
             empty-label="Keine Landezone"
             no-selected-label="Keine Landezone ausgewählt"
           />
@@ -755,7 +761,7 @@ definePageMeta({
             searchable-placeholder="Suche..."
             :search-attributes="['name']"
             :option-label="(option: any) => option.path_label || option.name"
-            :selected-label="formdata.birthplace.path_label || formdata.birthplace.name"
+            :selected-label="formdata.birthplace?.path_label || formdata.birthplace?.name"
             empty-label="Keine Abteilung"
             no-selected-label="Keine Abteilung ausgewählt"
           />
