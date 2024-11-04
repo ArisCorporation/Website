@@ -128,17 +128,17 @@ const rows = [
     {
       name: 'Länge',
       property: 'length',
-      suffix: ' M',
+      suffix: 'M',
     },
     {
       name: 'Höhe',
       property: 'height',
-      suffix: ' M',
+      suffix: 'M',
     },
     {
       name: 'Breite',
       property: 'beam',
-      suffix: ' M',
+      suffix: 'M',
     },
     {
       name: 'Größe',
@@ -147,14 +147,14 @@ const rows = [
     {
       name: 'Gewicht',
       property: 'mass',
-      suffix: ' KG',
+      suffix: 'KG',
     },
   ],
   [
     {
       name: 'Frachtkapazität',
       property: 'cargo',
-      suffix: ' SCU',
+      suffix: 'SCU',
     },
     {
       name: 'Klassifizierung',
@@ -169,7 +169,7 @@ const rows = [
     {
       name: 'Preis',
       property: 'price',
-      suffix: ' aUEC',
+      suffix: 'aUEC',
     },
     {
       name: 'Pledge Preis',
@@ -282,9 +282,10 @@ definePageMeta({
     <div v-for="(rowgroup, index) in rowgroups" :key="rowgroup.name">
       <div v-if="rowgroup.name" class="flex items-center -ml-2">
         <h3 class="inline-block m-0 font-semibold sticky left-[16rem] bg-bprimary pr-2">{{ rowgroup.name }}</h3>
-        <hr />
+        <TableHr class="w-full" />
       </div>
-      <div v-for="row in rows[index]" v-if="selectedShips[0]" :key="row.name" class="flex mt-2 group">
+      <!-- group -->
+      <div v-for="row in rows[index]" v-if="selectedShips[0]" :key="row.name" class="flex mt-2">
         <div
           class="max-w-[20%] min-w-[300px] w-[300px] flex mr-6 sticky left-[16rem] group-odd:bg-bprimary/60 group-even:bg-bsecondary/60 backdrop-blur opacity-100 rounded animate-link"
         >
@@ -294,10 +295,18 @@ definePageMeta({
           <div v-for="ship in selectedShips" :key="ship.id" class="w-[400px] text-tbase animate-link">
             <div class="py-2 mx-1 text-center rounded group-even:bg-bsecondary/60">
               {{
-                Array.isArray(getNestedValue(ship, row.property))
-                  ? getNestedValue(ship, row.property).join(', ')
-                  : getNestedValue(ship, row.property)
-              }}{{ row.suffix }}
+                getNestedValue(ship, row.property)
+                  ? `
+                    ${row.prefix ?? ''}
+                    ${
+                      Array.isArray(getNestedValue(ship, row.property))
+                        ? getNestedValue(ship, row.property).join(', ')
+                        : getNestedValue(ship, row.property)
+                    }
+                    ${row.suffix ?? ''}
+                  `
+                  : 'N/A'
+              }}
             </div>
           </div>
         </div>
