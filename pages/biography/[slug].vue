@@ -159,10 +159,12 @@ const { data: places } = await useAsyncData(
   },
 );
 
-if (data.value.birthplace) {
+if (data.value?.birthplace?.planet) {
   data.value.birthplace.planet.system = places.value.find((e) =>
     e.planets.find((p) => p.id === data.value.birthplace?.planet?.id),
   );
+}
+if (data.value?.current_residence?.planet) {
   data.value.current_residence.planet.system = places.value.find((e) =>
     e.planets.find((p) => p.id === data.value.current_residence?.planet?.id),
   );
