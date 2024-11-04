@@ -18,6 +18,7 @@ const jumppoint_options = [
   { key: 'medium', label: 'Mittel' },
   { key: 'large', label: 'Groß' },
 ];
+const live_filter = ref(false);
 
 const tabs = [
   {
@@ -61,25 +62,31 @@ const { data } = await useAsyncData('STARMAP', () =>
   ),
 );
 
-const { data: systems } = await useAsyncData('STARMAP:SYSTEMS', () =>
-  directus.request(
-    readItems('systems', {
-      fields: [
-        'id',
-        'status',
-        'name',
-        'slug',
-        'banner',
-        'affiliation',
-        'starmap_position_left',
-        'starmap_position_top',
-        'orbit.collection',
-      ],
-      filter: {
-        starmap_position_left: { _nnull: true },
-      },
-    }),
-  ),
+const { data: systems } = await useAsyncData(
+  'STARMAP:SYSTEMS',
+  () =>
+    directus.request(
+      readItems('systems', {
+        fields: [
+          'id',
+          'status',
+          'name',
+          'slug',
+          'banner',
+          'affiliation',
+          'starmap_position_left',
+          'starmap_position_top',
+          'orbit.collection',
+        ],
+        filter: {
+          starmap_position_left: { _nnull: true },
+          ...(live_filter.value ? { live_status: true } : {}),
+        },
+      }),
+    ),
+  {
+    watch: [live_filter],
+  },
 );
 
 if (!data.value || !systems.value) {
@@ -173,6 +180,7 @@ useHead({
                           <span>{{ jumppoint_options.find((e) => e.key === option)?.label }}</span>
                         </template>
                       </USelectMenu>
+                      <UCheckbox v-model="live_filter" name="live_filter" label="Nur LIVE-Systeme anzeigen?" />
                     </div>
                   </div>
                   <div class="relative w-full h-fit">
