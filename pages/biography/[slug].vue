@@ -250,7 +250,17 @@ useHead({
       <div class="col-span-3 space-y-4 xl:col-span-1">
         <div class="w-full">
           <DefaultPanel>
-            <NuxtImg :src="data.avatar" class="h-[300px] lg:h-[600px] xl:h-[700px] w-full object-cover" />
+            <div class="relative h-[300px] lg:h-[600px] xl:h-[700px] w-full">
+              <NuxtImg
+                ref="reftest"
+                :src="data.avatar"
+                placeholder-class="opacity-0"
+                loading="lazy"
+                format="png"
+                class="absolute z-10 object-cover size-full"
+              />
+              <NuxtImg :src="data.avatar" class="absolute object-cover size-full" />
+            </div>
           </DefaultPanel>
         </div>
         <ButtonDefault class="w-full" @click="handleShare">
