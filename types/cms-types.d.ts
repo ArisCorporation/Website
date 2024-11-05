@@ -614,6 +614,7 @@ export type Fauna = {
   status: string;
   user_created?: string | DirectusUsers | null;
   user_updated?: string | DirectusUsers | null;
+  gallery: any[] | FaunaGalleryFiles[];
 };
 
 export type Flora = {
@@ -889,6 +890,13 @@ export type PersonalWeaponAttachmentsGalleryFiles = {
   directus_files_id?: string | DirectusFiles | null;
   id: number;
   personal_weapon_attachments_id?: string | PersonalWeaponAttachments | null;
+  sort?: number | null;
+};
+
+export type FaunaGalleryFiles = {
+  directus_files_id?: string | DirectusFiles | null;
+  id: number;
+  fauna_id?: string | PersonalWeaponAttachments | null;
   sort?: number | null;
 };
 
