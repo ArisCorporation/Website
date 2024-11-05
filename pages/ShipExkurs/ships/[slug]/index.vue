@@ -270,7 +270,7 @@ useHead({
               arrows
               indicators
             >
-              <template #default="{ item }"></template>
+              <template #default="{ item }">
                 <div class="relative flex size-full">
                   <NuxtImg :src="item" class="relative z-20 object-contain w-full h-auto m-auto" draggable="false" />
                   <NuxtImg
