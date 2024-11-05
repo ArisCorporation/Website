@@ -262,18 +262,17 @@ useHead({
                 indicators: { wrapper: 'absolute flex items-center justify-center gap-3 bottom-4 inset-x-0 z-30' },
               }"
               class="relative w-auto"
-              :class="[isModuleCarouselFS ? 'max-h-screen' : 'max-h-[calc(100vh-4rem)] aspect-[16/9]']"
+              :class="[
+                isModuleCarouselFS
+                  ? 'max-h-screen'
+                  : 'max-h-[calc(100vh-4rem)] aspect-[16/9] border border-btertiary/75',
+              ]"
               arrows
               indicators
             >
-              <template #default="{ item }">
+              <template #default="{ item }"></template>
                 <div class="relative flex size-full">
-                  <NuxtImg
-                    :src="item"
-                    class="relative z-20 object-contain w-full h-auto m-auto"
-                    :class="[isModuleCarouselFS ? 'border-0 max-h-screen' : 'border border-btertiary/75']"
-                    draggable="false"
-                  />
+                  <NuxtImg :src="item" class="relative z-20 object-contain w-full h-auto m-auto" draggable="false" />
                   <NuxtImg
                     :src="item"
                     class="absolute z-10 object-cover w-full h-full m-auto blur"
