@@ -62,31 +62,26 @@ const { data } = await useAsyncData('STARMAP', () =>
   ),
 );
 
-const { data: systems } = await useAsyncData(
-  'STARMAP:SYSTEMS',
-  () =>
-    directus.request(
-      readItems('systems', {
-        fields: [
-          'id',
-          'status',
-          'name',
-          'slug',
-          'banner',
-          'affiliation',
-          'starmap_position_left',
-          'starmap_position_top',
-          'orbit.collection',
-        ],
-        filter: {
-          starmap_position_left: { _nnull: true },
-          ...(live_filter.value ? { live_status: true } : {}),
-        },
-      }),
-    ),
-  {
-    watch: [live_filter],
-  },
+const { data: systems } = await useAsyncData('STARMAP:SYSTEMS', () =>
+  directus.request(
+    readItems('systems', {
+      fields: [
+        'id',
+        'status',
+        'live_status',
+        'name',
+        'slug',
+        'banner',
+        'affiliation',
+        'starmap_position_left',
+        'starmap_position_top',
+        'orbit.collection',
+      ],
+      filter: {
+        starmap_position_left: { _nnull: true },
+      },
+    }),
+  ),
 );
 
 if (!data.value || !systems.value) {
@@ -223,9 +218,15 @@ useHead({
                               : system.affiliation[0].toUpperCase() + system.affiliation.slice(1))
                           "
                           class="absolute z-10 w-full h-auto aspect-square"
+                          :class="{ grayscale: live_filter && !system.live_status }"
                         />
                         <div
-                          class="w-full h-full rounded-full aspect-[1/1] animate-pulse group-hover:animate-ping bg-aris-400/75 group-hover:bg-aris-400 blur-sm"
+                          class="w-full h-full rounded-full aspect-[1/1]"
+                          :class="{
+                            'animate-pulse group-hover:animate-ping bg-aris-400/75 group-hover:bg-aris-400 blur-sm': !(
+                              live_filter && !system.live_status
+                            ),
+                          }"
                         />
                       </NuxtLink>
                       <template #panel>
@@ -322,6 +323,7 @@ useHead({
                             : system.affiliation[0].toUpperCase() + system.affiliation.slice(1))
                         "
                         class="absolute z-10 w-full h-auto aspect-square"
+                        :class="{ grayscale: live_filter && !system.live_status }"
                       />
                     </div>
                     <div class="aspect-[3840/2655] w-full h-auto relative">

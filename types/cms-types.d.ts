@@ -1266,6 +1266,7 @@ export type Systems = {
   starmap_position_left?: number | null;
   starmap_position_top?: number | null;
   status: string;
+  live_status: boolean;
   tsb?: string | null;
   user_created?: string | DirectusUsers | null;
   user_updated?: string | DirectusUsers | null;
