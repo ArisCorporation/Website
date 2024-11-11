@@ -285,7 +285,7 @@ useHead({
         </div>
       </div>
       <hr class="my-2" />
-      <div class="container min-h-screen px-4 mx-auto">
+      <div class="container 2xl:max-w-[2000px] min-h-screen px-4 mx-auto mb-6">
         <div class="mt-4">
           <slot />
         </div>
