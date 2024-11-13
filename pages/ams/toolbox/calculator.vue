@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DirectusUsers, Ships } from '~/types/cms-types';
-const { directus, readUsers, readItems } = useCMS();
+const { directus, readMe, readUsers, readItems } = useCMS();
 const modalStore = useModalStore();
 // https://regolith.rocks/workorder
 const tabs = [
@@ -15,8 +15,8 @@ const changeTab = (index) => {
   selectedTab.value = index;
 };
 
-const { data: me } = await useAsyncData('AMS:ME', () => directus.request(readMe()), {
-  transform: (me: any) => transformUser(me),
+const { data: me } = await useAsyncData('AMS:CALC_ME', () => directus.request(readMe()), {
+  transform: (user: any) => transformUser(user),
 });
 
 const { data: users } = await useAsyncData(
@@ -53,7 +53,7 @@ const { data: ships } = await useAsyncData(
 
 type imember = {
   id: number;
-  user: DirectusUsers;
+  user: DirectusUsers | null;
   is_external: boolean;
   crew: string | null;
   external_name?: string;
@@ -67,7 +67,7 @@ const options = ref<{
   tax_rate: number;
   edit_tax: boolean;
   members: imember[];
-  manager: imember;
+  manager: imember | null;
   crews: { id: number; name: string; ship: Ships | null }[];
 }>({
   name: '',
@@ -158,7 +158,7 @@ function addIncome() {
     id: newId,
     name: '',
     value: 0,
-    member: options.value.members.find((m) => m.user === me.value),
+    member: options.value.members.find((m) => m.user?.id === me.value?.id),
   });
 
   // Increment the counter for the next income
@@ -183,7 +183,7 @@ function addExpense() {
     id: newId,
     name: '',
     value: 0,
-    member: options.value.members.find((m) => m.user === me.value),
+    member: options.value.members.find((m) => m.user?.id === me.value?.id),
   });
 
   // Increment the counter for the next expense
@@ -215,7 +215,7 @@ const steps = ref({
   income_sum: 0,
   expenses: [] as any[],
   members: [] as StepMember[],
-  income_sum: 0,
+  income_sum_before_expenses: 0,
   share: 0,
 });
 function calculate() {
@@ -409,7 +409,7 @@ useHead({
         <table>
           <thead class="relative">
             <tr>
-              <th class="text-left">Ext.</th>
+              <th class="text-left">Extern</th>
               <th class="text-left">Name</th>
               <th class="text-left">Crew</th>
             </tr>
@@ -426,7 +426,7 @@ useHead({
             class="!bg-bprimary hover:!bg-bsecondary hover:cursor-pointer border border-btertiary"
             @click="selectMember('income', member)"
           >
-            <td class="text-xs text-left border-r last:border-0 border-btertiary text-tbase/75">
+            <td class="text-left border-r last:border-0 border-btertiary text-tbase/75">
               {{ member.is_external ? 'Ja' : 'Nein' }}
             </td>
             <td class="text-left border-r last:border-0 border-btertiary">
@@ -443,11 +443,11 @@ useHead({
           <h4>Schritt 1 – Einstellungen</h4>
           <p>Als erstes solltest du die grundlegenden Einstellungen vornehmen.</p>
           <p>
-            Besonders wichtig sind die Mitglieder. Diese können später noch erweitert werden, falls neue Mitglieder
+            Besonders wichtig sind die Mitarbeiter. Diese können später noch erweitert werden, falls neue Mitarbeiter
             hinzukommen.
           </p>
           <p class="font-bold">
-            Hinweis: Das Manager-Häkchen bei einem Mitglied bedeutet, dass bei diesem Mitglied alle Einkünfte
+            Hinweis: Das Manager-Häkchen bei einem Mitarbeiter bedeutet, dass bei diesem Mitarbeiter alle Einkünfte
             zusammenlaufen und er für die Verteilung verantwortlich ist.
           </p>
           <p>Die Crew-Zuweisung ist besonders nützlich, um den Überblick zu behalten und alles gut zu dokumentieren.</p>
@@ -455,20 +455,20 @@ useHead({
           <h4>Schritt 2 – Einkommen</h4>
           <p>
             Nun kannst du nach und nach die Einkünfte eintragen, wie zum Beispiel Verkaufserträge. Wichtig ist, das
-            korrekte Mitglied auszuwählen, das die Einnahme getätigt hat.
+            korrekte Mitarbeiter auszuwählen, das die Einnahme getätigt hat.
           </p>
           <p class="font-bold">Hinweis: Gleitkommazahlen sind nicht zulässig.</p>
 
           <h4>Schritt 3 – Ausgaben</h4>
           <p>
-            Bei den Ausgaben ist es ebenso wichtig, das richtige Mitglied zuzuordnen, damit die Ausgaben entsprechend
+            Bei den Ausgaben ist es ebenso wichtig, das richtige Mitarbeiter zuzuordnen, damit die Ausgaben entsprechend
             berücksichtigt werden.
           </p>
 
           <h4>Schritt 4 – Verteilung</h4>
           <p>
             Bei der Verteilung ist zu beachten, dass eventuelle Überweisungsgebühren (sofern in den Einstellungen
-            aktiviert) bereits abgezogen wurden. Der Manager sollte also diesen Betrag an die jeweiligen Mitglieder
+            aktiviert) bereits abgezogen wurden. Der Manager sollte also diesen Betrag an die jeweiligen Mitarbeiter
             überweisen.
           </p>
         </div>
@@ -544,7 +544,7 @@ useHead({
                       <UInput v-model="options.name" placeholder="Titel" size="lg" class="relative" />
                     </UFormGroup>
                     <h3>Transaktionsgebühr</h3>
-                    <UCheckbox v-model="options.subtract_tax" disabled name="subtract_tax" label="Gebühren abziehen?" />
+                    <UCheckbox v-model="options.subtract_tax" disabled name="subtract_tax" label="Gebühren abziehen" />
                     <div class="flex justify-between">
                       <UCheckbox
                         v-model="options.edit_tax"
@@ -580,7 +580,7 @@ useHead({
                           </thead>
 
                           <tr v-for="crew in options.crews" :key="crew.id">
-                            <td class="text-xs text-left border-r last:border-0 border-btertiary text-tbase/75">
+                            <td class="text-left border-r last:border-0 border-btertiary text-tbase/75">
                               {{ crew.id }}
                             </td>
                             <td class="text-left border-r last:border-0 border-btertiary">
@@ -613,7 +613,7 @@ useHead({
                       </div>
                     </UFormGroup>
                     <UFormGroup name="members">
-                      <h3>Mitglieder</h3>
+                      <h3>Mitarbeiter</h3>
                       <div class="p-1">
                         <table>
                           <thead class="relative">
@@ -624,7 +624,7 @@ useHead({
                               <th class="text-left">
                                 <UTooltip text="Extern"> E.. </UTooltip>
                               </th>
-                              <th class="text-left">Mitglied</th>
+                              <th class="text-left">Mitarbeiter</th>
                               <th class="text-left">
                                 <UTooltip text="Crew"> C.. </UTooltip>
                               </th>
@@ -639,14 +639,34 @@ useHead({
                           <tr v-for="member in options.members" :key="member.id">
                             <td class="text-left border-r last:border-0 border-btertiary">
                               <UButton
-                                :icon="options.manager.id === member.id ? 'i-heroicons-check' : 'i-oui-empty'"
-                                :color="options.manager.id === member.id ? 'primary' : 'gray'"
+                                :icon="
+                                  options.manager?.user?.id && options.manager?.user?.id === member.user?.id
+                                    ? 'i-heroicons-check'
+                                    : 'i-oui-empty'
+                                "
+                                :color="
+                                  options.manager?.user?.id && options.manager?.user?.id === member.user?.id
+                                    ? 'primary'
+                                    : 'gray'
+                                "
                                 size="xxs"
+                                :disabled="member.is_external"
                                 @click="options.manager = member"
                               />
                             </td>
                             <td class="text-left border-r last:border-0 border-btertiary">
-                              <UCheckbox v-model="member.is_external" name="is_external" />
+                              <UCheckbox
+                                v-model="member.is_external"
+                                name="is_external"
+                                @change="
+                                  () => {
+                                    member.user = null;
+                                    if (options.manager?.id === member.id) {
+                                      options.manager = null;
+                                    }
+                                  }
+                                "
+                              />
                             </td>
                             <td class="relative text-left border-r last:border-0 border-btertiary">
                               <UInput
@@ -670,6 +690,13 @@ useHead({
                                 searchable
                                 searchable-placeholder="Suche..."
                                 :search-attributes="['first_name', 'last_name']"
+                                @change="
+                                  () => {
+                                    if (options.manager?.id === member.id) {
+                                      options.manager = null;
+                                    }
+                                  }
+                                "
                               />
                             </td>
                             <td class="relative text-left border-r last:border-0 border-btertiary">
@@ -718,7 +745,7 @@ useHead({
                           <tr>
                             <th class="text-left">Name</th>
                             <th class="text-left">Einkommen</th>
-                            <th class="text-left">Mitglied</th>
+                            <th class="text-left">Mitarbeiter</th>
                           </tr>
                           <tr v-for="income in incomes" :key="income.id">
                             <td class="text-left border-r last:border-0 border-btertiary">
@@ -754,7 +781,7 @@ useHead({
                                   income.member?.id
                                     ? income.member?.is_external
                                       ? income.member?.external_name
-                                      : income.member?.user?.first_name
+                                      : income.member?.user?.full_name
                                     : 'Kein Benutzer'
                                 }}
                               </UButton>
@@ -785,7 +812,7 @@ useHead({
                           <tr>
                             <th class="text-left">Name</th>
                             <th class="text-left">Ausgabe</th>
-                            <th class="text-left">Mitglied</th>
+                            <th class="text-left">Mitarbeiter</th>
                           </tr>
                           <tr v-for="expense in expenses" :key="expense.id" class="">
                             <td class="text-left border-r last:border-0 border-btertiary">
@@ -821,7 +848,7 @@ useHead({
                                   expense.member?.id
                                     ? expense.member?.is_external
                                       ? expense.member?.external_name
-                                      : expense.member?.user?.first_name
+                                      : expense.member?.user?.full_name
                                     : 'Kein Benutzer'
                                 }}
                               </UButton>
@@ -838,7 +865,15 @@ useHead({
                     </div>
                     <TableHr class="my-4" />
                     <div>
-                      <ButtonDefault class="w-full" @click="calculate">Verteilung ausrechnen</ButtonDefault>
+                      <ButtonDefault
+                        class="w-full"
+                        :disabled="!options.manager?.user?.id"
+                        @click="() => (options.manager?.user?.id ? calculate() : null)"
+                        >Verteilung ausrechnen</ButtonDefault
+                      >
+                      <span v-if="!options.manager?.user?.id" class="text-xs italic text-danger/85">
+                        Es muss ein Manager ausgewählt werden.
+                      </span>
                     </div>
                   </div>
                 </template>
@@ -865,6 +900,14 @@ useHead({
                   </table>
                 </template>
               </UCard>
+              <a
+                :href="`calculator-pdf?crews=${JSON.stringify(options.crews)}&members=${JSON.stringify(
+                  options.members,
+                )}&incomes=${JSON.stringify(incomes)}&expenses=${JSON.stringify(expenses)}&steps=${JSON.stringify(
+                  steps,
+                )}&options=${JSON.stringify(options)}`"
+                >test</a
+              >
             </div>
           </template>
         </template>
