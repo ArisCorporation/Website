@@ -148,7 +148,25 @@
   }
 
   table {
-    @apply prose prose-invert;
+    @apply w-full text-left table-auto min-w-max h-full overflow-scroll shadow-md bg-clip-border border border-bsecondary;
+  }
+  th {
+    @apply p-4 border-b border-btertiary bg-bprimary;
+  }
+  th > p {
+    @apply block font-sans text-sm antialiased font-normal leading-none text-white opacity-70;
+  }
+  tbody {
+    @apply divide-y divide-bsecondary border border-bsecondary;
+  }
+  tr {
+    @apply odd:bg-bsecondary;
+  }
+  td {
+    @apply p-4;
+  }
+  td > p {
+    @apply block font-sans text-sm antialiased font-normal leading-normal;
   }
 
   #sentry-feedback {
