@@ -2,6 +2,7 @@
 import type { DirectusUsers, Ships } from '~/types/cms-types';
 const { directus, readMe, readUsers, readItems } = useCMS();
 const modalStore = useModalStore();
+const calculatorStore = useCalculatorStore();
 // https://regolith.rocks/workorder
 const tabs = [
   // { id: 0, header: 'Schiffs Bergbau', icon: 'game-icons:rock' },
@@ -225,18 +226,18 @@ function calculate() {
   steps.value.members = [];
 
   incomes.value
-    .filter((e) => e.member?.id !== options.value.manager.id)
+    .filter((e) => e.member?.id !== options.value?.manager?.id)
     .forEach((e) => {
       steps.value.incomes.push({
         name: e.name,
         member: e.member,
-        value: Number(e.value) * (1 - options.value.tax_rate),
+        value: Math.floor(Number(e.value) * (1 - options.value.tax_rate)),
         value_without_tax: Number(e.value),
       });
     });
 
   incomes.value
-    .filter((e) => e.member?.id === options.value.manager.id)
+    .filter((e) => e.member?.id === options.value?.manager?.id)
     .forEach((e) => {
       steps.value.incomes.push({
         name: e.name,
@@ -246,7 +247,7 @@ function calculate() {
       });
     });
 
-  steps.value.income_sum_before_expenses = Number(steps.value.incomes.reduce((a, b) => a + b.value, 0));
+  steps.value.income_sum_before_expenses = Math.floor(Number(steps.value.incomes.reduce((a, b) => a + b.value, 0)));
   steps.value.income_sum = Number(steps.value.income_sum_before_expenses);
 
   expenses.value.forEach((e: any) => {
@@ -307,90 +308,234 @@ function openHelpModal() {
   modalStore.openModal('Anleitung', {});
 }
 
-// const calculation = computed(() => {
-//   const result = {
-//     incomes: [] as any[],
-//     income_sum: 0,
-//     expenses: [] as any[],
-//     members: [] as StepMember[],
-//     income_sum: 0,
-//     share: 0,
-//   };
+const generatePdf = async () => {
+  const htmlContent = `
+   <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+        <style>
+          :root {
+            background-color: #111111;
+            font-family: Orbitron, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+          }
+          
+          table {
+            width: 100%;
+            text-align: left;
+            table-layout: auto;
+            min-width: max-content;
+            height: 100%;
+            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-clip: border-box;
+            border: 1px solid #222222; /* border-bsecondary */
+          }
 
-//   incomes.value
-//     .filter((e) => e.member?.id !== options.value.members.find((m) => m.user === me.value)?.id)
-//     .forEach((e) => {
-//       result.incomes.push({
-//         name: e.name,
-//         member: e.member,
-//         value: e.value * (1 - options.value.tax_rate),
-//         value_without_tax: e.value,
-//       });
-//     });
+          th {
+            padding: 1rem;
+            border-bottom: 1px solid #444444; /* border-btertiary */
+            background-color: #111111; /* bg-bprimary */
+          }
 
-//   incomes.value
-//     .filter((e) => e.member?.id === options.value.members.find((m) => m.user === me.value)?.id)
-//     .forEach((e) => {
-//       result.incomes.push({
-//         name: e.name,
-//         member: e.member,
-//         value: e.value,
-//         value_without_tax: e.value,
-//       });
-//     });
+          tbody {
+            border: 1px solid #222222; /* border-bsecondary */
+          }
 
-//   result.income_sum_before_expenses = result.incomes.reduce((a, b) => a + b.value, 0);
-//   result.income_sum = result.income_sum_before_expenses;
+          tr:nth-child(odd) {
+            background-color: #222222; /* odd:bg-bsecondary */
+          }
 
-//   expenses.value.forEach((e: any) => {
-//     if (result.members.find((m: any) => m.member.id === e.member?.id)) {
-//       const member = result.members.find((m: any) => m.member.id === e.member?.id);
-//       if (member) {
-//         member.value = member.value + e.value;
-//         member.value_without_tax = member.value_without_tax + e.value;
-//         result.income_sum = result.income_sum - e.value;
-//       }
-//     } else {
-//       result.members.push({
-//         member: e.member,
-//         value: Number(e.value),
-//         value_without_tax: Number(e.value),
-//       });
-//       result.income_sum = result.income_sum - e.value;
-//     }
+          table tr:last-child td:first-child {
+            border-bottom-left-radius: 0.375rem;
+          }
 
-//     result.expenses.push({
-//       name: e.name,
-//       member: e.member,
-//       value: e.value * (1 - options.value.tax_rate),
-//       value_without_tax: e.value,
-//     });
-//   });
+          table tr:last-child td:last-child {
+            border-bottom-right-radius: 0.375rem;
+          }
 
-//   result.share = result.income_sum / (result.members.length + 1);
+          td {
+            padding: 1rem;
+          }
 
-//   options.value.members.forEach((e) => {
-//     if (result.members.find((m: any) => m.member.id === e.id)) {
-//       const member = result.members.find((m: any) => m.member.id === e.id);
-//       if (member) {
-//         member.value = member.value + result.share;
-//         member.value_without_tax = member.value_without_tax + result.share;
-//       }
-//     } else {
-//       result.members.push({
-//         member: e,
-//         value: e.user === me.value ? result.share : result.share * (1 - options.value.tax_rate),
-//         value_without_tax: result.share,
-//       });
-//     }
-//   });
+          ul {
+            list-style-type: disc;
+            padding-left: 1rem;
+          }
+          ul ul {
+            list-style-type: circle;
+            padding-left: 1rem;
+          }
 
-//   return result;
-// });
+          ul ul ul {
+            list-style-type: square;
+            padding-left: 1rem;
+          }
 
-// watch(calculation, () => {
-//   console.log(calculation.value);
-// });
+          ol {
+            list-style-type: decimal;
+            padding-left: 1rem;
+          }
+          ol ol {
+            list-style-type: lower-latin;
+            padding-left: 1rem;
+          }
+          ol ol ol {
+            list-style-type: lower-roman;
+            padding-left: 1rem;
+          }
+
+          ol li {
+            padding-bottom: 0.5rem;
+          }
+
+          ul li::marker {
+            color: #00ffe8; /* Farbe des Markers (z.B. primary-400) */
+          }
+
+          ul li {
+            padding-bottom: 0.5rem; /* Beispiel für Abstand unter Listenpunkt */
+          }
+        </style>
+      </head>
+      <body>
+        <div style="display: block; padding-left: 16px; padding-right: 16px; font-weight: 600; padding-top: 1px">
+          <h1>${options.value.name}</h1>
+          <h2>Crews</h2>
+          <ul>
+            ${options.value.crews
+              .map(
+                (crew) => `
+               <li>
+                Crew ${crew.id} - ${crew.name}
+                <ul>
+                  <li>Schiff: ${crew.ship?.name}</li>
+                  <li>Crewmitglieder:</li>
+                  <ul>
+                    ${steps.value.members
+                      .filter((member) => member.member?.crew?.id === crew.id)
+                      .map(
+                        (member) => `
+                          <li>${member.member?.user?.full_name}</li>
+                        `,
+                      )
+                      .join('')}
+                  </ul>
+                </ul>
+              </li>
+              `,
+              )
+              .join('')}
+          </ul>
+          <h2>Ausgaben</h2>
+          <div style="border: 1px solid #444; border-radius: 0.5rem; overflow: clip;">
+            <table style="border-color: transparent; table-layout: fixed; height: fit-content;">
+              <thead style="position: relative">
+                <tr>
+                  <th style="text-align: left">Mitarbeiter</th>
+                  <th style="text-align: left">Betrag</th>
+                  <th style="text-align: left">Ausgabe</th>
+                </tr>
+              </thead>
+
+              ${steps.value.expenses
+                .map(
+                  (expense) => `
+                  <tr>
+                    <td style="padding: 5px; text-align: left">${
+                      expense.member?.is_external ? expense.member?.external_name : expense.member?.user?.full_name
+                    }</td>
+                    <td style="padding: 5px; text-align: left">${
+                      expense.value
+                    } <span style="opacity: .75;">aUEC</span></td>
+                    <td style="padding: 5px; text-align: left">${expense.name}</td>
+                  </tr>
+                `,
+                )
+                .join('')}
+            </table>
+          </div>
+          <h2>Einnahmen</h2>
+          <div style="border: 1px solid #444; border-radius: 0.5rem; overflow: clip;">
+            <table style="border-color: transparent; table-layout: fixed; height: fit-content">
+              <thead style="position: relative">
+                <tr>
+                  <th style="text-align: left">Ausgabe</th>
+                  <th style="text-align: left">Betrag</th>
+                  <th style="text-align: left">Mitarbeiter</th>
+                </tr>
+              </thead>
+
+              ${steps.value.incomes
+                .map(
+                  (income) => `
+                  <tr>
+                    <td style="padding: 5px; text-align: left">${income.name}</td>
+                    <td style="padding: 5px; text-align: left">${
+                      income.value
+                    } <span style="opacity: .75;">aUEC</span></td>
+                    <td style="padding: 5px; text-align: left">${
+                      income.member?.is_external ? income.member?.external_name : income.member?.user?.full_name
+                    }</td>
+                  </tr>
+                `,
+                )
+                .join('')}
+            </table>
+          </div>
+          <h3>Gesamteinnahmen: ${steps.value.income_sum_before_expenses} aUEC</h3>
+          <h2>Ausschüttung</h2>
+          <div style="border: 1px solid #444; border-radius: 0.5rem; overflow: clip;">
+            <table style="border-color: transparent; table-layout: fixed; height: fit-content">
+              <thead style="position: relative">
+                <tr>
+                  <th style="text-align: left">Mitarbeiter</th>
+                  <th style="text-align: left">Anteil <span style="font-size: 0.7rem">(abzgl. ${
+                    options.value.tax_rate * 100
+                  }% Transaktionsgebühr)</span></th>
+                </tr>
+              </thead>
+
+              ${steps.value.members
+                .map(
+                  (member) => `
+                  <tr>
+                    <td style="padding: 5px; text-align: left">${
+                      member.member?.is_external ? member.member?.external_name : member.member?.user?.full_name
+                    }</td>
+                    <td style="padding: 5px; text-align: left">${
+                      member.value
+                    } <span style="opacity: .75;">aUEC</span></td>
+                  </tr>
+                `,
+                )
+                .join('')}
+            </table>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  // Request an die Nuxt-API
+  const response = await fetch('/api/ams/toolbox/generateCalculatorReport', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ htmlContent }),
+  });
+
+  if (response.ok) {
+    const pdfBlob = await response.blob();
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    window.open(pdfUrl, '_blank');
+  } else {
+    console.error('Fehler bei der PDF-Erstellung');
+  }
+};
 
 definePageMeta({
   middleware: 'auth',
@@ -899,15 +1044,17 @@ useHead({
                     </tr>
                   </table>
                 </template>
+                <template #footer>
+                  <UButton
+                    :color="steps.share ? 'industrial' : 'gray'"
+                    variant="outline"
+                    class="float-right"
+                    :disabled="steps.share ? false : true"
+                    @click="steps.share ? generatePdf() : null"
+                    >Als PDF Exportieren</UButton
+                  >
+                </template>
               </UCard>
-              <a
-                :href="`calculator-pdf?crews=${JSON.stringify(options.crews)}&members=${JSON.stringify(
-                  options.members,
-                )}&incomes=${JSON.stringify(incomes)}&expenses=${JSON.stringify(expenses)}&steps=${JSON.stringify(
-                  steps,
-                )}&options=${JSON.stringify(options)}`"
-                >test</a
-              >
             </div>
           </template>
         </template>
