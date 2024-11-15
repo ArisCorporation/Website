@@ -6,7 +6,9 @@ export default defineEventHandler(async (event) => {
   const { htmlContent } = body;
 
   // Starte Puppeteer und öffne eine neue Seite
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
   const page = await browser.newPage();
 
   // Setze den HTML-Inhalt auf die Seite
