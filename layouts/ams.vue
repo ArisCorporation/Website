@@ -49,6 +49,7 @@ const sidebarItems = [
   },
   {
     name: 'Toolbox',
+    icon: 'ph:toolbox-fill',
     link: '/toolbox',
     level: 0,
   },
