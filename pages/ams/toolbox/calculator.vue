@@ -9,7 +9,7 @@ const tabs = [
   // { id: 1, header: 'ROC/Hand Bergbau', icon: 'game-icons:diamond-hard' },
   // { id: 2, header: 'Schrott Sammlung', icon: 'game-icons:ship-wreck' },
   // { id: 3, header: 'Custom Rechner', icon: 'mdi:square-inc-cash' },
-  { id: 0, header: 'aUEC Rechner', icon: 'mdi:square-inc-cash' },
+  { id: 0, header: 'aUEC Rechner', icon: 'IconsLogosUec' },
 ];
 const selectedTab = ref(0);
 const changeTab = (index) => {
@@ -1045,14 +1045,23 @@ useHead({
                   </table>
                 </template>
                 <template #footer>
-                  <UButton
-                    :color="steps.share ? 'industrial' : 'gray'"
-                    variant="outline"
-                    class="float-right"
-                    :disabled="steps.share ? false : true"
-                    @click="steps.share ? generatePdf() : null"
-                    >Als PDF Exportieren</UButton
-                  >
+                  <div class="flex flex-wrap justify-between gap-2">
+                    <UButton
+                      :color="steps.share ? 'primary' : 'gray'"
+                      variant="outline"
+                      disabled
+                      @click="steps.share ? generatePdf() : null"
+                      >Im A.M.S. speichern (soon)</UButton
+                    >
+                    <UButton
+                      :color="steps.share ? 'industrial' : 'gray'"
+                      variant="outline"
+                      class="ml-auto"
+                      :disabled="steps.share ? false : true"
+                      @click="steps.share ? generatePdf() : null"
+                      >Als PDF Exportieren</UButton
+                    >
+                  </div>
                 </template>
               </UCard>
             </div>
