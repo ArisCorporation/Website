@@ -193,7 +193,6 @@ function getNestedValue(obj, path) {
   return path.split('.').reduce((acc, key) => acc && acc[key], obj);
 }
 
-console.log(sortedShips);
 useHead({
   title: 'Schiffsvergleich',
 });
@@ -203,7 +202,7 @@ definePageMeta({
 </script>
 
 <template>
-  <div>
+  <div class="">
     <div class="flex">
       <div class="max-w-[20%] min-w-[300px] w-[300px] mr-6">
         <!-- <ArisSelectMenu
@@ -234,7 +233,7 @@ definePageMeta({
           multiple
         />
       </div>
-      <div class="flex space-x-4">
+      <div v-if="selectedShips[0]" class="flex space-x-4">
         <div v-for="ship in selectedShips" :key="ship.id" class="relative flex w-[400px]">
           <NuxtLink :to="`/shipexkurs/ships/${ship.slug}`" class="text-white animate-link peer">
             <DefaultPanel>
@@ -279,7 +278,7 @@ definePageMeta({
         </NuxtLink>
       </div>
     </div>
-    <div v-for="(rowgroup, index) in rowgroups" :key="rowgroup.name">
+    <div v-for="(rowgroup, index) in rowgroups" v-if="selectedShips[0]" :key="rowgroup.name">
       <div v-if="rowgroup.name" class="flex items-center -ml-2">
         <h3 class="inline-block m-0 font-semibold sticky left-[16rem] bg-bprimary pr-2">{{ rowgroup.name }}</h3>
         <TableHr class="w-full" />
@@ -309,6 +308,14 @@ definePageMeta({
               }}
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="!selectedShips[0]">
+      <div class="flex h-screen size-full">
+        <div class="flex items-center justify-center m-auto text-3xl text-center text-tbase">
+          Wähle Schiffe zum vergleichen aus
+          <UIcon name="i-mdi-gesture-tap" class="size-14" />
         </div>
       </div>
     </div>
