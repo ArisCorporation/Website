@@ -3,7 +3,7 @@
     "*.css": "tailwindcss"
   },
   "editor.quickSuggestions": {
-    "strings": true
+    "strings": "on"
   },
   "nuxt.isNuxtApp": false,
   "cSpell.language": "en,de-DE",

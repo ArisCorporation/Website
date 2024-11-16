@@ -1,11 +1,40 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+@theme {
+  --color-aris-50: #edfffd;
+  --color-aris-100: #c0fffa;
+  --color-aris-200: #81fff7;
+  --color-aris-300: #3afff4;
+  --color-aris-400: #00ffe8;
+  --color-aris-500: #00ffe8;
+  --color-aris-600: #00b7ac;
+  --color-aris-700: #009189;
+  --color-aris-800: #00726e;
+  --color-aris-900: #045d5a;
+  --color-aris-950: #00393a;
+
+  --color-industrial-50: #fdf6ed;
+  --color-industrial-100: #f8e5cd;
+  --color-industrial-200: #f1c896;
+  --color-industrial-300: #eaa75f;
+  --color-industrial-400: #e48632;
+  --color-industrial-500: #dd6a23;
+  --color-industrial-600: #c34b1c;
+  --color-industrial-700: #a3331a;
+  --color-industrial-800: #85291b;
+  --color-industrial-900: #6d231a;
+  --color-industrial-950: #3e0f0a;
+
+  --color-bg-400: #444444;
+  --color-bg-600: #222222;
+  --color-bg-800: #111111;
+}
 
 @layer base {
-  html {
-    @apply bg-bprimary text-tbase scroll-smooth font-nasa max-w-full text-base scrollbar;
-  }
+  /* html {
+    @apply bg-bprimary text-tbase scroll-smooth max-w-full text-base scrollbar;
+  } */
   *:focus-visible {
     @apply outline-aris-400;
   }
@@ -90,11 +119,11 @@
     @apply bg-secondary h-[2px] w-full my-5 border-none;
   }
 
-  button {
+  /* button {
     @apply focus:outline-aris-400;
-  }
+  } */
 
-  .prose td {
+  /* .prose td {
     vertical-align: middle !important;
   }
 
@@ -102,7 +131,7 @@
     max-width: 100% !important;
     margin-left: auto;
     margin-right: auto;
-  }
+  } */
 
   .hr-short {
     @apply w-16 mt-2;
@@ -233,9 +262,9 @@
     text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
   }
 
-  .tooltip {
+  /* .tooltip {
     @apply absolute z-10 w-32 px-2 py-1 mt-3 -ml-16 text-center rounded opacity-0 group-hover:opacity-100 transition-group bg-bsecondary left-1/2 before:absolute before:bottom-full before:left-1/2 before:-ml-[8px] before:border-8 before:border-transparent before:border-b-bsecondary;
-  }
+  } */
 
   .comm-link-grid {
     @apply max-w-5xl mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-3;
@@ -573,6 +602,50 @@
       clip: rect(33.5px, 9999px, 61px, 0);
     }
   }
+}
+
+:root {
+  --ui-radius: var(--radius-sm);
+}
+
+.dark {
+  --ui-primary: var(--color-aris-400);
+  --ui-secondary: var(--color-industrial-400);
+  --ui-success: var(--ui-color-green-400);
+  --ui-info: var(--ui-color-blue-400);
+  --ui-warning: var(--ui-color-yellow-400);
+  --ui-error: var(--ui-color-error-500);
+
+  /* Least prominent text */
+  --ui-text-dimmed: var(--ui-color-neutral-500);
+  /* Slightly muted text */
+  --ui-text-muted: var(--ui-color-neutral-400);
+  /* Moderately prominent text */
+  --ui-text-toned: var(--ui-color-neutral-300);
+  /* Default text color */
+  --ui-text: var(--ui-color-neutral-200);
+  /* Most prominent text */
+  --ui-text-highlighted: var(--color-white);
+
+  /* Main background color */
+  --ui-bg: var(--color-bg-800);
+  /* Subtle background */
+  --ui-bg-muted: var(--color-bg-600);
+  /* Slightly elevated background */
+  --ui-bg-elevated: var(--color-bg-600);
+  /* More prominent background */
+  --ui-bg-accented: var(--color-bg-400);
+  /* Inverted background color */
+  --ui-bg-inverted: var(--color-white);
+
+  /* Default border color */
+  --ui-border: var(--ui-bg-elevated);
+  /* Subtle border */
+  --ui-border-muted: var(--ui-bg-accented);
+  /* More prominent border */
+  --ui-border-accented: var(--ui-bg-accented);
+  /* Inverted border color */
+  --ui-border-inverted: var(--color-white);
 }
 /* 
 @layer components {

@@ -22,40 +22,16 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css', '~/assets/css/tailwind.css'],
 
-  // modules: [
-  //   '@vueuse/nuxt',
-  //   '@nuxt/image',
-  //   'nuxt-icon',
-  //   'nuxt-headlessui',
-  //   'nuxt-directus-next',
-  //   // '@nuxt/content',
-  //   '@nuxtjs/mdc',
-  //   '@pinia/nuxt',
-  //   // '@vueuse/motion/nuxt',
-  //   '@pinia-plugin-persistedstate/nuxt',
-  //   '@vue-email/nuxt',
-  //   // '@nuxtjs/tailwindcss',
-  //   '@nuxt/ui',
-  //   'dayjs-nuxt',
-  //   'nuxt-lodash',
-  //   'nuxt-tiptap-editor',
-  //   // '@nuxt/test-utils/module',
-  //   // 'nuxt-markdown-render',
-  //   'nuxt-resend',
-  //   '@nuxt/eslint',
-  // ],
   modules: [
     '@vue-email/nuxt',
-    '@nuxt/ui',
     '@nuxt/eslint',
+    '@nuxt/ui',
     '@nuxt/image',
     '@pinia/nuxt',
     '@pinia-plugin-persistedstate/nuxt',
     'nuxt-tiptap-editor',
     '@vueuse/nuxt',
     // 'dayjs-nuxt',
-    '@nuxt/icon',
-    'nuxt-headlessui',
     'nuxt-lodash',
     'nuxt-resend',
     '@tresjs/nuxt',
@@ -174,10 +150,6 @@ export default defineNuxtConfig({
   // 		},
   // 	},
   // },
-
-  headlessui: {
-    prefix: 'Headless',
-  },
 
   dayjs: {
     locales: ['de'],

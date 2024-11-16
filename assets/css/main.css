@@ -1,9 +1,5 @@
-/* @font-face {
-  font-family: 'nasalization';
-  src: url('~/assets/fonts/nasalization-rg.otf') format('opentype');
-  font-style: normal;
-  font-weight: 500;
-} */
+@import 'tailwindcss';
+@import '@nuxt/ui';
 
 /* orbitron-regular */
 @font-face {
