@@ -1,0 +1,12 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/prulloac/devcontainer-features/bun:1": {},
+    "ghcr.io/wxw-matt/devcontainer-features/apt:0": {
+      "packages": "git-flow"
+    }
+  }
+}
