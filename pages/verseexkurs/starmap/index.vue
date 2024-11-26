@@ -241,9 +241,9 @@ useHead({
                             {{ system.name }}
                           </h3>
                           <hr
-                            class="-mx-1 mb-3 mt-2 relative bg-bprimary text-primary-400 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+                            class="-mx-1 mb-3 mt-2 relative bg-bg-800 text-primary-400 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
                           />
-                          <div class="px-2 border rounded-lg bg-bprimary border-btertiary">
+                          <div class="px-2 border rounded-lg bg-bg-800 border-btertiary">
                             <div class="p-2">
                               <TableRow title="Zugehörigkeit">
                                 <span class="flex items-center gap-x-1 text-aris-400">
@@ -410,13 +410,13 @@ useHead({
           <Editor :model-value="data.history_introduction" read-only />
           <div class="relative w-full aspect-[1200/841] h-auto">
             <button
-              class="absolute top-0 bottom-0 left-0 z-10 p-1 my-auto transition rounded-full opacity-75 cursor-pointer h-fit bg-bsecondary hover:opacity-100"
+              class="absolute top-0 bottom-0 left-0 z-10 p-1 my-auto transition rounded-full opacity-75 cursor-pointer h-fit bg-bg-600 hover:opacity-100"
               @click="historyIndex === 0 ? (historyIndex = data.history.length - 1) : (historyIndex -= 1)"
             >
               <Icon name="heroicons:chevron-left-16-solid" class="w-8 h-auto aspect-square" />
             </button>
             <button
-              class="absolute top-0 bottom-0 right-0 z-10 p-1 my-auto transition rounded-full opacity-75 cursor-pointer h-fit bg-bsecondary hover:opacity-100"
+              class="absolute top-0 bottom-0 right-0 z-10 p-1 my-auto transition rounded-full opacity-75 cursor-pointer h-fit bg-bg-600 hover:opacity-100"
               @click="historyIndex === data.history.length - 1 ? (historyIndex = 0) : (historyIndex += 1)"
             >
               <Icon name="heroicons:chevron-right-16-solid" class="w-8 h-auto aspect-square" />
@@ -426,7 +426,7 @@ useHead({
                 v-for="(item, index) in data.history"
                 :key="index"
                 class="h-auto rounded-full cursor-pointer md:w-3 w-2 aspect-[1/1] hover:bg-aris-400/75"
-                :class="[historyIndex === index ? 'bg-aris-400' : 'bg-btertiary']"
+                :class="[historyIndex === index ? 'bg-aris-400' : 'bg-bg-400']"
                 @click="historyIndex = index"
               />
             </div>

@@ -182,17 +182,17 @@ const handleEdit = () => {
             class="absolute top-1 left-2 text-stroke"
             :class="{
               'text-primary-400': shipData.production_status_value == 'flight-ready',
-              'text-secondary': shipData.production_status_value == 'in-production',
+              'text-industrial-400': shipData.production_status_value == 'in-production',
               'text-white': shipData.production_status_value == 'in-concept',
             }"
           >
             <p v-if="displayProductionState" class="block p-0">
               {{ shipData.production_status }}
             </p>
-            <p v-if="displayLoanerState && hangarData.loaner" class="block p-0 text-secondary">Loaner</p>
+            <p v-if="displayLoanerState && hangarData.loaner" class="block p-0 text-industrial-400">Loaner</p>
             <p
               v-if="displayHiddenState && hangarData.userData.visibility === 'hidden'"
-              class="block p-0 text-secondary"
+              class="block p-0 text-industrial-400"
             >
               Versteckt
             </p>
@@ -205,27 +205,27 @@ const handleEdit = () => {
               :src="hangarData.userData.department.logo"
               :placeholder="[16, 16, 1, 5]"
               :preload="preloadImages"
-              class="relative w-16 h-16 peer/departmentLogo text-secondary"
+              class="relative w-16 h-16 peer/departmentLogo text-industrial-400"
               draggable="false"
             />
             <span
-              class="px-1 my-auto mr-2 transition rounded opacity-0 cursor-pointer h-fit bg-bsecondary peer-hover/departmentLogo:opacity-100"
+              class="px-1 my-auto mr-2 transition rounded opacity-0 cursor-pointer h-fit bg-bg-600 peer-hover/departmentLogo:opacity-100"
               >{{ hangarData.userData.department.name }}</span
             >
           </div>
         </NuxtLink>
         <div
-          class="peer-hover:[&>a:nth-child(1)]:opacity-100 peer-hover:[&>p:nth-child(1)]:duration-300 absolute z-10 bottom-0 left-0 flex flex-wrap w-full min-h-[48px] px-4 py-1 bg-bsecondary/80 justify-between gap-x-4"
+          class="peer-hover:[&>a:nth-child(1)]:opacity-100 peer-hover:[&>p:nth-child(1)]:duration-300 absolute z-10 bottom-0 left-0 flex flex-wrap w-full min-h-[48px] px-4 py-1 bg-bg-600/80 justify-between gap-x-4"
         >
           <div
             v-if="displayPlannedState && hangarData.userData.planned"
-            class="absolute cursor-default -top-6 right-2 text-stroke text-secondary"
+            class="absolute cursor-default -top-6 right-2 text-stroke text-industrial-400"
           >
             Geplant
           </div>
           <NuxtLink
             :to="(type === 'attachments' ? '/technology/attachments/' : '/shipexkurs/ships/') + shipData.slug"
-            class="m-0 transition hover:no-underline basis-full opacity-80 text-secondary hover:opacity-100"
+            class="m-0 transition hover:no-underline basis-full opacity-80 text-industrial-400 hover:opacity-100"
           >
             <div class="animate-link w-fit">
               {{ shipData.name }}
@@ -244,7 +244,7 @@ const handleEdit = () => {
             class="z-20 block mt-auto ml-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100 animate-link"
           >
             <span>
-              <span :class="{ 'text-secondary': displayPlannedState && hangarData.userData.planned }">{{
+              <span :class="{ 'text-industrial-400': displayPlannedState && hangarData.userData.planned }">{{
                 displayPlannedState && hangarData.userData.planned ? 'Geplant' : 'Bereitgestell'
               }}</span>
               von: {{ hangarData.userData.owner.full_name }}</span
@@ -322,7 +322,7 @@ const handleEdit = () => {
         <div
           v-if="detailView"
           :key="hangarData ? hangarData.id + '-table' : shipData.id + '-table'"
-          class="w-full px-1 ease-in-out overflow-clip transition-default bg-bprimary"
+          class="w-full px-1 ease-in-out overflow-clip transition-default bg-bg-800"
         >
           <div class="grid grid-cols-6 px-4 py-2 text-xs uppercase">
             <TableRow title="Klassifizierung" :content="shipData.classification" />
@@ -344,7 +344,7 @@ const handleEdit = () => {
     <!-- <UContextMenu
 			v-model="contextMenu"
 			:virtual-element="virtualElement"
-			:ui="{ background: 'bg-bprimary bg-opacity-25 backdrop-blur-xl' }"
+			:ui="{ background: 'bg-bg-800 bg-opacity-25 backdrop-blur-xl' }"
 		>
 			<ul class="p-2 list-none divide-y divide-dark-gray">
 				<li class="flex-wrap px-0 py-1">

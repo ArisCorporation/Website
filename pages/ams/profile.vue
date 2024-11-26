@@ -179,8 +179,8 @@ definePageMeta({
         </div>
       </template>
     </template>
-    <div class="flex flex-col w-full divide-y divide-bsecondary">
-      <div class="relative flex items-center p-5 mb-5 rounded-lg bg-bsecondary">
+    <div class="flex flex-col w-full divide-y divide-bg-600">
+      <div class="relative flex items-center p-5 mb-5 rounded-lg bg-bg-600">
         <!-- TODO: ADD LOADING STATE TO AVATAR -->
         <div
           class="flex mr-6 relative overflow-hidden border-4 sm:border-[6px] border-primary rounded-full h-20 w-20 sm:h-36 sm:w-36 focus:outline-none group bg-white/5"

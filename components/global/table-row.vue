@@ -61,7 +61,7 @@ defineProps({
           <li
             v-for="(item, index) in content.split(', ')"
             :key="index"
-            class="marker:text-secondary text-primary-400"
+            class="marker:text-industrial-400 text-primary-400"
             :class="{ 'inline-block pr-1': inline }"
             @click="click"
           >

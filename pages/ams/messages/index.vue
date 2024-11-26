@@ -215,11 +215,11 @@ definePageMeta({
       <SplitterGroup
         id="group-1"
         direction="horizontal"
-        class="border rounded-lg border-bsecondary"
+        class="border rounded-lg border-bg-600"
         @layout="layout = $event"
       >
         <SplitterPanel id="group-1-panel-1" :default-size="layout[0]" :min-size="20" class="h-full">
-          <div class="flex items-center flex-shrink-0 h-16 min-w-0 px-4 border-b border-bsecondary gap-x-4">
+          <div class="flex items-center flex-shrink-0 h-16 min-w-0 px-4 border-b border-bg-600 gap-x-4">
             <div class="flex items-center justify-between flex-1 gap-x-1.5 min-w-0">
               <div class="flex items-stretch min-w-0 gap-1.5">
                 <h1 class="flex items-center gap-1.5 text-white min-w-0 m-0 text-base">
@@ -241,9 +241,9 @@ definePageMeta({
                     :ui="{
                       list: {
                         height: 'h-8',
-                        background: 'bg-bsecondary',
+                        background: 'bg-bg-600',
                         marker: {
-                          background: 'bg-bprimary',
+                          background: 'bg-bg-800',
                         },
                         tab: {
                           height: 'h-6',
@@ -257,7 +257,7 @@ definePageMeta({
               </div>
             </div>
           </div>
-          <div class="flex flex-col flex-1 p-0 overflow-y-auto border-l border-bsecondary">
+          <div class="flex flex-col flex-1 p-0 overflow-y-auto border-l border-bg-600">
             <div v-for="(chat, index) in chats" :key="chat.id">
               <div
                 class="p-4 text-sm border-l-2 cursor-pointer text-tbase"
@@ -311,13 +311,13 @@ definePageMeta({
                 </p>
               </div>
               <div class="flex flex-row items-center w-full text-center align-center">
-                <div class="flex w-full border-t border-solid border-bsecondary" />
+                <div class="flex w-full border-t border-solid border-bg-600" />
               </div>
             </div>
           </div>
         </SplitterPanel>
-        <SplitterResizeHandle id="group-1-resize-1" class="w-0.5 relative bg-btertiary">
-          <div class="absolute top-0 bottom-0 flex w-4 h-5 mx-auto my-auto rounded bg-btertiary -left-2 -right-2">
+        <SplitterResizeHandle id="group-1-resize-1" class="w-0.5 relative bg-bg-400">
+          <div class="absolute top-0 bottom-0 flex w-4 h-5 mx-auto my-auto rounded bg-bg-400 -left-2 -right-2">
             <UIcon name="i-radix-icons-drag-handle-dots-2" class="size-5" />
           </div>
         </SplitterResizeHandle>
@@ -331,18 +331,18 @@ definePageMeta({
             <UIcon name="i-heroicons-inbox" class="size-32" />
           </div>
           <template v-else>
-            <!-- <div class="sticky top-0 z-10 border-b border-b-btertiary bg-bprimary">
+            <!-- <div class="sticky top-0 z-10 border-b border-b-btertiary bg-bg-800">
             <UInput v-model="selected_chat_users" size="xs" />
           </div> -->
             <!-- <div class="flex flex-row items-center w-full my-5 text-center align-center">
-            <div class="flex w-full border-t border-solid border-bsecondary" />
+            <div class="flex w-full border-t border-solid border-bg-600" />
           </div> -->
             <div
               v-if="selected_chat"
               ref="messageList"
               class="relative flex flex-col flex-1 h-full max-w-full max-h-full overflow-y-auto overflow-x-clip"
             >
-              <div class="sticky top-0 z-10 border-b border-b-btertiary bg-bprimary">
+              <div class="sticky top-0 z-10 border-b border-b-btertiary bg-bg-800">
                 <UInput v-model="selected_chat_users" size="xs" />
               </div>
               <div
@@ -351,7 +351,7 @@ definePageMeta({
                 class="flex flex-col max-w-full px-4 mt-4 list-none"
               >
                 <div
-                  class="relative p-2 rounded-2xl bg-bsecondary min-w-[66%] xl:min-w-[33%]"
+                  class="relative p-2 rounded-2xl bg-bg-600 min-w-[66%] xl:min-w-[33%]"
                   :class="[message.user_created.id === user.id ? 'ml-auto' : 'mr-auto']"
                 >
                   <div class="flex">
@@ -418,14 +418,14 @@ definePageMeta({
                 />
               </div>
               <div class="flex flex-row items-center w-full text-center align-center">
-                <div class="flex w-full border-t border-solid border-bsecondary" />
+                <div class="flex w-full border-t border-solid border-bg-600" />
               </div>
             </div>
           </div> -->
             <div class="flex flex-row items-center w-full my-5 text-center align-center">
-              <div class="flex w-full border-t border-solid border-bsecondary" />
+              <div class="flex w-full border-t border-solid border-bg-600" />
             </div>
-            <div class="h-48 mx-4 mb-5 border rounded-md overflow-y-clip border-bsecondary">
+            <div class="h-48 mx-4 mb-5 border rounded-md overflow-y-clip border-bg-600">
               <Editor
                 v-model="chat_input"
                 simple-mode
@@ -441,17 +441,17 @@ definePageMeta({
       </SplitterGroup>
     </div>
     <!-- <div
-      class="relative flex items-stretch w-full h-full max-w-full max-h-full grid-cols-3 divide-x-2 overflow-clip divide-bsecondary"
+      class="relative flex items-stretch w-full h-full max-w-full max-h-full grid-cols-3 divide-x-2 overflow-clip divide-bg-600"
     >
       <div class="h-full w-[300px] overflow-y-auto">
         <h1 class="text-center">Chats</h1>
         <h3 class="opacity-0">.</h3>
-        <hr class="mr-auto w-[calc(100%_-_16px)] bg-bsecondary" />
+        <hr class="mr-auto w-[calc(100%_-_16px)] bg-bg-600" />
         <ul>
           <li
             v-for="chat in chats"
             :key="chat.id"
-            :class="{ 'bg-bsecondary': chat.id === selected_chat }"
+            :class="{ 'bg-bg-600': chat.id === selected_chat }"
             class="pr-4 overflow-hidden text-ellipsis whitespace-nowrap"
             @click="() => (selected_chat = chat.id)"
           >
@@ -475,7 +475,7 @@ definePageMeta({
                 .join(', ')
             }}
           </h3>
-          <hr class="ml-auto w-[calc(100%_-_16px)] bg-bsecondary" />
+          <hr class="ml-auto w-[calc(100%_-_16px)] bg-bg-600" />
         </div>
         <ul ref="messageList" class="flex flex-col flex-1 max-w-full overflow-y-auto overflow-x-clip">
           <li
@@ -485,7 +485,7 @@ definePageMeta({
           >
             <div
               v-if="message.user_created.id === user.id"
-              class="relative p-2 ml-auto rounded-2xl bg-bsecondary min-w-[66%] xl:min-w-[33%] divide-y divide-btertiary"
+              class="relative p-2 ml-auto rounded-2xl bg-bg-600 min-w-[66%] xl:min-w-[33%] divide-y divide-btertiary"
             >
               <div class="flex">
                 <UAvatar :src="$config.public.fileBase + message.user_created.avatar" alt="Avatar" />
@@ -506,7 +506,7 @@ definePageMeta({
             </div>
             <div
               v-else
-              class="relative p-2 mr-auto rounded-2xl bg-bsecondary min-w-[66%] xl:min-w-[33%] divide-y divide-btertiary"
+              class="relative p-2 mr-auto rounded-2xl bg-bg-600 min-w-[66%] xl:min-w-[33%] divide-y divide-btertiary"
             >
               <div class="flex">
                 <UAvatar

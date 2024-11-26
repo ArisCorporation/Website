@@ -77,11 +77,11 @@ const inputConfig = {
   strategy: 'override',
   color: {
     white: {
-      outline: 'bg-bprimary bg-opacity-60 shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary',
+      outline: 'bg-bg-800 bg-opacity-60 shadow-sm ring-1 ring-inset ring-bg-600 focus:ring-2 focus:ring-primary',
     },
   },
   variant: {
-    outline: 'bg-bprimary bg-opacity-60 shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary',
+    outline: 'bg-bg-800 bg-opacity-60 shadow-sm ring-1 ring-inset ring-bg-600 focus:ring-2 focus:ring-primary',
   },
 };
 
@@ -191,11 +191,11 @@ definePageMeta({
 
           <div>
             <ButtonDefault class="w-full mt-8 mb-2"> Log In </ButtonDefault>
-            <div class="text-secondary">
+            <div class="text-industrial-400">
               Passwort vergessen?
               <NuxtLink to="/ams/login/pw-reset" class="text-primary animate-link"> Zurücksetzen! </NuxtLink>
             </div>
-            <div class="text-secondary">
+            <div class="text-industrial-400">
               Noch kein Mitglied?
               <NuxtLink to="/ams/recruitment" class="text-primary animate-link"> Bewerben! </NuxtLink>
             </div>

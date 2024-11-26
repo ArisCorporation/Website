@@ -465,7 +465,7 @@ onMounted(() => {
               <ButtonDefault
                 @click="selectedRows.length === 1 && $emit('edit', selectedRows[0])"
                 :disabled="selectedRows.length !== 1"
-                color="secondary"
+                color="industrial-400"
                 class="w-fit"
                 size="xs"
               >

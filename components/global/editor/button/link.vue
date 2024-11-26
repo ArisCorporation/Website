@@ -33,7 +33,7 @@ function setLink(link: string) {
 
 <template>
   <div>
-    <UModal v-model="modalOpen" :ui="{ background: 'rounded-xl backdrop-blur-sm bg-bprimary/60' }">
+    <UModal v-model="modalOpen" :ui="{ background: 'rounded-xl backdrop-blur-sm bg-bg-800/60' }">
       <div class="p-4">
         <UButton
           variant="soft"
@@ -61,12 +61,12 @@ function setLink(link: string) {
                 color: {
                   white: {
                     outline:
-                      'bg-bprimary bg-opacity-60 shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary',
+                      'bg-bg-800g-opacity-60 shadow-sm ring-1 ring-inset ring-bg-600 focus:ring-2 focus:ring-primary',
                   },
                 },
                 variant: {
                   outline:
-                    'bg-bprimary bg-opacity-60 shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary',
+                    'bg-bg-800g-opacity-60 shadow-sm ring-1 ring-inset ring-bg-600 focus:ring-2 focus:ring-primary',
                 },
               }"
               :icon="

@@ -26,7 +26,7 @@ const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
 </script>
 
 <template>
-  <footer class="w-full bg-black border-t border-t-1 border-secondary print:hidden">
+  <footer class="w-full bg-black border-t border-industrial-400 print:hidden">
     <div class="container px-4 pt-4 pb-2 mx-auto">
       <div class="flex">
         <h4>//Disclaimer</h4>
@@ -113,6 +113,7 @@ const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
 
 <style scoped>
 .footer-icon {
-  @apply w-16 h-16 animate-link;
+  /**@apply w-14 h-16 animate-link; */
+  @appky size-16;
 }
 </style>

@@ -504,7 +504,7 @@ definePageMeta({
 
                       <template #footer>
                         <div
-                          class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
+                          class="transition cursor-pointer bg-bg-600 hover:bg-bg-400"
                           @click="
                             openQuickView(star.name, {
                               type: 'star',
@@ -545,7 +545,7 @@ definePageMeta({
                           <NuxtImg
                             :src="item.data?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
                             :placeholder="[16, 16, 1, 5]"
-                            class="w-auto h-12 aspect-[21/9] border border-bsecondary rounded group-hover:border-btertiary"
+                            class="w-auto h-12 aspect-[21/9] border border-bg-600 rounded group-hover:border-btertiary"
                             :class="{ 'object-cover': item.data?.banner }"
                           />
                         </template>
@@ -590,7 +590,7 @@ definePageMeta({
 
                           <template #footer>
                             <div
-                              class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
+                              class="transition cursor-pointer bg-bg-600 hover:bg-bg-400"
                               @click="
                                 openQuickView(planet.label, {
                                   type: 'planet',
@@ -663,7 +663,7 @@ definePageMeta({
 
                               <template #footer>
                                 <div
-                                  class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
+                                  class="transition cursor-pointer bg-bg-600 hover:bg-bg-400"
                                   @click="
                                     openQuickView(landing_zone.name, {
                                       type: 'landing_zone',
@@ -709,7 +709,7 @@ definePageMeta({
 
                               <template #footer>
                                 <div
-                                  class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
+                                  class="transition cursor-pointer bg-bg-600 hover:bg-bg-400"
                                   @click="
                                     openQuickView(
                                       `${moon.astronomical_designation}${moon.name ? ' - ' + moon.name : ''}`,
@@ -760,7 +760,7 @@ definePageMeta({
 
                               <template #footer>
                                 <div
-                                  class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
+                                  class="transition cursor-pointer bg-bg-600 hover:bg-bg-400"
                                   @click="
                                     openQuickView(station.name, {
                                       type: 'station',
@@ -830,7 +830,7 @@ definePageMeta({
 
                       <template #footer>
                         <div
-                          class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
+                          class="transition cursor-pointer bg-bg-600 hover:bg-bg-400"
                           @click="
                             openQuickView(
                               `Sprungpunkt zu: ${jumppoint.systems.find((e: any) => e.name !== data.name).name}`,
@@ -880,7 +880,7 @@ definePageMeta({
 
                       <template #footer>
                         <div
-                          class="transition cursor-pointer bg-bsecondary hover:bg-btertiary"
+                          class="transition cursor-pointer bg-bg-600 hover:bg-bg-400"
                           @click="
                             openQuickView(asteroid_belt.name, {
                               type: 'asteroid_belt',

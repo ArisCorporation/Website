@@ -333,21 +333,21 @@ const generatePdf = async () => {
             overflow-x: auto;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             background-clip: border-box;
-            border: 1px solid #222222; /* border-bsecondary */
+            border: 1px solid #222222; /* border-bg-600 */
           }
 
           th {
             padding: 1rem;
             border-bottom: 1px solid #444444; /* border-btertiary */
-            background-color: #111111; /* bg-bprimary */
+            background-color: #111111; /* bg-bg-800 */
           }
 
           tbody {
-            border: 1px solid #222222; /* border-bsecondary */
+            border: 1px solid #222222; /* border-bg-600 */
           }
 
           tr:nth-child(odd) {
-            background-color: #222222; /* odd:bg-bsecondary */
+            background-color: #222222; /* odd:bg-bg-600 */
           }
 
           table tr:last-child td:first-child {
@@ -568,7 +568,7 @@ useHead({
                 ) ?? 0,
             )"
             :key="member.id"
-            class="!bg-bprimary hover:!bg-bsecondary hover:cursor-pointer border border-btertiary"
+            class="!bg-bg-800 hover:!bg-bg-600 hover:cursor-pointer border border-btertiary"
             @click="selectMember('income', member)"
           >
             <td class="text-left border-r last:border-0 border-btertiary text-tbase/75">
@@ -630,7 +630,7 @@ useHead({
               :class="[
                 selectedTab === tab.id
                   ? 'shadow-[0_0px_30px_5px_rgba(228,134,50,0.3)] hover:shadow-[0_0px_50px_5px_rgba(228,134,50,0.3)] z-10 border-industrial-400 bg-industrial-400/50 hover:bg-industrial-400/25'
-                  : 'border-btertiary hover:bg-bsecondary/75',
+                  : 'border-btertiary hover:bg-bg-600/75',
               ]"
               @click="changeTab(tab.id)"
             >

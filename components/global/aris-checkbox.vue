@@ -21,8 +21,8 @@ const value = computed({
       :ui="{
         strategy: 'override',
         base: 'relative w-4 h-4 transition border-2 rounded appearance-none cursor-pointer border-0 disabled:opacity-50 disabled:cursor-not-allowed',
-        background: value ? ' bg-bsecondary' : 'bg-bprimary',
-        border: 'border border-bsecondary',
+        background: value ? ' bg-bg-600' : 'bg-bprimary',
+        border: 'border border-bg-600',
         ring: 'focus-within:ring-1 focus-within:ring-primary-400',
         form: '',
       }"

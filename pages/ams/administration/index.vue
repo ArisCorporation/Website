@@ -1438,7 +1438,7 @@ useHead({
         :schema="edit_schema"
         validate-on="submit"
       >
-        <div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
+        <div class="divide-y divide-bg-600 space-y-6 *:pt-6 first:*:pt-2 mb-6">
           <UFormGroup
             label="Vorname"
             name="first_name"
@@ -2258,7 +2258,7 @@ useHead({
             leave-from-class="h-[402px] md:h-[289px]"
             leave-to-class="h-0"
           >
-            <div v-if="edit_formdata.duty_state" class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-0 mb-6">
+            <div v-if="edit_formdata.duty_state" class="divide-y divide-bg-600 space-y-6 *:pt-6 first:*:pt-0 mb-6">
               <UFormGroup
                 :required="edit_formdata.duty_period"
                 label="Dienstzeitraum"
@@ -2401,10 +2401,7 @@ useHead({
             leave-from-class="h-[402px] md:h-[289px]"
             leave-to-class="h-0"
           >
-            <div
-              v-if="edit_formdata.education_state"
-              class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-0 mb-6"
-            >
+            <div v-if="edit_formdata.education_state" class="divide-y divide-bg-600 space-y-6 *:pt-6 first:*:pt-0 mb-6">
               <UFormGroup
                 :required="edit_formdata.education_name"
                 label="Ausbildung"
@@ -3408,7 +3405,7 @@ useHead({
         :schema="noti_schema"
         validate-on="submit"
       >
-        <div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
+        <div class="divide-y divide-bg-600 space-y-6 *:pt-6 first:*:pt-2 mb-6">
           <UFormGroup
             label="Kontakt Email"
             name="contact_email"
@@ -3556,7 +3553,7 @@ useHead({
         :schema="roles_schema"
         validate-on="submit"
       >
-        <div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
+        <div class="divide-y divide-bg-600 space-y-6 *:pt-6 first:*:pt-2 mb-6">
           <UFormGroup
             label="Abteilungsposition"
             name="head_of_department"
@@ -3760,7 +3757,7 @@ useHead({
       <h1 class="text-center">Verwaltungsdashboard</h1>
       <UTabs
         :items="[{ label: 'Home' }, { label: 'Verwaltungsübersicht' }, { label: 'Benutzer' }, { label: 'Hangars' }]"
-        :ui="{ list: { background: 'bg-bsecondary', marker: { background: 'bg-bprimary' } } }"
+        :ui="{ list: { background: 'bg-bg-600', marker: { background: 'bg-bprimary' } } }"
         :orientation="width > 1024 ? 'horizontal' : 'vertical'"
       >
         <template #item="{ item }">

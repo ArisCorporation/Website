@@ -18,17 +18,17 @@ defineProps({
   bg: {
     type: String,
     required: false,
-    default: 'secondary',
+    default: 'industrial-400',
   },
 });
 </script>
 
 <template>
   <DefaultPanel :panel-classes="panelClasses" :inner-classes="innerClasses" :bg="bg">
-    <div class="grid px-4 py-3 xl:grid-cols-4 bg-bprimary">
+    <div class="grid px-4 py-3 xl:grid-cols-4 bg-bg-800">
       <p
         v-if="title"
-        class="max-w-full col-span-4 p-0 uppercase break-words xl:col-start-1 xl:col-span-1 text-secondary hyphens-auto"
+        class="max-w-full col-span-4 p-0 uppercase break-words xl:col-start-1 xl:col-span-1 text-industrial-400 hyphens-auto"
         lang="de"
       >
         {{ title }}
@@ -39,8 +39,8 @@ defineProps({
         </div>
       </div>
     </div>
-    <!-- <div class="w-full px-4 py-3 xl:flex bg-bprimary">
-      <p v-if="title" class="w-full p-0 uppercase truncate xl:w-fit text-secondary">
+    <!-- <div class="w-full px-4 py-3 xl:flex bg-bg-800
+      <p v-if="title" class="w-full p-0 uppercase truncate xl:w-fit text-industrial-400">
         {{ title }}
       </p>
       <div class="w-full ml-auto xl:w-3/4">

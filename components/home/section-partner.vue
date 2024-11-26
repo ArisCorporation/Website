@@ -31,7 +31,7 @@ defineProps({
 						class="mx-auto animate-link"
 						width="225"
 					/>
-					<h3 class="text-center uppercase text-secondary animate-link">
+					<h3 class="text-center uppercase text-industrial-400 animate-link">
 						{{ partner.name }}
 					</h3>
 				</NuxtLink>

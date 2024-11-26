@@ -485,10 +485,10 @@ function onSelect(option: any) {
 }
 
 const ui = {
-  wrapper: 'flex flex-col flex-1 min-h-0 divide-y divide-gray-100 dark:divide-gray-800 bg-bprimary/75',
+  wrapper: 'flex flex-col flex-1 min-h-0 divide-y divide-gray-100 dark:divide-gray-800 bg-bg-800/75',
   group: {
     command: {
-      active: 'bg-btertiary/75 text-white',
+      active: 'bg-bg-400/75 text-white',
     },
   },
 };

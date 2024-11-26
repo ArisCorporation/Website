@@ -65,7 +65,7 @@ const props = defineProps({
         <div class="flex gap-x-6">
           <div class="flex w-1/2 mb-4 lg:mb-0">
             <DefaultPanel>
-              <div v-if="!department.head_of_department" class="absolute flex w-full h-full text-secondary">
+              <div v-if="!department.head_of_department" class="absolute flex w-full h-full text-industrial-400">
                 <span class="m-auto text-center">Diese Abteilungen hat noch keinen Abteilungsleiter gefunden</span>
               </div>
               <NuxtImg

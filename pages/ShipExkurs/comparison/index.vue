@@ -245,7 +245,7 @@ definePageMeta({
             </DefaultPanel>
           </NuxtLink>
           <div
-            class="peer-active:hidden absolute z-10 top-[7px] right-[7px] border-t-bsecondary border-r-bsecondary border-t-[20px] border-r-[20px] border-solid border-b-[20px] border-l-[20px] border-b-transparent border-l-transparent rounded-tr-2xl cursor-pointer"
+            class="peer-active:hidden absolute z-10 top-[7px] right-[7px] border-t-bg-600 border-r-bg-600 border-t-[20px] border-r-[20px] border-solid border-b-[20px] border-l-[20px] border-b-transparent border-l-transparent rounded-tr-2xl cursor-pointer"
           >
             <UTooltip text="Schiff entfernen" class="size-5 absolute m-auto left-[-2.5px] top-[-17px]">
               <button
@@ -261,7 +261,7 @@ definePageMeta({
     </div>
     <div v-if="selectedShips[0]" class="flex mt-2">
       <div
-        class="max-w-[20%] min-w-[300px] w-[300px] flex mr-7 -ml-1 rounded sticky left-[16rem] bg-bsecondary/90 backdrop-blur"
+        class="max-w-[20%] min-w-[300px] w-[300px] flex mr-7 -ml-1 rounded sticky left-[16rem] bg-bg-600/90 backdrop-blur"
       >
         <div class="px-2 my-auto font-black h-fit">Name:</div>
       </div>
@@ -272,7 +272,7 @@ definePageMeta({
           :to="`/shipexkurs/ships/${ship.slug}`"
           class="w-[400px] text-tbase animate-link"
         >
-          <div class="py-2 mx-1 font-semibold text-center rounded bg-bsecondary/90">
+          <div class="py-2 mx-1 font-semibold text-center rounded bg-bg-600/90">
             {{ ship.name }}
           </div>
         </NuxtLink>
@@ -280,19 +280,19 @@ definePageMeta({
     </div>
     <div v-for="(rowgroup, index) in rowgroups" v-if="selectedShips[0]" :key="rowgroup.name">
       <div v-if="rowgroup.name" class="flex items-center -ml-2">
-        <h3 class="inline-block m-0 font-semibold sticky left-[16rem] bg-bprimary pr-2">{{ rowgroup.name }}</h3>
+        <h3 class="inline-block m-0 font-semibold sticky left-[16rem] bg-bg-800 pr-2">{{ rowgroup.name }}</h3>
         <TableHr class="w-full" />
       </div>
       <!-- group -->
       <div v-for="row in rows[index]" v-if="selectedShips[0]" :key="row.name" class="flex mt-2">
         <div
-          class="max-w-[20%] min-w-[300px] w-[300px] flex mr-6 sticky left-[16rem] group-odd:bg-bprimary/60 group-even:bg-bsecondary/60 backdrop-blur opacity-100 rounded animate-link"
+          class="max-w-[20%] min-w-[300px] w-[300px] flex mr-6 sticky left-[16rem] group-odd:bg-bg-8000 group-even:bg-bg-600/60 backdrop-blur opacity-100 rounded animate-link"
         >
           <div class="px-2 my-auto h-fit">{{ row.name }}:</div>
         </div>
         <div class="flex space-x-4">
           <div v-for="ship in selectedShips" :key="ship.id" class="w-[400px] text-tbase animate-link">
-            <div class="py-2 mx-1 text-center rounded group-even:bg-bsecondary/60">
+            <div class="py-2 mx-1 text-center rounded group-even:bg-bg-600/60">
               {{
                 getNestedValue(ship, row.property)
                   ? `

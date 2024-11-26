@@ -488,7 +488,7 @@ useHead({
             :exit="{ opacity: 0 }"
             class="mx-auto"
           >
-            <h2 class="text-center text-secondary">
+            <h2 class="text-center text-industrial-400">
               Es gibt keine Schiffe der ArisCorp-Flotte, die deinen Filterkriterien entsprechen...
             </h2>
           </div>

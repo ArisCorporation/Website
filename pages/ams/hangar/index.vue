@@ -1054,7 +1054,7 @@ useHead({
             size="xl"
             :ui-menu="{
               container: 'z-50 group',
-              ring: 'ring-1 ring-bprimary',
+              ring: 'ring-1 ring-bg-800',
             }"
           >
             <template #label>
@@ -1223,7 +1223,7 @@ useHead({
                 {
                   value: 'private',
                   label: 'Privat',
-                  color: 'secondary',
+                  color: 'industrial-400',
                 },
                 {
                   value: 'ariscorp',
@@ -1329,7 +1329,7 @@ useHead({
                 {
                   value: 'hidden',
                   label: 'Versteckt',
-                  color: 'secondary',
+                  color: 'industrial-400',
                 },
               ]"
             />
@@ -1347,7 +1347,7 @@ useHead({
                       <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen Biografie
                       & Hangar
                     </p>
-                    <p><span class="text-secondary">Versteckt</span>: In deinem privaten Hangar</p>
+                    <p><span class="text-industrial-400">Versteckt</span>: In deinem privaten Hangar</p>
                   </div>
                 </template>
               </UPopover>
@@ -1415,7 +1415,7 @@ useHead({
                 {
                   value: true,
                   label: 'Geplant',
-                  color: 'secondary',
+                  color: 'industrial-400',
                 },
               ]"
             />
@@ -1483,7 +1483,7 @@ useHead({
                     {
                       value: 'private',
                       label: 'Privat',
-                      color: 'secondary',
+                      color: 'industrial-400',
                     },
                     {
                       value: 'ariscorp',
@@ -1586,7 +1586,7 @@ useHead({
                     {
                       value: 'hidden',
                       label: 'Versteckt',
-                      color: 'secondary',
+                      color: 'industrial-400',
                     },
                   ]"
                 />
@@ -1605,7 +1605,7 @@ useHead({
                           <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
                           Biografie & Hangar
                         </p>
-                        <p><span class="text-secondary">Versteckt</span>: In deinem privaten Hangar</p>
+                        <p><span class="text-industrial-400">Versteckt</span>: In deinem privaten Hangar</p>
                       </div>
                     </template>
                   </UPopover>
@@ -1716,7 +1716,7 @@ useHead({
                     {
                       value: true,
                       label: 'Geplant',
-                      color: 'secondary',
+                      color: 'industrial-400',
                     },
                   ]"
                 />
@@ -1937,7 +1937,7 @@ useHead({
                   :exit="{ opacity: 0 }"
                   class="mx-auto"
                 >
-                  <h2 class="text-center text-secondary">
+                  <h2 class="text-center text-industrial-400">
                     Es gibt keine Schiffe in deinem Hangar, die deinen Filterkriterien entsprechen...
                   </h2>
                 </div>
@@ -1984,7 +1984,7 @@ useHead({
                 key="errorMsg"
                 class="mx-auto"
               >
-                <h2 class="text-center text-secondary">
+                <h2 class="text-center text-industrial-400">
                   Anscheinend hast du noch keine Schiffe auf deiner Wunschliste!
                 </h2>
               </div>
@@ -2042,7 +2042,7 @@ useHead({
             :exit="{ opacity: 0 }"
             class="mx-auto"
           >
-            <h2 class="text-center text-secondary">
+            <h2 class="text-center text-industrial-400">
               Es gibt keine Schiffe dem Hangar von {{ user.full_name }}, die deinen Filterkriterien entsprechen...
             </h2>
           </div>
@@ -2057,7 +2057,7 @@ useHead({
           key="errorMsg"
           class="mx-auto"
         >
-          <h2 class="text-center text-secondary">
+          <h2 class="text-center text-industrial-400">
             Es gibt keine Schiffe in der ArisCorp-Flotte die deinen Kriterien entsprechen.
           </h2>
         </Motion>
@@ -2071,7 +2071,7 @@ useHead({
         :exit="{ opacity: 0 }"
         class="mx-auto"
       >
-        <h2 class="text-center text-secondary">Ganz schön leer hier...</h2>
+        <h2 class="text-center text-industrial-400">Ganz schön leer hier...</h2>
       </div>
       <!-- <Motion
           v-if="!currentHangar[0]"
@@ -2081,7 +2081,7 @@ useHead({
           key="errorMsg"
           class="mx-auto"
         >
-          <h2 class="text-center text-secondary">Ganz schön leer hier...</h2>
+          <h2 class="text-center text-industrial-400">Ganz schön leer hier...</h2>
         </Motion> -->
       <!-- </Presence> -->
     </div>
@@ -2090,19 +2090,19 @@ useHead({
 
 <style lang="postcss">
 .shepherd-button {
-  @apply relative inline-block after:absolute after:bg-btertiary after:left-4 after:right-4 before:absolute before:bg-btertiary before:box-border before:left-4 before:right-4 bg-bprimary text-tbase p-2 rounded-[10px] border-2 after:h-0.5 before:h-0.5 before:-top-0.5 after:-bottom-0.5 cursor-pointer border-green-600 animate-link;
+  @apply relative inline-block after:absolute after:bg-bg-400 after:left-4 after:right-4 before:absolute before:bg-bg-400 before:box-border before:left-4 before:right-4 bg-bg-800 text-tbase p-2 rounded-[10px] border-2 after:h-0.5 before:h-0.5 before:-top-0.5 after:-bottom-0.5 cursor-pointer border-green-600 animate-link;
 }
 
 .shepherd-button:not(:disabled):hover {
-  @apply bg-bsecondary;
+  @apply bg-bg-600;
 }
 
-.shepherd-button.shepherd-button-secondary {
+.shepherd-button.shepherd-button-industrial-400 {
   @apply border-red-600;
 }
 
-.shepherd-button.shepherd-button-secondary:not(:disabled):hover {
-  @apply bg-bsecondary;
+.shepherd-button.shepherd-button-industrial-400:not(:disabled):hover {
+  @apply bg-bg-600;
 }
 
 .shepherd-button:disabled {
@@ -2162,7 +2162,7 @@ useHead({
 }
 
 .shepherd-element {
-  @apply bg-bsecondary rounded max-w-[400px] opacity-0 outline-none transition-opacity duration-300 invisible w-full z-[9999] [box-shadow:_0_1px_4px_rgba(0,_0,_0,_0.2)] border border-btertiary;
+  @apply bg-bg-600 rounded max-w-[400px] opacity-0 outline-none transition-opacity duration-300 invisible w-full z-[9999] [box-shadow:_0_1px_4px_rgba(0,_0,_0,_0.2)] border border-btertiary;
 }
 
 .shepherd-enabled.shepherd-element {
@@ -2186,7 +2186,7 @@ useHead({
 }
 
 .shepherd-arrow:before {
-  @apply bg-bsecondary rotate-45 content-[''];
+  @apply bg-bg-600 rotate-45 content-[''];
 }
 
 .shepherd-element[data-popper-placement='top'] .shepherd-arrow:before {

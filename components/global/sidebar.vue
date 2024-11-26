@@ -36,7 +36,7 @@ defineProps({
   <button
     aria-controls="default-sidebar"
     type="button"
-    class="fixed z-40 inline-flex items-center p-2 mt-2 text-sm rounded-lg text-tbase hover:text-bprimary w-fit ms-3 lg:hidden focus:outline-none focus:ring-0 hover:bg-tbase"
+    class="fixed z-40 inline-flex items-center p-2 mt-2 text-sm rounded-lg text-tbase hover:text-bg-800 w-fit ms-3 lg:hidden focus:outline-none focus:ring-0 hover:bg-tbase"
     @click="SidebarStore.toggleMobileSidebar"
   >
     <span class="sr-only">Open sidebar</span>
@@ -54,13 +54,13 @@ defineProps({
     :class="{ '-translate-x-full': !SidebarStore.MobileSidebar }"
     aria-label="Sidebar"
   >
-    <div class="relative h-full pb-4 overflow-y-auto bg-bsecondary">
+    <div class="relative h-full pb-4 overflow-y-auto bg-bg-600">
       <div class="flex w-full px-4">
         <Icon :name="banner" class="w-3/4 px-4 mx-auto -mt-0.5 -mb-0.5 h-auto" />
       </div>
       <ul class="p-0 font-medium list-none basis-full">
         <li v-for="(item, i) in sidebarItems" :key="i" class="pb-0">
-          <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
+          <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bg-800efore:transition-default" -->
           <NuxtLink
             v-if="permissionControl ? user.position.access_level >= item.level : true"
             :to="baseUrl + item.link"
@@ -101,7 +101,7 @@ defineProps({
       </ul>
       <ul class="absolute bottom-0 p-0 mt-auto space-y-2 font-medium list-none basis-full">
         <li v-for="(item, i) in userSidebarItems" :key="i" class="pb-0">
-          <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bprimary before:transition-default" -->
+          <!-- class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline group hover:bg-bg-800efore:transition-default" -->
           <NuxtLink
             v-if="item.link"
             :to="baseUrl + item.link"

@@ -228,7 +228,7 @@ definePageMeta({
           ]"
         >
           <template #default="{ item, index, open }">
-            <h4 class="flex p-1 m-0 my-2 border rounded cursor-pointer bg-bsecondary border-btertiary animate-link">
+            <h4 class="flex p-1 m-0 my-2 border rounded cursor-pointer bg-bg-600 border-btertiary animate-link">
               <span class="pl-1">
                 {{ item.label }} <span class="text-primary-400">{{ data.name }}</span>
               </span>

@@ -6,7 +6,7 @@
         <div class="absolute w-full h-full bg-black opacity-60" />
         <div class="relative text-center mt-14 sm:mt-10 md:mt-0">
           <h1 class="mb-0 text-lg text-white md:mb-6 sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl">
-            Willkommen <span class="text-secondary">bei der</span>
+            Willkommen <span class="text-industrial-400">bei der</span>
           </h1>
           <NuxtImg
             src="62eb0e48-6a0e-432f-b90d-fbd6aca6eaac"

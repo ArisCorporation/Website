@@ -13,7 +13,7 @@ defineProps({
 			<h1><span class="text-primary-400">ArisCorp</span> Comm-Link</h1>
 			<NuxtLink
 				to="/comm-link"
-				class="mt-auto ml-auto text-tbase hover:text-secondary animate-link hover:brightness-85"
+				class="mt-auto ml-auto text-tbase hover:text-industrial-400 animate-link hover:brightness-85"
 			>Alle Comm-Links</NuxtLink>
 		</div>
 		<hr class="mt-0">

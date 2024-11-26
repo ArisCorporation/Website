@@ -12,7 +12,7 @@
       <template #ship>
         <div>
           <div>
-            <DefaultPanel bg="bg-bprimary">
+            <DefaultPanel bg="bg-bg-800">
               <div class="p-4">
                 <svg
                   id="TechCarrack"
@@ -29,7 +29,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == 'c5fba33f-9cdc-42b2-b601-6e7e6f59621b'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="setSelectedTech('c5fba33f-9cdc-42b2-b601-6e7e6f59621b')"
@@ -60,7 +60,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == 'e1c5e831-534e-473b-856b-bb8ba33655ac'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('e1c5e831-534e-473b-856b-bb8ba33655ac')"
@@ -99,7 +99,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == '07ff69e2-31b4-4fe6-ad09-3719a659aa51'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('07ff69e2-31b4-4fe6-ad09-3719a659aa51')"
@@ -227,7 +227,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == '744474da-0797-4959-bb75-40edc134a607'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @click="() => router.push('/verseexkurs/technology/lebenserhaltungssysteme')"
@@ -254,7 +254,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == '165f1bde-3678-4f85-bb8b-0e4c5e20e67f'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('165f1bde-3678-4f85-bb8b-0e4c5e20e67f')"
@@ -281,7 +281,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == '1c44c62a-e1f6-4dfb-a907-90de864dde29'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('1c44c62a-e1f6-4dfb-a907-90de864dde29')"
@@ -310,7 +310,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == '41db2450-c335-4bfb-bdc3-c21ca8c934e7'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('41db2450-c335-4bfb-bdc3-c21ca8c934e7')"
@@ -337,7 +337,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == 'ac4583c6-8df9-4faf-97c6-0881eedf3afe'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('ac4583c6-8df9-4faf-97c6-0881eedf3afe')"
@@ -368,7 +368,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == '94cb2026-4b08-4f4e-b5cf-8a24574cf576'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('94cb2026-4b08-4f4e-b5cf-8a24574cf576')"
@@ -403,7 +403,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == '691372da-bca6-4ca9-9bb8-2c7ddb28d928'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('691372da-bca6-4ca9-9bb8-2c7ddb28d928')"
@@ -502,7 +502,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == '63d432e4-eafa-4ea1-9870-4610dd74d087'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('63d432e4-eafa-4ea1-9870-4610dd74d087')"
@@ -550,7 +550,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == '5f235080-66a5-4ea5-970a-9c3aa83dbc69'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('5f235080-66a5-4ea5-970a-9c3aa83dbc69')"
@@ -571,7 +571,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == '39efc5e7-0113-4fe3-9fb7-c4776fdd0786'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @mouseover="() => setSelectedTech('39efc5e7-0113-4fe3-9fb7-c4776fdd0786')"
@@ -609,7 +609,7 @@
                     class="transition-colors hover:cursor-pointer"
                     :class="[
                       selectedTech == 'bb58aaab-a6e0-4f9c-b9d1-0880cb985543'
-                        ? 'fill-primary/70 duration-200'
+                        ? 'fill-aris-400/70 duration-200'
                         : 'fill-transparent duration-300',
                     ]"
                     @click="() => router.push('/verseexkurs/technology/drohnensysteme', undefined, { scroll: false })"
@@ -711,7 +711,7 @@
         <div>
           <div class="flex flex-wrap">
             <div class="w-full px-2 lg:w-1/3">
-              <DefaultPanel bg="bg-bprimary">
+              <DefaultPanel bg="bg-bg-800">
                 <div class="p-4">
                   <svg
                     id="TechHuman"
@@ -957,9 +957,9 @@
                   <NuxtImg src="3ba7bb79-a9f8-4e8a-9d6e-4e14616695ca" />
                 </NuxtLink> -->
               </div>
+              </div>
             </div>
           </div>
-        </div>
       </template>
     </TabGroup>
   </div>

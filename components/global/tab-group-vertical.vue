@@ -27,7 +27,7 @@ const changeTab = (index: number) => {
           <HeadlessTab v-for="tab in tablist" v-slot="{ selected }" :key="tab.header" as="template">
             <li
               class="flex justify-between w-full p-2 my-2 ml-0 space-x-4 list-none rounded-lg focus-visible:outline-none hover:cursor-pointer"
-              :class="{ 'text-secondary': selected, 'opacity-75 hover:text-white': !selected }"
+              :class="{ 'text-industrial-400': selected, 'opacity-75 hover:text-white': !selected }"
             >
               <span>{{ tab.header }}</span>
               <span class="hidden my-auto text-sm sm:block">{{ tab.date }}</span>

@@ -349,7 +349,7 @@ definePageMeta({
 <template>
   <div>
     <UForm ref="form" :schema="schema" :state="formdata" validate-on="submit" @submit="onSubmit">
-      <div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
+      <div class="divide-y divide-bg-600 space-y-6 *:pt-6 first:*:pt-2 mb-6">
         <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
           <div class="flex items-center gap-1.5">
             <div>
@@ -1038,7 +1038,7 @@ definePageMeta({
           leave-from-class="h-[402px] md:h-[289px]"
           leave-to-class="h-0"
         >
-          <div v-if="formdata.duty_state" class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-0 mb-6">
+          <div v-if="formdata.duty_state" class="divide-y divide-bg-600 space-y-6 *:pt-6 first:*:pt-0 mb-6">
             <UFormGroup
               :required="formdata.duty_period"
               label="Dienstzeitraum"
@@ -1145,7 +1145,7 @@ definePageMeta({
           leave-from-class="h-[402px] md:h-[289px]"
           leave-to-class="h-0"
         >
-          <div v-if="formdata.education_state" class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-0 mb-6">
+          <div v-if="formdata.education_state" class="divide-y divide-bg-600 space-y-6 *:pt-6 first:*:pt-0 mb-6">
             <UFormGroup
               :required="formdata.education_name"
               label="Ausbildung"

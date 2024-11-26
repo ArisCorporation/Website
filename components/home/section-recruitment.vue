@@ -19,11 +19,11 @@ const modalStore = useModalStore();
     <p>
       Falls du nun Interesse hast dich bei uns zu bewerben, dann kannst du das ganz einfach über unseren Discord machen.
     </p>
-    <div class="w-full py-12 mt-8 text-center border-l border-l-secondary bg-black/40 px-9">
-      <h3 class="text-secondary">Mitglied werden</h3>
+    <div class="w-full py-12 mt-8 text-center border-l border-l-industrial-400 bg-black/40 px-9">
+      <h3 class="text-industrial-400">Mitglied werden</h3>
       <p>Für weitere Informationen klicke einfach auf:</p>
       <ButtonDefault
-        color="secondary"
+        color="industrial-400"
         type="button"
         class="mt-2"
         @click="modalStore.openModal('', { hideCloseButton: true, hideXButton: true })"
@@ -35,7 +35,7 @@ const modalStore = useModalStore();
       <template #content="{ close }">
         <div class="text-left">
           <div>
-            <h3 class="text-secondary">Bewerben:</h3>
+            <h3 class="text-industrial-400">Bewerben:</h3>
             <hr />
           </div>
           <div>
@@ -71,14 +71,14 @@ const modalStore = useModalStore();
             <ButtonDefault class="w-full mt-4 sm:my-auto sm:w-fit h-fit" @click="close"> Schließen </ButtonDefault>
             <div class="flex justify-center mx-auto space-x-12">
               <NuxtLink
-                class="p-2 my-auto transition rounded bg-bsecondary hover:brightness-85 animate-link"
+                class="p-2 my-auto transition rounded bg-bg-600 hover:brightness-85 animate-link"
                 :to="data.dcLink"
                 target="_blank"
               >
                 <NuxtImg src="90d5157b-2d6e-4ce2-af5a-9bf59343ec66" :placeholder="[16, 16, 1, 5]" width="125" />
               </NuxtLink>
               <NuxtLink
-                class="p-2 my-auto transition rounded bg-bsecondary hover:brightness-85 animate-link"
+                class="p-2 my-auto transition rounded bg-bg-600 hover:brightness-85 animate-link"
                 to="https://robertsspaceindustries.com/orgs/ARISCORP"
                 target="_blank"
               >

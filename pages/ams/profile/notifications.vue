@@ -92,7 +92,7 @@ definePageMeta({
 <template>
   <div>
     <UForm :ref="form" :schema="schema" :state="formdata" validate-on="submit" @submit="onSubmit">
-      <div class="divide-y divide-bsecondary space-y-6 *:pt-6 first:*:pt-2 mb-6">
+      <div class="divide-y divide-bg-600 space-y-6 *:pt-6 first:*:pt-2 mb-6">
         <div class="flex items-center justify-between gap-4 mt-4">
           <div class="flex flex-wrap items-center gap-1.5">
             <div>

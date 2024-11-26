@@ -472,7 +472,7 @@ useHead({
                   leave-to-class="opacity-0"
                 >
                   <div v-if="!data.hangar[0]" class="mx-auto">
-                    <h2 class="text-center text-secondary">Der Hangar von {{ data.full_name }} ist leer.</h2>
+                    <h2 class="text-center text-industrial-400">Der Hangar von {{ data.full_name }} ist leer.</h2>
                   </div>
                 </Transition>
               </ClientOnly>
