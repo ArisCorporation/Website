@@ -117,7 +117,7 @@ definePageMeta({
     </template>
     <VerseExkursBaseArticle banner="f82676ac-eaf8-40e1-aab2-d455f5ad9f48">
       <template #title>
-        <span class="text-primary">Fauna</span>
+        <span class="text-aris-400">Fauna</span>
       </template>
       <h4>Dieses Biestarium ist nur ein kleiner Teil der Tierwelt im Verse und wird noch erweitert !</h4>
       <hr />

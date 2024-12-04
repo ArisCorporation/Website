@@ -6,31 +6,31 @@ export default defineAppConfig({
     notification: {
       position: 'top-0 bottom-auto',
       title: 'text-white',
-      background: 'bg-bprimary',
+      background: 'bg-bg-800',
       ring: 'ring-2 ring-bsecondary',
     },
     selectMenu: {
       container: 'z-30 group',
-      background: 'bg-bprimary',
+      background: 'bg-bg-800',
       ring: 'ring-1 ring-bsecondary',
       option: {
         base: 'cursor-pointer select-none relative flex items-center justify-between gap-1',
-        active: 'bg-bsecondary',
+        active: 'bg-bg-600',
       },
       input:
-        'block w-[calc(100%+0.5rem)] focus:ring-transparent text-sm px-3 py-1.5 bg-bsecondary border-0 border-b border-b-primary border-gray-200 focus:border-inherit sticky -top-1 -mt-1 mb-1 -mx-1 z-10 placeholder-gray-400 focus:outline-none',
+        'block w-[calc(100%+0.5rem)] focus:ring-transparent text-sm px-3 py-1.5 bg-bg-600 border-0 border-b border-b-primary border-gray-200 focus:border-inherit sticky -top-1 -mt-1 mb-1 -mx-1 z-10 placeholder-gray-400 focus:outline-none',
     },
     select: {
       color: {
         white: {
-          outline: 'bg-bprimary shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary-400',
+          outline: 'bg-bg-800 shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary-400',
         },
       },
     },
     input: {
       color: {
         white: {
-          outline: 'bg-bprimary shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary-400',
+          outline: 'bg-bg-800 shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary-400',
         },
       },
       size: {
@@ -76,7 +76,7 @@ export default defineAppConfig({
     textarea: {
       color: {
         white: {
-          outline: 'bg-bprimary shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary-400',
+          outline: 'bg-bg-800 shadow-sm ring-1 ring-inset ring-bsecondary focus:ring-2 focus:ring-primary-400',
         },
       },
     },
@@ -97,22 +97,22 @@ export default defineAppConfig({
       color: {
         table: {
           ghost:
-            'text-white hover:bg-bsecondary hover:text-secondary font-medium focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-primary-400',
+            'text-white hover:bg-bg-600 hover:text-secondary font-medium focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-primary-400',
         },
         contextmenu: {
           ghost:
-            'text-white hover:bg-bsecondary hover:text-primary font-medium focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-primary-400',
+            'text-white hover:bg-bg-600 hover:text-primary font-medium focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-primary-400',
         },
         'accordion-gray': {
           outline:
-            'ring-1 ring-inset ring-btertiary/50 text-white hover:bg-bsecondary disabled:bg-transparent focus-visible:ring-2 focus-visible:ring-btertiary',
+            'ring-1 ring-inset ring-btertiary/50 text-white hover:bg-bg-600 disabled:bg-transparent focus-visible:ring-2 focus-visible:ring-btertiary',
         },
         inverted: {
           solid:
-            'shadow-sm ring-1 ring-inset ring-btertiary text-aris-400 bg-bsecondary hover:bg-gray-800/50 disabled:bg-gray-900 focus-visible:ring-2 focus-visible:ring-primary-400',
+            'shadow-sm ring-1 ring-inset ring-btertiary text-aris-400 bg-bg-600 hover:bg-gray-800/50 disabled:bg-gray-900 focus-visible:ring-2 focus-visible:ring-primary-400',
         },
         gray: {
-          soft: 'text-tbase bg-bsecondary disabled:bg-bprimary hover:bg-btertiary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-btertiary',
+          soft: 'text-tbase bg-bg-600 disabled:bg-bg-800 hover:bg-bg-400 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-btertiary',
         },
       },
       padding: {
@@ -128,12 +128,12 @@ export default defineAppConfig({
       },
     },
     popover: {
-      background: 'bg-bsecondary',
+      background: 'bg-bg-600',
       ring: 'ring-1 ring-btertiary',
     },
     slideover: {
       base: 'relative flex-1 flex flex-col w-full focus:outline-none',
-      background: 'bg-bprimary',
+      background: 'bg-bg-800',
       width: 'w-screen max-w-[532px] xl:max-w-2xl',
       overlay: {
         background: 'bg-black/50',
@@ -142,7 +142,7 @@ export default defineAppConfig({
     card: {
       base: 'flex flex-col',
       body: { base: 'flex-1 overflow-auto' },
-      background: 'bg-bprimary',
+      background: 'bg-bg-800',
       ring: 'ring-1 ring-btertiary',
       divide: 'divide-y divide-btertiary',
       rounded: 'rounded-lg overflow-clip',
@@ -151,7 +151,7 @@ export default defineAppConfig({
       divide: 'divide-y divide-btertiary',
       tbody: 'divide-y divide-btertiary',
       tr: {
-        selected: 'bg-bsecondary',
+        selected: 'bg-bg-600',
         active: 'hover:bg-gray-800/50 cursor-pointer',
       },
       th: {
@@ -182,28 +182,28 @@ export default defineAppConfig({
     pagination: {
       default: {
         inactiveButton: {
-          class: '!bg-bsecondary',
+          class: '!bg-bg-600',
         },
         firstButton: {
-          class: '!bg-bsecondary',
+          class: '!bg-bg-600',
         },
         lastButton: {
-          class: '!bg-bsecondary',
+          class: '!bg-bg-600',
         },
         prevButton: {
-          class: '!bg-btertiary',
+          class: '!bg-bg-400',
         },
         nextButton: {
-          class: '!bg-btertiary',
+          class: '!bg-bg-400',
         },
       },
     },
     dropdown: {
-      background: 'bg-bprimary',
+      background: 'bg-bg-800',
       ring: 'ring-1 ring-btertiary',
       divide: 'divide-y divide-btertiary',
       item: {
-        active: 'bg-bsecondary text-white',
+        active: 'bg-bg-600 text-white',
       },
     },
     horizontalNavigation: {

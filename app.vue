@@ -285,14 +285,14 @@ console.log(` CLI  (ascii-image-converter)
 </script>
 
 <template>
-  <div>
-    <NuxtLoadingIndicator />
+  <UApp>
+    <!-- <NuxtLoadingIndicator />
     <UNotifications />
-    <CommandPalette />
+    <CommandPalette /> -->
     <main>
       <NuxtLayout>
         <NuxtPage />
       </NuxtLayout>
     </main>
-  </div>
+  </UApp>
 </template>

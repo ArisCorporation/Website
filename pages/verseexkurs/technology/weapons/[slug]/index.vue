@@ -76,7 +76,7 @@ useHead({
     <div class="flex flex-wrap-reverse justify-between">
       <div class="mt-auto">
         <h1 class="mb-0 text-industrial-400">
-          <span class="text-tbase">{{ data.manufacturer.name }}</span> {{ data.name }}
+          <span class="text-neutral-200">{{ data.manufacturer.name }}</span> {{ data.name }}
         </h1>
       </div>
       <div class="ml-auto">
@@ -206,7 +206,7 @@ useHead({
                   ]"
                   :key="distance"
                 >
-                  <td v-if="data.statistics?.some((e) => e[distance])" class="px-2 text-center text-primary">
+                  <td v-if="data.statistics?.some((e) => e[distance])" class="px-2 text-center text-aris-400">
                     {{ data.statistics?.find((e) => e.property === stat)?.[distance] }}
                   </td>
                 </template>

@@ -47,14 +47,14 @@ definePageMeta({
           <ButtonDefault
             v-if="data.chapter > 1"
             :to="`/verseexkurs/literature/${data.category.slug}/${data.chapter - 1}`"
-            class="mr-auto text-tbase"
+            class="mr-auto text-neutral-200"
           >
             Zurück zu Teil: {{ data.chapter - 1 }}
           </ButtonDefault>
           <ButtonDefault
             v-if="data.chapter < data.category.books.length"
             :to="`/verseexkurs/literature/${data.category.slug}/${data.chapter + 1}`"
-            class="ml-auto text-tbase"
+            class="ml-auto text-neutral-200"
           >
             Weiter zu Teil: {{ data.chapter + 1 }}
           </ButtonDefault>
@@ -64,14 +64,14 @@ definePageMeta({
           <ButtonDefault
             v-if="data.chapter > 1"
             :to="`/verseexkurs/literature/${data.category.slug}/${data.chapter - 1}`"
-            class="mr-auto text-tbase"
+            class="mr-auto text-neutral-200"
           >
             Zurück zu Teil: {{ data.chapter - 1 }}
           </ButtonDefault>
           <ButtonDefault
             v-if="data.chapter < data.category.books.length"
             :to="`/verseexkurs/literature/${data.category.slug}/${data.chapter + 1}`"
-            class="ml-auto text-tbase"
+            class="ml-auto text-neutral-200"
           >
             Weiter zu Teil: {{ data.chapter + 1 }}
           </ButtonDefault>

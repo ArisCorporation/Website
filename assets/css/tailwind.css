@@ -6,6 +6,8 @@
 @source "../../components/**/*.vue";
 
 @theme {
+  --default-font-family: 'Orbitron', sans-serif;
+
   --color-aris-50: #edfffd;
   --color-aris-100: #c0fffa;
   --color-aris-200: #81fff7;
@@ -196,6 +198,10 @@
 
   hr {
     @apply bg-industrial-400 h-[2px] w-full my-5 border-none;
+  }
+
+  .navbar-icon {
+    @apply fill-transparent group-hover:stroke-[60] stroke-[50] group-hover:stroke-aris-400 group-hover:opacity-100 opacity-75 stroke-neutral-200;
   }
 
   /* button {

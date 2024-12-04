@@ -33,7 +33,7 @@ defineShortcuts({
 <template>
 	<div>
 		<div class="text-center">
-			<h1 class="text-primary-400">
+			<h1 class="text-aris-400">
 				Flotte der ArisCorp
 			</h1>
 			<p>
@@ -84,7 +84,7 @@ defineShortcuts({
 			</template>
 			<template #tabcontent>
 				<HeadlessTabPanel class="px-4">
-					<h2 class="relative mx-auto my-4 text-center w-fit text-primary-400 group">
+					<h2 class="relative mx-auto my-4 text-center w-fit text-aris-4000 group">
 						Alle
 						<Icon
 							name="ion:ios-copy-outline"
@@ -142,7 +142,7 @@ defineShortcuts({
 					:key="department.id"
 					class="px-4"
 				>
-					<h2 class="relative mx-auto my-4 text-center w-fit text-primary-400 group">
+					<h2 class="relative mx-auto my-4 text-center w-fit text-aris-4000 group">
 						{{ department.name }}
 						<Icon
 							name="ion:ios-copy-outline"

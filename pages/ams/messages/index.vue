@@ -260,7 +260,7 @@ definePageMeta({
           <div class="flex flex-col flex-1 p-0 overflow-y-auto border-l border-bg-600">
             <div v-for="(chat, index) in chats" :key="chat.id">
               <div
-                class="p-4 text-sm border-l-2 cursor-pointer text-tbase"
+                class="p-4 text-sm border-l-2 cursor-pointer text-neutral-200"
                 :class="[
                   selected_chat?.id === chat?.id
                     ? 'bg-aris-900/25 border-aris-400'
@@ -365,7 +365,7 @@ definePageMeta({
                       name="i-svg-spinners-3-dots-scale"
                       class="my-auto ml-auto size-[16px]"
                     />
-                    <span v-else class="mt-auto ml-auto text-xs text-tbase/75">
+                    <span v-else class="mt-auto ml-auto text-xs text-neutral-200/75">
                       {{
                         new Date(message.date_created).getDate() !== new Date().getDate()
                           ? new Date(message.date_created).toLocaleDateString() + ' '
@@ -383,7 +383,7 @@ definePageMeta({
             <!-- <div class="flex-1 overflow-y-auto">
             <div>
               <div
-                class="p-4 text-sm border-l-2 border-transparent cursor-pointer text-tbase hover:border-aris-400/25 hover:bg-aris-900/10"
+                class="p-4 text-sm border-l-2 border-transparent cursor-pointer text-neutral-200 hover:border-aris-400/25 hover:bg-aris-900/10"
               >
                 <div class="flex items-center justify-between">
                   <div class="flex items-stretch min-w-0 gap-3">
@@ -493,7 +493,7 @@ definePageMeta({
               </div>
               <span class="break-all whitespace-pre-wrap" v-html="message.text" />
               <span class="flex w-full pt-1 text-xs">
-                <span class="mt-auto ml-auto text-xs text-tbase/75"
+                <span class="mt-auto ml-auto text-xs text-neutral-200/75"
                   >{{
                     new Date(message.date_created).getDate() !== new Date().getDate()
                       ? new Date(message.date_created).toLocaleDateString() + ' '
@@ -517,7 +517,7 @@ definePageMeta({
               </div>
               <span class="break-all whitespace-pre-wrap" v-html="message.text" />
               <span class="flex w-full pt-1 text-xs">
-                <span class="mt-auto ml-auto text-xs text-tbase/75"
+                <span class="mt-auto ml-auto text-xs text-neutral-200/75"
                   >{{
                     new Date(message.date_created).getDate() !== new Date().getDate()
                       ? new Date(message.date_created).toLocaleDateString() + ' '

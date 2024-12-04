@@ -354,7 +354,7 @@ definePageMeta({
           <div class="flex items-center gap-1.5">
             <div>
               <p class="p-0 font-semibold text-white">Profil</p>
-              <p class="p-0 mt-1 text-sm text-tbase/50">
+              <p class="p-0 mt-1 text-sm text-neutral-200/50">
                 In deinem Profil geht es um einen rein fiktiven Charakter den du spielst.
               </p>
             </div>
@@ -370,7 +370,7 @@ definePageMeta({
           <div v-if="form?.errors?.length" class="flex items-center gap-1.5 basis-full">
             <div>
               <p class="p-0 font-semibold text-red-600">Fehler</p>
-              <p class="p-0 mt-1 text-sm text-tbase">
+              <p class="p-0 mt-1 text-sm text-neutral-200">
                 Du kannst nicht speichern, da {{ form?.errors?.length > 1 ? 'mehrere Felder' : 'ein Feld' }} nicht
                 korrekt ausgefüllt {{ form?.errors?.length > 1 ? 'sind' : 'ist' }}, oder noch ausgefüllt werden
                 {{ form?.errors?.length > 1 ? 'müssen' : 'muss' }}.
@@ -651,7 +651,7 @@ definePageMeta({
           <div class="flex items-start gap-4">
             <div>
               <p class="p-0 font-semibold dark:text-white">Grundlegende Informationen</p>
-              <p class="p-0 mt-1 text-sm text-tbase/50">
+              <p class="p-0 mt-1 text-sm text-neutral-200/50">
                 Hier kannst du grundlegende Informationen über deinen Charakter angeben.
               </p>
             </div>
@@ -954,7 +954,7 @@ definePageMeta({
           <div class="flex items-start gap-4">
             <div>
               <p class="p-0 font-semibold dark:text-white">Bürgerstatus</p>
-              <p class="p-0 mt-1 text-sm text-tbase/50">Nun geht es um deinen Bürgerstatus.</p>
+              <p class="p-0 mt-1 text-sm text-neutral-200/50">Nun geht es um deinen Bürgerstatus.</p>
             </div>
           </div>
         </div>
@@ -1299,7 +1299,7 @@ definePageMeta({
           <div class="flex items-start gap-4">
             <div>
               <p class="p-0 font-semibold dark:text-white">Geschmäcker</p>
-              <p class="p-0 mt-1 text-sm text-tbase/50">Nun geht es um deine Geschmäcker.</p>
+              <p class="p-0 mt-1 text-sm text-neutral-200/50">Nun geht es um deine Geschmäcker.</p>
             </div>
           </div>
         </div>
@@ -2132,7 +2132,7 @@ definePageMeta({
           <div class="flex items-start gap-4">
             <div>
               <p class="p-0 font-semibold dark:text-white">Biografie</p>
-              <p class="p-0 mt-1 text-sm text-tbase/50">Hier kannst du eine ausführliche Biografie schreiben.</p>
+              <p class="p-0 mt-1 text-sm text-neutral-200/50">Hier kannst du eine ausführliche Biografie schreiben.</p>
             </div>
           </div>
         </div>

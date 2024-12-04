@@ -571,7 +571,7 @@ useHead({
             class="!bg-bg-800 hover:!bg-bg-600 hover:cursor-pointer border border-btertiary"
             @click="selectMember('income', member)"
           >
-            <td class="text-left border-r last:border-0 border-btertiary text-tbase/75">
+            <td class="text-left border-r last:border-0 border-btertiary text-neutral-200/75">
               {{ member.is_external ? 'Ja' : 'Nein' }}
             </td>
             <td class="text-left border-r last:border-0 border-btertiary">
@@ -647,11 +647,11 @@ useHead({
         <template #tabcontent>
           <!-- <template v-if="selectedTab === 0">
             <h2 class="m-0 text-center">Schiffs Bergbau</h2>
-            <h3 class="italic text-center text-tbase/75">COMMING-SOON</h3>
+            <h3 class="italic text-center text-neutral-200/75">COMMING-SOON</h3>
           </template>
           <template v-if="selectedTab === 1">
             <h2 class="m-0 text-center">ROC/Hand Bergbau</h2>
-            <h3 class="italic text-center text-tbase/75">COMMING-SOON</h3>
+            <h3 class="italic text-center text-neutral-200/75">COMMING-SOON</h3>
           </template>
           <template v-if="selectedTab === 2">
             <h2 class="m-0 text-center">Schrott Sammlung</h2>
@@ -725,7 +725,7 @@ useHead({
                           </thead>
 
                           <tr v-for="crew in options.crews" :key="crew.id">
-                            <td class="text-left border-r last:border-0 border-btertiary text-tbase/75">
+                            <td class="text-left border-r last:border-0 border-btertiary text-neutral-200/75">
                               {{ crew.id }}
                             </td>
                             <td class="text-left border-r last:border-0 border-btertiary">
@@ -1028,7 +1028,7 @@ useHead({
                   <p class="p-0 text-2xl text-center">Verteilung</p>
                 </template>
                 <template #default>
-                  <span class="float-right text-xs italic text-tbase/75">(abzgl. Gebühren)</span>
+                  <span class="float-right text-xs italic text-neutral-200/75">(abzgl. Gebühren)</span>
                   <table class="h-fit">
                     <tr>
                       <th class="text-left">Name</th>

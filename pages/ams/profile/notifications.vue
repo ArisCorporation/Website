@@ -97,7 +97,7 @@ definePageMeta({
           <div class="flex flex-wrap items-center gap-1.5">
             <div>
               <p class="p-0 font-semibold text-white">Mitteilungen</p>
-              <p class="p-0 mt-1 text-sm text-tbase/50">
+              <p class="p-0 mt-1 text-sm text-neutral-200/50">
                 Hier kannst du einstellen, wie du wichtige Benachrichtigungen wie Chat-Nachrichten,
                 Passwort-Zurücksetzungen und andere Mitteilungen erhalten möchtest.
               </p>

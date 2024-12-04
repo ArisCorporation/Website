@@ -242,7 +242,7 @@ definePageMeta({
             <Icon name="ph:address-book-bold" class="relative inline-block w-[18px] h-[18px] my-auto" />
             <NuxtLink
               :to="user?.biography_ams_link"
-              class="my-auto transition opacity-75 decoration-transparent hover:opacity-100 text-primary animate-link"
+              class="my-auto transition opacity-75 decoration-transparent hover:opacity-100 text-aris-400 animate-link"
             >
               Biografie
             </NuxtLink>

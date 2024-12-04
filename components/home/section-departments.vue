@@ -1,13 +1,16 @@
 <script setup lang="ts">
 const homepageTabsStore = useHomepageTabsStore();
-const props = defineProps({
-  data: {
-    type: Array<any>,
-    required: true,
-  },
-});
+const { data } = defineProps<{ data: any }>();
 </script>
 <template>
+  <div>
+    <hr />
+    <UTabs size="xl" orientation="horizontal" variant="logos" :items="data" class="w-full">
+      <template #default="{ item }">
+        <NuxtImg :src="item.logo" :placeholder="[16, 16, 1, 5]" class="size-full" />
+      </template>
+    </UTabs>
+    <!-- 
   <TabGroup
     no-margin
     :store="homepageTabsStore.selectedOurDepartmentTab"
@@ -37,7 +40,7 @@ const props = defineProps({
     </template>
     <template #tabcontent>
       <HeadlessTabPanel v-for="department in data" :key="department.name" class="px-10">
-        <h1 class="text-center text-primary-400">{{ department.name }} Department</h1>
+        <h1 class="text-center text-aris-400">{{ department.name }} Department</h1>
         <div class="flex gap-x-6">
           <div class="w-1/2">
             <DefaultPanel>
@@ -77,7 +80,7 @@ const props = defineProps({
             </DefaultPanel>
             <div class="ml-4">
               <h2>Abteilungsleiter:</h2>
-              <h3 class="text-primary-400">{{ department.head_of_department?.full_name || 'N/A' }}</h3>
+              <h3 class="text-aris-4000">{{ department.head_of_department?.full_name || 'N/A' }}</h3>
             </div>
           </div>
           <div class="w-1/2 mx-auto text-center 2xl:w-1/3">
@@ -93,29 +96,9 @@ const props = defineProps({
             </ul>
           </div>
         </div>
-        <!-- <div class="flex flex-wrap justify-center max-w-full mx-auto mt-4">
-          <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
-            <DefaultPanel>
-              <NuxtImg
-                :src="department.gallery[0] || department.logo"
-                :placeholder="[16, 16, 1, 5]"
-                class="w-full aspect-[21/9]"
-                :class="department.gallery[0] ? 'object-cover' : 'object-contain'"
-              />
-            </DefaultPanel>
-          </div>
-          <div class="py-3 md:px-3 basis-full md:max-w-xl md:basis-1/2">
-            <DefaultPanel>
-              <NuxtImg
-                :src="department.gallery[1] || department.logo"
-                :placeholder="[16, 16, 1, 5]"
-                class="w-full aspect-[21/9]"
-                :class="department.gallery[1] ? 'object-cover' : 'object-contain'"
-              />
-            </DefaultPanel>
-          </div>
-        </div> -->
       </HeadlessTabPanel>
     </template>
   </TabGroup>
+   -->
+  </div>
 </template>

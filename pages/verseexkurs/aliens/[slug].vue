@@ -42,7 +42,7 @@ definePageMeta({
   <VerseExkursBaseArticle :banner="data?.banner">
     <template #title>
       Alienrasse:
-      <span class="text-primary"> {{ data?.name }}</span>
+      <span class="text-aris-400"> {{ data?.name }}</span>
     </template>
     <div class="mt-8">
       <Editor :model-value="data?.content" read-only />

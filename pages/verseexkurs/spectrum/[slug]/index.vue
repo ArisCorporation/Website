@@ -64,7 +64,7 @@ definePageMeta({
           v-for="thread in data.threads"
           :key="thread.id"
           :to="`/verseexkurs/spectrum/${data.slug}/${thread.slug}`"
-          class="text-tbase group animate-link"
+          class="text-neutral-200 group animate-link"
         >
           <UCard :ui="{ header: { padding: 'p-0' } }" class="h-full my-6">
             <template #header>

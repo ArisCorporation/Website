@@ -102,7 +102,7 @@ const starsRef = shallowRef();
       <div class="flex flex-wrap-reverse justify-between">
         <div class="mt-auto">
           <h1 class="mb-0 text-industrial-400">
-            <span class="text-tbase">{{ ship?.manufacturer?.name }}</span> {{ ship?.name }}
+            <span class="text-neutral-200">{{ ship?.manufacturer?.name }}</span> {{ ship?.name }}
           </h1>
           <h4 class="mb-0 text-xs uppercase md:text-lg">
             <span class="text-dark-gray">Status: </span
@@ -270,7 +270,7 @@ const starsRef = shallowRef();
             <TableRow title="P4K-Daten Version" :content="ship?.p4k_version" />
           </TableParent>
           <div class="flex flex-wrap max-w-full gap-2">
-            <NuxtLink :to="ship?.store_url" external class="flex-grow text-tbase">
+            <NuxtLink :to="ship?.store_url" external class="flex-grow text-neutral-200">
               <ButtonDefault class="w-full text-sm">
                 <p v-if="!ship?.on_sale" class="p-0">RSI Seite</p>
                 <p v-else-if="ship?.on_sale" class="p-0">
@@ -278,7 +278,7 @@ const starsRef = shallowRef();
                 </p>
               </ButtonDefault>
             </NuxtLink>
-            <NuxtLink :to="'/shipexkurs/ships/' + ship?.slug" class="text-tbase">
+            <NuxtLink :to="'/shipexkurs/ships/' + ship?.slug" class="text-neutral-200">
               <ButtonDefault @click="handleShare">
                 <UIcon name="i-material-symbols-open-in-new" class="flex m-auto size-5" />
               </ButtonDefault>

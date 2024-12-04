@@ -230,7 +230,45 @@ definePageMeta({
 
 <template>
   <div>
-    <TabGroup
+    <h1 class="mt-12">ÜBER</h1>
+    <hr />
+    <UTabs
+      size="xl"
+      orientation="horizontal"
+      variant="aris"
+      :items="[
+        {
+          label: 'Die ArisCorp',
+          slot: 'ariscorp',
+        },
+        {
+          label: 'Geschichte',
+          slot: 'history',
+        },
+        {
+          label: 'Manifest',
+          slot: 'manifest',
+        },
+        {
+          label: 'Charter',
+          slot: 'charta',
+        },
+      ]"
+      class="w-full"
+    >
+      <template #ariscorp>
+        <Editor :model-value="homeData.ariscorp_description" read-only />
+        <ImageHoverEffect
+          src="2983446c-d4a8-4df4-b63d-aa46f0f8eabe"
+          alt="Made by the Community"
+          class="w-1/4 mx-auto"
+        />
+      </template>
+      <template #history><Editor :model-value="homeData.ariscorp_history" read-only /></template>
+      <template #manifest><Editor :model-value="homeData.ariscorp_manifest" read-only /></template>
+      <template #charta><Editor :model-value="homeData.ariscorp_charta" read-only /></template>
+    </UTabs>
+    <!--<TabGroup
       id="ariscorp"
       :class="scrollMargin"
       :store="homepageTabsStore.selectedArisTab"
@@ -258,9 +296,39 @@ definePageMeta({
           <Editor :model-value="homeData?.ariscorp_charta" read-only />
         </template>
       </template>
-    </TabGroup>
+    </TabGroup>-->
     <div id="fleet" class="scroll-m-[-840px] md:scroll-m-[-990px] lg:scroll-m-[-750px] xl:scroll-m-[-600px]" />
-    <TabGroup
+    <UTabs
+      size="xl"
+      orientation="horizontal"
+      variant="aris"
+      :items="[
+        {
+          label: 'Mitarbeiter',
+          slot: 'employees',
+        },
+        {
+          label: 'Flotte',
+          slot: 'fleet',
+        },
+        {
+          label: 'Abteilungen',
+          slot: 'departments',
+        },
+      ]"
+      class="w-full"
+    >
+      <template #employees>
+        <HomeSectionMembers :data="users" />
+      </template>
+      <!--<template #fleet>
+        <HomeSectionFleet :data="{ fleetData: userHangars, departmentData: departments }" />
+      </template> -->
+       <template #departments>
+        <HomeSectionDepartments :data="departments" />
+      </template>
+    </UTabs>
+    <!-- <TabGroup
       id="our"
       :class="scrollMargin"
       :store="homepageTabsStore.selectedOurTab"
@@ -268,9 +336,9 @@ definePageMeta({
       :tablist="ourtabs"
       title="unsere"
       between
-    />
-    <HomeSectionCommLink id="comm-link" :class="scrollMargin" :data="commLinks" />
-    <HomeSectionRecruitment id="recruitment" :class="scrollMargin" :data="{ dcLink: globalData.discord_link }" />
-    <HomeSectionPartner id="partners" :class="scrollMargin" :data="partners" />
+    /> -->
+    <!-- <HomeSectionCommLink id="comm-link" :class="scrollMargin" :data="commLinks" /> -->
+    <!-- <HomeSectionRecruitment id="recruitment" :class="scrollMargin" :data="{ dcLink: globalData.discord_link }" /> -->
+    <!-- <HomeSectionPartner id="partners" :class="scrollMargin" :data="partners" /> -->
   </div>
 </template>

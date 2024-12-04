@@ -47,7 +47,7 @@ useHead({
     <div class="mb-3">
       <h1 class="text-center">
         Comm-Link Übertragung:
-        <span class="text-primary"> {{ data?.title }} </span>
+        <span class="text-aris-400"> {{ data?.title }} </span>
       </h1>
       <DefaultPanel>
         <NuxtImg :src="data?.banner" :placeholder="[16, 16, 1, 5]" class="object-cover w-full mx-auto max-h-96" />
@@ -64,7 +64,7 @@ useHead({
           />
           <p class="mt-auto ml-2 italic uppercase">
             <span class="text-industrial-400">Author: </span
-            ><NuxtLink class="text-tbase" :to="'/biography/' + data?.author?.slug">{{
+            ><NuxtLink class="text-neutral-200" :to="'/biography/' + data?.author?.slug">{{
               data?.author?.full_name
             }}</NuxtLink>
           </p>

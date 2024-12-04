@@ -35,7 +35,7 @@ definePageMeta({
           v-for="category in data"
           :key="category.id"
           :to="'/verseexkurs/literature/' + category.slug"
-          class="text-tbase group animate-link"
+          class="text-neutral-200 group animate-link"
         >
           <UCard :ui="{ header: { padding: 'p-0' } }" class="h-full my-6">
             <template #header>
@@ -52,7 +52,7 @@ definePageMeta({
             </template>
             <template #footer>
               <div class="flex max-w-full">
-                <p class="p-0 ml-auto text-xs text-tbase/75">Bücher: {{ category.books.length }}</p>
+                <p class="p-0 ml-auto text-xs text-neutral-200/75">Bücher: {{ category.books.length }}</p>
               </div>
             </template>
           </UCard>

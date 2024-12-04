@@ -254,11 +254,11 @@ definePageMeta({
               <ButtonDefault class="w-full mt-8 mb-2"> Passwort zurücksetzen </ButtonDefault>
               <div class="text-industrial-400">
                 Du kennst dein Passwort?
-                <NuxtLink to="/ams/login" class="text-primary animate-link"> Einloggen! </NuxtLink>
+                <NuxtLink to="/ams/login" class="text-aris-400 animate-link"> Einloggen! </NuxtLink>
               </div>
               <div class="text-industrial-400">
                 Noch kein Mitglied?
-                <NuxtLink to="/ams/recruitment" class="text-primary animate-link"> Bewerben! </NuxtLink>
+                <NuxtLink to="/ams/recruitment" class="text-aris-400 animate-link"> Bewerben! </NuxtLink>
               </div>
             </div>
           </UForm>
@@ -315,11 +315,11 @@ definePageMeta({
               <ButtonDefault class="w-full mt-8 mb-2"> Passwort zurücksetzen </ButtonDefault>
               <div class="text-industrial-400">
                 Du kennst dein Passwort?
-                <NuxtLink to="/ams/login" class="text-primary animate-link"> Einloggen! </NuxtLink>
+                <NuxtLink to="/ams/login" class="text-aris-400 animate-link"> Einloggen! </NuxtLink>
               </div>
               <div class="text-industrial-400">
                 Noch kein Mitglied?
-                <NuxtLink to="/ams/recruitment" class="text-primary animate-link"> Bewerben! </NuxtLink>
+                <NuxtLink to="/ams/recruitment" class="text-aris-400 animate-link"> Bewerben! </NuxtLink>
               </div>
             </div>
           </UForm>

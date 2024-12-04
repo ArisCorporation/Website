@@ -72,7 +72,7 @@ useHead({
     <div class="flex flex-wrap-reverse justify-between">
       <div class="mt-auto">
         <h1 class="mb-0 text-industrial-400">
-          <span class="text-tbase">{{ data.manufacturer.name }}</span> {{ data.name }}
+          <span class="text-neutral-200">{{ data.manufacturer.name }}</span> {{ data.name }}
         </h1>
       </div>
       <div class="ml-auto">

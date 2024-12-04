@@ -40,7 +40,7 @@ definePageMeta({
   <VerseExkursBaseArticle :banner="data?.banner">
     <template #title>
       Fraktion:
-      <span class="text-primary"> {{ data?.name }}</span>
+      <span class="text-aris-400"> {{ data?.name }}</span>
     </template>
     <Editor :model-value="data?.content" read-only />
   </VerseExkursBaseArticle>

@@ -1149,7 +1149,7 @@ useHead({
 										variant="inputInfo"
 									/>
 									<template #panel>
-										<div class="p-1 text-xs text-left text-tbase/60 whitespace-break-spaces">
+										<div class="p-1 text-xs text-left text-neutral-200/60 whitespace-break-spaces">
 											<slot name="help" />
 										</div>
 									</template>
@@ -1793,7 +1793,7 @@ useHead({
             <div class="flex items-start gap-4">
               <div>
                 <p class="p-0 font-semibold dark:text-white">Grundlegende Informationen</p>
-                <p class="p-0 mt-1 text-sm text-tbase/50">
+                <p class="p-0 mt-1 text-sm text-neutral-200/50">
                   Hier kannst du grundlegende Informationen über deinen Charakter angeben.
                 </p>
               </div>
@@ -2174,7 +2174,7 @@ useHead({
             <div class="flex items-start gap-4">
               <div>
                 <p class="p-0 font-semibold dark:text-white">Bürgerstatus</p>
-                <p class="p-0 mt-1 text-sm text-tbase/50">Nun geht es um deinen Bürgerstatus.</p>
+                <p class="p-0 mt-1 text-sm text-neutral-200/50">Nun geht es um deinen Bürgerstatus.</p>
               </div>
             </div>
           </div>
@@ -2555,7 +2555,7 @@ useHead({
             <div class="flex items-start gap-4">
               <div>
                 <p class="p-0 font-semibold dark:text-white">Geschmäcker</p>
-                <p class="p-0 mt-1 text-sm text-tbase/50">Nun geht es um deinen Bürgerstatus.</p>
+                <p class="p-0 mt-1 text-sm text-neutral-200/50">Nun geht es um deinen Bürgerstatus.</p>
               </div>
             </div>
           </div>
@@ -3388,7 +3388,9 @@ useHead({
             <div class="flex items-start gap-4">
               <div>
                 <p class="p-0 font-semibold dark:text-white">Biografie</p>
-                <p class="p-0 mt-1 text-sm text-tbase/50">Hier kannst du eine ausführliche Biografie schreiben.</p>
+                <p class="p-0 mt-1 text-sm text-neutral-200/50">
+                  Hier kannst du eine ausführliche Biografie schreiben.
+                </p>
               </div>
             </div>
           </div>

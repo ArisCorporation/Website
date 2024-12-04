@@ -181,7 +181,7 @@ const handleEdit = () => {
             v-if="displayProductionState || displayLoanerState"
             class="absolute top-1 left-2 text-stroke"
             :class="{
-              'text-primary-400': shipData.production_status_value == 'flight-ready',
+              'text-aris-400': shipData.production_status_value == 'flight-ready',
               'text-industrial-400': shipData.production_status_value == 'in-production',
               'text-white': shipData.production_status_value == 'in-concept',
             }"
@@ -260,7 +260,7 @@ const handleEdit = () => {
               >
                 <Icon
                   name="heroicons:pencil"
-                  class="w-5 h-5 transition cursor-pointer hover:text-primary animate-link"
+                  class="w-5 h-5 transition cursor-pointer hover:text-aris-400 animate-link"
                 />
               </button>
               <UPopover v-model:open="removePopover" :popper="{ placement: 'top-end' }" class="my-auto">

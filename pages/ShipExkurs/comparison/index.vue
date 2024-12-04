@@ -270,7 +270,7 @@ definePageMeta({
           v-for="ship in selectedShips"
           :key="ship.id"
           :to="`/shipexkurs/ships/${ship.slug}`"
-          class="w-[400px] text-tbase animate-link"
+          class="w-[400px] text-neutral-200 animate-link"
         >
           <div class="py-2 mx-1 font-semibold text-center rounded bg-bg-600/90">
             {{ ship.name }}
@@ -291,7 +291,7 @@ definePageMeta({
           <div class="px-2 my-auto h-fit">{{ row.name }}:</div>
         </div>
         <div class="flex space-x-4">
-          <div v-for="ship in selectedShips" :key="ship.id" class="w-[400px] text-tbase animate-link">
+          <div v-for="ship in selectedShips" :key="ship.id" class="w-[400px] text-neutral-200 animate-link">
             <div class="py-2 mx-1 text-center rounded group-even:bg-bg-600/60">
               {{
                 getNestedValue(ship, row.property)
@@ -313,7 +313,7 @@ definePageMeta({
     </div>
     <div v-if="!selectedShips[0]">
       <div class="flex h-screen size-full">
-        <div class="flex items-center justify-center m-auto text-3xl text-center text-tbase">
+        <div class="flex items-center justify-center m-auto text-3xl text-center text-neutral-200">
           Wähle Schiffe zum vergleichen aus
           <UIcon name="i-mdi-gesture-tap" class="size-14" />
         </div>

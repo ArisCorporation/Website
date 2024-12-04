@@ -102,7 +102,7 @@ definePageMeta({
           v-for="item in indexItems"
           :key="item.name"
           :to="user.position?.access_level >= item.level && item.released ? '/ams' + item.link : null"
-          class="w-full h-fit aspect-[1/1] relative flex transition hover:scale-105 active:scale-95 group cursor-pointer text-center text-tbase hover:no-underline"
+          class="w-full h-fit aspect-[1/1] relative flex transition hover:scale-105 active:scale-95 group cursor-pointer text-center text-neutral-200 hover:no-underline"
         >
           <div
             class="block w-full h-full bg-image rounded-xl peer group-hover:opacity-40 transition-group"

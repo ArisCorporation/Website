@@ -11,7 +11,7 @@ const modalStore = useModalStore();
 <template>
   <div class="mt-16">
     <div>
-      <h1>Wir suchen neue <span class="text-primary-400">Mitarbeiter</span></h1>
+      <h1>Wir suchen neue <span class="text-aris-400">Mitarbeiter</span></h1>
       <hr />
       <h2>Rekrutierung:</h2>
       <hr class="hr-short" />

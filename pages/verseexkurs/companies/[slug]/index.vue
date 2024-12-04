@@ -108,7 +108,7 @@ definePageMeta({
   <VerseExkursBaseArticle :banner="data?.banner">
     <template #title>
       Firma:
-      <span class="text-primary"> {{ data?.name }}</span>
+      <span class="text-aris-400"> {{ data?.name }}</span>
     </template>
     <div>
       <div class="flex flex-wrap gap-4 xl:grid xl:grid-cols-6">
@@ -230,7 +230,7 @@ definePageMeta({
           <template #default="{ item, index, open }">
             <h4 class="flex p-1 m-0 my-2 border rounded cursor-pointer bg-bg-600 border-btertiary animate-link">
               <span class="pl-1">
-                {{ item.label }} <span class="text-primary-400">{{ data.name }}</span>
+                {{ item.label }} <span class="text-aris-4000">{{ data.name }}</span>
               </span>
               <UIcon
                 name="i-heroicons-chevron-right-20-solid"

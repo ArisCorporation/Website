@@ -5,6 +5,9 @@ export default defineAppConfig({
       primary: 'aris',
       neutral: 'zinc',
     },
+    container: {
+      base: 'max-w-[1536px] mx-auto px-4 !sm:px-0 w-full',
+    },
     button: {
       base: 'cursor-pointer',
       compoundVariants: [
@@ -32,6 +35,47 @@ export default defineAppConfig({
         variant: 'aris',
         size: 'md',
       },
+    },
+    tabs: {
+      slots: {
+        trigger: ['animate-link cursor-pointer'],
+      },
+      variants: {
+        size: {
+          lg: {
+            trigger: 'px-3 py-2 text-base gap-2',
+            leadingIcon: 'size-6',
+            leadingAvatarSize: 'xs',
+          },
+          xl: {
+            trigger: 'px-3 py-2 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black gap-2',
+            leadingIcon: 'size-6',
+            leadingAvatarSize: 'xs',
+          },
+        },
+        variant: {
+          aris: {
+            list: 'justify-between mb-6',
+            //indicator: 'hidden',
+            indicator: 'bg-industrial-400 !w-full h-0.5 -bottom-5 left-0 right-0 mx-auto !translate-x-0',
+          },
+          logos: {
+            list: 'flex flex-wrap justify-center xl:grid xl:grid-flow-col xl:grid-rows-1 mb-6',
+            trigger: 'p-3 m-1 animate-link hover:scale-150 data-[state=active]:scale-125 w-28 h-auto',
+            //indicator: 'hidden',
+            indicator: 'bg-industrial-400 !w-full h-0.5 -bottom-5 left-0 right-0 mx-auto !translate-x-0',
+          },
+        },
+      },
+      compoundVariants: [
+        {
+          color: 'primary',
+          variant: 'aris',
+          class: {
+            trigger: 'data-[state=active]:text-[var(--ui-primary)]',
+          },
+        },
+      ],
     },
   },
 });

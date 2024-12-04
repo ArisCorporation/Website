@@ -182,5 +182,14 @@ export default defineNuxtConfig({
     },
   },
 
+  icon: {
+    customCollections: [
+      {
+        prefix: 'custom',
+        dir: './assets/icons',
+      },
+    ],
+  },
+
   compatibilityDate: '2024-07-12',
 });

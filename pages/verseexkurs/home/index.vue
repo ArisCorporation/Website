@@ -22,7 +22,7 @@ definePageMeta({
         <li v-for="link in data.ve_links" :key="link.name" class="p-0 list-none">
           <NuxtLink
             :to="link.link.startsWith('/') ? link.link : '/verseexkurs/' + link.link"
-            class="grid w-full grid-cols-12 my-2 py-2 !no-underline transition divide-x-2 cursor-pointer h-fit divide-btertiary bg-bprimary text-tbase hover:brightness-85 rounded-xl"
+            class="grid w-full grid-cols-12 my-2 py-2 !no-underline transition divide-x-2 cursor-pointer h-fit divide-btertiary bg-bprimary text-neutral-200 hover:brightness-85 rounded-xl"
           >
             <div class="flex items-center col-span-2">
               <NuxtImg

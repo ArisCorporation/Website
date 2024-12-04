@@ -1018,9 +1018,9 @@ useHead({
           <ul>
             <li v-for="(ship, index) in shipsWithCounts" :key="index">
               <div class="relative grid grid-cols-2 pr-10">
-                <span class="text-tbase">{{ ship.manufacturer.name }}: </span>
-                <span class="text-primary"
-                  ><span class="text-tbase">{{ ship.count }}x </span>{{ ship.name }}</span
+                <span class="text-neutral-200">{{ ship.manufacturer.name }}: </span>
+                <span class="text-aris-400"
+                  ><span class="text-neutral-200">{{ ship.count }}x </span>{{ ship.name }}</span
                 >
                 <div class="absolute flex items-center h-full right-4 gap-x-2">
                   <button
@@ -1344,7 +1344,7 @@ useHead({
                       Biografie & internen Hangar
                     </p>
                     <p>
-                      <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen Biografie
+                      <span class="text-aris-400">Nur intern</span>: In der internen Flotte, in deiner internen Biografie
                       & Hangar
                     </p>
                     <p><span class="text-industrial-400">Versteckt</span>: In deinem privaten Hangar</p>
@@ -1386,7 +1386,7 @@ useHead({
                       Biografie & internen Hangar
                     </p>
                     <p>
-                      <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen Biografie
+                      <span class="text-aris-400">Nur intern</span>: In der internen Flotte, in deiner internen Biografie
                       & Hangar
                     </p>
                   </div>
@@ -1441,7 +1441,7 @@ useHead({
                   <UPopover mode="hover">
                     <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
                     <template #panel>
-                      <div class="p-1 text-xs text-left text-tbase/60 whitespace-break-spaces">
+                      <div class="p-1 text-xs text-left text-neutral-200/60 whitespace-break-spaces">
                         <p>Hier kannst du den Namen deines Schiffes eingeben.</p>
                         <p>
                           Falls du Inspiration brauchst, schau dich mal
@@ -1451,7 +1451,7 @@ useHead({
                           um.
                         </p>
                         <p>
-                          <span class="text-primary">Information</span>: Innerhalb der ArisCorp sind Schiffsnamen
+                          <span class="text-aris-400">Information</span>: Innerhalb der ArisCorp sind Schiffsnamen
                           modellübergreifend Einzigartig. <br />
                           Das bedeutet wenn es ein Schiff mit Namen X gibt, ist dieser Name auch für andere Modelle
                           blockiert.
@@ -1467,7 +1467,7 @@ useHead({
                   <UPopover mode="hover">
                     <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
                     <template #panel>
-                      <div class="p-1 text-xs text-left text-tbase/60 whitespace-break-spaces">
+                      <div class="p-1 text-xs text-left text-neutral-200/60 whitespace-break-spaces">
                         <p>Hier kannst du die Seriennummer deines Schiffes eingeben.</p>
                       </div>
                     </template>
@@ -1496,7 +1496,7 @@ useHead({
                   <UPopover mode="hover">
                     <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
                     <template #panel>
-                      <div class="p-1 text-xs text-left text-tbase/60 whitespace-break-spaces">
+                      <div class="p-1 text-xs text-left text-neutral-200/60 whitespace-break-spaces">
                         <p>Hier kannst du die Zuordnung einstellen.</p>
                         <p>
                           Entweder du stellst das Schiff der ArisCorp zur Verfügung oder
@@ -1556,10 +1556,10 @@ useHead({
                   <UPopover mode="hover">
                     <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
                     <template #panel>
-                      <div class="p-1 text-xs text-left text-tbase/60 whitespace-break-spaces">
+                      <div class="p-1 text-xs text-left text-neutral-200/60 whitespace-break-spaces">
                         <p>Wenn du willst, kannst du dein Schiff hier einer bestimmten Abteilung zuweisen.</p>
                         <p>
-                          <span class="text-primary">Information</span>: Du musst nicht in der jeweiligen Abteilung
+                          <span class="text-aris-400">Information</span>: Du musst nicht in der jeweiligen Abteilung
                           arbeiten, <br />
                           um dieser dein Schiff zur verfügung zu stellen.
                         </p>
@@ -1594,7 +1594,7 @@ useHead({
                   <UPopover mode="hover">
                     <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
                     <template #panel>
-                      <div class="p-1 text-xs text-left text-tbase/60 whitespace-break-spaces">
+                      <div class="p-1 text-xs text-left text-neutral-200/60 whitespace-break-spaces">
                         <p>Die Allgemeine Sichtbarkeit bezieht sich auf das gesamte Schiff.</p>
                         <p class="text-white">Erklärung:</p>
                         <p>
@@ -1602,7 +1602,7 @@ useHead({
                           öffentlichen Biografie & internen Hangar
                         </p>
                         <p>
-                          <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
+                          <span class="text-aris-400">Nur intern</span>: In der internen Flotte, in deiner internen
                           Biografie & Hangar
                         </p>
                         <p><span class="text-industrial-400">Versteckt</span>: In deinem privaten Hangar</p>
@@ -1631,7 +1631,7 @@ useHead({
                   <UPopover mode="hover">
                     <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
                     <template #panel>
-                      <div class="p-1 text-xs text-left text-tbase/60 whitespace-break-spaces">
+                      <div class="p-1 text-xs text-left text-neutral-200/60 whitespace-break-spaces">
                         <p>Wie ist die Sichtbarkeit deines Schiffsnamen?</p>
                         <p class="text-white">Erklärung:</p>
                         <p>
@@ -1639,7 +1639,7 @@ useHead({
                           öffentlichen Biografie & internen Hangar
                         </p>
                         <p>
-                          <span class="text-primary">Nur intern</span>: In der internen Flotte, in deiner internen
+                          <span class="text-aris-400">Nur intern</span>: In der internen Flotte, in deiner internen
                           Biografie & Hangar
                         </p>
                       </div>
@@ -1695,7 +1695,7 @@ useHead({
                   <UPopover mode="hover">
                     <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
                     <template #panel>
-                      <div class="p-1 text-xs text-left text-tbase/60 whitespace-break-spaces">
+                      <div class="p-1 text-xs text-left text-neutral-200/60 whitespace-break-spaces">
                         <p>
                           Falls dein Schiff Modular ist, kannst du hier das aktuelle Modul deines Schiffes auswählen.
                         </p>
@@ -1724,10 +1724,10 @@ useHead({
                   <UPopover mode="hover">
                     <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
                     <template #panel>
-                      <div class="p-1 text-xs text-left text-tbase/60 whitespace-break-spaces">
+                      <div class="p-1 text-xs text-left text-neutral-200/60 whitespace-break-spaces">
                         <p>Hier kannst du auswählen ob dein Schiff bereits gekauft ist, oder noch in Planung.</p>
                         <p>
-                          <span class="text-primary">Information</span>: Bitte wähle hier nur fest geplante Schiffe aus.
+                          <span class="text-aris-400">Information</span>: Bitte wähle hier nur fest geplante Schiffe aus.
                           Für alles andere hast du deine private Wunschliste.
                         </p>
                       </div>
@@ -1855,7 +1855,7 @@ useHead({
             >
               <h1
                 class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
-                :class="{ 'text-primary-400': selected, 'opacity-50': !selected }"
+                :class="{ 'text-aris-4000': selected, 'opacity-50': !selected }"
               >
                 Hangar
               </h1>
@@ -1866,7 +1866,7 @@ useHead({
             >
               <h1
                 class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
-                :class="{ 'text-primary-400': selected, 'opacity-50': !selected }"
+                :class="{ 'text-aris-4000': selected, 'opacity-50': !selected }"
               >
                 Wunschliste
               </h1>
@@ -2090,7 +2090,7 @@ useHead({
 
 <style lang="postcss">
 .shepherd-button {
-  @apply relative inline-block after:absolute after:bg-bg-400 after:left-4 after:right-4 before:absolute before:bg-bg-400 before:box-border before:left-4 before:right-4 bg-bg-800 text-tbase p-2 rounded-[10px] border-2 after:h-0.5 before:h-0.5 before:-top-0.5 after:-bottom-0.5 cursor-pointer border-green-600 animate-link;
+  @apply relative inline-block after:absolute after:bg-bg-400 after:left-4 after:right-4 before:absolute before:bg-bg-400 before:box-border before:left-4 before:right-4 bg-bg-800 text-neutral-200 p-2 rounded-[10px] border-2 after:h-0.5 before:h-0.5 before:-top-0.5 after:-bottom-0.5 cursor-pointer border-green-600 animate-link;
 }
 
 .shepherd-button:not(:disabled):hover {
@@ -2142,11 +2142,11 @@ useHead({
 }
 
 .shepherd-has-title .shepherd-content .shepherd-header {
-  @apply bg-tbase p-4;
+  @apply bg-neutral-200 p-4;
 }
 
 .shepherd-text {
-  @apply text-tbase text-base leading-5 p-3;
+  @apply text-neutral-200 text-base leading-5 p-3;
 }
 
 .shepherd-text p {
@@ -2226,7 +2226,7 @@ useHead({
 }
 
 .shepherd-element.shepherd-has-title[data-popper-placement^='bottom'] > .shepherd-arrow:before {
-  @apply bg-tbase;
+  @apply bg-neutral-200;
 }
 
 .shepherd-target-click-disabled.shepherd-enabled.shepherd-target,

@@ -36,7 +36,7 @@ defineProps({
   <button
     aria-controls="default-sidebar"
     type="button"
-    class="fixed z-40 inline-flex items-center p-2 mt-2 text-sm rounded-lg text-tbase hover:text-bg-800 w-fit ms-3 lg:hidden focus:outline-none focus:ring-0 hover:bg-tbase"
+    class="fixed z-40 inline-flex items-center p-2 mt-2 text-sm rounded-lg text-neutral-200 hover:text-bg-800 w-fit ms-3 lg:hidden focus:outline-none focus:ring-0 hover:bg-neutral-200"
     @click="SidebarStore.toggleMobileSidebar"
   >
     <span class="sr-only">Open sidebar</span>
@@ -67,8 +67,8 @@ defineProps({
             class="relative flex items-center p-2 mx-3 transition-colors duration-200 rounded-lg animate-link hover:no-underline group before:transition-default w-fit"
             :class="[
               (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
-                ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
-                : 'text-tbase/75 hover:text-white',
+                ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:text-aris-400'
+                : 'text-neutral-200/75 hover:text-white',
             ]"
             @click="SidebarStore.mobileSidebarOff"
           >
@@ -79,7 +79,7 @@ defineProps({
               :class="[
                 (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
                   ? 'text-white'
-                  : 'text-tbase/75 group-hover:text-white',
+                  : 'text-neutral-200/75 group-hover:text-white',
               ]"
             />
             <UAvatar
@@ -108,8 +108,8 @@ defineProps({
             class="relative flex items-center p-2 mx-3 transition-colors duration-200 rounded-lg animate-link hover:no-underline group before:transition-default w-fit"
             :class="[
               (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
-                ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:bg-primary'
-                : 'text-tbase/75 hover:text-white',
+                ? 'text-white before:shadow-[2px_0_10px_rgba(36,86,130,.9)] before:rounded-r-sm before:w-1 before:h-4/5 before:top-[10%] before:absolute before:-left-3 before:text-aris-400'
+                : 'text-neutral-200/75 hover:text-white',
             ]"
             @click="SidebarStore.mobileSidebarOff"
           >
@@ -120,7 +120,7 @@ defineProps({
               :class="[
                 (item.link ? $route.path.startsWith(baseUrl + item.link) : $route.path === baseUrl)
                   ? 'text-white'
-                  : 'text-tbase/75 group-hover:text-white',
+                  : 'text-neutral-200/75 group-hover:text-white',
               ]"
             />
             <UAvatar v-else-if="item.avatar" :src="item.avatar" size="xs" class="transition-colors duration-200" />
@@ -128,20 +128,23 @@ defineProps({
           </NuxtLink>
           <button
             v-else
-            class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group text-tbase/75 hover:text-white animate-link"
+            class="relative flex items-center p-2 mx-3 transition rounded-lg hover:no-underline group text-neutral-200/75 hover:text-white animate-link"
             @click="item.action"
           >
-            <Icon :name="item.icon" class="w-6 h-6 transition-group text-tbase/75 group-hover:text-white" />
+            <Icon :name="item.icon" class="w-6 h-6 transition-group text-neutral-200/75 group-hover:text-white" />
             <span class="ms-3">{{ item.name }}</span>
           </button>
         </li>
         <li>
           <NuxtLink
             to="/"
-            class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline text-tbase hover:text-white group animate-link"
+            class="relative flex items-center p-2 mx-3 rounded-lg hover:no-underline text-neutral-200 hover:text-white group animate-link"
             @click="SidebarStore.mobileSidebarOff"
           >
-            <Icon name="IconsLogosAriscorp" class="w-6 h-6 transition duration-200 text-tbase group-hover:text-white" />
+            <Icon
+              name="IconsLogosAriscorp"
+              class="w-6 h-6 transition duration-200 text-neutral-200 group-hover:text-white"
+            />
             <span class="ms-3">ArisCorp Homepage</span>
           </NuxtLink>
         </li>

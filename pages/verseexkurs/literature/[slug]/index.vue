@@ -68,7 +68,7 @@ definePageMeta({
           v-for="book in data.books"
           :key="book.id"
           :to="`/verseexkurs/literature/${data.slug}/${book.chapter}`"
-          class="text-tbase group animate-link"
+          class="text-neutral-200 group animate-link"
         >
           <UCard :ui="{ header: { padding: 'p-0' } }" class="h-full my-6">
             <template #header>

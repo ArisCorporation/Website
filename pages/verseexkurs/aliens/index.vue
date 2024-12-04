@@ -70,7 +70,7 @@ a {
 }
 
 h1 {
-  @apply text-center text-primary transition-group group-hover:scale-110;
+  @apply text-center text-aris-400 transition-group group-hover:scale-110;
 }
 
 .alien-item {

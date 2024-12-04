@@ -398,7 +398,7 @@ onMounted(() => {
                           "
                           :size="32"
                         />
-                        <span class="text-primary"> Biografie </span>
+                        <span class="text-aris-400"> Biografie </span>
                       </div>
                     </NuxtLink>
                     <UAvatar

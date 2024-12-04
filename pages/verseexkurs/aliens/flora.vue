@@ -61,7 +61,7 @@ definePageMeta({
     </template>
     <VerseExkursBaseArticle banner="1b43af1c-7c25-4b2e-9e16-fc495a8520b1">
       <template #title>
-        <span class="text-primary">Flora</span>
+        <span class="text-aris-400">Flora</span>
       </template>
       <Editor :model-value="introduction.content" read-only />
       <TabGroup

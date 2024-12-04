@@ -55,7 +55,7 @@ const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
               <p>ERROR: CANNOT LOAD DISCLAIMER...</p>
             </template>
           </div>
-          <p class="*:after:content-['_-_'] *:after:text-tbase">
+          <p class="*:after:content-['_-_'] *:after:text-neutral-200">
             <span>&copy; ArisCorp - V{{ $config.public.appVersion }}</span>
             <span><NuxtLink to="/credits" class="hover:brightness-85 animate-link">Credits</NuxtLink></span>
             <!-- <span><NuxtLink to="/bug-report" class="hover:brightness-85 animate-link">Bug-Report Tool</NuxtLink></span> -->
@@ -82,7 +82,7 @@ const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
                 to="https://robertsspaceindustries.com/star-citizen"
                 target="_blank"
               >
-                <Icon name="IconsLogosStarcitizen" class="w-full h-full" hover-effect />
+                <UIcon name="IconsFooterStarcitizen" class="size-16" hover-effect />
               </NuxtLink>
             </div>
             <div class="footer-icon">
@@ -91,17 +91,17 @@ const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
                 to="https://robertsspaceindustries.com/squadron42"
                 target="_blank"
               >
-                <Icon name="IconsLogosSquadron42" class="w-full h-full" hover-effect />
+                <UIcon name="IconsFooterSquadron42" class="size-16" hover-effect />
               </NuxtLink>
             </div>
             <div class="footer-icon">
               <NuxtLink aria-label="Die Website von RSI" to="https://robertsspaceindustries.com/" target="_blank">
-                <Icon name="IconsLogosRsi" class="w-full h-full" hover-effect />
+                <UIcon name="IconsFooterRsi" class="size-16" hover-effect />
               </NuxtLink>
             </div>
             <div class="footer-icon">
               <NuxtLink aria-label="Die Website von CIG" to="https://cloudimperiumgames.com/" target="_blank">
-                <Icon name="IconsLogosCig" class="w-full h-full" hover-effect />
+                <UIcon name="IconsFooterCig" class="size-16" hover-effect />
               </NuxtLink>
             </div>
           </div>

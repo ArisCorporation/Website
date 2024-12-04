@@ -166,17 +166,17 @@ onBeforeUnmount(() => {
     id="editor_container"
     :class="[!readOnly ? (simpleMode ? 'h-full' : 'h-[calc(100vh_-_50px)] overflow-y-auto rounded-xl') : '']"
   >
-    <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" />
+  <!-- <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" /> -->
     <div v-if="editor && !readOnly && !simpleMode">
       <UCard
         :ui="{
-          header: { base: 'sticky top-0 z-10 rounded-t-lg', background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
+          header: { base: 'sticky top-0 z-10 rounded-t-lg', background: 'bg-bg-600', padding: 'px-4 py-3 sm:px-6' },
           footer: {
             base: 'sticky bottom-0 z-10 rounded-b-lg',
-            background: 'bg-bsecondary',
+            background: 'bg-bg-600',
             padding: 'px-4 py-3 sm:px-6',
           },
-          body: { base: 'border-x !border-bsecondary' },
+          body: { base: 'border-x !border-bg-600' },
           ring: '',
         }"
         class="overflow-clip"
@@ -192,8 +192,8 @@ onBeforeUnmount(() => {
           </div>
           <div class="flex -mx-2.5">
             <hr
-              class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-            />
+              class="m-0 my-auto relative bg-bg-800 text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+            >
           </div>
           <div class="sm:hidden">
             <div class="flex flex-row justify-between py-2 gap-x-2">
@@ -214,9 +214,9 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex -mx-2.5">
               <hr
-                class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+                class="m-0 my-auto relative bg-bg-800ext-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
                 @click="editor.chain().focus().setColor"
-              />
+              >
             </div>
             <div class="flex flex-row py-2 gap-x-6">
               <div class="flex flex-row gap-x-2">
@@ -231,8 +231,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex -mx-2.5">
               <hr
-                class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+                class="m-0 my-auto relative bg-bg-800ext-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+              >
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <EditorButtonDivider :editor="editor" />
@@ -262,8 +262,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex -mx-2.5">
               <hr
-                class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+                class="m-0 my-auto relative bg-bg-800ext-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+              >
             </div>
           </div>
           <div class="hidden sm:block md:hidden">
@@ -285,8 +285,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex -mx-2.5">
               <hr
-                class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+                class="m-0 my-auto relative bg-bg-800ext-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+              >
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <div class="flex flex-row gap-x-2">
@@ -325,8 +325,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex -mx-2.5">
               <hr
-                class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+                class="m-0 my-auto relative bg-bg-800ext-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+              >
             </div>
           </div>
           <div class="hidden md:block xl:hidden">
@@ -357,8 +357,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex -mx-2.5">
               <hr
-                class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+                class="m-0 my-auto relative bg-bg-800ext-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+              >
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <EditorButtonDivider :editor="editor" />
@@ -388,8 +388,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex -mx-2.5">
               <hr
-                class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+                class="m-0 my-auto relative bg-bg-800ext-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+              >
             </div>
           </div>
           <div class="hidden xl:block">
@@ -444,8 +444,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="flex -mx-2.5">
               <hr
-                class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+                class="m-0 my-auto relative bg-bg-800ext-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
+              >
             </div>
           </div>
         </template>
@@ -480,7 +480,7 @@ onBeforeUnmount(() => {
     </div>
     <div v-else-if="editor && simpleMode">
       <div class="relative m-2 rounded-xl">
-        <div class="px-1 border-b border-b-bsecondary">
+        <div class="px-1 border-b border-b-bg-600">
           <div class="flex flex-row justify-between py-2 gap-x-2">
             <div class="flex flex-row gap-x-2">
               <EditorButtonBold :editor="editor" />
@@ -513,7 +513,7 @@ onBeforeUnmount(() => {
           <TiptapEditorContent :editor="editor" name="msgInput" />
         </div>
 
-        <!-- <div class="flex px-2 py-2 border-t border-bsecondary"> -->
+        <!-- <div class="flex px-2 py-2 border-t border-bg-600"> -->
         <UTooltip text="Senden" class="absolute ml-auto bottom-1 right-5">
           <UButton :loading="loading" icon="i-mdi-send" class="rounded-full" size="xs" @click="$emit('send')" />
         </UTooltip>
@@ -534,8 +534,5 @@ onBeforeUnmount(() => {
 .ProseMirror {
   height: v-bind('editorHeight') !important;
   overflow-y: auto;
-}
-.ProseMirror p:has(a) {
-  @apply animate-link;
 }
 </style>

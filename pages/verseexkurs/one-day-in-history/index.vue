@@ -51,7 +51,7 @@ definePageMeta({
           v-for="article in data"
           :key="article.id"
           :to="'/verseexkurs/one-day-in-history/' + article.slug"
-          class="text-tbase group animate-link"
+          class="text-neutral-200 group animate-link"
         >
           <UCard :ui="{ header: { padding: 'p-0' } }" class="h-full my-6">
             <template #header>

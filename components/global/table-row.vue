@@ -61,7 +61,7 @@ defineProps({
           <li
             v-for="(item, index) in content.split(', ')"
             :key="index"
-            class="marker:text-industrial-400 text-primary-400"
+            class="marker:text-industrial-400 text-aris-400"
             :class="{ 'inline-block pr-1': inline }"
             @click="click"
           >
@@ -71,11 +71,11 @@ defineProps({
         <NuxtLink v-else-if="link" :to="link" @click="click">
           <p class="animate-link" :class="{ 'inline-block pr-1': inline }">{{ prefix }} {{ content }} {{ suffix }}</p>
         </NuxtLink>
-        <p v-else class="text-primary-400" :class="{ 'inline-block pr-1': inline }" @click="click">
+        <p v-else class="text-aris-4000" :class="{ 'inline-block pr-1': inline }" @click="click">
           {{ prefix }} {{ content }} {{ suffix }}
         </p>
       </template>
-      <p v-else class="text-primary-400">N/A</p>
+      <p v-else class="text-aris-4000">N/A</p>
     </slot>
   </div>
 </template>

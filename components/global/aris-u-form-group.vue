@@ -16,7 +16,7 @@ const formgroupUi = {
   strategy: 'override',
   label: {
     wrapper: 'flex content-center items-center',
-    base: 'block font-medium text-tbase',
+    base: 'block font-medium text-neutral-200',
     required: "after:content-['*'] after:ms-0.5 after:text-red-500 dark:after:text-red-400",
   },
 };
@@ -35,7 +35,7 @@ const formgroupUi = {
       <UPopover mode="hover">
         <UButton icon="i-heroicons-information-circle" variant="inputInfo" />
         <template #panel>
-          <div class="p-1 text-xs text-left text-tbase/60 whitespace-break-spaces">
+          <div class="p-1 text-xs text-left text-neutral-200/60 whitespace-break-spaces">
             <slot name="hint" />
           </div>
         </template>

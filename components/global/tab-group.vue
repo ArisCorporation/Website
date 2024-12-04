@@ -63,7 +63,7 @@ const changeTab = (index: number) => {
             <h1
               class="m-0 uppercase transition-all duration-200 ease-in-out hover:opacity-75 hover:duration-300"
               :class="{
-                'text-primary-400': store === tablist.indexOf(tab),
+                'text-aris-400': store === tablist.indexOf(tab),
                 'opacity-50': store !== tablist.indexOf(tab),
                 'text-xl': smallHeader,
               }"

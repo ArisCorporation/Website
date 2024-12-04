@@ -27,7 +27,7 @@ const props = defineProps({
     >
       <div class="flex w-full h-full bg-lines">
         <p
-          class="pt-8 m-auto delay-300 opacity-0 text-primary-400 group-hover:opacity-50 group-hover:pt-0 transition-group"
+          class="pt-8 m-auto delay-300 opacity-0 text-aris-400 group-hover:opacity-50 group-hover:pt-0 transition-group"
         >
           {{ data.description || data.channel.description }}
         </p>
@@ -35,7 +35,7 @@ const props = defineProps({
     </div>
     <div class="absolute z-10 h-8 bg-no-repeat bg-type w-28 right-3 opacity-60">
       <div class="float-left w-3 h-4 mt-1 ml-10 mr-2 bg-center bg-no-repeat bg-post" />
-      <span class="mt-1 text-xs italic capitalize text-primary-400">Post</span>
+      <span class="mt-1 text-xs italic capitalize text-aris-4000">Post</span>
     </div>
     <div
       class="relative top-0 right-0 w-full h-3/5"
@@ -62,7 +62,7 @@ const props = defineProps({
           'md:px-5 md:bg-black md:bg-opacity-80': size == 3,
         }"
       >
-        <div class="flex flex-wrap justify-between w-full my-auto text-xs text-primary-400">
+        <div class="flex flex-wrap justify-between w-full my-auto text-xs text-aris-4000">
           <div>
             <span class="opacity-50">Geposted: </span><span>{{ $dayjs().add(930, 'years').to(data.date_posted) }}</span>
           </div>

@@ -26,9 +26,9 @@
         :src="$config.public.fileBase + '893966c7-3541-4605-a00f-633f5234ddd4'"
       />
     </div>
-    <div class="container px-4 mx-auto" :class="{ 'mt-24': $route.path != '/' }">
+    <UContainer :class="{ 'mt-24': $route.path != '/' }">
       <slot />
-    </div>
+    </UContainer>
     <Footer />
   </div>
 </template>

@@ -399,7 +399,7 @@ definePageMeta({
                   })
                 }}
                 <template v-if="selectedEvent.end">
-                  <span class="text-tbase"> - </span>
+                  <span class="text-neutral-200"> - </span>
                   {{
                     selectedEvent.end_date.until_now
                       ? 'Bis Heute'

@@ -335,7 +335,7 @@ useHead({
     <div class="flex flex-wrap justify-between">
       <div class="mt-auto">
         <h1 class="mb-0 text-industrial-400">
-          <span class="text-tbase">{{ data.manufacturer.name }}</span> {{ data.name }}
+          <span class="text-neutral-200">{{ data.manufacturer.name }}</span> {{ data.name }}
         </h1>
         <h4 class="mb-0 text-xs uppercase md:text-lg">
           <span class="text-dark-gray">Status: </span
@@ -526,7 +526,7 @@ useHead({
           <TableRow title="P4K-Daten Version" :content="data.p4k_version" />
         </TableParent>
         <div class="flex flex-wrap max-w-full gap-2">
-          <NuxtLink :to="data.store_url" external class="flex-grow text-tbase">
+          <NuxtLink :to="data.store_url" external class="flex-grow text-neutral-200">
             <ButtonDefault class="w-full text-sm">
               <p v-if="!data.on_sale" class="p-0">RSI Seite</p>
               <p v-else-if="data.on_sale" class="p-0">Aktuell zu verkaufen für: $ {{ data.pledge_price || 'N/A' }}</p>

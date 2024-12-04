@@ -64,7 +64,7 @@
     "@sentry/vue": "^8.15.0",
     "@vue-email/nuxt": "^0.8.19",
     "dayjs-nuxt": "^2.1.11",
-    "nuxt": "^3.12.4",
+    "nuxt": "^3.14.159",
     "nuxt-lodash": "^2.5.3",
     "nuxt-resend": "^0.0.2",
     "sass": "^1.77.6",
