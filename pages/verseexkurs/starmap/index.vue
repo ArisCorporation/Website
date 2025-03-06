@@ -433,7 +433,7 @@ useHead({
             <span class="text-aris-400">{{ data.history[historyIndex].year }}</span
             >{{ data.history[historyIndex].title ? ': ' + data.history[historyIndex].title : '' }}
           </h2>
-          <Editor :model-value="data.history[historyIndex].description" />
+          <Editor :model-value="data.history[historyIndex].description" read-only />
         </template>
         <template v-if="selectedTab === 2">
           <Editor :model-value="data.distances" read-only />
