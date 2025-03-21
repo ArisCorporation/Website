@@ -6,7 +6,10 @@ WORKDIR /app
 # Kopiere package.json und lockfile zuerst, um den Cache besser zu nutzen
 COPY package.json bun.lockb ./
 
-# Installiere Build-Abhängigkeiten (die oven/bun image sollte diese bereits haben oder wir installieren sie bei Bedarf)
+# Entferne node_modules, um einen Rebuild zu erzwingen
+RUN rm -rf node_modules
+
+# Installiere Build-Abhängigkeiten
 RUN bun install --frozen-lockfile
 
 # Kopiere den Rest des Codes
