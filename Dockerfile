@@ -1,5 +1,9 @@
 # 1️⃣ Build-Stage (nutzt Bun für schnelleren Build)
-FROM docker.io/oven/bun:1.1.4@sha256:ea572eace71acadb17ea5c408550eafd5ab82f2f6f48c04b906a3091e017cf35 as builder
+FROM alpine:latest as builder
+
+# Installiere Bun
+RUN apk add --no-cache curl
+RUN sh -c "$(curl -fsSL https://bun.sh/install)"
 
 WORKDIR /app
 
