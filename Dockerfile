@@ -1,22 +1,25 @@
 # 1️⃣ Build-Stage (nutzt Bun für schnelleren Build)
 FROM alpine:latest as builder
 
-# Installiere curl
-RUN apk add --no-cache curl
+# Installiere notwendige Tools
+RUN apk add --no-cache curl unzip
 
 WORKDIR /app
 
-# Lade das Bun Installationsskript herunter
-RUN curl -fsSL https://bun.sh/install -o install.sh
+# Lade die pre-built Bun Binary herunter
+RUN curl -fsSL https://github.com/oven-sh/bun/releases/download/bun-v1.1.4/bun-linux-x64.zip -o bun.zip
 
-# Mache das Skript ausführbar
-RUN chmod +x install.sh
+# Entpacke die Binary
+RUN unzip bun.zip
 
-# Führe das Installationsskript aus
-RUN sh ./install.sh
+# Verschiebe die Bun Binary in den PATH
+RUN mv bun-linux-x64/bun /usr/local/bin/bun
 
-# Stelle sicher, dass Bun im PATH ist (füge es explizit hinzu)
-ENV PATH="/app/.bun/bin:${PATH}"
+# Stelle sicher, dass Bun ausführbar ist (obwohl unzip das oft schon erledigt)
+RUN chmod +x /usr/local/bin/bun
+
+# Überprüfe die Bun Installation (optional)
+RUN bun --version
 
 # Kopiere package.json und lockfile zuerst, um den Cache besser zu nutzen
 COPY package.json bun.lockb ./
