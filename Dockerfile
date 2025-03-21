@@ -1,10 +1,14 @@
 # 1️⃣ Build-Stage (nutzt Bun für schnelleren Build)
-FROM oven/bun:1.1.4 as builder
+FROM docker.io/oven/bun:1.1.4@sha256:ea572eace71acadb17ea5c408550eafd5ab82f2f6f48c04b906a3091e017cf35 as builder
 
 WORKDIR /app
 
 # Kopiere package.json und lockfile zuerst, um den Cache besser zu nutzen
 COPY package.json bun.lockb ./
+
+# Install build dependencies (example for Alpine Linux, which oven/bun might be based on)
+RUN apk add --no-cache --virtual .gyp python3 make gcc g++
+
 RUN bun install --frozen-lockfile
 
 # Kopiere den Rest des Codes
