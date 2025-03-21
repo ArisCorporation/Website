@@ -6,8 +6,8 @@ WORKDIR /app
 # Kopiere package.json und lockfile zuerst, um den Cache besser zu nutzen
 COPY package.json bun.lockb ./
 
-# Installiere allgemeine Build-Abhängigkeiten
-RUN apk update && apk add --no-cache --virtual .gyp python3 make gcc g++
+# Aktualisiere apt und installiere Build-Abhängigkeiten (Versuch mit apt)
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential python3
 
 # Installiere Build-Abhängigkeiten
 RUN bun install --frozen-lockfile
