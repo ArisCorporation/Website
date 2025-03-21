@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json bun.lockb ./
 
 # Install build dependencies (example for Alpine Linux, which oven/bun might be based on)
-RUN apk add --no-cache --virtual .gyp python3 make gcc g++
+RUN apk update && apk add --no-cache --virtual .gyp python3 make gcc g++
 
 RUN bun install --frozen-lockfile
 
