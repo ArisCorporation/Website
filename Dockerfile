@@ -6,8 +6,8 @@ WORKDIR /app
 # Kopiere package.json und lockfile zuerst, um den Cache besser zu nutzen
 COPY package.json bun.lockb ./
 
-# Entferne node_modules, um einen Rebuild zu erzwingen
-RUN rm -rf node_modules
+# Installiere allgemeine Build-Abhängigkeiten
+RUN apk update && apk add --no-cache --virtual .gyp python3 make gcc g++
 
 # Installiere Build-Abhängigkeiten
 RUN bun install --frozen-lockfile
