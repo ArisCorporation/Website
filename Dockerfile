@@ -15,10 +15,13 @@ RUN unzip bun.zip
 # Verschiebe die Bun Binary in den PATH
 RUN mv bun-linux-x64/bun /usr/local/bin/bun
 
-# Stelle sicher, dass Bun ausführbar ist (obwohl unzip das oft schon erledigt)
+# Stelle sicher, dass Bun im PATH ist
+ENV PATH="/usr/local/bin:${PATH}"
+
+# Mache Bun ausführbar
 RUN chmod +x /usr/local/bin/bun
 
-# Überprüfe die Bun Installation (optional)
+# Überprüfe die Bun Installation
 RUN bun --version
 
 # Kopiere package.json und lockfile zuerst, um den Cache besser zu nutzen
