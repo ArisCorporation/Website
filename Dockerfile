@@ -1,35 +1,12 @@
 # 1️⃣ Build-Stage (nutzt Bun für schnelleren Build)
-FROM alpine:latest as builder
-
-# Installiere notwendige Tools
-RUN apk add --no-cache curl unzip
+FROM oven/bun:1.1.4 as builder
 
 WORKDIR /app
-
-# Lade die pre-built Bun Binary herunter
-RUN curl -fsSL https://github.com/oven-sh/bun/releases/download/bun-v1.1.4/bun-linux-x64.zip -o bun.zip
-
-# Entpacke die Binary
-RUN unzip bun.zip
-
-# Verschiebe die Bun Binary in den PATH
-RUN mv bun-linux-x64/bun /usr/local/bin/bun
-
-# Stelle sicher, dass Bun im PATH ist
-ENV PATH="/usr/local/bin:${PATH}"
-
-# Mache Bun ausführbar
-RUN chmod +x /usr/local/bin/bun
-
-# Überprüfe die Bun Installation
-RUN bun --version
 
 # Kopiere package.json und lockfile zuerst, um den Cache besser zu nutzen
 COPY package.json bun.lockb ./
 
-# Install build dependencies (example for Alpine Linux, which oven/bun might be based on)
-RUN apk update && apk add --no-cache --virtual .gyp python3 make gcc g++
-
+# Installiere Build-Abhängigkeiten (die oven/bun image sollte diese bereits haben oder wir installieren sie bei Bedarf)
 RUN bun install --frozen-lockfile
 
 # Kopiere den Rest des Codes
