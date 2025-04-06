@@ -287,6 +287,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     }
   }
 
+  if (updatedUser.hasOwnProperty('birthplace')) {
+    delete updatedUser.birthplace?.path_label;
+  }
+  if (updatedUser.hasOwnProperty('current_residence')) {
+    delete updatedUser.current_residence?.path_label;
+  }
+
   try {
     submitSuccess.value = false;
     saveLoading.value = true;
