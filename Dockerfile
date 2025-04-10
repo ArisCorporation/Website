@@ -1,32 +1,72 @@
-# 1️⃣ Build-Stage (nutzt Node.js für bessere Kompatibilität mit nativen Modulen)
-FROM node:20-slim as builder
+# Stage 1: Build the Nuxt application
+#-------------------------------------
+# Wähle ein passendes Node.js Basis-Image. Verwende die Version, die du auch lokal nutzt.
+# Alpine-Versionen sind kleiner. Aktuelle LTS-Versionen wie 18 oder 20 sind empfohlen.
+FROM node:18-alpine AS builder
 
+# Setze das Arbeitsverzeichnis im Container
 WORKDIR /app
 
-# Kopiere package.json und lockfile zuerst, um den Cache besser zu nutzen
-COPY package.json bun.lockb ./
+# Kopiere package.json und die Lock-Datei (wähle die passende für dein Projekt)
+COPY package.json ./
+# Entkommentiere die Zeile für deinen Paketmanager und kommentiere die anderen aus:
+COPY package-lock.json ./
+# COPY yarn.lock ./
+# COPY pnpm-lock.yaml ./
 
-# Installiere Build-Abhängigkeiten using npm (as the base image is now Node.js)
+# Installiere die Abhängigkeiten
+# Entkommentiere die Zeile für deinen Paketmanager und kommentiere die anderen aus:
+# --frozen-lockfile stellt sicher, dass exakt die Versionen aus der Lock-Datei installiert werden
 RUN npm install --frozen-lockfile
+# RUN yarn install --frozen-lockfile
+# RUN pnpm install --frozen-lockfile
 
-# Kopiere den Rest des Codes
+# Kopiere den Rest des Anwendungscodes
+# (Durch das vorherige Kopieren von package.json/lockfile und npm install wird der Docker-Cache optimal genutzt)
 COPY . .
 
-# Baue die Nuxt-App für die Produktion
+# Setze Build-Argumente oder Umgebungsvariablen, falls nötig (z.B. für API-Endpunkte während des Builds)
+# ARG NUXT_PUBLIC_API_BASE_URL
+# ENV NUXT_PUBLIC_API_BASE_URL=${NUXT_PUBLIC_API_BASE_URL}
+
+# Baue die Nuxt-Anwendung für die Produktion
+# Das erzeugt den .output Ordner
 RUN npm run build
+# RUN yarn build
+# RUN pnpm build
 
-# 2️⃣ Production-Stage (leichtes Alpine-Image)
-FROM node:20-alpine
 
+# Stage 2: Production environment
+#---------------------------------
+# Nutze das gleiche Basis-Image wie im Build-Stage für Konsistenz
+FROM node:18-alpine
+
+# Setze das Arbeitsverzeichnis
 WORKDIR /app
 
-# Kopiere das Build-Resultat und `node_modules` aus der ersten Stage
-COPY --from=builder /app/.output .output
-COPY --from=builder /app/node_modules node_modules
-
-# Setze Umgebungsvariablen für Nuxt (optional)
-ENV NITRO_PORT=3000
+# Setze die Umgebung auf Produktion
+ENV NODE_ENV=production
+# Setze den Host auf 0.0.0.0, damit der Server Verbindungen von außerhalb des Containers annimmt (innerhalb des k3s Pod-Netzwerks)
 ENV HOST=0.0.0.0
+# Setze den Port, auf dem die Nuxt-App lauschen soll (Standard ist 3000)
+ENV PORT=3000
 
-# Starte Nuxt 3
+# Exponiere den Port, auf dem die App läuft
+EXPOSE 3000
+
+# Kopiere nur den gebauten Output vom Builder-Stage
+COPY --from=builder /app/.output ./.output
+
+# Kopiere ggf. den public Ordner, falls Nuxt ihn nicht ins .output Verzeichnis integriert (selten nötig bei Nuxt 3)
+# COPY --from=builder /app/public ./public
+
+# Kopiere package.json, um Metadaten zu haben und ggf. den Start zu erleichtern (optional, aber oft gut)
+COPY --from=builder /app/package.json ./package.json
+
+# (Optional) Installiere nur Produktionsabhängigkeiten, falls dein Server-Build welche benötigt,
+# die nicht im .output/server/node_modules enthalten sind. Meistens NICHT nötig für den Standard Nuxt Nitro Server.
+# RUN npm install --only=production
+
+# Der Befehl zum Starten des Nuxt 3 Produktionsservers (Nitro)
+# Der Einstiegspunkt ist normalerweise .output/server/index.mjs
 CMD ["node", ".output/server/index.mjs"]
