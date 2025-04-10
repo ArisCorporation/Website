@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+# WICHTIG: Berechtigungen hinzufügen, falls noch nicht vorhanden
+permissions:
+  contents: read # Zum Auschecken des Codes
+  packages: write # Zum Pushen zur GitHub Container Registry
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -20,10 +25,35 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set image name
-        run: echo "IMAGE_NAME=ghcr.io/ariscorporation/website" >> $GITHUB_ENV
+      # Optional: Metadaten extrahieren (ersetzt "Set image name")
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/ariscorporation/website # Dein Image-Name
+          tags: |
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and Push Docker Image
-        run: |
-          docker build -t $IMAGE_NAME:latest .
-          docker push $IMAGE_NAME:latest
+      # Build and Push mit der spezialisierten Action
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true # Da Trigger nur auf main ist, können wir immer pushen
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            # --- HIER SIND DIE ÄNDERUNGEN ---
+            # Diese Variablen kommen jetzt aus GitHub Repository Variables (vars.*)
+            NUXT_PUBLIC_DIRECTUS_URL=${{ vars.NUXT_PUBLIC_DIRECTUS_URL }}
+            NUXT_PUBLIC_ENV=${{ vars.NUXT_PUBLIC_ENV }}
+            NUXT_PUBLIC_FILE_BASE=${{ vars.NUXT_PUBLIC_FILE_BASE }}
+            NUXT_PUBLIC_URL=${{ vars.NUXT_PUBLIC_URL }}
+            # Diese Variable kommt weiterhin aus GitHub Secrets (secrets.*)
+            NUXT_SENTRY_AUTH_TOKEN=${{ secrets.NUXT_SENTRY_AUTH_TOKEN }}
+            # Diese Variable kommt dynamisch aus dem GitHub Kontext
+            SOURCE_COMMIT=${{ github.sha }}
+          # Optional: Caching aktivieren für schnellere Builds
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
