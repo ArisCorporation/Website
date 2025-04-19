@@ -12,11 +12,11 @@ const sidebarItems = [
     icon: 'IconsNavigationFleet',
     link: '/ships',
   },
-  // {
-  //   name: 'Vergleich',
-  //   icon: 'IconsNavigationFleet',
-  //   link: '/comparison',
-  // },
+  {
+    name: 'Vergleich',
+    icon: 'IconsNavigationFleet',
+    link: '/comparison',
+  },
 ];
 
 useSeoMeta({

@@ -8,7 +8,8 @@ import YupPassword from 'yup-password';
 YupPassword(yup);
 
 const { width } = useWindowSize();
-const { directus, readMe, readItems, updateUser, deleteUsers, readRoles, uploadFiles, deleteFile } = useCMS();
+const { directus, readMe, readItems, updateUser, deleteUsers, readRoles, uploadFiles, deleteFile, createUser } =
+  useCMS();
 const { data: user } = await useAsyncData('AMS:ME', () => directus.request(readMe()), {
   transform: (user: any) => transformUser(user),
 });
@@ -115,7 +116,7 @@ const handleUserCreation = async (event: FormSubmitEvent<UserCreationSchema>) =>
       throw new Error('Es existiert bereits ein Benutzer mit dieser Vor- Nachnamen-Kombination.');
     }
     console.log(userData);
-    const newUser = await createUser(userData);
+    const newUser = await directus.request(createUser(userData));
 
     modalStore.closeSlide();
     userCreationSendCredentials.value = newUser.discord_id ? true : false;
@@ -3755,7 +3756,7 @@ useHead({
       hidden
       @change="setCropperImage"
     />
-    <div class="max-w-[calc(100vw_-_20rem)] mx-auto mb-4">
+    <div class="lg:max-w-[calc(100vw_-_20rem)] mx-auto mb-4">
       <h1 class="text-center">Verwaltungsdashboard</h1>
       <UTabs
         :items="[{ label: 'Home' }, { label: 'Verwaltungsübersicht' }, { label: 'Benutzer' }, { label: 'Hangars' }]"

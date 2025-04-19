@@ -18,6 +18,7 @@ const jumppoint_options = [
   { key: 'medium', label: 'Mittel' },
   { key: 'large', label: 'Groß' },
 ];
+const live_filter = ref(false);
 
 const tabs = [
   {
@@ -67,6 +68,7 @@ const { data: systems } = await useAsyncData('STARMAP:SYSTEMS', () =>
       fields: [
         'id',
         'status',
+        'live_status',
         'name',
         'slug',
         'banner',
@@ -173,6 +175,7 @@ useHead({
                           <span>{{ jumppoint_options.find((e) => e.key === option)?.label }}</span>
                         </template>
                       </USelectMenu>
+                      <UCheckbox v-model="live_filter" name="live_filter" label="Nur LIVE-Systeme anzeigen?" />
                     </div>
                   </div>
                   <div class="relative w-full h-fit">
@@ -215,15 +218,21 @@ useHead({
                               : system.affiliation[0].toUpperCase() + system.affiliation.slice(1))
                           "
                           class="absolute z-10 w-full h-auto aspect-square"
+                          :class="{ grayscale: live_filter && !system.live_status }"
                         />
                         <div
-                          class="w-full h-full rounded-full aspect-[1/1] animate-pulse group-hover:animate-ping bg-aris-400/75 group-hover:bg-aris-400 blur-sm"
+                          class="w-full h-full rounded-full aspect-[1/1]"
+                          :class="{
+                            'animate-pulse group-hover:animate-ping bg-aris-400/75 group-hover:bg-aris-400 blur-sm': !(
+                              live_filter && !system.live_status
+                            ),
+                          }"
                         />
                       </NuxtLink>
                       <template #panel>
                         <div class="z-50 items-center p-4 mx-auto">
                           <NuxtImg
-                            :src="system?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                            :src="system?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
                             :placeholder="[16, 16, 1, 5]"
                             class="w-56 h-20 mx-auto border rounded border-btertiary"
                             :class="{ 'object-cover': system.banner }"
@@ -314,6 +323,7 @@ useHead({
                             : system.affiliation[0].toUpperCase() + system.affiliation.slice(1))
                         "
                         class="absolute z-10 w-full h-auto aspect-square"
+                        :class="{ grayscale: live_filter && !system.live_status }"
                       />
                     </div>
                     <div class="aspect-[3840/2655] w-full h-auto relative">

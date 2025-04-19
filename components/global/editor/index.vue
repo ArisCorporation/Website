@@ -162,9 +162,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div :class="[!readOnly ? (simpleMode ? 'h-full' : 'h-[calc(100vh_-_50px)] overflow-y-auto rounded-xl') : '']">
+  <div
+    id="editor_container"
+    :class="[!readOnly ? (simpleMode ? 'h-full' : 'h-[calc(100vh_-_50px)] overflow-y-auto rounded-xl') : '']"
+  >
     <EditorFileLibrary v-model="fileLibrary" :file-types="fileLibraryType" @file-selection="onFileSelection" />
-    <div v-if="editor && !readOnly && !simpleMode" id="editor_container">
+    <div v-if="editor && !readOnly && !simpleMode">
       <UCard
         :ui="{
           header: { base: 'sticky top-0 z-10 rounded-t-lg', background: 'bg-bsecondary', padding: 'px-4 py-3 sm:px-6' },
@@ -531,5 +534,8 @@ onBeforeUnmount(() => {
 .ProseMirror {
   height: v-bind('editorHeight') !important;
   overflow-y: auto;
+}
+.ProseMirror p:has(a) {
+  @apply animate-link;
 }
 </style>

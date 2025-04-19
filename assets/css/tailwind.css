@@ -7,7 +7,7 @@
     @apply bg-bprimary text-tbase scroll-smooth font-nasa max-w-full text-base scrollbar;
   }
   *:focus-visible {
-    @apply outline-aris-400
+    @apply outline-aris-400;
   }
   ::selection {
     @apply bg-primary-400 text-bprimary;
@@ -147,6 +147,28 @@
     @apply italic leading-relaxed;
   }
 
+  table {
+    @apply w-full text-left table-auto min-w-max h-full overflow-scroll shadow-md bg-clip-border border border-bsecondary;
+  }
+  th {
+    @apply p-4 border-b border-btertiary bg-bprimary;
+  }
+  th > p {
+    @apply block font-sans text-sm antialiased font-normal leading-none text-white opacity-70;
+  }
+  tbody {
+    @apply divide-y divide-bsecondary border border-bsecondary;
+  }
+  tr {
+    @apply odd:bg-bsecondary;
+  }
+  td {
+    @apply p-4;
+  }
+  td > p {
+    @apply block font-sans text-sm antialiased font-normal leading-normal;
+  }
+
   #sentry-feedback {
     --background: #111;
     --background-hover: #222;
@@ -162,7 +184,7 @@
     --button-primary-hover-background: #00ffe8;
     --button-primary-hover-color: #111;
     /* --accent-foreground: #111 !important; */
-    --submit-background-hover: rgba(0, 255, 232, .5);
+    --submit-background-hover: rgba(0, 255, 232, 0.5);
     --submit-foreground-hover: #eee;
     --submit-border: #444;
     --submit-foreground: #222;
@@ -208,11 +230,7 @@
   }
 
   .text-stroke {
-    text-shadow:
-      -1px -1px 0 black,
-      1px -1px 0 black,
-      -1px 1px 0 black,
-      1px 1px 0 black;
+    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
   }
 
   .tooltip {

@@ -53,7 +53,7 @@ const { data: wallpaperList } = await useAsyncData(
       readFiles({
         fields: ['id'],
         filter: {
-          folder: { _eq: '55452a29-4311-4ac9-ab3f-cc8cc3a28395' },
+          folder: { _eq: 'da8e91e5-46b4-424a-875b-69b38ca4bcfb' },
         },
         limit: -1,
       }),

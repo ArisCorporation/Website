@@ -66,6 +66,7 @@ const { data } = await useAsyncData(
           'manufacturer.name',
           'manufacturer.slug',
           'manufacturer.logo',
+          'manufacturer.logo_background',
           'gallery.directus_files_id',
           'commercial_video_id',
           'commercials.commercial_id.id',
@@ -261,18 +262,17 @@ useHead({
                 indicators: { wrapper: 'absolute flex items-center justify-center gap-3 bottom-4 inset-x-0 z-30' },
               }"
               class="relative w-auto"
-              :class="[isModuleCarouselFS ? 'max-h-screen' : 'max-h-[calc(100vh-4rem)] aspect-[16/9]']"
+              :class="[
+                isModuleCarouselFS
+                  ? 'max-h-screen'
+                  : 'max-h-[calc(100vh-4rem)] aspect-[16/9] border border-btertiary/75',
+              ]"
               arrows
               indicators
             >
               <template #default="{ item }">
                 <div class="relative flex size-full">
-                  <NuxtImg
-                    :src="item"
-                    class="relative z-20 object-contain w-full h-auto m-auto"
-                    :class="[isModuleCarouselFS ? 'border-0 max-h-screen' : 'border border-btertiary/75']"
-                    draggable="false"
-                  />
+                  <NuxtImg :src="item" class="relative z-20 object-contain w-full h-auto m-auto" draggable="false" />
                   <NuxtImg
                     :src="item"
                     class="absolute z-10 object-cover w-full h-full m-auto blur"
@@ -332,7 +332,7 @@ useHead({
         </div>
       </div>
     </template>
-    <div class="flex flex-wrap-reverse justify-between">
+    <div class="flex flex-wrap justify-between">
       <div class="mt-auto">
         <h1 class="mb-0 text-industrial-400">
           <span class="text-tbase">{{ data.manufacturer.name }}</span> {{ data.name }}
@@ -343,8 +343,19 @@ useHead({
         </h4>
       </div>
       <div class="ml-auto">
-        <NuxtLink :to="`/verseexkurs/companies/${data.manufacturer.slug}`">
-          <NuxtImg :src="data.manufacturer.logo" class="h-20 md:h-40 w-fit" />
+        <NuxtLink
+          :to="`/verseexkurs/companies/${data.manufacturer.slug}`"
+          class="aspect-[2/1] group w-40 md:w-64 h-auto relative block animate-link hover:scale-105 active:scale-95"
+        >
+          <DefaultPanel>
+            <NuxtImg
+              :src="data.manufacturer.logo"
+              class="absolute top-0 bottom-0 left-0 right-0 z-10 h-24 m-auto pointer-events-none md:h-40 w-fit"
+            />
+            <video autoplay loop class="transition-opacity duration-500 opacity-0 size-full group-hover:opacity-100">
+              <source :src="$config.public.fileBase + data.manufacturer.logo_background" type="video/webm" />
+            </video>
+          </DefaultPanel>
         </NuxtLink>
       </div>
     </div>
@@ -659,10 +670,10 @@ useHead({
                 </ul>
                 <div class="flex items-center mx-auto mt-12 mb-4 w-fit">
                   <div class="mr-4">
-                    <p class="p-0 text-xl text-white fon-bold">
-                      {{ data.name }}
+                    <p class="p-0 text-xl text-white">
+                      Die {{ data.manufacturer.name }} <span class="font-bold">{{ data.name }}</span>
                     </p>
-                    <p class="p-0">Erreichte eine Punktzahl von:</p>
+                    <p class="p-0">Erreichte eine Wertung von:</p>
                   </div>
 
                   <ArcCounter
