@@ -235,7 +235,7 @@ definePageMeta({
       <template v-if="modalData.type === 'star'">
         <DefaultPanel bg="bprimary">
           <NuxtImg
-            :src="modalData.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+            :src="modalData.data?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
             :placeholder="[16, 16, 1, 5]"
             class="w-full h-44"
             :class="{ 'object-cover': modalData.data?.banner }"
@@ -252,7 +252,7 @@ definePageMeta({
       <template v-else-if="modalData.type === 'planet' || modalData.type === 'moon'">
         <DefaultPanel bg="bprimary">
           <NuxtImg
-            :src="modalData.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+            :src="modalData.data?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
             :placeholder="[16, 16, 1, 5]"
             class="w-full h-44"
             :class="{ 'object-cover': modalData.data?.banner }"
@@ -286,7 +286,7 @@ definePageMeta({
       <template v-else-if="modalData.type === 'landing_zone'">
         <DefaultPanel bg="bprimary">
           <NuxtImg
-            :src="modalData.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+            :src="modalData.data?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
             :placeholder="[16, 16, 1, 5]"
             class="w-full h-44"
             :class="{ 'object-cover': modalData.data?.banner }"
@@ -299,7 +299,7 @@ definePageMeta({
       <template v-else-if="modalData.type === 'station'">
         <DefaultPanel bg="bprimary">
           <NuxtImg
-            :src="modalData.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+            :src="modalData.data?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
             :placeholder="[16, 16, 1, 5]"
             class="w-full h-44"
             :class="{ 'object-cover': modalData.data?.banner }"
@@ -318,7 +318,7 @@ definePageMeta({
             :src="
 							modalData.data?.banner
 								|| modalData.data.systems.find((e: any) => e.name !== data.name)?.banner
-								|| '650aba1c-3182-40a6-8185-a8f3d164ef2b'
+								|| '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'
 						"
             :placeholder="[16, 16, 1, 5]"
             class="w-full h-44"
@@ -338,7 +338,7 @@ definePageMeta({
       <template v-else-if="modalData.type === 'asteroid_belt'">
         <DefaultPanel bg="bprimary">
           <NuxtImg
-            :src="modalData.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+            :src="modalData.data?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
             :placeholder="[16, 16, 1, 5]"
             class="w-full h-44"
             :class="{ 'object-cover': modalData.data?.banner }"
@@ -351,7 +351,7 @@ definePageMeta({
       <template v-else>
         <DefaultPanel bg="bprimary">
           <NuxtImg
-            :src="modalData.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+            :src="modalData.data?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
             :placeholder="[16, 16, 1, 5]"
             class="w-full h-44"
             :class="{ 'object-cover': modalData.data?.banner }"
@@ -493,7 +493,7 @@ definePageMeta({
                     >
                       <template #header>
                         <NuxtImg
-                          :src="star?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                          :src="star?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
                           class="w-full h-24"
                           :class="{
                             'object-cover': star.banner,
@@ -543,7 +543,7 @@ definePageMeta({
                       <UButton color="accordion-gray" variant="outline" size="xl" class="w-full mb-1.5 group">
                         <template #leading>
                           <NuxtImg
-                            :src="item.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                            :src="item.data?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
                             :placeholder="[16, 16, 1, 5]"
                             class="w-auto h-12 aspect-[21/9] border border-bsecondary rounded group-hover:border-btertiary"
                             :class="{ 'object-cover': item.data?.banner }"
@@ -581,7 +581,7 @@ definePageMeta({
                         >
                           <template #header>
                             <NuxtImg
-                              :src="planet.data?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                              :src="planet.data?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
                               class="w-full h-16"
                               :class="{ 'object-cover': planet.data?.banner }"
                             />
@@ -653,7 +653,7 @@ definePageMeta({
                             >
                               <template #header>
                                 <NuxtImg
-                                  :src="landing_zone?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                                  :src="landing_zone?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
                                   class="w-full h-24"
                                   :class="{ 'object-cover': landing_zone?.banner }"
                                 />
@@ -699,7 +699,7 @@ definePageMeta({
                             >
                               <template #header>
                                 <NuxtImg
-                                  :src="moon?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                                  :src="moon?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
                                   class="w-full h-24"
                                   :class="{ 'object-cover': moon?.banner }"
                                 />
@@ -748,7 +748,7 @@ definePageMeta({
                             >
                               <template #header>
                                 <NuxtImg
-                                  :src="station?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                                  :src="station?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
                                   class="w-full h-24"
                                   :class="{ 'object-cover': station?.banner }"
                                 />
@@ -817,7 +817,7 @@ definePageMeta({
                           :src="
 														jumppoint?.banner
 															|| jumppoint.systems.find((e: any) => e.name !== data.name)?.banner
-															|| '650aba1c-3182-40a6-8185-a8f3d164ef2b'
+															|| '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'
 													"
                           class="w-full h-24"
                           :class="{
@@ -869,7 +869,7 @@ definePageMeta({
                     >
                       <template #header>
                         <NuxtImg
-                          :src="asteroid_belt?.banner || '650aba1c-3182-40a6-8185-a8f3d164ef2b'"
+                          :src="asteroid_belt?.banner || '0a7ab10a-3309-4b1a-b624-9ce0710d0fa9'"
                           class="w-full h-24"
                           :class="{
                             'object-cover': asteroid_belt.banner,

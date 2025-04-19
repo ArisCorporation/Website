@@ -7,6 +7,8 @@ import transformAsteroidbelt from './transform-asteroidbelt';
 export default function (obj: any) {
   return {
     ...(obj.id && { id: obj.id }),
+    ...(obj.status && { status: obj.status }),
+    ...(obj.live_status && { live_status: obj.live_status }),
     ...(obj.banner && { banner: obj.banner }),
     ...(obj.overview_image && { overview_image: obj.overview_image }),
     ...(obj.name && { name: obj.name }),

@@ -5,6 +5,7 @@ export default function (obj: any) {
     ...(obj.code && { code: obj.code }),
     ...(obj.slug && { slug: obj.slug }),
     ...(obj.logo && { logo: obj.logo }),
+    ...(obj.logo_background && { logo_background: obj.logo_background }),
     ...(obj.banner && { banner: obj.banner }),
     ...(obj.content && { content: obj.content }),
     ...(obj.category && { category: { id: obj.category.id, name: obj.category.name } }),

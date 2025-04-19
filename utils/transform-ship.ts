@@ -235,6 +235,8 @@ export default function transformShip(obj: any, shipList?: any) {
           return 'Bodenkampf';
         case 'tow_ship':
           return 'Abschleppschiff';
+        case 'interdicion':
+          return 'Interdiction';
         default:
           return focus;
       }

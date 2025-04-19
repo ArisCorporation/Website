@@ -255,6 +255,12 @@ watch(formdata, () => {
   if (formdata.department === '') {
     formdata.department = null;
   }
+  if (formdata.birthplace === '') {
+    formdata.birthplace = null;
+  }
+  if (formdata.current_residence === '') {
+    formdata.current_residence = null;
+  }
 });
 
 const initialFormdata = reactive({ ...formdata });
@@ -271,6 +277,13 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
   if (Object.keys(updatedUser).length === 0) {
     return;
+  }
+
+  if (updatedUser.hasOwnProperty('birthplace')) {
+    updatedUser.birthplace = updatedUser.birthplace?.id ?? null;
+  }
+  if (updatedUser.hasOwnProperty('current_residence')) {
+    updatedUser.current_residence = updatedUser.current_residence?.id ?? null;
   }
 
   // if (updatedUser.hasOwnProperty('department')) {
@@ -591,7 +604,7 @@ definePageMeta({
             searchable-placeholder="Suche..."
             :search-attributes="['name']"
             :option-label="(option: any) => option.name"
-            :selected-label="formdata.department.name"
+            :selected-label="formdata.department?.name"
             empty-label="Keine Abteilung"
             no-selected-label="Keine Abteilung ausgewählt"
           />
@@ -683,7 +696,7 @@ definePageMeta({
             searchable-placeholder="Suche..."
             :search-attributes="['name']"
             :option-label="(option: any) => option.path_label || option.name"
-            :selected-label="formdata.current_residence.path_label || formdata.current_residence.name"
+            :selected-label="formdata.current_residence?.path_label || formdata.current_residence?.name"
             empty-label="Keine Landezone"
             no-selected-label="Keine Landezone ausgewählt"
           />
@@ -755,7 +768,7 @@ definePageMeta({
             searchable-placeholder="Suche..."
             :search-attributes="['name']"
             :option-label="(option: any) => option.path_label || option.name"
-            :selected-label="formdata.birthplace.path_label || formdata.birthplace.name"
+            :selected-label="formdata.birthplace?.path_label || formdata.birthplace?.name"
             empty-label="Keine Abteilung"
             no-selected-label="Keine Abteilung ausgewählt"
           />

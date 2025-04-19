@@ -159,10 +159,12 @@ const { data: places } = await useAsyncData(
   },
 );
 
-if (data.value.birthplace) {
+if (data.value?.birthplace?.planet) {
   data.value.birthplace.planet.system = places.value.find((e) =>
     e.planets.find((p) => p.id === data.value.birthplace?.planet?.id),
   );
+}
+if (data.value?.current_residence?.planet) {
   data.value.current_residence.planet.system = places.value.find((e) =>
     e.planets.find((p) => p.id === data.value.current_residence?.planet?.id),
   );
@@ -250,7 +252,17 @@ useHead({
       <div class="col-span-3 space-y-4 xl:col-span-1">
         <div class="w-full">
           <DefaultPanel>
-            <NuxtImg :src="data.avatar" class="h-[300px] lg:h-[600px] xl:h-[700px] w-full object-cover" />
+            <div class="relative h-[300px] lg:h-[600px] xl:h-[700px] w-full">
+              <NuxtImg
+                ref="reftest"
+                :src="data.avatar"
+                placeholder-class="opacity-0"
+                loading="lazy"
+                format="png"
+                class="absolute z-10 object-cover size-full"
+              />
+              <NuxtImg :src="data.avatar" class="absolute object-cover size-full" />
+            </div>
           </DefaultPanel>
         </div>
         <ButtonDefault class="w-full" @click="handleShare">

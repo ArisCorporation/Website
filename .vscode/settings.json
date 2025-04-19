@@ -7,5 +7,14 @@
   },
   "nuxt.isNuxtApp": false,
   "cSpell.language": "en,de-DE",
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "gitflow4code.init": {
+    "develop": "develop",
+    "master": "main",
+    "releases": "release/",
+    "hotfixes": "hotfix/",
+    "features": "feature/",
+    "support": ""
+  },
+  "gitflow4code.hotfixes": []
 }
