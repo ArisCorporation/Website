@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@directus/sdk": "^19.1.0",
     "@nuxt/eslint": "1.3.0",
     "@nuxt/fonts": "^0.11.1",
     "@nuxt/icon": "1.12.0",
