@@ -1,2 +1,109 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+
+@theme static {
+  --font-sans: 'Orbitron', sans-serif;
+
+  --breakpoint-3xl: 1920px;
+
+  --color-aris-50: #edfffd;
+  --color-aris-100: #c0fffa;
+  --color-aris-200: #81fff7;
+  --color-aris-300: #3afff4;
+  --color-aris-400: #00ffe8;
+  --color-aris-500: #00e2cf;
+  --color-aris-600: #00b7ac;
+  --color-aris-700: #009189;
+  --color-aris-800: #00726e;
+  --color-aris-900: #045d5a;
+  --color-aris-950: #00393a;
+
+  --color-industrial-50: #fdf6ed;
+  --color-industrial-100: #f8e5cd;
+  --color-industrial-200: #f1c896;
+  --color-industrial-300: #eaa75f;
+  --color-industrial-400: #e48632;
+  --color-industrial-500: #dd6a23;
+  --color-industrial-600: #c34b1c;
+  --color-industrial-700: #a3331a;
+  --color-industrial-800: #85291b;
+  --color-industrial-900: #6d231a;
+  --color-industrial-950: #3e0f0a;
+}
+
+@theme default {
+  --radius-xs: calc(var(--ui-radius) * 0.5); /* 0.125rem */
+  --radius-sm: var(--ui-radius); /* 0.25rem */
+  --radius-md: calc(var(--ui-radius) * 1.5); /* 0.375rem */
+  --radius-lg: calc(var(--ui-radius) * 2); /* 0.5rem */
+  --radius-xl: calc(var(--ui-radius) * 3); /* 0.75rem */
+  --radius-2xl: calc(var(--ui-radius) * 4); /* 1rem */
+  --radius-3xl: calc(var(--ui-radius) * 6); /* 1.5rem */
+}
+
+/* LIGHT MODE */
+/* :root { */
+/* Least prominent text */
+/* --ui-text-dimmed: var(--ui-color-neutral-400); */
+/* Slightly muted text */
+/* --ui-text-muted: var(--ui-color-neutral-500); */
+/* Moderately prominent text */
+/* --ui-text-toned: var(--ui-color-neutral-600); */
+/* Default text color */
+/* --ui-text: var(--ui-color-neutral-700); */
+/* Most prominent text */
+/* --ui-text-highlighted: var(--ui-color-neutral-900); */
+
+/* Main background color */
+/* --ui-bg: var(--color-white); */
+/* Subtle background */
+/* --ui-bg-muted: var(--ui-color-neutral-50); */
+/* Slightly elevated background */
+/* --ui-bg-elevated: var(--ui-color-neutral-100); */
+/* More prominent background */
+/* --ui-bg-accented: var(--ui-color-neutral-200); */
+/* Inverted background color */
+/* --ui-bg-inverted: var(--ui-color-neutral-900); */
+
+/* Default border color */
+/* --ui-border: var(--ui-color-neutral-200); */
+/* Subtle border */
+/* --ui-border-muted: var(--ui-color-neutral-200); */
+/* More prominent border */
+/* --ui-border-accented: var(--ui-color-neutral-300); */
+/* Inverted border color */
+/* --ui-border-inverted: var(--ui-color-neutral-900); */
+/* } */
+
+:root {
+  /* Least prominent text */
+  --ui-text-dimmed: var(--ui-color-neutral-500);
+  /* Slightly muted text */
+  --ui-text-muted: var(--ui-color-neutral-400);
+  /* Moderately prominent text */
+  --ui-text-toned: var(--ui-color-neutral-300);
+  /* Default text color */
+  --ui-text: var(--ui-color-neutral-200);
+  /* Most prominent text */
+  --ui-text-highlighted: var(--color-white);
+
+  /* Main background color */
+  --ui-bg: var(--ui-color-neutral-900);
+  /* Subtle background */
+  --ui-bg-muted: var(--ui-color-neutral-800);
+  /* Slightly elevated background */
+  --ui-bg-elevated: var(--ui-color-neutral-800);
+  /* More prominent background */
+  --ui-bg-accented: var(--ui-color-neutral-700);
+  /* Inverted background color */
+  --ui-bg-inverted: var(--color-white);
+
+  /* Default border color */
+  --ui-border: var(--ui-color-neutral-800);
+  /* Subtle border */
+  --ui-border-muted: var(--ui-color-neutral-700);
+  /* More prominent border */
+  --ui-border-accented: var(--ui-color-neutral-700);
+  /* Inverted border color */
+  --ui-border-inverted: var(--color-white);
+}
