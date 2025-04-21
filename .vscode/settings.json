@@ -1,12 +1,5 @@
 {
-  "files.associations": {
-    "*.css": "tailwindcss"
-  },
-  "editor.quickSuggestions": {
-    "strings": true
-  },
-  "nuxt.isNuxtApp": false,
-  "cSpell.language": "en,de-DE",
+  "nuxt.isNuxtApp": true,
   "typescript.tsdk": "node_modules/typescript/lib",
   "gitflow4code.init": {
     "develop": "develop",
@@ -19,5 +12,15 @@
   "gitflow4code.hotfixes": [],
   "yaml.schemas": {
     "https://www.artillery.io/schema.json": []
-  }
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  "tailwindCSS.classAttributes": ["class", "ui"],
+  "tailwindCSS.experimental.classRegex": [
+    ["ui:\\s*{([^)]*)\\s*}", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ]
 }
