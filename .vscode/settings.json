@@ -16,5 +16,8 @@
     "features": "feature/",
     "support": ""
   },
-  "gitflow4code.hotfixes": []
+  "gitflow4code.hotfixes": [],
+  "yaml.schemas": {
+    "https://www.artillery.io/schema.json": []
+  }
 }

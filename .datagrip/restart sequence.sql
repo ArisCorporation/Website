@@ -1,1 +1,0 @@
-ALTER SEQUENCE departments_files_id_seq RESTART WITH 24
