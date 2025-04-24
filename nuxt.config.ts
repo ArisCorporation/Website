@@ -13,20 +13,15 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxt/eslint',
-    '@nuxt/icon',
     '@nuxt/image',
-    '@nuxt/fonts',
     '@nuxt/test-utils',
     '@nuxt/ui',
     '@pinia/nuxt',
-    '@vueuse/nuxt'
+    '@vueuse/nuxt',
+    '@compodium/nuxt',
   ],
 
   css: ['~/assets/css/main.css'],
-
-  ui: {
-
-  },
 
   image: {
     provider: 'directus',
