@@ -19,7 +19,7 @@
                   data-name="TechCarrack"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 1825 635"
-                  class="opacity-100 bg-[url('https://v1-cms.ariscorp.de/assets/60ca623f-7a9b-4696-9839-97f9cde6e11d')] bg-no-repeat bg-cover"
+                  class="opacity-100 bg-[url('https://cms.ariscorp.de/assets/60ca623f-7a9b-4696-9839-97f9cde6e11d')] bg-no-repeat bg-cover"
                   width="100%"
                   height="100%"
                 >
