@@ -1,20 +1,22 @@
 // Jenkinsfile for KubeSphere DevOps - Nuxt 3 App
 // Uses direct K8s variable injection via Pod Template (envFrom)
 // Configured for GitHub Container Registry (ghcr.io)
-// Agent defined at top level for better KubeSphere UI compatibility
-// Installs git, docker-cli, kubectl in agent; Mounts docker socket.
+// Agent defined at top level with separate Kaniko container for builds.
+// Installs git, kubectl in agent; No Docker daemon dependency.
 // Uses stash/unstash for passing image tag and names between stages.
-// Corrected withCredentials binding for docker login.
 
 // Define global pipeline options
 pipeline {
     // Define the primary agent for the pipeline using Kubernetes plugin
+    // Includes a 'node' container for general steps and a 'kaniko' container for builds
     agent {
         kubernetes {
             yaml '''
 apiVersion: v1
 kind: Pod
 spec:
+  # IMPORTANT: Grant Kaniko permissions to push to the registry if needed via ServiceAccount
+  # serviceAccountName: your-service-account-with-push-permissions # Optional: If needed for registry auth via workload identity etc.
   containers:
   - name: node
     image: node:18-alpine # Use the desired Node.js version
@@ -28,16 +30,20 @@ spec:
     - secretRef:
         name: ariscorp-devops-test-2 # Your Secret name
         optional: false
-    # Mount the host's Docker socket to enable Docker-outside-of-Docker
-    volumeMounts:
-    - mountPath: /var/run/docker.sock
-      name: docker-sock
-  # Define the volume pointing to the host's Docker socket
-  volumes:
-  - hostPath:
-      path: /var/run/docker.sock
-      # type: Socket # Type check removed for compatibility, ensure path is correct on node
-    name: docker-sock
+    volumeMounts: # Mount workspace volume
+    - name: workspace-volume
+      mountPath: /home/jenkins/agent
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug # Kaniko debug image includes a shell
+    command:
+    - cat # Keep container running
+    tty: true
+    volumeMounts: # Mount workspace volume into kaniko container
+    - name: workspace-volume
+      mountPath: /workspace # Kaniko needs access to the build context
+  volumes: # Define the shared workspace volume
+  - name: workspace-volume
+    emptyDir: {}
 '''
         }
     }
@@ -63,8 +69,8 @@ spec:
             steps {
                 // Steps run inside the 'node' container
                 container('node') {
-                    // Install required tools (git, docker client, kubectl)
-                    sh 'apk update && apk add --no-cache git docker-cli kubectl'
+                    // Install required tools (git and kubectl)
+                    sh 'apk update && apk add --no-cache git kubectl'
                     // Add the workspace directory to git's safe directories
                     sh 'git config --global --add safe.directory ${WORKSPACE}'
 
@@ -106,7 +112,7 @@ spec:
         } // End stage 1
 
         // Stage 2: Setup, Install & Build
-        // Uses the top-level Kubernetes agent (inherits injected env vars)
+        // Uses the 'node' container from the top-level agent
         stage('Setup, Install & Build') {
             steps {
                 // Steps run inside the 'node' container defined in the top-level agent
@@ -131,16 +137,16 @@ spec:
             }
         }
 
-        // Stage 3: Build & Push Docker Image
-        // Uses the top-level Kubernetes agent (node container now has docker client via socket mount)
-        stage('Build & Push Docker Image') {
-            // No specific agent needed, inherits from top-level
+        // Stage 3: Build & Push Docker Image with Kaniko
+        // Runs inside the dedicated 'kaniko' container
+        stage('Build & Push Docker Image (Kaniko)') {
+            agent none // Specify agent none because steps run in specific container
             steps {
-                 container('node') {
+                 container('kaniko') {
                     // Retrieve the stashed build info
                     unstash 'buildInfo'
 
-                    // Read values from the unstashed files
+                    // Read values from the unstashed files and prepare Kaniko execution
                     script {
                         def imageTag = readFile('image_tag.txt').trim()
                         def dockerImageName = readFile('docker_image_name.txt').trim()
@@ -150,40 +156,66 @@ spec:
                         echo "Using unstashed DOCKER_IMAGE_NAME: ${dockerImageName}"
 
                         if (!imageTag || !dockerImageName || !dockerImageLatest) {
-                            error "Failed to read required values from unstashed files."
+                            error "Failed to read required values from unstashed files for Kaniko build."
                         }
 
-                        // Use the read values directly
-                        echo "Building Docker image: ${dockerImageName}"
-                        // Corrected withCredentials block: Only use usernamePassword binding
+                        // Create Kaniko Docker config file for GHCR authentication
+                        echo "Creating Kaniko Docker config for ${env.DOCKER_REGISTRY}..."
                         withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                            // Use the variables provided by usernamePassword binding
-                            sh "echo $DOCKER_PASSWORD | docker login ${env.DOCKER_REGISTRY} -u ${DOCKER_USERNAME} --password-stdin"
+                            // Note: Use single quotes for the outer shell command to prevent Groovy interpolation issues
+                            // Escape special characters within the JSON string if necessary
+                            def dockerConfigJson = """
+                            {
+                                \\"auths\\": {
+                                    \\"${env.DOCKER_REGISTRY}\\": {
+                                        \\"username\\": \\"${DOCKER_USERNAME}\\",
+                                        \\"password\\": \\"${DOCKER_PASSWORD}\\"
+                                    }
+                                }
+                            }
+                            """.stripIndent()
+                            // Write the config to the standard Kaniko location
+                            // Ensure the directory exists
+                            sh 'mkdir -p /kaniko/.docker/'
+                            writeFile file: '/kaniko/.docker/config.json', text: dockerConfigJson
+                            // Optionally verify file content (be careful not to log secrets)
+                            sh 'echo "Wrote /kaniko/.docker/config.json (content hidden)"'
+                            // sh 'cat /kaniko/.docker/config.json' // Uncomment for debugging only, exposes creds in logs!
                         }
-                        // Use the variables read from files for docker commands
-                        sh "docker build -t ${dockerImageName} -t ${dockerImageLatest} ."
-                        echo "Pushing Docker image to ${env.DOCKER_REGISTRY}..."
-                        sh "docker push ${dockerImageName}"
-                        sh "docker push ${dockerImageLatest}"
-                        echo "Docker image pushed successfully."
+
+                        // Execute Kaniko - context is the workspace mounted at /workspace
+                        // Dockerfile path is relative to the context
+                        echo "Running Kaniko build..."
+                        sh """
+                        /kaniko/executor --context dir:///workspace \
+                                         --dockerfile /workspace/Dockerfile \
+                                         --destination ${dockerImageName} \
+                                         --destination ${dockerImageLatest} \
+                                         --verbosity=info
+                        """
+                        // Kaniko automatically uses /kaniko/.docker/config.json for auth
+
+                        echo "Kaniko build and push finished successfully."
                     }
                  }
             }
             post {
                 always {
-                    // This runs in the 'node' container context
+                    // Clean up Kaniko config if desired (optional)
+                    container('kaniko') {
+                        echo "Cleaning up Kaniko config..."
+                        sh 'rm -f /kaniko/.docker/config.json'
+                    }
+                    // Clean up stashed files from workspace
                     container('node') {
-                        echo "Logging out from Docker registry..."
-                        sh "docker logout ${env.DOCKER_REGISTRY}"
-                        // Clean up unstashed files if necessary (optional, workspace is usually cleaned)
-                        sh 'rm -f image_tag.txt docker_image_name.txt docker_image_latest.txt'
+                         sh 'rm -f image_tag.txt docker_image_name.txt docker_image_latest.txt'
                     }
                 }
             }
         }
 
         // Stage 4: Deploy to Kubernetes
-        // Uses the top-level Kubernetes agent (node container now has kubectl)
+        // Uses the 'node' container which has kubectl
         stage('Deploy to Kubernetes') {
             // Inherits the top-level agent definition
             steps {
