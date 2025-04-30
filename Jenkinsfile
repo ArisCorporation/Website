@@ -2,7 +2,7 @@
 // Uses direct K8s variable injection via Pod Template (envFrom)
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
-// Added git installation to checkout stage
+// Added git installation and safe directory config to checkout stage
 
 // Define global pipeline options
 pipeline {
@@ -86,7 +86,10 @@ spec:
                 container('node') {
                     // Install git in the alpine container first
                     sh 'apk add --no-cache git'
-                    // Now checkout should work
+                    // Add the workspace directory to git's safe directories
+                    // Use ${WORKSPACE} which Jenkins provides, pointing to the checkout directory
+                    sh 'git config --global --add safe.directory ${WORKSPACE}'
+                    // Now checkout and other git commands should work
                     cleanWs()
                     checkout scm
                     // Get git commit hash
