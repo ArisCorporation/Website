@@ -3,7 +3,7 @@
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
 // Installs git, docker-cli, kubectl in agent; Mounts docker socket.
-// Uses a global variable for commit hash propagation.
+// Uses a global variable for commit hash propagation, assigned outside initial script block.
 
 // Global variable to store the commit hash
 def commitHashValue = ''
@@ -82,35 +82,39 @@ spec:
                     sh 'echo "--- Git status ---"'
                     sh 'git status || echo "Failed to get git status"' // Check git status
 
-                    // Get git commit hash and assign to global and env vars
+                    // Get git commit hash and assign to global Groovy variable
                     script {
                         try {
                             // Get the commit hash directly. sh step will fail if git command fails.
                             commitHashValue = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
                             echo "Git rev-parse raw output: '${commitHashValue}'"
 
-                            if (commitHashValue) {
-                                // Assign to global environment variables
-                                env.IMAGE_TAG = commitHashValue
-                                env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
-                                env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
-
-                                echo "Assigned IMAGE_TAG: ${env.IMAGE_TAG}"
-                                echo "Assigned DOCKER_IMAGE_NAME: ${env.DOCKER_IMAGE_NAME}"
-                            } else {
-                                // Throw error if commitHash is empty or null
+                            if (!commitHashValue) {
                                 error "Failed to get git commit hash: Command returned empty output."
                             }
                         } catch (e) {
-                            // Catch potential errors from the sh step itself
                             error "Error getting git commit hash: ${e.message}"
                         }
+                    } // End first script block
 
-                        // Final check before exiting stage
-                        if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
-                           error "Failed to set image environment variables correctly within script block."
-                        }
-                    } // End script block
+                    // Assign to environment variables using the global Groovy variable
+                    script {
+                         if (commitHashValue) {
+                            env.IMAGE_TAG = commitHashValue
+                            env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
+                            env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
+
+                            echo "Assigned IMAGE_TAG: ${env.IMAGE_TAG}"
+                            echo "Assigned DOCKER_IMAGE_NAME: ${env.DOCKER_IMAGE_NAME}"
+                         } else {
+                             error "Commit hash value was empty, cannot set environment variables."
+                         }
+
+                         // Final check before exiting stage
+                         if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
+                            error "Failed to set image environment variables correctly."
+                         }
+                    } // End second script block
                 } // End container block
             } // End steps
         } // End stage 1
