@@ -2,8 +2,7 @@
 // Uses direct K8s variable injection via Pod Template (envFrom)
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
-// Added git installation and safe directory config to checkout stage
-// Switched to npm ci and revised git hash retrieval logic
+// Installs git, docker, kubectl in agent; Mounts docker socket.
 
 // Define global pipeline options
 pipeline {
@@ -27,7 +26,17 @@ spec:
     - secretRef:
         name: ariscorp-devops-test-2 # Your Secret name
         optional: false
-  # Add other necessary containers (e.g., docker, kubectl) or ensure the base image/Jenkins config provides them
+    # Mount the host's Docker socket to enable Docker-outside-of-Docker
+    volumeMounts:
+    - mountPath: /var/run/docker.sock
+      name: docker-sock
+  # Define the volume pointing to the host's Docker socket
+  volumes:
+  - hostPath:
+      path: /var/run/docker.sock
+      type: Socket # Specify type as Socket for security if supported, otherwise omit type
+    name: docker-sock
+  # Add other necessary containers or ensure the base image/Jenkins config provides them
 '''
         }
     }
@@ -42,6 +51,7 @@ spec:
         KUBERNETES_NAMESPACE = 'ariscorp-devops-test-2'
         KUBERNETES_DEPLOYMENT_FILE = 'kubernetes/deployment.yaml'
         KUBERNETES_SERVICE_FILE = 'kubernetes/service.yaml'
+        // Initialize image vars - will be set in the first stage
         IMAGE_TAG = ''
         DOCKER_IMAGE_NAME = ''
         DOCKER_IMAGE_LATEST = ''
@@ -49,16 +59,15 @@ spec:
 
     // Define the stages of the pipeline
     stages {
-        // Stage 1: Prepare Workspace & Get Commit Hash
+        // Stage 1: Prepare Workspace, Install Tools & Get Commit Hash
         // Jenkins performs checkout before this stage automatically
-        stage('Prepare Workspace & Get Commit Hash') {
+        stage('Prepare Workspace, Install Tools & Get Commit Hash') {
             steps {
                 // Steps run inside the 'node' container
                 container('node') {
-                    // Install git in the alpine container first
-                    sh 'apk add --no-cache git'
+                    // Install required tools
+                    sh 'apk update && apk add --no-cache git docker-cli kubectl'
                     // Add the workspace directory to git's safe directories
-                    // Use ${WORKSPACE} which Jenkins provides, pointing to the checkout directory
                     sh 'git config --global --add safe.directory ${WORKSPACE}'
 
                     // Add debugging steps
@@ -77,10 +86,9 @@ spec:
                             echo "Git rev-parse raw output: '${commitHash}'"
 
                             if (commitHash) {
+                                // Assign to global environment variables
                                 env.IMAGE_TAG = commitHash
-                                // Construct the full Docker image name
                                 env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
-                                // Also tag with 'latest'
                                 env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
                                 echo "Using Git commit hash for image tag: ${env.IMAGE_TAG}"
                                 echo "Full image name: ${env.DOCKER_IMAGE_NAME}"
@@ -106,8 +114,6 @@ spec:
                     echo "Setting up Node.js ${env.NODE_VERSION} environment..."
                     sh 'node -v'
                     // Using npm ci (Clean Install) - Requires package-lock.json
-                    // Ensure 'three' is listed as a dependency in your package.json
-                    // and package-lock.json is committed to your repository.
                     echo "Running npm ci..."
                     sh 'npm ci --legacy-peer-deps'
                     echo "Dependencies installed."
@@ -126,70 +132,75 @@ spec:
         }
 
         // Stage 3: Build & Push Docker Image
+        // Uses the top-level Kubernetes agent (node container now has docker client)
         stage('Build & Push Docker Image') {
-            // Using agent any assumes a separate agent with Docker capabilities.
-            // Remove this 'agent any' if your top-level K8s agent handles Docker.
-            agent any
             steps {
-                // Ensure IMAGE_TAG is set before proceeding
-                script {
-                    if (!env.IMAGE_TAG) {
-                        error "IMAGE_TAG environment variable is not set. Cannot build Docker image."
+                 container('node') {
+                    // Ensure IMAGE_TAG is set before proceeding
+                    script {
+                        if (!env.IMAGE_TAG) {
+                            error "IMAGE_TAG environment variable is not set. Cannot build Docker image."
+                        }
                     }
-                }
-                echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}"
-                withCredentials([string(credentialsId: env.DOCKER_CREDENTIALS_ID, variable: 'DOCKER_HUB_PASSWORD'), usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD_UNUSED')]) {
-                    sh "echo $DOCKER_HUB_PASSWORD | docker login ${env.DOCKER_REGISTRY} -u ${DOCKER_HUB_USERNAME} --password-stdin"
-                }
-                sh "docker build -t ${env.DOCKER_IMAGE_NAME} -t ${env.DOCKER_IMAGE_LATEST} ."
-                echo "Pushing Docker image to ${env.DOCKER_REGISTRY}..."
-                sh "docker push ${env.DOCKER_IMAGE_NAME}"
-                sh "docker push ${env.DOCKER_IMAGE_LATEST}"
-                echo "Docker image pushed successfully."
+                    echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}"
+                    withCredentials([string(credentialsId: env.DOCKER_CREDENTIALS_ID, variable: 'DOCKER_HUB_PASSWORD'), usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD_UNUSED')]) {
+                        sh "echo $DOCKER_HUB_PASSWORD | docker login ${env.DOCKER_REGISTRY} -u ${DOCKER_HUB_USERNAME} --password-stdin"
+                    }
+                    sh "docker build -t ${env.DOCKER_IMAGE_NAME} -t ${env.DOCKER_IMAGE_LATEST} ."
+                    echo "Pushing Docker image to ${env.DOCKER_REGISTRY}..."
+                    sh "docker push ${env.DOCKER_IMAGE_NAME}"
+                    sh "docker push ${env.DOCKER_IMAGE_LATEST}"
+                    echo "Docker image pushed successfully."
+                 }
             }
             post {
                 always {
-                    echo "Logging out from Docker registry..."
-                    sh "docker logout ${env.DOCKER_REGISTRY}"
+                    // This should now run in the same container context with docker client
+                    container('node') {
+                        echo "Logging out from Docker registry..."
+                        sh "docker logout ${env.DOCKER_REGISTRY}"
+                    }
                 }
             }
         }
 
         // Stage 4: Deploy to Kubernetes
+        // Uses the top-level Kubernetes agent (node container now has kubectl)
         stage('Deploy to Kubernetes') {
-            // Using agent any assumes a separate agent with kubectl.
-            // Remove this 'agent any' if your top-level K8s agent handles kubectl.
-            agent any
             steps {
-                 // Ensure IMAGE_TAG is set before proceeding
-                script {
-                    if (!env.IMAGE_TAG) {
-                        error "IMAGE_TAG environment variable is not set. Cannot deploy."
-                    }
-                }
-                echo "Deploying application to Kubernetes namespace: ${env.KUBERNETES_NAMESPACE}"
-                withCredentials([kubeconfigContent(credentialsId: env.KUBERNETES_CREDENTIALS_ID, variable: 'KUBECONFIG_CONTENT')]) {
-                    sh 'echo "$KUBECONFIG_CONTENT" > ./kubeconfig.yaml'
-                    withEnv(['KUBECONFIG=./kubeconfig.yaml']) {
-                        sh "sed -i 's|IMAGE_PLACEHOLDER|${env.DOCKER_IMAGE_NAME}|g' ${env.KUBERNETES_DEPLOYMENT_FILE}"
-                        echo "Updated image in ${env.KUBERNETES_DEPLOYMENT_FILE} to ${env.DOCKER_IMAGE_NAME}"
-                        sh "kubectl apply -f ${env.KUBERNETES_DEPLOYMENT_FILE} --namespace ${env.KUBERNETES_NAMESPACE}"
-                        script {
-                            if (fileExists(env.KUBERNETES_SERVICE_FILE)) {
-                                echo "Applying Service: ${env.KUBERNETES_SERVICE_FILE}"
-                                sh "kubectl apply -f ${env.KUBERNETES_SERVICE_FILE} --namespace ${env.KUBERNETES_NAMESPACE}"
-                            } else {
-                                echo "Service file ${env.KUBERNETES_SERVICE_FILE} not found, skipping."
-                            }
+                container('node') {
+                    // Ensure IMAGE_TAG is set before proceeding
+                    script {
+                        if (!env.IMAGE_TAG) {
+                            error "IMAGE_TAG environment variable is not set. Cannot deploy."
                         }
-                        echo "Waiting for deployment rollout to finish..."
-                        sh "kubectl rollout status deployment/${env.APP_NAME} --namespace ${env.KUBERNETES_NAMESPACE} --timeout=300s"
-                        echo "Deployment successful."
+                    }
+                    echo "Deploying application to Kubernetes namespace: ${env.KUBERNETES_NAMESPACE}"
+                    withCredentials([kubeconfigContent(credentialsId: env.KUBERNETES_CREDENTIALS_ID, variable: 'KUBECONFIG_CONTENT')]) {
+                        sh 'echo "$KUBECONFIG_CONTENT" > ./kubeconfig.yaml'
+                        withEnv(['KUBECONFIG=./kubeconfig.yaml']) {
+                            sh "sed -i 's|IMAGE_PLACEHOLDER|${env.DOCKER_IMAGE_NAME}|g' ${env.KUBERNETES_DEPLOYMENT_FILE}"
+                            echo "Updated image in ${env.KUBERNETES_DEPLOYMENT_FILE} to ${env.DOCKER_IMAGE_NAME}"
+                            sh "kubectl apply -f ${env.KUBERNETES_DEPLOYMENT_FILE} --namespace ${env.KUBERNETES_NAMESPACE}"
+                            script {
+                                if (fileExists(env.KUBERNETES_SERVICE_FILE)) {
+                                    echo "Applying Service: ${env.KUBERNETES_SERVICE_FILE}"
+                                    sh "kubectl apply -f ${env.KUBERNETES_SERVICE_FILE} --namespace ${env.KUBERNETES_NAMESPACE}"
+                                } else {
+                                    echo "Service file ${env.KUBERNETES_SERVICE_FILE} not found, skipping."
+                                }
+                            }
+                            echo "Waiting for deployment rollout to finish..."
+                            sh "kubectl rollout status deployment/${env.APP_NAME} --namespace ${env.KUBERNETES_NAMESPACE} --timeout=300s"
+                            echo "Deployment successful."
+                        }
                     }
                 }
             }
             post {
                 always {
+                    // Clean up workspace including kubeconfig.yaml
+                    // This runs in the 'node' container context
                     deleteDir()
                 }
             }
