@@ -3,7 +3,7 @@
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
 // Installs git, docker-cli, kubectl in agent; Mounts docker socket.
-// Assigns commit hash directly to env var in steps.
+// Uses temp file for commit hash propagation.
 
 // Define global pipeline options
 pipeline {
@@ -79,24 +79,42 @@ spec:
                     sh 'echo "--- Git status ---"'
                     sh 'git status || echo "Failed to get git status"' // Check git status
 
-                    // Get git commit hash and assign directly to environment variables
+                    // Get git commit hash and write to a file
                     script {
-                        // Use a script block just for the assignment logic
-                        env.IMAGE_TAG = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                        if (!env.IMAGE_TAG) {
-                           error "Failed to get git commit hash."
-                        }
-                        env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
-                        env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
+                        try {
+                            // Get the commit hash directly. sh step will fail if git command fails.
+                            def commitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
+                            echo "Git rev-parse raw output: '${commitHash}'"
 
-                        echo "Assigned IMAGE_TAG: ${env.IMAGE_TAG}"
-                        echo "Assigned DOCKER_IMAGE_NAME: ${env.DOCKER_IMAGE_NAME}"
+                            if (!commitHash) {
+                                error "Failed to get git commit hash: Command returned empty output."
+                            }
+                            // Store the hash in a temporary file
+                            writeFile file: 'commit_hash.txt', text: commitHash
+                        } catch (e) {
+                            error "Error getting git commit hash: ${e.message}"
+                        }
+                    } // End first script block
+
+                    // Read the hash from the file and assign to environment variables
+                    script {
+                        def commitHashFromFile = readFile('commit_hash.txt').trim()
+                        if (commitHashFromFile) {
+                            env.IMAGE_TAG = commitHashFromFile
+                            env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
+                            env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
+
+                            echo "Assigned IMAGE_TAG from file: ${env.IMAGE_TAG}"
+                            echo "Assigned DOCKER_IMAGE_NAME: ${env.DOCKER_IMAGE_NAME}"
+                        } else {
+                            error "Failed to read commit hash from file."
+                        }
 
                         // Final check before exiting stage
                         if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
-                           error "Failed to set image environment variables correctly."
+                           error "Failed to set image environment variables correctly after reading from file."
                         }
-                    }
+                    } // End second script block
                 } // End container block
             } // End steps
         } // End stage 1
