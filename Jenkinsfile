@@ -3,7 +3,10 @@
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
 // Installs git, docker-cli, kubectl in agent; Mounts docker socket.
-// Revised environment variable assignment scope again.
+// Uses a global variable for commit hash propagation.
+
+// Global variable to store the commit hash
+def commitHashValue = ''
 
 // Define global pipeline options
 pipeline {
@@ -79,42 +82,35 @@ spec:
                     sh 'echo "--- Git status ---"'
                     sh 'git status || echo "Failed to get git status"' // Check git status
 
-                    // Use script block ONLY to get the hash into a local variable
+                    // Get git commit hash and assign to global and env vars
                     script {
                         try {
-                            // Get the commit hash directly into a local variable
-                            def localCommitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
-                            echo "Git rev-parse raw output: '${localCommitHash}'"
+                            // Get the commit hash directly. sh step will fail if git command fails.
+                            commitHashValue = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
+                            echo "Git rev-parse raw output: '${commitHashValue}'"
 
-                            if (!localCommitHash) {
+                            if (commitHashValue) {
+                                // Assign to global environment variables
+                                env.IMAGE_TAG = commitHashValue
+                                env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
+                                env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
+
+                                echo "Assigned IMAGE_TAG: ${env.IMAGE_TAG}"
+                                echo "Assigned DOCKER_IMAGE_NAME: ${env.DOCKER_IMAGE_NAME}"
+                            } else {
+                                // Throw error if commitHash is empty or null
                                 error "Failed to get git commit hash: Command returned empty output."
                             }
-                            // Store the hash in a temporary file to pass it out of the script block reliably
-                            writeFile file: 'commit_hash.txt', text: localCommitHash
                         } catch (e) {
+                            // Catch potential errors from the sh step itself
                             error "Error getting git commit hash: ${e.message}"
-                        }
-                    } // End script block
-
-                    // Read the hash from the file and assign to environment variables OUTSIDE the script block
-                    script {
-                        def commitHashFromFile = readFile('commit_hash.txt').trim()
-                        if (commitHashFromFile) {
-                            env.IMAGE_TAG = commitHashFromFile
-                            env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
-                            env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
-
-                            echo "Assigned IMAGE_TAG: ${env.IMAGE_TAG}"
-                            echo "Assigned DOCKER_IMAGE_NAME: ${env.DOCKER_IMAGE_NAME}"
-                        } else {
-                            error "Failed to read commit hash from file."
                         }
 
                         // Final check before exiting stage
                         if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
-                           error "Failed to set image environment variables correctly after reading from file."
+                           error "Failed to set image environment variables correctly within script block."
                         }
-                    }
+                    } // End script block
                 } // End container block
             } // End steps
         } // End stage 1
