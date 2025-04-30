@@ -3,6 +3,7 @@
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
 // Installs git, docker-cli, kubectl in agent; Mounts docker socket.
+// Fixed environment variable assignment scope.
 
 // Define global pipeline options
 pipeline {
@@ -79,25 +80,33 @@ spec:
 
                     // Get git commit hash (runs after Jenkins checkout)
                     script {
+                        def commitHash = '' // Initialize local variable
                         try {
                             // Get the commit hash directly. sh step will fail if git command fails.
-                            def commitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
+                            commitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
                             echo "Git rev-parse raw output: '${commitHash}'"
 
-                            if (commitHash) {
-                                // Assign to global environment variables
-                                env.IMAGE_TAG = commitHash
-                                env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
-                                env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
-                                echo "Using Git commit hash for image tag: ${env.IMAGE_TAG}"
-                                echo "Full image name: ${env.DOCKER_IMAGE_NAME}"
-                            } else {
+                            if (!commitHash) {
                                 // Throw error if commitHash is empty or null
                                 error "Failed to get git commit hash: Command returned empty output."
                             }
                         } catch (e) {
                             // Catch potential errors from the sh step itself
                             error "Error getting git commit hash: ${e.message}"
+                        }
+
+                        // Assign to global environment variables AFTER successful retrieval
+                        env.IMAGE_TAG = commitHash
+                        env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
+                        env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
+
+                        // Verify assignment
+                        echo "Using Git commit hash for image tag: ${env.IMAGE_TAG}"
+                        echo "Full image name: ${env.DOCKER_IMAGE_NAME}"
+
+                        // Add another check to ensure they are not null/empty before exiting script block
+                        if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
+                           error "Failed to set image environment variables correctly."
                         }
                     }
                 }
@@ -138,8 +147,8 @@ spec:
                  container('node') {
                     // Ensure IMAGE_TAG is set before proceeding
                     script {
-                        if (!env.IMAGE_TAG) {
-                            error "IMAGE_TAG environment variable is not set. Cannot build Docker image."
+                        if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME || !env.DOCKER_IMAGE_LATEST) {
+                            error "Docker image environment variables (IMAGE_TAG, DOCKER_IMAGE_NAME, DOCKER_IMAGE_LATEST) are not set. Cannot build Docker image."
                         }
                     }
                     echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}"
@@ -172,8 +181,8 @@ spec:
                 container('node') {
                     // Ensure IMAGE_TAG is set before proceeding
                     script {
-                        if (!env.IMAGE_TAG) {
-                            error "IMAGE_TAG environment variable is not set. Cannot deploy."
+                        if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
+                            error "Docker image environment variables (IMAGE_TAG, DOCKER_IMAGE_NAME) are not set. Cannot deploy."
                         }
                     }
                     echo "Deploying application to Kubernetes namespace: ${env.KUBERNETES_NAMESPACE}"
