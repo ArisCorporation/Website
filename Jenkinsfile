@@ -3,7 +3,7 @@
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
 // Installs git, docker-cli, kubectl in agent; Mounts docker socket.
-// Uses temp file for commit hash propagation.
+// Uses stash/unstash for passing image tag and names between stages.
 
 // Define global pipeline options
 pipeline {
@@ -51,18 +51,14 @@ spec:
         KUBERNETES_NAMESPACE = 'ariscorp-devops-test-2'
         KUBERNETES_DEPLOYMENT_FILE = 'kubernetes/deployment.yaml'
         KUBERNETES_SERVICE_FILE = 'kubernetes/service.yaml'
-        // Initialize image vars - will be set in the first stage
-        // Note: These might not reflect the final value if viewed outside the pipeline run itself
-        IMAGE_TAG = ''
-        DOCKER_IMAGE_NAME = ''
-        DOCKER_IMAGE_LATEST = ''
+        // Image vars are no longer initialized here, they will be stashed/unstashed
     }
 
     // Define the stages of the pipeline
     stages {
-        // Stage 1: Prepare Workspace, Install Tools & Get Commit Hash
+        // Stage 1: Prepare Workspace, Install Tools & Stash Build Info
         // Jenkins performs checkout before this stage automatically
-        stage('Prepare Workspace, Install Tools & Get Commit Hash') {
+        stage('Prepare Workspace, Install Tools & Stash Build Info') {
             steps {
                 // Steps run inside the 'node' container
                 container('node') {
@@ -71,50 +67,39 @@ spec:
                     // Add the workspace directory to git's safe directories
                     sh 'git config --global --add safe.directory ${WORKSPACE}'
 
-                    // Add debugging steps
-                    sh 'echo "--- Listing workspace ---"'
-                    sh 'ls -la'
-                    sh 'echo "--- Checking .git directory ---"'
-                    sh 'ls -la .git || echo ".git directory not found"' // Check if .git exists
-                    sh 'echo "--- Git status ---"'
-                    sh 'git status || echo "Failed to get git status"' // Check git status
-
-                    // Get git commit hash and write to a file
+                    // Get git commit hash and prepare build info
                     script {
+                        def commitHash = ''
+                        def dockerImageName = ''
+                        def dockerImageLatest = ''
                         try {
-                            // Get the commit hash directly. sh step will fail if git command fails.
-                            def commitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
+                            commitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
                             echo "Git rev-parse raw output: '${commitHash}'"
 
                             if (!commitHash) {
                                 error "Failed to get git commit hash: Command returned empty output."
                             }
-                            // Store the hash in a temporary file
-                            writeFile file: 'commit_hash.txt', text: commitHash
+
+                            // Construct image names locally
+                            dockerImageName = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${commitHash}"
+                            dockerImageLatest = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
+
+                            // Write values to files
+                            writeFile file: 'image_tag.txt', text: commitHash
+                            writeFile file: 'docker_image_name.txt', text: dockerImageName
+                            writeFile file: 'docker_image_latest.txt', text: dockerImageLatest
+
+                            echo "Prepared IMAGE_TAG: ${commitHash}"
+                            echo "Prepared DOCKER_IMAGE_NAME: ${dockerImageName}"
+
                         } catch (e) {
-                            error "Error getting git commit hash: ${e.message}"
+                            error "Error preparing build info: ${e.message}"
                         }
-                    } // End first script block
+                    } // End script block
 
-                    // Read the hash from the file and assign to environment variables
-                    script {
-                        def commitHashFromFile = readFile('commit_hash.txt').trim()
-                        if (commitHashFromFile) {
-                            env.IMAGE_TAG = commitHashFromFile
-                            env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
-                            env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
+                    // Stash the files containing the build info
+                    stash includes: 'image_tag.txt, docker_image_name.txt, docker_image_latest.txt', name: 'buildInfo'
 
-                            echo "Assigned IMAGE_TAG from file: ${env.IMAGE_TAG}"
-                            echo "Assigned DOCKER_IMAGE_NAME: ${env.DOCKER_IMAGE_NAME}"
-                        } else {
-                            error "Failed to read commit hash from file."
-                        }
-
-                        // Final check before exiting stage
-                        if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
-                           error "Failed to set image environment variables correctly after reading from file."
-                        }
-                    } // End second script block
                 } // End container block
             } // End steps
         } // End stage 1
@@ -151,23 +136,34 @@ spec:
             // No specific agent needed, inherits from top-level
             steps {
                  container('node') {
-                    // Ensure IMAGE_TAG is set before proceeding
+                    // Retrieve the stashed build info
+                    unstash 'buildInfo'
+
+                    // Read values from the unstashed files
                     script {
-                        // Check environment variables at the start of this stage's steps
-                        echo "Verifying env vars in Build Stage: IMAGE_TAG=${env.IMAGE_TAG}, DOCKER_IMAGE_NAME=${env.DOCKER_IMAGE_NAME}"
-                        if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME || !env.DOCKER_IMAGE_LATEST) {
-                            error "Docker image environment variables (IMAGE_TAG, DOCKER_IMAGE_NAME, DOCKER_IMAGE_LATEST) are not set correctly at start of Build Stage. Cannot build Docker image."
+                        def imageTag = readFile('image_tag.txt').trim()
+                        def dockerImageName = readFile('docker_image_name.txt').trim()
+                        def dockerImageLatest = readFile('docker_image_latest.txt').trim()
+
+                        echo "Using unstashed IMAGE_TAG: ${imageTag}"
+                        echo "Using unstashed DOCKER_IMAGE_NAME: ${dockerImageName}"
+
+                        if (!imageTag || !dockerImageName || !dockerImageLatest) {
+                            error "Failed to read required values from unstashed files."
                         }
+
+                        // Use the read values directly
+                        echo "Building Docker image: ${dockerImageName}"
+                        withCredentials([string(credentialsId: env.DOCKER_CREDENTIALS_ID, variable: 'DOCKER_HUB_PASSWORD'), usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD_UNUSED')]) {
+                            sh "echo $DOCKER_HUB_PASSWORD | docker login ${env.DOCKER_REGISTRY} -u ${DOCKER_HUB_USERNAME} --password-stdin"
+                        }
+                        // Use the variables read from files
+                        sh "docker build -t ${dockerImageName} -t ${dockerImageLatest} ."
+                        echo "Pushing Docker image to ${env.DOCKER_REGISTRY}..."
+                        sh "docker push ${dockerImageName}"
+                        sh "docker push ${dockerImageLatest}"
+                        echo "Docker image pushed successfully."
                     }
-                    echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}"
-                    withCredentials([string(credentialsId: env.DOCKER_CREDENTIALS_ID, variable: 'DOCKER_HUB_PASSWORD'), usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD_UNUSED')]) {
-                        sh "echo $DOCKER_HUB_PASSWORD | docker login ${env.DOCKER_REGISTRY} -u ${DOCKER_HUB_USERNAME} --password-stdin"
-                    }
-                    sh "docker build -t ${env.DOCKER_IMAGE_NAME} -t ${env.DOCKER_IMAGE_LATEST} ."
-                    echo "Pushing Docker image to ${env.DOCKER_REGISTRY}..."
-                    sh "docker push ${env.DOCKER_IMAGE_NAME}"
-                    sh "docker push ${env.DOCKER_IMAGE_LATEST}"
-                    echo "Docker image pushed successfully."
                  }
             }
             post {
@@ -176,6 +172,8 @@ spec:
                     container('node') {
                         echo "Logging out from Docker registry..."
                         sh "docker logout ${env.DOCKER_REGISTRY}"
+                        // Clean up unstashed files if necessary (optional, workspace is usually cleaned)
+                        sh 'rm -f image_tag.txt docker_image_name.txt docker_image_latest.txt'
                     }
                 }
             }
@@ -187,41 +185,50 @@ spec:
             // Inherits the top-level agent definition
             steps {
                 container('node') {
-                    // Ensure IMAGE_TAG is set before proceeding
+                    // Retrieve the stashed build info again
+                    unstash 'buildInfo'
+
+                    // Read the required value(s)
                     script {
-                         // Check environment variables at the start of this stage's steps
-                        echo "Verifying env vars in Deploy Stage: IMAGE_TAG=${env.IMAGE_TAG}, DOCKER_IMAGE_NAME=${env.DOCKER_IMAGE_NAME}"
-                        if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
-                            error "Docker image environment variables (IMAGE_TAG, DOCKER_IMAGE_NAME) are not set correctly at start of Deploy Stage. Cannot deploy."
+                        def dockerImageNameToDeploy = readFile('docker_image_name.txt').trim()
+                        echo "Using unstashed DOCKER_IMAGE_NAME for deploy: ${dockerImageNameToDeploy}"
+
+                        if (!dockerImageNameToDeploy) {
+                            error "Failed to read docker_image_name.txt from unstashed files for deployment."
                         }
-                    }
-                    echo "Deploying application to Kubernetes namespace: ${env.KUBERNETES_NAMESPACE}"
-                    withCredentials([kubeconfigContent(credentialsId: env.KUBERNETES_CREDENTIALS_ID, variable: 'KUBECONFIG_CONTENT')]) {
-                        sh 'echo "$KUBECONFIG_CONTENT" > ./kubeconfig.yaml'
-                        withEnv(['KUBECONFIG=./kubeconfig.yaml']) {
-                            sh "sed -i 's|IMAGE_PLACEHOLDER|${env.DOCKER_IMAGE_NAME}|g' ${env.KUBERNETES_DEPLOYMENT_FILE}"
-                            echo "Updated image in ${env.KUBERNETES_DEPLOYMENT_FILE} to ${env.DOCKER_IMAGE_NAME}"
-                            sh "kubectl apply -f ${env.KUBERNETES_DEPLOYMENT_FILE} --namespace ${env.KUBERNETES_NAMESPACE}"
-                            script {
-                                if (fileExists(env.KUBERNETES_SERVICE_FILE)) {
-                                    echo "Applying Service: ${env.KUBERNETES_SERVICE_FILE}"
-                                    sh "kubectl apply -f ${env.KUBERNETES_SERVICE_FILE} --namespace ${env.KUBERNETES_NAMESPACE}"
-                                } else {
-                                    echo "Service file ${env.KUBERNETES_SERVICE_FILE} not found, skipping."
+
+                        // Use the read value directly
+                        echo "Deploying application to Kubernetes namespace: ${env.KUBERNETES_NAMESPACE}"
+                        withCredentials([kubeconfigContent(credentialsId: env.KUBERNETES_CREDENTIALS_ID, variable: 'KUBECONFIG_CONTENT')]) {
+                            sh 'echo "$KUBECONFIG_CONTENT" > ./kubeconfig.yaml'
+                            withEnv(['KUBECONFIG=./kubeconfig.yaml']) {
+                                // Use the variable read from file in sed command
+                                sh "sed -i 's|IMAGE_PLACEHOLDER|${dockerImageNameToDeploy}|g' ${env.KUBERNETES_DEPLOYMENT_FILE}"
+                                echo "Updated image in ${env.KUBERNETES_DEPLOYMENT_FILE} to ${dockerImageNameToDeploy}"
+                                sh "kubectl apply -f ${env.KUBERNETES_DEPLOYMENT_FILE} --namespace ${env.KUBERNETES_NAMESPACE}"
+                                script {
+                                    if (fileExists(env.KUBERNETES_SERVICE_FILE)) {
+                                        echo "Applying Service: ${env.KUBERNETES_SERVICE_FILE}"
+                                        sh "kubectl apply -f ${env.KUBERNETES_SERVICE_FILE} --namespace ${env.KUBERNETES_NAMESPACE}"
+                                    } else {
+                                        echo "Service file ${env.KUBERNETES_SERVICE_FILE} not found, skipping."
+                                    }
                                 }
+                                echo "Waiting for deployment rollout to finish..."
+                                sh "kubectl rollout status deployment/${env.APP_NAME} --namespace ${env.KUBERNETES_NAMESPACE} --timeout=300s"
+                                echo "Deployment successful."
                             }
-                            echo "Waiting for deployment rollout to finish..."
-                            sh "kubectl rollout status deployment/${env.APP_NAME} --namespace ${env.KUBERNETES_NAMESPACE} --timeout=300s"
-                            echo "Deployment successful."
                         }
                     }
                 }
             }
             post {
                 always {
-                    // Clean up workspace including kubeconfig.yaml
-                    // This runs in the 'node' container context
-                    deleteDir()
+                    // Clean up workspace including kubeconfig.yaml and unstashed files
+                    container('node') {
+                         sh 'rm -f image_tag.txt docker_image_name.txt docker_image_latest.txt kubeconfig.yaml'
+                         // deleteDir() // Use deleteDir() if you want to wipe the whole workspace
+                    }
                 }
             }
         }
