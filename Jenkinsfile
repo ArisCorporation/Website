@@ -3,7 +3,7 @@
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
 // Added git installation and safe directory config to checkout stage
-// Switched to npm ci and improved git hash retrieval logic
+// Switched to npm ci and revised git hash retrieval logic
 
 // Define global pipeline options
 pipeline {
@@ -71,23 +71,26 @@ spec:
 
                     // Get git commit hash (runs after Jenkins checkout)
                     script {
-                        // Use returnStatus: true to get exit code and stdout
-                        def commitHashResult = sh(script: 'git rev-parse --short HEAD', returnStatus: true, returnStdout: true)
-                        echo "Git rev-parse status: ${commitHashResult.status}"
-                        echo "Git rev-parse output: '${commitHashResult.stdout?.trim()}'" // Log the raw output
+                        try {
+                            // Get the commit hash directly. sh step will fail if git command fails.
+                            def commitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
+                            echo "Git rev-parse raw output: '${commitHash}'"
 
-                        // Check if the command succeeded (status 0) and output is not empty
-                        if (commitHashResult.status == 0 && commitHashResult.stdout?.trim()) {
-                            env.IMAGE_TAG = commitHashResult.stdout.trim()
-                            // Construct the full Docker image name
-                            env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
-                            // Also tag with 'latest'
-                            env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
-                            echo "Using Git commit hash for image tag: ${env.IMAGE_TAG}"
-                            echo "Full image name: ${env.DOCKER_IMAGE_NAME}"
-                        } else {
-                            // Provide a more detailed error message
-                            error "Failed to get git commit hash. Status: ${commitHashResult.status}, Output: '${commitHashResult.stdout?.trim()}'"
+                            if (commitHash) {
+                                env.IMAGE_TAG = commitHash
+                                // Construct the full Docker image name
+                                env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
+                                // Also tag with 'latest'
+                                env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
+                                echo "Using Git commit hash for image tag: ${env.IMAGE_TAG}"
+                                echo "Full image name: ${env.DOCKER_IMAGE_NAME}"
+                            } else {
+                                // Throw error if commitHash is empty or null
+                                error "Failed to get git commit hash: Command returned empty output."
+                            }
+                        } catch (e) {
+                            // Catch potential errors from the sh step itself
+                            error "Error getting git commit hash: ${e.message}"
                         }
                     }
                 }
