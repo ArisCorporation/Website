@@ -26,10 +26,10 @@ spec:
     tty: true
     envFrom:
     - configMapRef:
-        name: devops-website-test # Your ConfigMap name
+        name: ariscorp-devops-test-2-config # Your ConfigMap name
         optional: false
     - secretRef:
-        name: devops-secret # Your Secret name
+        name: ariscorp-devops-test-2 # Your Secret name
         optional: false
   # Add other necessary containers (e.g., docker, kubectl) or ensure the base image/Jenkins config provides them
   # Example for Docker-outside-of-Docker (DooD) if configured:
