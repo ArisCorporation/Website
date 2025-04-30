@@ -3,7 +3,7 @@
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
 // Installs git, docker-cli, kubectl in agent; Mounts docker socket.
-// Refined environment variable assignment scope.
+// Revised environment variable assignment scope again.
 
 // Define global pipeline options
 pipeline {
@@ -52,6 +52,7 @@ spec:
         KUBERNETES_DEPLOYMENT_FILE = 'kubernetes/deployment.yaml'
         KUBERNETES_SERVICE_FILE = 'kubernetes/service.yaml'
         // Initialize image vars - will be set in the first stage
+        // Note: These might not reflect the final value if viewed outside the pipeline run itself
         IMAGE_TAG = ''
         DOCKER_IMAGE_NAME = ''
         DOCKER_IMAGE_LATEST = ''
@@ -78,37 +79,42 @@ spec:
                     sh 'echo "--- Git status ---"'
                     sh 'git status || echo "Failed to get git status"' // Check git status
 
-                    // Get git commit hash (runs after Jenkins checkout)
+                    // Use script block ONLY to get the hash into a local variable
                     script {
-                        def commitHash = '' // Initialize local variable
                         try {
-                            // Get the commit hash directly. sh step will fail if git command fails.
-                            commitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
-                            echo "Git rev-parse raw output: '${commitHash}'"
+                            // Get the commit hash directly into a local variable
+                            def localCommitHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true)?.trim()
+                            echo "Git rev-parse raw output: '${localCommitHash}'"
 
-                            if (!commitHash) {
-                                // Throw error if commitHash is empty or null
+                            if (!localCommitHash) {
                                 error "Failed to get git commit hash: Command returned empty output."
                             }
-                            // Assign to global environment variables immediately after successful retrieval
-                            env.IMAGE_TAG = commitHash
+                            // Store the hash in a temporary file to pass it out of the script block reliably
+                            writeFile file: 'commit_hash.txt', text: localCommitHash
+                        } catch (e) {
+                            error "Error getting git commit hash: ${e.message}"
+                        }
+                    } // End script block
+
+                    // Read the hash from the file and assign to environment variables OUTSIDE the script block
+                    script {
+                        def commitHashFromFile = readFile('commit_hash.txt').trim()
+                        if (commitHashFromFile) {
+                            env.IMAGE_TAG = commitHashFromFile
                             env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
                             env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
 
-                        } catch (e) {
-                            // Catch potential errors from the sh step itself
-                            error "Error getting git commit hash: ${e.message}"
+                            echo "Assigned IMAGE_TAG: ${env.IMAGE_TAG}"
+                            echo "Assigned DOCKER_IMAGE_NAME: ${env.DOCKER_IMAGE_NAME}"
+                        } else {
+                            error "Failed to read commit hash from file."
                         }
 
-                        // Verify assignment again, outside the try/catch but inside script block
-                        echo "Assigned IMAGE_TAG: ${env.IMAGE_TAG}"
-                        echo "Assigned DOCKER_IMAGE_NAME: ${env.DOCKER_IMAGE_NAME}"
-
-                        // Final check before exiting script block
+                        // Final check before exiting stage
                         if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
-                           error "Failed to set image environment variables correctly within script block."
+                           error "Failed to set image environment variables correctly after reading from file."
                         }
-                    } // End script block
+                    }
                 } // End container block
             } // End steps
         } // End stage 1
