@@ -2,7 +2,7 @@
 // Uses direct K8s variable injection via Pod Template (envFrom)
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
-// Installs git, docker, kubectl in agent; Mounts docker socket.
+// Installs git, docker-cli, kubectl in agent; Mounts docker socket.
 
 // Define global pipeline options
 pipeline {
@@ -34,9 +34,8 @@ spec:
   volumes:
   - hostPath:
       path: /var/run/docker.sock
-      type: Socket # Specify type as Socket for security if supported, otherwise omit type
+      # type: Socket # Type check removed for compatibility, ensure path is correct on node
     name: docker-sock
-  # Add other necessary containers or ensure the base image/Jenkins config provides them
 '''
         }
     }
@@ -65,7 +64,7 @@ spec:
             steps {
                 // Steps run inside the 'node' container
                 container('node') {
-                    // Install required tools
+                    // Install required tools (git, docker client, kubectl)
                     sh 'apk update && apk add --no-cache git docker-cli kubectl'
                     // Add the workspace directory to git's safe directories
                     sh 'git config --global --add safe.directory ${WORKSPACE}'
@@ -132,8 +131,9 @@ spec:
         }
 
         // Stage 3: Build & Push Docker Image
-        // Uses the top-level Kubernetes agent (node container now has docker client)
+        // Uses the top-level Kubernetes agent (node container now has docker client via socket mount)
         stage('Build & Push Docker Image') {
+            // No specific agent needed, inherits from top-level
             steps {
                  container('node') {
                     // Ensure IMAGE_TAG is set before proceeding
@@ -155,7 +155,7 @@ spec:
             }
             post {
                 always {
-                    // This should now run in the same container context with docker client
+                    // This runs in the 'node' container context
                     container('node') {
                         echo "Logging out from Docker registry..."
                         sh "docker logout ${env.DOCKER_REGISTRY}"
@@ -167,6 +167,7 @@ spec:
         // Stage 4: Deploy to Kubernetes
         // Uses the top-level Kubernetes agent (node container now has kubectl)
         stage('Deploy to Kubernetes') {
+            // Inherits the top-level agent definition
             steps {
                 container('node') {
                     // Ensure IMAGE_TAG is set before proceeding
