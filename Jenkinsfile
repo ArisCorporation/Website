@@ -3,7 +3,7 @@
 // Configured for GitHub Container Registry (ghcr.io)
 // Agent defined at top level for better KubeSphere UI compatibility
 // Installs git, docker-cli, kubectl in agent; Mounts docker socket.
-// Fixed environment variable assignment scope.
+// Refined environment variable assignment scope.
 
 // Define global pipeline options
 pipeline {
@@ -90,28 +90,28 @@ spec:
                                 // Throw error if commitHash is empty or null
                                 error "Failed to get git commit hash: Command returned empty output."
                             }
+                            // Assign to global environment variables immediately after successful retrieval
+                            env.IMAGE_TAG = commitHash
+                            env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
+                            env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
+
                         } catch (e) {
                             // Catch potential errors from the sh step itself
                             error "Error getting git commit hash: ${e.message}"
                         }
 
-                        // Assign to global environment variables AFTER successful retrieval
-                        env.IMAGE_TAG = commitHash
-                        env.DOCKER_IMAGE_NAME = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${env.IMAGE_TAG}"
-                        env.DOCKER_IMAGE_LATEST = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
+                        // Verify assignment again, outside the try/catch but inside script block
+                        echo "Assigned IMAGE_TAG: ${env.IMAGE_TAG}"
+                        echo "Assigned DOCKER_IMAGE_NAME: ${env.DOCKER_IMAGE_NAME}"
 
-                        // Verify assignment
-                        echo "Using Git commit hash for image tag: ${env.IMAGE_TAG}"
-                        echo "Full image name: ${env.DOCKER_IMAGE_NAME}"
-
-                        // Add another check to ensure they are not null/empty before exiting script block
+                        // Final check before exiting script block
                         if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
-                           error "Failed to set image environment variables correctly."
+                           error "Failed to set image environment variables correctly within script block."
                         }
-                    }
-                }
-            }
-        }
+                    } // End script block
+                } // End container block
+            } // End steps
+        } // End stage 1
 
         // Stage 2: Setup, Install & Build
         // Uses the top-level Kubernetes agent (inherits injected env vars)
@@ -147,8 +147,10 @@ spec:
                  container('node') {
                     // Ensure IMAGE_TAG is set before proceeding
                     script {
+                        // Check environment variables at the start of this stage's steps
+                        echo "Verifying env vars in Build Stage: IMAGE_TAG=${env.IMAGE_TAG}, DOCKER_IMAGE_NAME=${env.DOCKER_IMAGE_NAME}"
                         if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME || !env.DOCKER_IMAGE_LATEST) {
-                            error "Docker image environment variables (IMAGE_TAG, DOCKER_IMAGE_NAME, DOCKER_IMAGE_LATEST) are not set. Cannot build Docker image."
+                            error "Docker image environment variables (IMAGE_TAG, DOCKER_IMAGE_NAME, DOCKER_IMAGE_LATEST) are not set correctly at start of Build Stage. Cannot build Docker image."
                         }
                     }
                     echo "Building Docker image: ${env.DOCKER_IMAGE_NAME}"
@@ -181,8 +183,10 @@ spec:
                 container('node') {
                     // Ensure IMAGE_TAG is set before proceeding
                     script {
+                         // Check environment variables at the start of this stage's steps
+                        echo "Verifying env vars in Deploy Stage: IMAGE_TAG=${env.IMAGE_TAG}, DOCKER_IMAGE_NAME=${env.DOCKER_IMAGE_NAME}"
                         if (!env.IMAGE_TAG || !env.DOCKER_IMAGE_NAME) {
-                            error "Docker image environment variables (IMAGE_TAG, DOCKER_IMAGE_NAME) are not set. Cannot deploy."
+                            error "Docker image environment variables (IMAGE_TAG, DOCKER_IMAGE_NAME) are not set correctly at start of Deploy Stage. Cannot deploy."
                         }
                     }
                     echo "Deploying application to Kubernetes namespace: ${env.KUBERNETES_NAMESPACE}"
