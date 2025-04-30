@@ -5,6 +5,7 @@
 // Installs git, kubectl in agent; No Docker daemon dependency.
 // Uses stash/unstash for passing image tag and names between stages.
 // Writes Kaniko config to workspace and uses --docker-config flag.
+// Runs Kaniko container as root to fix workspace write permissions.
 
 // Define global pipeline options
 pipeline {
@@ -40,6 +41,8 @@ spec:
     - cat # Keep container running
     tty: true
     workingDir: /workspace # Set working directory for Kaniko container
+    securityContext: # Add security context to run as root
+      runAsUser: 0
     volumeMounts: # Mount workspace volume into kaniko container
     - name: workspace-volume
       mountPath: /workspace # Mount workspace at /workspace
