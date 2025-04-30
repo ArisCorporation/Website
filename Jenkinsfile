@@ -4,6 +4,7 @@
 // Agent defined at top level for better KubeSphere UI compatibility
 // Installs git, docker-cli, kubectl in agent; Mounts docker socket.
 // Uses stash/unstash for passing image tag and names between stages.
+// Corrected withCredentials binding for docker login.
 
 // Define global pipeline options
 pipeline {
@@ -46,7 +47,7 @@ spec:
         NODE_VERSION = '18'
         APP_NAME = 'devops-test'
         DOCKER_REGISTRY = 'ghcr.io/ariscorporation'
-        DOCKER_CREDENTIALS_ID = 'github'
+        DOCKER_CREDENTIALS_ID = 'github' // ID for Username/Password credential for GHCR
         KUBERNETES_CREDENTIALS_ID = 'kubernetes-credentials'
         KUBERNETES_NAMESPACE = 'ariscorp-devops-test-2'
         KUBERNETES_DEPLOYMENT_FILE = 'kubernetes/deployment.yaml'
@@ -154,10 +155,12 @@ spec:
 
                         // Use the read values directly
                         echo "Building Docker image: ${dockerImageName}"
-                        withCredentials([string(credentialsId: env.DOCKER_CREDENTIALS_ID, variable: 'DOCKER_HUB_PASSWORD'), usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD_UNUSED')]) {
-                            sh "echo $DOCKER_HUB_PASSWORD | docker login ${env.DOCKER_REGISTRY} -u ${DOCKER_HUB_USERNAME} --password-stdin"
+                        // Corrected withCredentials block: Only use usernamePassword binding
+                        withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                            // Use the variables provided by usernamePassword binding
+                            sh "echo $DOCKER_PASSWORD | docker login ${env.DOCKER_REGISTRY} -u ${DOCKER_USERNAME} --password-stdin"
                         }
-                        // Use the variables read from files
+                        // Use the variables read from files for docker commands
                         sh "docker build -t ${dockerImageName} -t ${dockerImageLatest} ."
                         echo "Pushing Docker image to ${env.DOCKER_REGISTRY}..."
                         sh "docker push ${dockerImageName}"
