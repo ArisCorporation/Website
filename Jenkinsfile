@@ -4,6 +4,7 @@
 // Agent defined at top level with separate Kaniko container for builds.
 // Installs git, kubectl in agent; No Docker daemon dependency.
 // Uses stash/unstash for passing image tag and names between stages.
+// Writes Kaniko config to workspace and uses --docker-config flag.
 
 // Define global pipeline options
 pipeline {
@@ -32,15 +33,16 @@ spec:
         optional: false
     volumeMounts: # Mount workspace volume
     - name: workspace-volume
-      mountPath: /home/jenkins/agent
+      mountPath: /home/jenkins/agent # Default Jenkins agent workspace path
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug # Kaniko debug image includes a shell
     command:
     - cat # Keep container running
     tty: true
+    workingDir: /workspace # Set working directory for Kaniko container
     volumeMounts: # Mount workspace volume into kaniko container
     - name: workspace-volume
-      mountPath: /workspace # Kaniko needs access to the build context
+      mountPath: /workspace # Mount workspace at /workspace
   volumes: # Define the shared workspace volume
   - name: workspace-volume
     emptyDir: {}
@@ -91,7 +93,7 @@ spec:
                             dockerImageName = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:${commitHash}"
                             dockerImageLatest = "${env.DOCKER_REGISTRY}/${env.APP_NAME}:latest"
 
-                            // Write values to files
+                            // Write values to files in the workspace
                             writeFile file: 'image_tag.txt', text: commitHash
                             writeFile file: 'docker_image_name.txt', text: dockerImageName
                             writeFile file: 'docker_image_latest.txt', text: dockerImageLatest
@@ -143,7 +145,7 @@ spec:
             agent none // Specify agent none because steps run in specific container
             steps {
                  container('kaniko') {
-                    // Retrieve the stashed build info
+                    // Retrieve the stashed build info into the current workspace (/workspace in this container)
                     unstash 'buildInfo'
 
                     // Read values from the unstashed files and prepare Kaniko execution
@@ -159,11 +161,9 @@ spec:
                             error "Failed to read required values from unstashed files for Kaniko build."
                         }
 
-                        // Create Kaniko Docker config file for GHCR authentication
-                        echo "Creating Kaniko Docker config for ${env.DOCKER_REGISTRY}..."
+                        // Create Kaniko Docker config file for GHCR authentication IN THE WORKSPACE
+                        echo "Creating Kaniko Docker config for ${env.DOCKER_REGISTRY} in /workspace/.docker/config.json..."
                         withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                            // Note: Use single quotes for the outer shell command to prevent Groovy interpolation issues
-                            // Escape special characters within the JSON string if necessary
                             def dockerConfigJson = """
                             {
                                 \\"auths\\": {
@@ -174,26 +174,26 @@ spec:
                                 }
                             }
                             """.stripIndent()
-                            // Write the config to the standard Kaniko location
-                            // Ensure the directory exists
-                            sh 'mkdir -p /kaniko/.docker/'
-                            writeFile file: '/kaniko/.docker/config.json', text: dockerConfigJson
-                            // Optionally verify file content (be careful not to log secrets)
-                            sh 'echo "Wrote /kaniko/.docker/config.json (content hidden)"'
-                            // sh 'cat /kaniko/.docker/config.json' // Uncomment for debugging only, exposes creds in logs!
+                            // Write the config to the workspace directory
+                            // Ensure the directory exists within the workspace
+                            sh 'mkdir -p /workspace/.docker/' // Create .docker dir inside /workspace
+                            writeFile file: '/workspace/.docker/config.json', text: dockerConfigJson // Write config here
+                            sh 'echo "Wrote /workspace/.docker/config.json (content hidden)"'
                         }
 
-                        // Execute Kaniko - context is the workspace mounted at /workspace
-                        // Dockerfile path is relative to the context
+                        // Execute Kaniko
+                        // Context is dir:///workspace (where code is checked out and build output exists)
+                        // Dockerfile path is relative to the context (/workspace/Dockerfile)
+                        // Tell Kaniko where the docker config directory is located (--docker-config)
                         echo "Running Kaniko build..."
                         sh """
                         /kaniko/executor --context dir:///workspace \
                                          --dockerfile /workspace/Dockerfile \
                                          --destination ${dockerImageName} \
                                          --destination ${dockerImageLatest} \
+                                         --docker-config=/workspace/.docker \
                                          --verbosity=info
                         """
-                        // Kaniko automatically uses /kaniko/.docker/config.json for auth
 
                         echo "Kaniko build and push finished successfully."
                     }
@@ -201,12 +201,12 @@ spec:
             }
             post {
                 always {
-                    // Clean up Kaniko config if desired (optional)
+                    // Clean up Kaniko config from workspace
                     container('kaniko') {
-                        echo "Cleaning up Kaniko config..."
-                        sh 'rm -f /kaniko/.docker/config.json'
+                        echo "Cleaning up Kaniko config from workspace..."
+                        sh 'rm -rf /workspace/.docker' // Remove the .docker dir from workspace
                     }
-                    // Clean up stashed files from workspace
+                    // Clean up stashed files from workspace (node container)
                     container('node') {
                          sh 'rm -f image_tag.txt docker_image_name.txt docker_image_latest.txt'
                     }
