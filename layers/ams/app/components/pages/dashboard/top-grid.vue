@@ -19,46 +19,37 @@
     <AMSUiCard class="bg-card/50 backdrop-blur-sm">
       <AMSUiCardHeader class="flex flex-row items-center justify-between pb-2">
         <AMSUiCardTitle class="text-sm font-medium text-white">
-          Total Fleet Size
+          ArisCorp Mitglieder
         </AMSUiCardTitle>
-        <UIcon
-          name="i-material-symbols-rocket-launch-outline"
-          class="h-4 w-4 text-(--ui-primary)"
-        />
+        <UIcon name="i-lucide-users" class="h-4 w-4 text-(--ui-primary)" />
       </AMSUiCardHeader>
       <AMSUiCardContent>
-        <div class="text-2xl font-bold text-white">42</div>
-        <p class="text-xs text-muted-foreground">+3 ships since last month</p>
+        <div class="text-2xl font-bold text-white">12</div>
+        <p class="text-xs text-muted-foreground">+0 ships since last month</p>
       </AMSUiCardContent>
     </AMSUiCard>
     <AMSUiCard class="bg-card/50 backdrop-blur-sm">
       <AMSUiCardHeader class="flex flex-row items-center justify-between pb-2">
         <AMSUiCardTitle class="text-sm font-medium text-white">
-          Total Fleet Size
+          TBD
         </AMSUiCardTitle>
-        <UIcon
-          name="i-material-symbols-rocket-launch-outline"
-          class="h-4 w-4 text-(--ui-primary)"
-        />
+        <UIcon name="i-lucide-code-xml" class="h-4 w-4 text-(--ui-primary)" />
       </AMSUiCardHeader>
       <AMSUiCardContent>
-        <div class="text-2xl font-bold text-white">42</div>
-        <p class="text-xs text-muted-foreground">+3 ships since last month</p>
+        <div class="text-2xl font-bold text-white">TBD</div>
+        <p class="text-xs text-muted-foreground">TBD</p>
       </AMSUiCardContent>
     </AMSUiCard>
     <AMSUiCard class="bg-card/50 backdrop-blur-sm">
       <AMSUiCardHeader class="flex flex-row items-center justify-between pb-2">
         <AMSUiCardTitle class="text-sm font-medium text-white">
-          Total Fleet Size
+          TBD
         </AMSUiCardTitle>
-        <UIcon
-          name="i-material-symbols-rocket-launch-outline"
-          class="h-4 w-4 text-(--ui-primary)"
-        />
+        <UIcon name="i-lucide-code-xml" class="h-4 w-4 text-(--ui-primary)" />
       </AMSUiCardHeader>
       <AMSUiCardContent>
-        <div class="text-2xl font-bold text-white">42</div>
-        <p class="text-xs text-muted-foreground">+3 ships since last month</p>
+        <div class="text-2xl font-bold text-white">TBD</div>
+        <p class="text-xs text-muted-foreground">TBD</p>
       </AMSUiCardContent>
     </AMSUiCard>
   </div>
