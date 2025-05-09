@@ -8,6 +8,7 @@ definePageMeta({
 <template>
   <div>
     <AMSPageHeader
+      icon="i-lucide-layout-grid"
       title="Dashboard"
       description="Willkommen zurück, Commander. Hier ist deine persönliche Übersicht."
     />

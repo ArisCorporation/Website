@@ -3,57 +3,58 @@ const navlinks = [
   {
     label: 'Dashboard',
     link: '/ams',
-    icon: 'i-material-symbols-grid-view-outline-rounded',
+    icon: 'i-lucide-layout-grid',
+    exact: true,
   },
   {
     label: 'My Profile',
-    link: '/profile',
-    icon: 'i-material-symbols-person-outline',
+    link: '/ams/profile',
+    icon: 'i-lucide-user',
   },
   {
     label: 'My Hangar',
-    link: '/hangar',
+    link: '/ams/hangar',
     icon: 'i-fluent-home-garage-24-regular',
   },
   {
     label: 'Comm-Link',
-    link: '/comm-link',
-    icon: 'i-material-symbols-contract-edit-outline',
+    link: '/ams/comm-link',
+    icon: 'i-lucide-newspaper',
   },
   {
     label: 'Nachrichten',
-    link: '/messages',
-    icon: 'i-material-symbols-chat-bubble-outline',
+    link: '/ams/messages',
+    icon: 'i-lucide-message-square',
   },
   {
     label: 'Mitarbeiter',
-    link: '/employees',
-    icon: 'i-material-symbols-groups-outline',
+    link: '/ams/employees',
+    icon: 'i-lucide-users-round',
   },
   {
     label: 'Flotte',
-    link: '/fleet',
+    link: '/ams/fleet',
     icon: 'i-material-symbols-transportation-outline',
   },
   {
     label: 'Flottenstatistiken',
-    link: '/fleet-stats',
-    icon: 'i-material-symbols-bar-chart-4-bars-rounded',
+    link: '/ams/fleet-stats',
+    icon: 'i-lucide-bar-chart-3',
   },
   {
     label: 'Anteilsrechner',
-    link: '/calculator',
-    icon: 'i-material-symbols-calculate-outline-rounded',
+    link: '/ams/calculator',
+    icon: 'i-lucide-calculator',
   },
   {
     label: 'VerseExkurs Editor',
-    link: '/verse-exkurs-editor',
-    icon: 'i-material-symbols-book-2-outline',
+    link: '/ams/verse-exkurs-editor',
+    icon: 'i-lucide-book-text',
   },
   {
     label: 'Verwaltung',
-    link: '/admin',
-    icon: 'i-material-symbols-admin-panel-settings-outline',
+    link: '/ams/admin',
+    icon: 'i-lucide-shield-check',
   },
 ]
 </script>
@@ -84,6 +85,7 @@ const navlinks = [
           :label="link.label"
           :link="link.link"
           :icon="link.icon"
+          :exact="link.exact"
         />
       </nav>
       <!-- Footer -->
@@ -110,7 +112,7 @@ const navlinks = [
             <button
               class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-transparent hover:border-(--ui-primary)/50 hover:shadow-[0_0_10px_rgba(0,255,232,0.15)] active:scale-95 h-9 rounded-md px-3 w-full border-(--ui-primary)/20 text-gray-300 hover:bg-(--ui-primary)/10 hover:text-(--ui-primary) transition-all duration-300"
             >
-            <UIcon name="i-lucide-log-out" class="size-4 mr-2" />
+              <UIcon name="i-lucide-log-out" class="size-4 mr-2" />
               Logout
             </button>
           </div>
