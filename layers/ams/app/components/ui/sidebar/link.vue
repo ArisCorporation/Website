@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { path } = useRoute()
+const route = useRoute()
 
 const props = defineProps<{
   label: string
@@ -9,7 +9,7 @@ const props = defineProps<{
 }>()
 
 const active = computed(() =>
-  props.exact ? path == props.link : path.startsWith(props.link)
+  props.exact ? route.path == props.link : route.path.startsWith(props.link)
 )
 </script>
 

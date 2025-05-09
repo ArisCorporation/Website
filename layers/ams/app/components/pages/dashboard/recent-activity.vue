@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-4">
     <div
-      class="flex items-start space-x-3 rounded-md border border-(--ui-primary)/10 bg-[rgb(10 10 15)]/50 p-3 transition-all hover:bg-(--ui-primary)/5"
+      class="flex items-start space-x-3 rounded-md border border-(--ui-primary)/10 bg-(--ui-bg-muted)/50 p-3 transition-all hover:bg-(--ui-primary)/5"
     >
-      <div class="mt-0.5 bg-[rgb(10 10 15)] p-1.5 text-(--ui-primary)">
+      <div class="mt-0.5 bg-(--ui-bg-muted) p-1.5 text-(--ui-primary)">
         <UIcon name="i-lucide-user" class="h-4 w-4" />
       </div>
       <div class="flex-1">
