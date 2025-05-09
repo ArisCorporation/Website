@@ -61,7 +61,7 @@ const navlinks = [
 
 <template>
   <aside
-    class="fixed inset-y-0 left-0 z-50 hidden w-64 border-r border-(--ui-primary)/10 bg-[rgb(10 10 15 / 0.9)]/90 backdrop-blur-sm lg:block"
+    class="fixed inset-y-0 left-0 z-50 hidden w-64 border-r border-(--ui-primary)/10 bg-(--ui-bg-muted)/90 backdrop-blur-xs lg:block"
   >
     <div class="flex h-full flex-col">
       <!-- Header -->
@@ -91,7 +91,7 @@ const navlinks = [
       <!-- Footer -->
       <div class="p-4">
         <div
-          class="rounded-lg border border-(--ui-primary)/20 bg-[rgb(10 10 15)]/50 p-4 transition-all duration-300 hover:border-(--ui-primary)/30 hover:shadow-[0_0_10px_rgba(0,255,232,0.1)]"
+          class="rounded-lg border border-(--ui-primary)/20 bg-(--ui-bg-muted)/50 p-4 transition-all duration-300 hover:border-(--ui-primary)/30 hover:shadow-primary-xs"
         >
           <div class="flex flex-col space-y-3">
             <div class="flex items-center gap-3">
@@ -109,12 +109,13 @@ const navlinks = [
                 </p>
               </div>
             </div>
-            <button
-              class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-transparent hover:border-(--ui-primary)/50 hover:shadow-[0_0_10px_rgba(0,255,232,0.15)] active:scale-95 h-9 rounded-md px-3 w-full border-(--ui-primary)/20 text-gray-300 hover:bg-(--ui-primary)/10 hover:text-(--ui-primary) transition-all duration-300"
+            <UButton
+              variant="outline"
+              icon="i-lucide-log-out"
+              class="h-9 px-3 text-sm text-gray-300 hover:text-(--ui-primary) flex justify-center"
             >
-              <UIcon name="i-lucide-log-out" class="size-4 mr-2" />
               Logout
-            </button>
+            </UButton>
           </div>
         </div>
       </div>
