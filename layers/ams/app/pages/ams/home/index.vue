@@ -1,0 +1,15 @@
+<script setup lang="ts">
+definePageMeta({
+  layout: 'ams',
+  path: '/ams'
+})
+</script>
+
+
+<template>
+  <div>
+    <AMSPageHeader title="Dashboard" description="Willkommen zurück, Commander. Hier ist deine persönliche Übersicht." />
+    <AMSPagesDashboardTopGrid />
+    <AMSPagesDashboardBottomGrid />
+  </div>
+</template>

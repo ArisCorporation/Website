@@ -11,6 +11,10 @@ export default defineNuxtConfig({
     }
   },
 
+  extends: [
+    './layers/ams', // AMS module
+  ],
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/image',
@@ -22,6 +26,20 @@ export default defineNuxtConfig({
   ],
 
   css: ['~/assets/css/main.css'],
+
+  components: [
+    // For All Components
+    {
+      path: '~/components',
+      global: true,
+    },
+    // For Global-Components
+    {
+      path: '~/components/global',
+      prefix: '',
+      global: true,
+    },
+  ],
 
   image: {
     provider: 'directus',

@@ -1,0 +1,29 @@
+.sci-fi-grid {
+  background-image: linear-gradient(#00ffe808 1px, #0000 1px), linear-gradient(90deg, #00ffe808 1px, #0000 1px);
+  background-size: 20px 20px;
+}
+
+@keyframes pulse-glow {
+ 0% { box-shadow: 0 0 5px #00ffe84d; }
+ 50% { box-shadow: 0 0 10px 2px #00ffe880; }
+ 100% { box-shadow: 0 0 5px #00ffe84d; }
+}
+
+@keyframes border-flow {
+  0% { left: -100% }
+  100% { left: 100% }
+}
+
+.animate-pulse-glow {
+  animation: 2s ease-in-out infinite pulse-glow;
+}
+
+.animated-border {
+  @apply relative overflow-hidden before:bg-[linear-gradient(90deg,_#0000,_#00ffe880,_#0000)] before:w-full before:h-px before:absolute before:left-[-100%]
+}
+
+.animated-border-animation::before {
+  animation: 3s linear infinite border-flow;
+  top: 0;
+}
+
