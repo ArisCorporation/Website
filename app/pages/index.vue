@@ -1,3 +1,8 @@
 <template>
-  <div class="text-primary-400">test</div>
+  <div>
+    <PagesHomeHero />
+    <UiPage>
+      test
+    </UiPage>
+  </div>
 </template>

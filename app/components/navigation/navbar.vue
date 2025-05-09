@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <nav class="h-24 bg-black/50 w-full">
+  <nav class="h-(--page-header-height) bg-black/50 w-full fixed top-0">
     <div class="container flex justify-between mx-auto">
       <div class="my-auto">
         <UiAriscorpLogo class="size-24" hover />
