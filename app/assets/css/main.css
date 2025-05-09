@@ -31,7 +31,39 @@
   --color-industrial-800: #85291b;
   --color-industrial-900: #6d231a;
   --color-industrial-950: #3e0f0a;
+
+  --color-woodsmoke-50: hsl(240, 20%, 97%);
+  --color-woodsmoke-100: hsl(240, 25%, 94%);
+  --color-woodsmoke-200: hsl(236, 24%, 86%);
+  --color-woodsmoke-300: hsl(236, 23%, 74%);
+  --color-woodsmoke-400: hsl(235, 23%, 60%);
+  --color-woodsmoke-500: hsl(235, 22%, 48%);
+  --color-woodsmoke-600: hsl(236, 24%, 39%);
+  --color-woodsmoke-700: hsl(237, 24%, 32%);
+  --color-woodsmoke-800: hsl(236, 23%, 27%);
+  --color-woodsmoke-900: hsl(238, 20%, 24%);
+  --color-woodsmoke-950: hsl(240, 20%, 5%);
+
+  --color-bunker-50: hsl(240, 7%, 97%);
+  --color-bunker-100: hsl(240, 12%, 94%);
+  --color-bunker-200: hsl(231, 10%, 86%);
+  --color-bunker-300: hsl(235, 10%, 74%);
+  --color-bunker-400: hsl(234, 10%, 60%);
+  --color-bunker-500: hsl(235, 9%, 48%);
+  --color-bunker-600: hsl(237, 10%, 39%);
+  --color-bunker-700: hsl(240, 11%, 32%);
+  --color-bunker-800: hsl(236, 10%, 27%);
+  --color-bunker-900: hsl(240, 8%, 24%);
+  --color-bunker-950: hsl(240, 9%, 9%);
+
+  --shadow-primary-xs: 0 0 10px hsla(175, 100%, 50%, 0.1);
+  --shadow-primary-sm: 0 0 15px hsla(175, 100%, 50%, 0.15);
+  --shadow-primary-md: 0 0 15px hsla(175, 100%, 50%, 0.3);
+  --shadow-destructive: 0 0 15px hsla(0, 100%, 50%, 0.3);
 }
+
+/* darker bg: color-woodsmoke-950 */
+/* card bg: --color-bunker-950 */
 
 /* LIGHT MODE */
 /* :root { */
@@ -82,11 +114,11 @@
   --ui-text-highlighted: var(--color-white);
 
   /* Main background color */
-  --ui-bg: var(--ui-color-neutral-900);
+  --ui-bg: hsl(240, 15%, 8%);
   /* Subtle background */
-  --ui-bg-muted: var(--ui-color-neutral-800);
+  --ui-bg-muted: var(--color-woodsmoke-950);
   /* Slightly elevated background */
-  --ui-bg-elevated: var(--ui-color-neutral-800);
+  --ui-bg-elevated: var(--color-bunker-950);
   /* More prominent background */
   --ui-bg-accented: var(--ui-color-neutral-700);
   /* Inverted background color */
