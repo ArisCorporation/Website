@@ -903,7 +903,7 @@
                       class="transition-colors duration-200 group hover:duration-300 hover:cursor-pointer"
                       @mouseover="() => setSelectedTech('weaponindex')"
                       @mouseleave="() => setSelectedTech(undefined)"
-                      @click="() => router.push('/verseexkurs/waffen')"
+                      @click="() => router.push('/verseexkurs/weapons')"
                     >
                       <path
                         id="weapons1"
