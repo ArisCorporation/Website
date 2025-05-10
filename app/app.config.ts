@@ -23,6 +23,20 @@ export default defineAppConfig({
           class: 'hover:shadow-destructive active:scale-95'
         },
       ]
+    },
+    input: {
+      compoundVariants: [
+        {
+          color: 'primary',
+          highlight: true,
+          class: 'ring-(--ui-primary)/20'
+        },
+        {
+          color: 'primary',
+          variant: 'outline',
+          class: 'bg-transparent'
+        },
+      ]
     }
   }
 })

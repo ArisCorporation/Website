@@ -137,3 +137,7 @@
 .animate {
   @apply active:scale-95 [transition:_opacity_.5s_ease-in-out,filter_.2s_ease-in-out,transform_.05s_ease-in-out,outline_.2s_ease-in-out];
 }
+
+button {
+  @apply cursor-pointer disabled:cursor-not-allowed;
+}
