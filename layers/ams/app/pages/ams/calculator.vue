@@ -1,47 +1,54 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
+import type { DirectusUsers, Ships } from '~~/types'
+const { $directus, $readUsers, $readItems } = useNuxtApp()
 
 const store = useAMSCalculatorStore()
 const { settings, workers, crews, incomes, expenses } = storeToRefs(store)
 
-const mockUsers = reactive([
-  {
-    id: '052a2c25-b063-4a82-90cb-110d7f809cae',
-    first_name: 'Thomas',
-    slug: 'thomas-blakeney',
-    last_name: 'Blakeney',
-    title: null,
-    full_name: 'Thomas Blakeney',
-    label: 'Thomas Blakeney',
-    avatar: '31733e00-f4ff-4ebf-9499-668508d6c0fc',
-  },
-  {
-    id: '54ee43a5-d877-4c11-aa61-31b1fea7d1a7',
-    first_name: 'Decon Malcom',
-    slug: 'decon-malcom-vorn',
-    last_name: 'Vorn',
-    title: null,
-    full_name: 'Decon Malcom Vorn',
-    label: 'Decon Malcom Vorn',
-    avatar: '074bce0b-e23a-4d44-9f41-3004d7740f85',
-  },
-])
+const wizardCookie = useCookie<boolean>('ams:calculator_wizard')
+const toggleWizard = () => (wizardCookie.value = !wizardCookie.value)
 
-const mockShips = reactive([
-  {
-    id: '03012a07-fe69-4d0e-ac20-ca64c99052c8',
-    name: 'Zeus Mk II CL',
-    slug: 'zeus-mk-ii-cl',
-  },
-  {
-    id: '3dca19c0-214c-4163-8d90-f3e39bb8f7b6',
-    name: 'Vulture',
-    slug: 'vulture',
-  },
-])
-
-const showWizard = ref(true)
 const currentStep = ref(0)
+
+const { data: users } = await useAsyncData<DirectusUsers[]>(
+  'users',
+  () => {
+    return $directus.request(
+      $readUsers({
+        sort: ['first_name'],
+        filter: { status: { _eq: 'active' }, api_account: { _eq: false } },
+      })
+    )
+  },
+  {
+    transform: (data) =>
+      data.map((u) => {
+        const parts: string[] = []
+        if (u.title) {
+          parts.push(u.title)
+        }
+        if (u.first_name) {
+          parts.push(u.first_name)
+        }
+        if (u.last_name) {
+          parts.push(u.last_name)
+        }
+
+        const label = parts.filter(Boolean).join(' ')
+
+        return {
+          ...u,
+          label,
+        }
+      }),
+  }
+)
+const { data: ships } = await useAsyncData<Ships[]>('ships', () => {
+  return $directus.request(
+    $readItems('ships', { limit: -1, filter: { status: { _eq: 'published' } } })
+  )
+})
 
 const dropdownItems = ref<DropdownMenuItem[]>([
   {
@@ -52,7 +59,7 @@ const dropdownItems = ref<DropdownMenuItem[]>([
     type: 'separator',
   },
   {
-    onSelect: () => (showWizard.value = !showWizard.value),
+    onSelect: () => toggleWizard(),
     slot: 'mode',
   },
   {
@@ -125,7 +132,7 @@ const isStep2Invalid = computed(() => {
 })
 
 const nextDisabled = computed(() => {
-  if (showWizard.value === true) {
+  if (wizardCookie.value === true) {
     switch (currentStep.value) {
       case 0:
         return isStep0Invalid.value
@@ -180,12 +187,12 @@ definePageMeta({
       >
         <UButton label="Optionen" icon="i-lucide-menu" variant="outline" />
         <template #mode-label>
-          {{ showWizard ? 'Expertenmodus' : 'Assistenten-Modus' }}
+          {{ wizardCookie ? 'Expertenmodus' : 'Assistenten-Modus' }}
         </template>
       </UDropdownMenu>
     </AMSPageHeader>
     <!-- todo: history -->
-    <UCard v-if="showWizard" variant="ams">
+    <UCard v-if="wizardCookie" variant="ams">
       <template #header>
         <div class="flex items-center justify-between ams-card-title">
           <h2>{{ steps[currentStep]?.title }}</h2>
@@ -203,7 +210,11 @@ definePageMeta({
       </template>
       <template #default>
         <AMSPagesCalculatorStepsSettings v-if="currentStep == 0" />
-        <AMSPagesCalculatorStepsCrews v-if="currentStep == 1" />
+        <AMSPagesCalculatorStepsCrews
+          :users="users ?? []"
+          :ships="ships ?? []"
+          v-if="currentStep == 1"
+        />
         <AMSPagesCalculatorStepsMoney v-if="currentStep == 2" />
         <AMSPagesCalculatorStepsDistribution v-if="currentStep == 3" />
         <div class="mt-4 flex w-full justify-between">
@@ -236,7 +247,11 @@ definePageMeta({
       }"
     >
       <template #input="{ item }">
-        <AMSPagesCalculatorExpertInput :next-disabled="nextDisabled" />
+        <AMSPagesCalculatorExpertInput
+          :users="users ?? []"
+          :ships="ships ?? []"
+          :next-disabled="nextDisabled"
+        />
       </template>
       <template #distribution="{ item }">
         <AMSPagesCalculatorExpertDistribution />
