@@ -22,39 +22,12 @@ export const useAMSCalculatorStore = defineStore('ams-calculator', {
     crews: [
       {
         id: 1,
-        name: 'Cargo',
-        ship: 'Vulcan'
-      },
-      {
-        id: 2,
-        name: 'Salvage',
-        ship: 'Vulcan'
+        name: 'Crew 1',
+        ship: ''
       },
     ],
-    workers: [
-      {
-        id: 1,
-        crew: 1,
-        external: false,
-        external_name: '',
-        internal_id: '052a2c25-b063-4a82-90cb-110d7f809cae',
-      },
-      {
-        id: 2,
-        crew: 1,
-        external: false,
-        external_name: '',
-        internal_id: '54ee43a5-d877-4c11-aa61-31b1fea7d1a7',
-      },
-    ],
-    incomes: [
-      {
-        id: 1,
-        name: 'Quantanium',
-        amount: 10000,
-        worker: 1
-      }
-    ],
+    workers: [],
+    incomes: [],
     expenses: [],
     distribution: null
   }),

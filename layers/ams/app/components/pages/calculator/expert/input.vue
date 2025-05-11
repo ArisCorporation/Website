@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Worker, Crew } from '@@/types/ams-calculator'
+import type { DirectusUsers, Ships } from '~~/types'
 
-defineProps<{ nextDisabled: boolean }>()
+defineProps<{ users: DirectusUsers[]; ships: Ships[]; nextDisabled: boolean }>()
 </script>
 
 <template>
@@ -22,7 +22,7 @@ defineProps<{ nextDisabled: boolean }>()
           </template>
           <template #default>
             <div class="space-y-4">
-              <AMSPagesCalculatorCrewTable />
+              <AMSPagesCalculatorTablesCrew :ships="ships" />
             </div>
           </template>
         </UCard>
@@ -48,7 +48,7 @@ defineProps<{ nextDisabled: boolean }>()
           </template>
           <template #default>
             <div class="space-y-4">
-              <AMSPagesCalculatorTablesWorker />
+              <AMSPagesCalculatorTablesWorker :users="users" />
             </div>
           </template>
         </UCard>

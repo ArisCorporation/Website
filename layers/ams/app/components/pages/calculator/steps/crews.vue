@@ -1,10 +1,16 @@
+<script setup lang="ts">
+import type { DirectusUsers, Ships } from '~~/types'
+
+defineProps<{ users: DirectusUsers[]; ships: Ships[] }>()
+</script>
+
 <template>
   <div class="space-y-4">
     <div class="flex items-center gap-2">
       <UIcon name="i-lucide-users" class="text-(--ui-primary) size-4" />
       Crews
     </div>
-    <AMSPagesCalculatorTablesCrew />
+    <AMSPagesCalculatorTablesCrew :ships="ships" />
     <USeparator color="ams" />
     <UAlert
       title="Drag & Drop Funktion"
@@ -24,6 +30,6 @@
       <UIcon name="i-lucide-user" class="text-(--ui-primary) size-4" />
       Mitarbeiter
     </div>
-    <AMSPagesCalculatorTablesWorker />
+    <AMSPagesCalculatorTablesWorker :users="users" />
   </div>
 </template>

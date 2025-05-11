@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import { RowExpanding, type Row } from '@tanstack/vue-table'
 import { useSortable } from '@vueuse/integrations/useSortable.mjs'
 import type { MoveEvent, SortableEvent } from 'sortablejs'
 import type { Worker, Crew } from '@@/types/ams-calculator'
+import type { DirectusUsers } from '~~/types'
+
+defineProps<{ users: DirectusUsers[] }>()
 
 const store = useAMSCalculatorStore()
 const { workers, crews, settings } = storeToRefs(store)
@@ -94,19 +96,37 @@ useSortable('.worker-tbody', workers.value, {
         tr: 'hover:bg-(--ui-primary)/5 group cursor-grab active:cursor-grabbing',
         td: 'text-(--ui-text)',
       }"
+      class="max-h-80"
     >
       <template #handle-cell="{ row }">
-        <!-- <div
+        <div
           class="group-hover:bg-(--ui-primary)/10 size-8 flex rounded-md -mx-2"
         >
           <UIcon
             name="i-lucide-grip-vertical"
             class="m-auto size-4 group-hover:text-(--ui-primary)"
           />
-        </div> -->
+        </div>
       </template>
       <template #name-cell="{ row }">
-        <UInput highlight v-model="row.original.name" />
+        <UInput
+          v-if="row.original.external"
+          highlight
+          v-model="row.original.external_name"
+        />
+        <USelectMenu
+          v-else
+          v-model="workers.find((w) => w.id === row.original.id)!.internal_id"
+          :items="
+            users?.map((u) => ({
+              ...u,
+              avatar: { src: 'https://cms.ariscorp.de/assets/' + u.avatar },
+            }))
+          "
+          variant="ams"
+          value-key="id"
+          class="w-48"
+        />
       </template>
       <template #crew-cell="{ row }">
         <UBadge

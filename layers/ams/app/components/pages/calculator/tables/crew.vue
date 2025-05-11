@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { Row } from '@tanstack/vue-table'
 import { useSortable } from '@vueuse/integrations/useSortable.mjs'
 import type { Crew } from '@@/types/ams-calculator'
+import type { Ships } from '~~/types'
+
+defineProps<{ ships: Ships[] }>()
 
 const store = useAMSCalculatorStore()
 const { crews } = storeToRefs(store)
@@ -52,12 +54,20 @@ useSortable('.crew-tbody', crews.value, {
         tr: 'hover:bg-(--ui-primary)/5',
         td: 'text-(--ui-text)',
       }"
+      class="max-h-80"
     >
       <template #name-cell="{ row }">
         <UInput highlight v-model="row.original.name" />
       </template>
       <template #ship-cell="{ row }">
-        <UInput highlight v-model="row.original.ship" />
+        <USelectMenu
+          v-model="crews.find((c) => c.id === row.original.id)!.ship"
+          :items="ships"
+          variant="ams"
+          value-key="id"
+          label-key="name"
+          class="w-48"
+        />
       </template>
       <template #delete-cell="{ row }">
         <UButton

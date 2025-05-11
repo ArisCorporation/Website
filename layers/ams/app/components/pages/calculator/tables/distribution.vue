@@ -47,6 +47,7 @@ const columns: TableColumn<CalculatedPayout>[] = [
         tr: 'hover:bg-(--ui-primary)/5',
         td: 'text-(--ui-text)',
       }"
+      class="max-h-80"
     />
   </div>
   <div class="flex space-x-4">

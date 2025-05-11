@@ -66,6 +66,18 @@ export default defineAppConfig({
       slots: {
         base: 'not-prose'
       }
+    },
+    selectMenu: {
+      slots: {
+        content: ['bg-(--ui-bg-muted)/50 backdrop-blur-sm ring-(--ui-primary)/20'],
+        item: 'cursor-pointer data-highlighted:not-data-disabled:before:bg-(--ui-bg-accented)/10 data-highlighted:not-data-disabled:before:backdrop-blur-xs',
+        input: 'border-(--ui-primary)/20'
+      },
+      variants: {
+        variant: {
+          ams: 'text-highlighted bg-transparent ring ring-inset ring-(--ui-primary)/20',
+        }
+      }
     }
   }
 })

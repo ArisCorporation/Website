@@ -40,6 +40,7 @@ const columns: TableColumn<Transfer>[] = [
           tr: 'hover:bg-(--ui-primary)/5',
           td: 'text-(--ui-text)',
         }"
+        class="max-h-80"
       >
         <template #name-cell="{ row }">
           <UInput highlight v-model="row.original.name" />
