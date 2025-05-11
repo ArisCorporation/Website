@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { CalculatedPayout } from '@@/types/ams-calculator'
+import type { CalculatedPayout, DirectusUsers } from '~~/types'
+
+defineProps<{ users: DirectusUsers[] }>()
 
 const store = useAMSCalculatorStore()
 const { distribution, workers, expenses } = storeToRefs(store)
@@ -48,7 +50,16 @@ const columns: TableColumn<CalculatedPayout>[] = [
         td: 'text-(--ui-text)',
       }"
       class="max-h-80"
-    />
+    >
+      <template #worker-cell="{ row }">
+        {{
+          amsCalculatorGetItemLabel(
+            workers.find((w) => w.id === row.original.workerId),
+            users
+          )
+        }}
+      </template>
+    </UTable>
   </div>
   <div class="flex space-x-4">
     <!-- Todo: onclick actions -->

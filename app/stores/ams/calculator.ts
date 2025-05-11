@@ -1,4 +1,4 @@
-import type { CalculatorSettings, Crew, OverallDistributionSummary, Transfer, Worker } from '@@/types/ams-calculator'
+import type { CalculatorSettings, Crew, OverallDistributionSummary, Transfer, Worker } from '~~/types'
 
 interface State {
   settings: CalculatorSettings

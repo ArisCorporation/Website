@@ -1,4 +1,4 @@
-import type { CalculatorSettings, Worker, Transfer, CalculatedPayout, OverallDistributionSummary } from '@@/types/ams-calculator';
+import type { CalculatorSettings, Worker, Transfer, CalculatedPayout, OverallDistributionSummary } from '~~/types';
 
 export default function calculateFairShareDistributionWithManager (
   incomes: Transfer[],

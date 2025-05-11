@@ -17,6 +17,7 @@ export type Worker = {
   internal_id: string
   external: boolean
   external_name: string | null
+  label?: string | null
 }
 
 export type Transfer = {

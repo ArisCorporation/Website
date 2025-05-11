@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { Transfer } from '@@/types/ams-calculator'
+import type { DirectusUsers, Transfer, Worker } from '~~/types'
+
+const props = defineProps<{ users: DirectusUsers[] }>()
 
 const store = useAMSCalculatorStore()
 const { expenses, workers } = storeToRefs(store)
 
-const UButton = resolveComponent('UButton')
 const columns: TableColumn<Transfer>[] = [
   {
     accessorKey: 'name',
@@ -23,6 +24,16 @@ const columns: TableColumn<Transfer>[] = [
     id: 'delete',
   },
 ]
+
+function transformWorkers(workers: Worker[]) {
+  return workers.map((w) => {
+    const label = amsCalculatorGetItemLabel(w, props.users)
+    return {
+      ...w,
+      label,
+    }
+  })
+}
 </script>
 
 <template>
@@ -48,7 +59,14 @@ const columns: TableColumn<Transfer>[] = [
           <AMSPagesCalculatorCurrencyInput v-model="row.original.amount" />
         </template>
         <template #worker-cell="{ row }">
-          <UInput highlight v-model="row.original.worker" inputmode="numeric" />
+          <!-- @vue-ignore -->
+          <USelectMenu
+            v-model="expenses.find((i) => i.id === row.original.id)!.worker"
+            :items="transformWorkers(workers)"
+            variant="ams"
+            value-key="id"
+            class="w-48"
+          />
         </template>
         <template #delete-cell="{ row }">
           <UButton

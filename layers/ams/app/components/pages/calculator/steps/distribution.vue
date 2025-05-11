@@ -1,27 +1,17 @@
 <script setup lang="ts">
-const store = useAMSCalculatorStore()
-const { settings, workers, incomes, expenses, distribution } =
-  storeToRefs(store)
+import type {
+  CalculatorSettings,
+  DirectusUsers,
+  OverallDistributionSummary,
+} from '~~/types'
 
-const calculated = ref(false)
-const calculating = ref(false)
-
-async function calculate() {
-  calculating.value = true
-  await setTimeout(() => {
-    const distributionData = amsCalculateDistribution(
-      incomes.value,
-      expenses.value,
-      workers.value,
-      settings.value
-    )
-
-    distribution.value = distributionData
-    calculating.value = false
-    calculated.value = true
-    console.log(distributionData)
-  }, 1000)
-}
+defineProps<{
+  distribution: OverallDistributionSummary | null
+  settings: CalculatorSettings
+  users: DirectusUsers[]
+  calculated: boolean
+  calculating: boolean
+}>()
 </script>
 
 <template>
@@ -79,13 +69,13 @@ async function calculate() {
             Klicke auf "Verteilung berechnen", um die Anteile zu berechnen
           </p>
           <UButton
-            @click="calculate"
+            @click="() => $emit('calculate')"
             :loading="calculating"
             icon="i-lucide-calculator"
             label="Verteilung berechnen"
           />
         </div>
-        <AMSPagesCalculatorTablesDistribution v-else />
+        <AMSPagesCalculatorTablesDistribution v-else :users="users" />
       </div>
     </div>
   </div>

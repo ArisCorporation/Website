@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import type { DirectusUsers, Ships } from '~~/types'
+import type { CalculatorSettings, OverallDistributionSummary } from '~~/types'
 
-defineProps<{ users: DirectusUsers[]; ships: Ships[]; nextDisabled: boolean }>()
+defineProps<{
+  distribution: OverallDistributionSummary | null
+  settings: CalculatorSettings
+  calculated: boolean
+  calculating: boolean
+  users: DirectusUsers[]
+  ships: Ships[]
+  nextDisabled: boolean
+}>()
 </script>
 
 <template>
@@ -60,7 +69,7 @@ defineProps<{ users: DirectusUsers[]; ships: Ships[]; nextDisabled: boolean }>()
           </template>
           <template #default>
             <div class="space-y-4">
-              <AMSPagesCalculatorTablesIncome />
+              <AMSPagesCalculatorTablesIncome :users="users" />
             </div>
           </template>
         </UCard>
@@ -70,16 +79,18 @@ defineProps<{ users: DirectusUsers[]; ships: Ships[]; nextDisabled: boolean }>()
           </template>
           <template #default>
             <div class="space-y-4">
-              <AMSPagesCalculatorTablesExpense />
+              <AMSPagesCalculatorTablesExpense :users="users" />
             </div>
           </template>
         </UCard>
         <UButton
+          @click="() => $emit('calculate')"
+          :loading="calculating"
           :disabled="nextDisabled"
           label="Verteilung berechnen"
           icon="i-lucide-calculator"
-          class="w-full justify-center"
           size="xl"
+          class="w-full justify-center"
         />
       </div>
     </div>

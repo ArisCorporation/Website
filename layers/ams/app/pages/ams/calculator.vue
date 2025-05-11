@@ -4,12 +4,16 @@ import type { DirectusUsers, Ships } from '~~/types'
 const { $directus, $readUsers, $readItems } = useNuxtApp()
 
 const store = useAMSCalculatorStore()
-const { settings, workers, crews, incomes, expenses } = storeToRefs(store)
+const { settings, workers, crews, incomes, expenses, distribution } =
+  storeToRefs(store)
 
 const wizardCookie = useCookie<boolean>('ams:calculator_wizard')
 const toggleWizard = () => (wizardCookie.value = !wizardCookie.value)
 
 const currentStep = ref(0)
+
+const calculated = ref(false)
+const calculating = ref(false)
 
 const { data: users } = await useAsyncData<DirectusUsers[]>(
   'users',
@@ -89,16 +93,19 @@ const steps = [
   },
 ]
 
+const activeTab = ref('input')
 const tabs = [
   {
     label: 'Eingabe',
     content: 'This is the account content.',
     slot: 'input',
+    value: 'input',
   },
   {
     label: 'Verteilung',
     content: 'This is the password content.',
     slot: 'distribution',
+    value: 'distribution',
   },
 ]
 
@@ -148,6 +155,23 @@ const nextDisabled = computed(() => {
   }
 })
 
+async function calculate() {
+  calculating.value = true
+  await setTimeout(() => {
+    const distributionData = amsCalculateDistribution(
+      incomes.value,
+      expenses.value,
+      workers.value,
+      settings.value
+    )
+
+    distribution.value = distributionData
+    calculating.value = false
+    calculated.value = true
+    activeTab.value = 'distribution'
+  }, 1000)
+}
+
 definePageMeta({
   layout: 'ams',
 })
@@ -160,19 +184,6 @@ definePageMeta({
       title="aUEC Anteilsrechner"
       description="Berechne die Verteilung von Einnahmen und Ausgaben für Missionen."
     >
-      <!-- todo: onclick - handle undo -->
-      <UButton
-        icon="i-lucide-undo"
-        variant="ghost"
-        class="text-(--ui-text-muted) size-8"
-      />
-      <!-- todo: onclick - handle redo -->
-      <UButton
-        icon="i-lucide-redo"
-        variant="ghost"
-        class="text-(--ui-text-muted) size-8"
-      />
-
       <UDropdownMenu
         :items="dropdownItems"
         :content="{
@@ -211,12 +222,23 @@ definePageMeta({
       <template #default>
         <AMSPagesCalculatorStepsSettings v-if="currentStep == 0" />
         <AMSPagesCalculatorStepsCrews
+          v-if="currentStep == 1"
           :users="users ?? []"
           :ships="ships ?? []"
-          v-if="currentStep == 1"
         />
-        <AMSPagesCalculatorStepsMoney v-if="currentStep == 2" />
-        <AMSPagesCalculatorStepsDistribution v-if="currentStep == 3" />
+        <AMSPagesCalculatorStepsMoney
+          v-if="currentStep == 2"
+          :users="users ?? []"
+        />
+        <AMSPagesCalculatorStepsDistribution
+          v-if="currentStep == 3"
+          @calculate="calculate"
+          :calculated="calculated"
+          :calculating="calculating"
+          :distribution="distribution"
+          :settings="settings"
+          :users="users ?? []"
+        />
         <div class="mt-4 flex w-full justify-between">
           <UButton
             @click="currentStep--"
@@ -238,6 +260,7 @@ definePageMeta({
     </UCard>
     <UTabs
       v-else
+      v-model="activeTab"
       :items="tabs"
       class="w-full"
       :ui="{
@@ -248,13 +271,36 @@ definePageMeta({
     >
       <template #input="{ item }">
         <AMSPagesCalculatorExpertInput
+          @calculate="calculate"
+          :calculated="calculated"
+          :calculating="calculating"
           :users="users ?? []"
           :ships="ships ?? []"
           :next-disabled="nextDisabled"
+          :distribution="distribution"
+          :settings="settings"
         />
       </template>
       <template #distribution="{ item }">
-        <AMSPagesCalculatorExpertDistribution />
+        <div class="mt-4 space-y-6">
+          <UCard variant="ams">
+            <template #header>
+              <h2>Verteilung</h2>
+            </template>
+            <template #default>
+              <div class="space-y-4">
+                <AMSPagesCalculatorStepsDistribution
+                  @calculate="calculate"
+                  :calculated="calculated"
+                  :calculating="calculating"
+                  :distribution="distribution"
+                  :settings="settings"
+                  :users="users ?? []"
+                />
+              </div>
+            </template>
+          </UCard>
+        </div>
       </template>
     </UTabs>
   </div>

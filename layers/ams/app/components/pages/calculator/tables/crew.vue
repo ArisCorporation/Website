@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import { useSortable } from '@vueuse/integrations/useSortable.mjs'
-import type { Crew } from '@@/types/ams-calculator'
+import type { Crew } from '~~/types'
 import type { Ships } from '~~/types'
 
 defineProps<{ ships: Ships[] }>()

@@ -706,6 +706,7 @@ export type DirectusUsers = {
   user_preferences?: unknown | null;
   weight?: number | null;
   wishlist_items?: any[] | UserWishlists[];
+  label?: string
 };
 
 export type DirectusVersions = {

@@ -2,7 +2,7 @@
 import type { TableColumn } from '@nuxt/ui'
 import { useSortable } from '@vueuse/integrations/useSortable.mjs'
 import type { MoveEvent, SortableEvent } from 'sortablejs'
-import type { Worker, Crew } from '@@/types/ams-calculator'
+import type { Worker, Crew } from '~~/types'
 import type { DirectusUsers } from '~~/types'
 
 defineProps<{ users: DirectusUsers[] }>()
