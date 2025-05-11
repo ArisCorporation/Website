@@ -4,8 +4,8 @@
       <UIcon name="i-lucide-users" class="text-(--ui-primary) size-4" />
       Crews
     </div>
-    <AMSPagesCalculatorCrewTable />
-    <AMSUiCardSeparator />
+    <AMSPagesCalculatorTablesCrew />
+    <USeparator color="ams" />
     <UAlert
       title="Drag & Drop Funktion"
       icon="i-lucide-arrow-right"
@@ -24,6 +24,6 @@
       <UIcon name="i-lucide-user" class="text-(--ui-primary) size-4" />
       Mitarbeiter
     </div>
-    <AMSPagesCalculatorWorkerTable />
+    <AMSPagesCalculatorTablesWorker />
   </div>
 </template>
