@@ -15,20 +15,22 @@
     "@nuxt/eslint": "1.3.0",
     "@nuxt/image": "1.10.0",
     "@nuxt/test-utils": "3.17.2",
-    "@nuxt/ui": "3.0.2",
+    "@nuxt/ui": "^3.1.1",
     "@tanstack/vue-table": "^8.21.3",
     "@types/sortablejs": "^1.15.8",
     "@vueuse/integrations": "^13.1.0",
-    "eslint": "^9.0.0",
-    "nuxt": "^3.16.2",
+    "eslint": "^9.26.0",
+    "nuxt": "^3.17.2",
+    "pinia": "^3.0.2",
     "sortablejs": "^1.15.6",
-    "tailwindcss": "^4.1.4",
-    "typescript": "^5.6.3",
+    "tailwindcss": "^4.1.6",
+    "typescript": "^5.8.3",
     "vue": "^3.5.13",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@pinia/nuxt": "^0.11.0",
+    "@tailwindcss/typography": "^0.5.16",
     "@vueuse/nuxt": "^13.1.0"
   },
   "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f"
