@@ -94,15 +94,17 @@ const navlinks = [
           class="rounded-lg border border-(--ui-primary)/20 bg-(--ui-bg-muted)/50 p-4 transition-all duration-300 hover:border-(--ui-primary)/30 hover:shadow-primary-xs"
         >
           <div class="flex flex-col space-y-3">
-            <div class="flex items-center gap-3">
-              <span
-                class="relative flex shrink-0 overflow-hidden rounded-full h-12 w-12 border border-(--ui-primary)/20 ring-1 ring-(--ui-primary)/10"
-                ><img
-                  class="aspect-square h-full w-full"
+            <div class="flex items-center gap-3 prose-img:my-0">
+              <div
+                class="flex shrink-0 overflow-hidden rounded-full h-12 w-12 border border-(--ui-primary)/20 ring-1 ring-(--ui-primary)/10"
+              >
+                <NuxtImg
+                  class="size-full object-cover"
                   alt="Thomas Blakeney"
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/attachments/gen-images/public/military-lieutenant-vosQl5wOXAJ1icON8N1G8KRwLgBLC6.png"
-              /></span>
-              <div class="flex-1">
+                  src="31733e00-f4ff-4ebf-9499-668508d6c0fc"
+                />
+              </div>
+              <div class="flex-1 not-prose">
                 <p class="text-sm font-medium text-white">Thomas Blakeney</p>
                 <p class="text-xs text-(--ui-primary)">
                   Chief of Logistics Department
