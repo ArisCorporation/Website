@@ -8,7 +8,7 @@ export default function (value: string | number | null | undefined): string {
   integerPart = integerPart?.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // Tausendertrennzeichen
 
   if (decimalPart !== undefined) { // Prüfen, ob es überhaupt einen Dezimalteil gab
-    return `${integerPart},${decimalPart}`;
+    return `${integerPart},${decimalPart.substring(0, 2)}`;
   }
 
   return integerPart ?? '';
