@@ -70,6 +70,7 @@ const dropdownItems = ref<DropdownMenuItem[]>([
     label: 'Verlauf',
   },
   {
+    onSelect: () => store.$reset(),
     label: 'Zurücksetzen',
   },
 ])
