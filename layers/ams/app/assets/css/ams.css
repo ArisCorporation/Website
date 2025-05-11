@@ -37,3 +37,8 @@
   animation: 3s linear infinite border-flow;
   top: 0;
 }
+
+table {
+  margin-top: 0;
+  margin-bottom: 0;
+}

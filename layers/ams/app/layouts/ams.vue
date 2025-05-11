@@ -3,7 +3,7 @@ import '~/assets/css/ams.css'
 </script>
 
 <template>
-  <AMSPageWrapper>
+  <AMSPageWrapper class="prose prose-invert max-w-none">
     <AMSUiHeader />
     <AMSUiSidebar />
     <AMSPageMain>

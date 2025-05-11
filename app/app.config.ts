@@ -37,6 +37,35 @@ export default defineAppConfig({
           class: 'bg-transparent'
         },
       ]
+    },
+    card: {
+      variants: {
+        variant: {
+          ams: {
+            root: 'ring ring-(--ui-primary)/10 divide-y divide-(--ui-primary)/10 bg-(--ui-bg-muted)/50 backdrop-blur-xs hover:shadow-primary-md',
+            header: 'border-0 ams-card-title space-y-1.5 p-6 pb-3'
+          }
+        }
+      }
+    },
+    alert: {
+      slots: {
+        description: '[&>p]:mb-0'
+      }
+    },
+    separator: {
+      variants: {
+        color: {
+          ams: {
+            border: 'border-(--ui-primary)/10'
+          }
+        }
+      }
+    },
+    table: {
+      slots: {
+        base: 'not-prose'
+      }
     }
   }
 })
