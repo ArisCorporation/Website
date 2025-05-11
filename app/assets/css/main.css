@@ -143,6 +143,9 @@
 button {
   @apply cursor-pointer disabled:cursor-not-allowed;
 }
+a {
+  @apply no-underline;
+}
 
 .ams-card-title {
   @apply [&>h2]:my-0 [&>h2]:leading-none [&>h2]:tracking-tight [&>h2]:transition-colors [&>h2]:duration-300 [&>h2]:text-(--ui-primary);
