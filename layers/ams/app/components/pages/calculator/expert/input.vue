@@ -1,59 +1,31 @@
 <script setup lang="ts">
 import type { Worker, Crew } from '@@/types/ams-calculator'
 
-const workers: Worker[] = [
-  {
-    id: '1',
-    name: 'Thomas Blakeney',
-    crew: 'Cargo',
-    external: false,
-    manager: true,
-  },
-  {
-    id: '2',
-    name: 'Decon M Vorn',
-    crew: 'Salvaging',
-    external: false,
-    manager: false,
-  },
-]
-
-const crews: Crew[] = [
-  {
-    id: '1',
-    name: 'Cargo',
-    ship: 'Constellation Aquila',
-  },
-  {
-    id: '2',
-    name: 'Salvaging',
-    ship: 'Reclaimer',
-  },
-]
+defineProps<{ nextDisabled: boolean }>()
 </script>
 
 <template>
   <div class="mt-4 space-y-6">
-    <AMSUiCard class="bg-(--ui-bg-muted)/50">
-      <AMSUiCardHeader class="pb-3">
-        <AMSUiCardTitle class="text-(--ui-primary)">
-          Missionseinstellungen
-        </AMSUiCardTitle>
-      </AMSUiCardHeader>
-      <AMSUiCardContent class="space-y-4">
+    <UCard variant="ams">
+      <template #header>
+        <h2>Missionseinstellungen</h2>
+      </template>
+      <template #default>
         <AMSPagesCalculatorStepsSettings />
-      </AMSUiCardContent>
-    </AMSUiCard>
+      </template>
+    </UCard>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="space-y-6">
-        <AMSUiCard class="bg-(--ui-bg-muted)/50">
-          <AMSUiCardHeader class="pb-3">
-            <AMSUiCardTitle class="text-(--ui-primary)"> Crews </AMSUiCardTitle>
-          </AMSUiCardHeader>
-          <AMSUiCardContent class="space-y-4">
-            <AMSPagesCalculatorCrewTable :data="crews" />
-          </AMSUiCardContent>
-        </AMSUiCard>
+        <UCard variant="ams">
+          <template #header>
+            <h2>Crews</h2>
+          </template>
+          <template #default>
+            <div class="space-y-4">
+              <AMSPagesCalculatorCrewTable />
+            </div>
+          </template>
+        </UCard>
         <UAlert
           title="Drag & Drop Funktion"
           icon="i-lucide-arrow-right"
@@ -70,39 +42,40 @@ const crews: Crew[] = [
             </p>
           </template>
         </UAlert>
-        <AMSUiCard class="bg-(--ui-bg-muted)/50">
-          <AMSUiCardHeader class="pb-3">
-            <AMSUiCardTitle class="text-(--ui-primary)">
-              Mitarbeiter
-            </AMSUiCardTitle>
-          </AMSUiCardHeader>
-          <AMSUiCardContent class="space-y-4">
-            <AMSPagesCalculatorWorkerTable :workers="workers" :crews="crews" />
-          </AMSUiCardContent>
-        </AMSUiCard>
+        <UCard variant="ams">
+          <template #header>
+            <h2>Mitarbeiter</h2>
+          </template>
+          <template #default>
+            <div class="space-y-4">
+              <AMSPagesCalculatorTablesWorker />
+            </div>
+          </template>
+        </UCard>
       </div>
       <div class="space-y-6">
-        <AMSUiCard class="bg-(--ui-bg-muted)/50">
-          <AMSUiCardHeader class="pb-3">
-            <AMSUiCardTitle class="text-(--ui-primary)">
-              Einnahmen
-            </AMSUiCardTitle>
-          </AMSUiCardHeader>
-          <AMSUiCardContent class="space-y-4">
-            <AMSPagesCalculatorIncomeTable />
-          </AMSUiCardContent>
-        </AMSUiCard>
-        <AMSUiCard class="bg-(--ui-bg-muted)/50">
-          <AMSUiCardHeader class="pb-3">
-            <AMSUiCardTitle class="text-(--ui-primary)">
-              Ausgaben
-            </AMSUiCardTitle>
-          </AMSUiCardHeader>
-          <AMSUiCardContent class="space-y-4">
-            <AMSPagesCalculatorExpenseTable />
-          </AMSUiCardContent>
-        </AMSUiCard>
+        <UCard variant="ams">
+          <template #header>
+            <h2>Einnahmen</h2>
+          </template>
+          <template #default>
+            <div class="space-y-4">
+              <AMSPagesCalculatorTablesIncome />
+            </div>
+          </template>
+        </UCard>
+        <UCard variant="ams">
+          <template #header>
+            <h2>Ausgaben</h2>
+          </template>
+          <template #default>
+            <div class="space-y-4">
+              <AMSPagesCalculatorTablesExpense />
+            </div>
+          </template>
+        </UCard>
         <UButton
+          :disabled="nextDisabled"
           label="Verteilung berechnen"
           icon="i-lucide-calculator"
           class="w-full justify-center"
