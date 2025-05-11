@@ -17,8 +17,8 @@ defineProps<{
   <div class="flex items-center justify-between mb-6 md:mb-8">
     <div class="flex items-center space-x-4">
       <UIcon :name="icon" class="h-8 w-8 text-(--ui-primary)" />
-      <div>
-        <h1 class="text-2xl font-bold tracking-tight">{{ title }}</h1>
+      <div class="prose-p:my-0">
+        <h1 class="text-2xl font-bold tracking-tight mb-0">{{ title }}</h1>
         <p class="text-muted-foreground">
           {{ description }}
         </p>

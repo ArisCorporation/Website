@@ -33,7 +33,7 @@
   @apply relative overflow-hidden before:bg-[linear-gradient(90deg,_#0000,_#00ffe880,_#0000)] before:w-full before:h-px before:absolute before:left-[-100%];
 }
 
-.animated-border-animation::before {
+.animated-border::before {
   animation: 3s linear infinite border-flow;
   top: 0;
 }
