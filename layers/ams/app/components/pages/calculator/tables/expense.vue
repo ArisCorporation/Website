@@ -1,38 +1,19 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import type { Transfer } from '@@/types/ams-calculator'
 
-type Income = {
-  id: string
-  name: string
-  sum: number
-  worker: string
-}
-
-const data = reactive<Income[]>([
-  {
-    id: '1',
-    name: 'Quantanium',
-    sum: 250000,
-    worker: 'Thomas Blakeney',
-  },
-  {
-    id: '2',
-    name: 'Bexalit',
-    sum: 10000,
-    worker: 'Thomas Blakeney',
-  },
-])
+const store = useAMSCalculatorStore()
+const { expenses, workers } = storeToRefs(store)
 
 const UButton = resolveComponent('UButton')
-const UInput = resolveComponent('UInput')
-const columns: TableColumn<Income>[] = [
+const columns: TableColumn<Transfer>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
   },
   {
-    accessorKey: 'sum',
-    header: 'Einnahme',
+    accessorKey: 'amount',
+    header: 'Ausgabe',
   },
   {
     accessorKey: 'worker',
@@ -40,19 +21,6 @@ const columns: TableColumn<Income>[] = [
   },
   {
     id: 'delete',
-    cell: ({ row }) => {
-      return h(
-        'div',
-        { class: 'text-right' },
-        h(UButton, {
-          icon: 'i-lucide-trash-2',
-          color: 'error',
-          variant: 'ghost',
-          class: 'ml-auto',
-          'aria-label': 'Crew Löschen',
-        })
-      )
-    },
   },
 ]
 </script>
@@ -62,7 +30,7 @@ const columns: TableColumn<Income>[] = [
     <div class="rounded-md border border-(--ui-primary)/20 overflow-hidden">
       <UTable
         :columns="columns"
-        :data="data"
+        :data="expenses"
         :ui="{
           thead:
             'bg-(--ui-primary)/5 hover:bg-(--ui-primary)/15 [&>tr]:after:bg-(--ui-primary)/20',
@@ -75,17 +43,27 @@ const columns: TableColumn<Income>[] = [
         <template #name-cell="{ row }">
           <UInput highlight v-model="row.original.name" />
         </template>
-        <template #sum-cell="{ row }">
-          <AMSPagesCalculatorCurrencyInput v-model="row.original.sum" />
+        <template #amount-cell="{ row }">
+          <AMSPagesCalculatorCurrencyInput v-model="row.original.amount" />
         </template>
         <template #worker-cell="{ row }">
-          <UInput highlight v-model="row.original.worker" />
+          <UInput highlight v-model="row.original.worker" inputmode="numeric" />
+        </template>
+        <template #delete-cell="{ row }">
+          <UButton
+            @click="store.removeExpense(row.original.id)"
+            variant="ghost"
+            color="error"
+            icon="i-lucide-trash-2"
+            class="ml-auto"
+          />
         </template>
       </UTable>
     </div>
     <UButton
+      @click="store.addExpense"
       variant="outline"
-      label="Einnahme hinzufügen"
+      label="Ausgabe hinzufügen"
       icon="i-lucide-plus"
       class="w-full justify-center"
     />
@@ -93,8 +71,12 @@ const columns: TableColumn<Income>[] = [
       class="flex justify-between items-center px-4 py-2 bg-(--ui-bg-muted)/50 rounded-md border border-(--ui-primary)/20"
     >
       <span class="font-medium">Gesamt:</span>
-      <span class="font-bold text-green-400 flex">
-        {{ formatCurrency(260000) }}
+      <span class="font-bold text-red-400 flex">
+        {{
+          formatCurrency(
+            expenses.reduce((acc, curr) => acc + (curr.amount ?? 0), 0)
+          )
+        }}
         <UIcon name="i-lucide-currency" class="my-auto ml-1" />
       </span>
     </div>

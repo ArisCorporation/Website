@@ -4,7 +4,8 @@ import type { Row } from '@tanstack/vue-table'
 import { useSortable } from '@vueuse/integrations/useSortable.mjs'
 import type { Crew } from '@@/types/ams-calculator'
 
-const props = defineProps<{ data: Crew[] }>()
+const store = useAMSCalculatorStore()
+const { crews } = storeToRefs(store)
 
 const UButton = resolveComponent('UButton')
 const columns: TableColumn<Crew>[] = [
@@ -23,26 +24,14 @@ const columns: TableColumn<Crew>[] = [
   },
   {
     id: 'delete',
-    cell: ({ row }) => {
-      return h(
-        'div',
-        { class: 'text-right' },
-        h(UButton, {
-          icon: 'i-lucide-trash-2',
-          color: 'error',
-          variant: 'ghost',
-          class: 'ml-auto',
-          'aria-label': 'Crew Löschen',
-        })
-      )
-    },
   },
 ]
 
-useSortable('.crew-tbody', props.data, {
+useSortable('.crew-tbody', crews.value, {
   animation: 150,
   group: {
     name: 'crews',
+    pull: false,
     put: true,
   },
   sort: false,
@@ -54,7 +43,7 @@ useSortable('.crew-tbody', props.data, {
     <UTable
       ref="teamsUiTableRef"
       :columns="columns"
-      :data="data"
+      :data="crews"
       :ui="{
         thead:
           'bg-(--ui-primary)/5 hover:bg-(--ui-primary)/15 [&>tr]:after:bg-(--ui-primary)/20',
@@ -70,9 +59,19 @@ useSortable('.crew-tbody', props.data, {
       <template #ship-cell="{ row }">
         <UInput highlight v-model="row.original.ship" />
       </template>
+      <template #delete-cell="{ row }">
+        <UButton
+          @click="store.removeCrew(row.original.id)"
+          variant="ghost"
+          color="error"
+          icon="i-lucide-trash-2"
+          class="ml-auto"
+        />
+      </template>
     </UTable>
   </div>
   <UButton
+    @click="store.addCrew"
     variant="outline"
     label="Crew hinzufügen"
     icon="i-lucide-plus"

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { Row } from '@tanstack/vue-table'
+import { RowExpanding, type Row } from '@tanstack/vue-table'
 import { useSortable } from '@vueuse/integrations/useSortable.mjs'
 import type { MoveEvent, SortableEvent } from 'sortablejs'
 import type { Worker, Crew } from '@@/types/ams-calculator'
 
-const props = defineProps<{ workers: Worker[]; crews: Crew[] }>()
+const store = useAMSCalculatorStore()
+const { workers, crews, settings } = storeToRefs(store)
 
 const currentCrew = ref<Crew | null>(null)
 
@@ -26,48 +27,17 @@ const columns: TableColumn<Worker>[] = [
   {
     accessorKey: 'external',
     header: 'Extern',
-    cell: ({ row }) => {
-      return h(
-        'div',
-        { class: 'text-left' },
-        h(UCheckbox, {
-          'aria-label': 'Extern',
-        })
-      )
-    },
   },
   {
     accessorKey: 'manager',
     header: 'Manager',
-    cell: ({ row }) => {
-      return h(
-        'div',
-        { class: 'text-left' },
-        h(UCheckbox, {
-          'aria-label': 'Manager',
-        })
-      )
-    },
   },
   {
     id: 'delete',
-    cell: ({ row }) => {
-      return h(
-        'div',
-        { class: 'text-right' },
-        h(UButton, {
-          icon: 'i-lucide-trash-2',
-          color: 'error',
-          variant: 'ghost',
-          class: 'ml-auto',
-          'aria-label': 'Crew Löschen',
-        })
-      )
-    },
   },
 ]
 
-useSortable('.worker-tbody', props.workers, {
+useSortable('.worker-tbody', workers.value, {
   animation: 150,
   group: {
     name: 'worker',
@@ -82,7 +52,7 @@ useSortable('.worker-tbody', props.workers, {
     const crewIndex = Array.from(event.related.parentElement.children).indexOf(
       event.related
     )
-    const crew = props.crews[crewIndex]
+    const crew = crews.value[crewIndex]
     if (crew) currentCrew.value = crew
 
     return false // Verhindert DOM-Manipulation in der Crew-Liste
@@ -90,21 +60,19 @@ useSortable('.worker-tbody', props.workers, {
   onEnd: (event: SortableEvent) => {
     if (event.oldIndex === undefined) return
 
-    const draggedWorker = props.workers[event.oldIndex]
+    const draggedWorker = workers.value[event.oldIndex]
 
     // Prüfen, ob ein Ziel-Crew durch die CrewTable-Komponente gesetzt wurde
     if (draggedWorker && currentCrew.value) {
       // Der event.to Check ist schwierig über Komponenten hinweg,
       // wir verlassen uns darauf, dass potentialDropTargetCrew nur gesetzt wird,
       // wenn der Drag tatsächlich über der Crew-Tabelle ist.
-      console.log(
-        `WorkerTable: Drop detected for ${draggedWorker.name} on potential crew ${currentCrew.value.name}`
-      )
-      // TODO: set worker to crew
-      // emit('assign-worker-to-crew', {
-      //   worker: draggedWorker,
-      //   crew: potentialDropTargetCrew.value,
-      // })
+
+      // Get Worker refference
+      const workerRef = workers.value.find((w) => w.id === draggedWorker.id)
+
+      // Set new Crew for Worker
+      if (workerRef) workerRef.crew = currentCrew.value.id
     }
 
     // Geteilten Zustand immer zurücksetzen
@@ -123,12 +91,19 @@ useSortable('.worker-tbody', props.workers, {
           'bg-(--ui-primary)/5 hover:bg-(--ui-primary)/15 [&>tr]:after:bg-(--ui-primary)/20',
         th: ' text-(--ui-primary)',
         tbody: 'divide-(--ui-primary)/20 worker-tbody',
-        tr: 'hover:bg-(--ui-primary)/5',
+        tr: 'hover:bg-(--ui-primary)/5 group cursor-grab active:cursor-grabbing',
         td: 'text-(--ui-text)',
       }"
     >
       <template #handle-cell="{ row }">
-        <UIcon name="i-lucide-grip-vertical" />
+        <!-- <div
+          class="group-hover:bg-(--ui-primary)/10 size-8 flex rounded-md -mx-2"
+        >
+          <UIcon
+            name="i-lucide-grip-vertical"
+            class="m-auto size-4 group-hover:text-(--ui-primary)"
+          />
+        </div> -->
       </template>
       <template #name-cell="{ row }">
         <UInput highlight v-model="row.original.name" />
@@ -136,18 +111,45 @@ useSortable('.worker-tbody', props.workers, {
       <template #crew-cell="{ row }">
         <UBadge
           variant="subtle"
-          :label="row.original.crew"
+          :color="row.original.external ? 'secondary' : 'primary'"
+          :label="
+            (crews.find((c) => c.id === row.original.crew)?.name ?? 'N/A') +
+            (row.original.external ? ' (extern)' : '')
+          "
           class="rounded-full"
+        />
+      </template>
+      <template #external-cell="{ row }">
+        <UCheckbox
+          v-model="workers.find((w) => w.id === row.original.id)!.external"
+        />
+      </template>
+      <template #manager-cell="{ row }">
+        <UCheckbox
+          @click="() => (settings.manager = row.original.id)"
+          :model-value="settings.manager === row.original.id"
+          :disabled="settings.manager === row.original.id"
+        />
+      </template>
+      <template #delete-cell="{ row }">
+        <UButton
+          @click="store.removeWorker(row.original.id)"
+          variant="ghost"
+          color="error"
+          icon="i-lucide-trash-2"
+          class="ml-auto"
         />
       </template>
     </UTable>
   </div>
   <UButton
+    @click="store.addWorker"
     variant="outline"
     label="Mitarbeiter hinzufügen"
     icon="i-lucide-plus"
     class="w-full justify-center"
   />
+  <!-- todo: drag window -->
   <div
     ref="customDragPreviewElementRef"
     class="absolute top-[-100000px] px-2 py-3 bg-(--ui-bg-muted)/20 border border-(--ui-primary)/10 backdrop-blur-xs z-[999] pointer-events-none shadow"

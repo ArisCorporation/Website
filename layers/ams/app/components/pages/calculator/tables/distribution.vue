@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { Distribution } from '@@/types/ams-calculator'
+import type { CalculatedPayout } from '@@/types/ams-calculator'
 
-defineProps<{ distributions: Distribution[] }>()
+const store = useAMSCalculatorStore()
+const { distribution, workers, expenses } = storeToRefs(store)
 
-const columns: TableColumn<Distribution>[] = [
+const columns: TableColumn<CalculatedPayout>[] = [
   {
     accessorKey: 'worker',
     header: 'Mitarbeiter',
@@ -12,14 +13,23 @@ const columns: TableColumn<Distribution>[] = [
   {
     accessorKey: 'expenses',
     header: 'Ausgaben',
+    cell: ({ row }) =>
+      formatCurrency(
+        expenses.value
+          .filter((e) => e.worker === row.original.workerId)
+          .reduce((a, b) => a + (b.amount ?? 0), 0)
+      ),
   },
   {
     accessorKey: 'share',
     header: 'Betrag',
+    cell: ({ row }) => formatCurrency(row.original.finalGrossPayout),
   },
   {
     accessorKey: 'percentage',
     header: 'Anteil',
+    cell: ({ row }) =>
+      `${formatCurrency(row.original.percentageOfTotalGrossRawIncome)}%`,
   },
 ]
 </script>
@@ -28,7 +38,7 @@ const columns: TableColumn<Distribution>[] = [
   <div class="rounded-md border border-(--ui-primary)/20 overflow-hidden">
     <UTable
       :columns="columns"
-      :data="distributions"
+      :data="distribution?.payouts"
       :ui="{
         thead:
           'bg-(--ui-primary)/5 hover:bg-(--ui-primary)/15 [&>tr]:after:bg-(--ui-primary)/20',
