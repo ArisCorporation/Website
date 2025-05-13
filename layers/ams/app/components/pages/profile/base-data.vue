@@ -30,6 +30,8 @@ const tabs = ref<TabsItem[]>([
   },
 ])
 
+const hobbies = ref<string[]>([])
+
 definePageMeta({
   layout: 'ams',
 })
@@ -324,34 +326,137 @@ definePageMeta({
                   size="xs"
                   class="w-full"
                 >
-                  <ul>
-                    <li
-                      class="flex !my-0 gap-x-4 justify-between py-2 px-6 bg-(--ui-bg-muted)/50 backdrop-blur-xs border border-transparent border-x-(--ui-primary)/10 first:rounded-t-md first:border-t-(--ui-primary)/10 hover:border-(--ui-primary)/20 hover:bg-(--ui-primary)/5"
-                    >
-                      <span class="w-6">1.</span>
-                      <span class="text-left flex-1">Schrauben</span>
-                      <span><UIcon name="i-lucide-trash-2" /></span>
-                    </li>
-                    <li
-                      class="flex !my-0 gap-x-4 justify-between py-2 px-6 bg-(--ui-bg-muted)/50 backdrop-blur-xs border border-transparent border-x-(--ui-primary)/10 first:rounded-t-md first:border-t-(--ui-primary)/10 hover:border-(--ui-primary)/20 hover:bg-(--ui-primary)/5"
-                    >
-                      <span class="w-6">2.</span>
-                      <span class="text-left flex-1">Fliegen</span>
-                      <span><UIcon name="i-lucide-trash-2" /></span>
-                    </li>
-                    <li
-                      class="flex !my-0 gap-x-4 justify-between py-2 px-6 bg-(--ui-bg) border border-(--ui-primary)/10 rounded-b-md hover:border-(--ui-primary)/20 hover:bg-(--ui-primary)/5"
-                    >
-                      <span class="text-left flex-1">
-                        <UInput variant="outline" highlight class="w-full" />
-                      </span>
-                      <span class="flex"
-                        ><UIcon name="i-lucide-plus" class="my-auto"
-                      /></span>
-                    </li>
-                  </ul>
+                  <AMSPagesProfileDynamicList v-model="hobbies" />
+                </UFormField>
+                <UFormField
+                  label="Freizeitgestaltung"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Talente"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Angewohnheiten"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Tics & Marotten"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Ängste"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Hervorstechender Charakterzug"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Rätselhafte Züge"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
                 </UFormField>
                 <USeparator color="ams" class="col-span-2" />
+                <UFormField
+                  label="Musik"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Filme"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Bücher"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Freizeitkleidung"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Speisen"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Getränke"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Alkohol"
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Er liebt.."
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
+                <UFormField
+                  label="Er hasst.."
+                  name="free_time"
+                  size="xs"
+                  class="w-full"
+                >
+                  <AMSPagesProfileDynamicList />
+                </UFormField>
               </div>
             </template>
           </UCard>
