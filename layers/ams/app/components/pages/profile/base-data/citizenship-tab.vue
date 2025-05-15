@@ -2,10 +2,26 @@
 const citizenship = ref<'true' | 'false'>('false')
 
 const reason = ref<'military' | 'education' | 'social' | null>()
+
+const test = ref<string[]>([])
 </script>
 
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <UFormField
+      label="Was trifft auf dich zu?"
+      name="active_extras"
+      size="xs"
+      class="col-span-2"
+    >
+      <AMSUiTableButtonGroup
+        v-model="test"
+        :options="[
+          { key: 'military', label: 'Militärischer Dienst' },
+          { key: 'education', label: 'Hochschulausbildung' },
+        ]"
+      />
+    </UFormField>
     <UFormField
       label="Besitzt du einen Bürgerstatus"
       name="citizenship"
@@ -37,15 +53,19 @@ const reason = ref<'military' | 'education' | 'social' | null>()
         default-value="male"
         :disabled="citizenship === 'false'"
         :items="[
-          { label: 'Militärischer Dienst', value: 'military' },
-          { label: 'Hochschulausbildung', value: 'education' },
+          ...(test.includes('military')
+            ? [{ label: 'Militärischer Dienst', value: 'military' }]
+            : []),
+          ...(test.includes('education')
+            ? [{ label: 'Hochschulausbildung', value: 'education' }]
+            : []),
           { label: 'Soziales Engagement', value: 'social' },
         ]"
         v-model="reason"
         class="prose-p:my-0"
       />
     </UFormField>
-    <Transition
+    <!-- <Transition
       appear-from-class="max-h-0 overflow-clip"
       appear-active-class="transition-[max-height] duration-[1000ms] ease-in-out"
       appear-to-class="max-h-[1000px] overflow-clip"
@@ -86,7 +106,7 @@ const reason = ref<'military' | 'education' | 'social' | null>()
           />
         </UFormField>
       </div>
-    </Transition>
+    </Transition> -->
     <USeparator color="ams" class="col-span-2" />
   </div>
 </template>

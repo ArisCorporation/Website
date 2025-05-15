@@ -1,27 +1,48 @@
 <script setup lang="ts">
-// 1. Importiere 'reactive' von Vue
-import { reactive } from 'vue'
-
-// 2. Definiere einen Typ für die Struktur deines 'data'-Objekts
 interface MyData {
   hobbies: string[]
   talents: string[]
-  // Du könntest hier weitere Eigenschaften hinzufügen, wenn dein data-Objekt wächst
+  habits: string[]
+  tics: string[]
+  activities: string[]
+  mysterious_things: string[]
+  character_trait: string[]
+  fears: string[]
+  books: string[]
+  music: string[]
+  movies: string[]
+  clothing: string[]
+  food: string[]
+  drink: string[]
+  alcohol: string[]
+  loves: string[]
+  hates: string[]
 }
 
-// 3. Definiere einen Typ für die Konfigurationsobjekte in deinem 'inputs'-Array
-//    Wichtig: 'property' ist jetzt vom Typ 'keyof MyData', was bedeutet,
-//    dass es nur 'hobbies' oder 'talents' sein kann.
 interface InputConfig {
   property: keyof MyData
   label: string
   placeholder: string
 }
 
-// 4. Wende den 'MyData'-Typ auf dein reaktives 'data'-Objekt an
 const data: MyData = reactive({
   hobbies: ['Schrauben', 'Fliegen'],
   talents: [],
+  habits: [],
+  tics: [],
+  activities: [],
+  mysterious_things: [],
+  character_trait: [],
+  fears: [],
+  books: [],
+  music: [],
+  movies: [],
+  clothing: [],
+  food: [],
+  drink: [],
+  alcohol: [],
+  loves: [],
+  hates: [],
 })
 
 // 5. Wende den 'InputConfig'-Typ auf dein 'inputs'-Array an
@@ -33,24 +54,76 @@ const inputs: InputConfig[][] = [
       placeholder: 'Fliegen, Schrauben',
     },
     {
+      property: 'activities', // Ebenfalls typsicher
+      label: 'Frezeitgestaltung',
+      placeholder: 'Saufen',
+    },
+    {
       property: 'talents', // Ebenfalls typsicher
       label: 'Talente',
       placeholder: 'Fliegen, Schrauben',
     },
-  ],
-  [
-    // Annahme: Diese zweite Gruppe ist für ein anderes Set von Daten oder eine andere Darstellung,
-    // verwendet aber dieselben Properties. Wenn es sich um unterschiedliche Datenobjekte handeln würde,
-    // bräuchte man eine komplexere Struktur.
     {
-      property: 'hobbies',
-      label: 'Hobbies (Gruppe 2)', // Beispiel für geändertes Label
-      placeholder: 'Weitere Hobbies',
+      property: 'tics', // Ebenfalls typsicher
+      label: 'Tics & Marotten',
+      placeholder: '',
     },
     {
-      property: 'talents',
-      label: 'Talente (Gruppe 2)',
-      placeholder: 'Weitere Talente',
+      property: 'fears', // Ebenfalls typsicher
+      label: 'Ängste',
+      placeholder: 'Höhenangst',
+    },
+    {
+      property: 'character_trait', // Ebenfalls typsicher
+      label: 'Hervorstechender Charakterzug',
+      placeholder: 'Arrogant',
+    },
+    {
+      property: 'mysterious_things', // Ebenfalls typsicher
+      label: 'Rätselhafte Züge',
+      placeholder: 'Mag Drake',
+    },
+  ],
+  [
+    {
+      property: 'music',
+      label: 'Musik', // Beispiel für geändertes Label
+      placeholder: 'AC/DC',
+    },
+    {
+      property: 'movies',
+      label: 'Filme',
+      placeholder: 'Top Gun',
+    },
+    {
+      property: 'books',
+      label: 'Bücher',
+      placeholder: 'Faust',
+    },
+    {
+      property: 'food',
+      label: 'Essen',
+      placeholder: 'Whammers Burger',
+    },
+    {
+      property: 'drink',
+      label: 'Getränke',
+      placeholder: 'FiZz Cola',
+    },
+    {
+      property: 'alcohol',
+      label: 'Alkohol',
+      placeholder: 'Whiskey',
+    },
+    {
+      property: 'loves',
+      label: 'Liebt..',
+      placeholder: 'Loyale Menschen',
+    },
+    {
+      property: 'hates',
+      label: 'Hasst...',
+      placeholder: 'Unzuverlässige Schiffe',
     },
   ],
 ]
