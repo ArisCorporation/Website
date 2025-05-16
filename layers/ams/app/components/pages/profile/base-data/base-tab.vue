@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const profileEdit = useProfileEditStore()
+
 interface gender {
   label: string
   value: string | null
@@ -8,6 +10,17 @@ const genderOptions = reactive<gender[]>([
   { label: 'Männlich', value: 'male' },
   { label: 'Weiblich', value: 'female' },
 ])
+
+// Beispiel für dynamischen Hilfetext basierend auf dem Input-Wert
+const firstNameHelpText = computed(() => {
+  if (
+    profileEdit.currentFormData.firstName &&
+    profileEdit.currentFormData.firstName.length < 2
+  ) {
+    return 'Mindestens 2 Zeichen benötigt.'
+  }
+  return ''
+})
 </script>
 
 <template>
@@ -87,7 +100,7 @@ const genderOptions = reactive<gender[]>([
             value: '1',
           },
         ]"
-        class="prose-p:my-0"
+        class="prose-p:my-0 w-full max-w-sm"
       />
     </UFormField>
     <UFormField label="Geburtsort" name="birth_place" class="w-full" size="xs">
@@ -103,7 +116,7 @@ const genderOptions = reactive<gender[]>([
             value: '1',
           },
         ]"
-        class="prose-p:my-0"
+        class="prose-p:my-0 w-full max-w-sm"
       />
     </UFormField>
   </div>

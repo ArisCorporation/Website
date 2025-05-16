@@ -107,6 +107,6 @@ const test = ref<string[]>([])
         </UFormField>
       </div>
     </Transition> -->
-    <USeparator color="ams" class="col-span-2" />
+    <!-- <USeparator color="ams" class="col-span-2" /> -->
   </div>
 </template>

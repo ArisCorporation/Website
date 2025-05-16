@@ -1,77 +1,37 @@
 <script setup lang="ts">
-interface gender {
-  label: string
-  value: string | null
-}
+import type { SelectMenuItem } from '@nuxt/ui'
 
-const genderOptions = reactive<gender[]>([
-  { label: 'Männlich', value: 'male' },
-  { label: 'Weiblich', value: 'female' },
+const schools = reactive<SelectMenuItem[]>([
+  { label: 'University of Mentor (UM)', value: 'um' },
+  { label: 'Astravin University at Cestulus (AUC)', value: 'auc' },
+  { label: 'Fujin Technical College (FTC)', value: 'ftc' },
+  {
+    label:
+      'University of Persei Analytical Research and Quantification (UPARQ)',
+    value: 'uparq',
+  },
+  { label: 'Quazi-Institut für Xenologische Studien (QIXS)', value: 'qixs' },
 ])
 </script>
 
 <template>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <UFormField label="Geschlecht" name="gender" size="xs" class="w-full">
-      <URadioGroup
-        indicator="hidden"
-        variant="table"
-        orientation="horizontal"
-        default-value="male"
-        :items="genderOptions"
-        class="prose-p:my-0"
+    <UFormField
+      label="Welche Hochschulbildung hast du absolviert?"
+      name="education_name"
+      size="xs"
+      class="w-full"
+    >
+      <UInput
+        highlight
+        size="md"
+        placeholder="Medizinstudium mit Schwerpunkt auf Neurochirurgie"
+        class="w-full"
       />
     </UFormField>
-    <UFormField label="Geburtsdatum" name="birthdate" size="xs" class="w-full">
-      <div class="grid grid-cols-3 gap-x-4">
-        <UFormField label="Tag" name="birthdate_day" size="xs" class="w-full">
-          <USelectMenu
-            :items="
-              Array.from({ length: 31 }, (_, index) =>
-                (index + 1).toString().padStart(2, '0')
-              )
-            "
-            variant="ams"
-            size="md"
-            placeholder="1-31"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField
-          label="Monat"
-          name="birthdate_month"
-          size="xs"
-          class="w-full"
-        >
-          <USelectMenu
-            :items="[
-              { label: 'Januar', value: '01' },
-              { label: 'Februar', value: '02' },
-              { label: 'März', value: '03' },
-              { label: 'April', value: '04' },
-              { label: 'Mai', value: '05' },
-              { label: 'Juni', value: '06' },
-              { label: 'Juli', value: '07' },
-              { label: 'August', value: '08' },
-              { label: 'September', value: '09' },
-              { label: 'Oktober', value: '10' },
-              { label: 'November', value: '11' },
-              { label: 'Dezember', value: '12' },
-            ]"
-            variant="ams"
-            size="md"
-            placeholder="Januar"
-            class="w-full"
-          />
-        </UFormField>
-        <UFormField label="Jahr" name="birthdate_year" size="xs" class="w-full">
-          <UInput highlight size="md" class="w-full" />
-        </UFormField>
-      </div>
-    </UFormField>
     <UFormField
-      label="Aktueller Wohnort"
-      name="current_residence"
+      label="Hochschule"
+      name="education_place"
       class="w-full"
       size="xs"
     >
@@ -80,31 +40,36 @@ const genderOptions = reactive<gender[]>([
         orientation="horizontal"
         variant="ams"
         size="md"
-        :items="[
-          { label: 'Stanton / ArcCorp / Area 18', value: '0' },
-          {
-            label: 'Stanton / MicroTech / New Babbage',
-            value: '1',
-          },
-        ]"
-        class="prose-p:my-0"
+        :items="schools"
+        class="prose-p:my-0 w-full max-w-xl"
       />
     </UFormField>
-    <UFormField label="Geburtsort" name="birth_place" class="w-full" size="xs">
-      <USelectMenu
-        indicator="hidden"
-        orientation="horizontal"
-        variant="ams"
-        size="md"
-        :items="[
-          { label: 'Stanton / ArcCorp / Area 18', value: '0' },
-          {
-            label: 'Stanton / MicroTech / New Babbage',
-            value: '1',
-          },
-        ]"
-        class="prose-p:my-0"
-      />
+    <UFormField
+      label="Bildungszeitraum"
+      name="education_range"
+      size="xs"
+      class="w-full col-span-2"
+    >
+      <div class="flex gap-x-2">
+        <UFormField
+          label="Von"
+          name="education_range_from"
+          size="xs"
+          class="w-1/2 shrink"
+        >
+          <UInput highlight size="md" class="w-full mb-1" placeholder="12" />
+          <UInput highlight size="md" class="w-full" placeholder="2939" />
+        </UFormField>
+        <UFormField
+          label="Bis"
+          name="education_range_to"
+          size="xs"
+          class="w-1/2 shrink"
+        >
+          <UInput highlight size="md" class="w-full mb-1" placeholder="12" />
+          <UInput highlight size="md" class="w-full" placeholder="2945" />
+        </UFormField>
+      </div>
     </UFormField>
   </div>
 </template>
