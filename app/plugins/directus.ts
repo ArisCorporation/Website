@@ -1,57 +1,24 @@
-import {
-  createDirectus,
-  rest,
-  readItems,
-  readUsers,
-  registerUser,
-  authentication,
-  readMe,
-  refresh,
-  logout as directusLogout,
-  type AuthenticationStorage
-} from "@directus/sdk";
+// plugins/directus.ts
+import { createDirectus, rest, authentication, staticToken } from '@directus/sdk'
 
-export default defineNuxtPlugin(() => {
-  class NuxtCookieStorage {
-    cookie = useCookie("directus-data");
-    get () {
-      return this.cookie.value;
-    }
-    set (data: any) {
-      this.cookie.value = data;
-    }
+export default defineNuxtPlugin(nuxtApp => {
+  const config = useRuntimeConfig()
+  const directusUrl = config.public.API_URL
+
+  if (!directusUrl) {
+    throw new Error('NUXT_PUBLIC_DIRECTUS_URL is not defined in .env')
   }
 
-  const storage = new NuxtCookieStorage() as AuthenticationStorage;
+  // Initialisiere den Client ohne Authentifizierung oder mit statischem Token,
+  // da der eigentliche Auth-Flow und die Token-Verwaltung über den Pinia-Store laufen.
+  // Wir fügen 'authentication' hinzu, um die Login/Logout-Methoden zu haben,
+  // aber das Token-Handling wird primär manuell über den Store und Cookies gesteuert.
+  const directus = createDirectus(directusUrl).with(rest()).with(authentication())
 
-  const directus = createDirectus<any>(
-    "https://cms.ariscorp.de",
-  )
-    .with(authentication("cookie", { credentials: "include", storage }))
-    .with(rest({ credentials: "include" }));
+  // Optional: Wenn du einen statischen Token für bestimmte Anfragen benötigst (z.B. öffentliche Daten)
+  // const directusWithStaticToken = createDirectus(directusUrl).with(staticToken('YOUR_STATIC_TOKEN')).with(rest());
 
-  const isAuthenticated = async () => {
-    try {
-      const me = await directus.request(readMe());
-      return me;
-    } catch (error: any) {
-      if (error?.errors[0]?.extensions?.code === 'INVALID_CREDENTIALS') return false
-
-      console.error(error)
-      return false;
-    }
-  };
-
-  const refreshToken = async () => {
-    return directus.refresh()
-  };
-
-  const logout = async () => {
-    await directus.logout()
-    navigateTo('/login')
-  }
-
-  return {
-    provide: { directus, readItems, readUsers, registerUser, isAuthenticated, refreshToken, logout },
-  };
-});
+  // Mache den Client in der gesamten App verfügbar
+  nuxtApp.provide('directus', directus)
+  // nuxtApp.provide('directusPublic', directusWithStaticToken); // Falls benötigt
+})

@@ -1,180 +1,199 @@
-// stores/authStore.ts
-import { defineStore } from 'pinia';
-import type { DirectusUsers as User } from '@@/types'
+// stores/auth.ts
+import { defineStore } from 'pinia'
+import type { DirectusUsers as User } from '@@/types' // Importiere den User-Typ vom SDK, falls verfügbar oder definiere deinen eigenen
+import { readMe } from '@directus/sdk'
 
-// Definiere einen Typ für den User, falls du ihn von einer API oder dem SDK bekommst
-// Für dieses Beispiel ist es ein einfaches Objekt.
+// Definiere deinen User-Typ basierend auf deiner Directus User Collection
+// Beispiel:
+export interface DirectusUser extends User {
+  // ... weitere benutzerspezifische Felder
+}
 
-type AuthStatus = 'pending' | 'authenticated' | 'unauthenticated';
+export enum AuthStatus {
+  PENDING = 'PENDING',
+  AUTHENTICATED = 'AUTHENTICATED',
+  UNAUTHENTICATED = 'UNAUTHENTICATED',
+}
 
 interface AuthState {
-  user: User | null;
-  status: AuthStatus; // 'pending', 'authenticated', 'unauthenticated'
-  error: string | null; // Zum Speichern von Login-/Registrierungsfehlern
-  // Optional: redirectPath für nach dem Login
-  // redirectPath: string | null;
+  user: DirectusUser | null
+  status: AuthStatus
+  accessToken: string | null
+  // refreshToken: string | null; // Optional, wenn du Refresh-Token-Flow manuell implementierst
+  // expiresAt: number | null;    // Optional
 }
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     user: null,
-    status: 'pending', // Startet als 'pending', bis der Status geprüft wurde
-    error: null,
-    // redirectPath: null,
+    status: AuthStatus.PENDING,
+    accessToken: useCookie<string | null>('directus_token').value, // Lade Token aus Cookie
+    // refreshToken: useCookie<string | null>('directus_refresh_token').value,
+    // expiresAt: useCookie<number | null>('directus_token_expires_at').value,
   }),
+
   getters: {
-    /**
-     * Prüft, ob der Benutzer authentifiziert ist.
-     */
-    isAuthenticated: (state) => state.status === 'authenticated' && !!state.user,
-    /**
-     * Prüft, ob der Authentifizierungsstatus noch geprüft wird.
-     */
-    isLoading: (state) => state.status === 'pending',
-    /**
-     * Gibt den aktuellen Benutzer zurück.
-     */
-    currentUser: (state) => state.user,
+    isAuthenticated: state => state.status === AuthStatus.AUTHENTICATED && !!state.user,
+    currentUser: state => state.user,
+    isLoading: state => state.status === AuthStatus.PENDING,
   },
+
   actions: {
-    /**
-     * Simuliert einen Login-Vorgang.
-     * In einer echten Anwendung würde hier ein API-Aufruf stattfinden.
-     * @param credentials - Anmeldeinformationen (z.B. email, password)
-     */
-    async login (credentials: { email: string; password?: string }) {
-      this.status = 'pending';
-      this.error = null;
+    setAuthData (accessToken: string, user?: DirectusUser | null /*, refreshToken?: string, expiresIn?: number */) {
+      const tokenCookie = useCookie('directus_token', { maxAge: 60 * 60 * 24 * 7 /* 7 Tage */ })
+      // const refreshTokenCookie = useCookie('directus_refresh_token', { maxAge: 60 * 60 * 24 * 30 /* 30 Tage */ });
+      // const expiresAtCookie = useCookie('directus_token_expires_at');
+
+      tokenCookie.value = accessToken
+      // if (refreshToken) refreshTokenCookie.value = refreshToken;
+      // if (expiresIn) {
+      //   const newExpiresAt = Date.now() + expiresIn * 1000;
+      //   expiresAtCookie.value = newExpiresAt.toString();
+      //   this.expiresAt = newExpiresAt;
+      // }
+
+      this.accessToken = accessToken
+      if (user) {
+        this.user = user
+      }
+      this.status = AuthStatus.AUTHENTICATED
+    },
+
+    async clearAuthData () {
+      const tokenCookie = useCookie('directus_token')
+      // const refreshTokenCookie = useCookie('directus_refresh_token');
+      // const expiresAtCookie = useCookie('directus_token_expires_at');
+
+      tokenCookie.value = null
+      // refreshTokenCookie.value = null;
+      // expiresAtCookie.value = null;
+
+      this.user = null
+      this.accessToken = null
+      // this.refreshToken = null;
+      // this.expiresAt = null;
+      this.status = AuthStatus.UNAUTHENTICATED
+
+      // Wichtig: Informiere den Directus Client, dass der Token entfernt wurde,
+      // falls er intern einen Token cacht, den wir nicht über den Cookie steuern.
+      // Da wir `authentication()` nutzen, aber Tokens manuell via Cookie setzen,
+      // ist es gut, den Client ggf. zurückzusetzen oder ihm explizit keinen Token zu geben.
+      // Die `logout` Methode des SDKs macht dies intern, wenn sie verwendet wird.
+      // const { $directus } = useNuxtApp()
+      // if (await $directus.getToken()) {
+      //   $directus.auth.token = null // Oder eine spezifischere Methode, falls vorhanden
+      // }
+    },
+
+    async login (email: string, password: string) {
+      const { $directus } = useNuxtApp()
       try {
-        // *** Hier würde dein API-Aufruf zum Login stattfinden ***
-        // Beispiel: const response = await $fetch('/api/auth/login', { method: 'POST', body: credentials });
-        // Annahme: API gibt bei Erfolg den User zurück
-        console.log('Simulating login for:', credentials.email);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simuliere Netzwerkverzögerung
+        this.status = AuthStatus.PENDING
+        // Directus SDK's login gibt Auth-Daten zurück (access_token, expires, refresh_token)
+        // Wir verwenden mode: 'json', um die Tokens manuell zu handhaben.
+        const authResponse = await $directus.login(
+          email,
+          password,
+          // mode: 'json' // Standard für SDK ist oft Cookie. 'json' gibt uns Kontrolle.
+          // Die Doku sagt, dass `authentication()` die Token-Speicherung übernimmt.
+          // Wenn `mode` nicht gesetzt ist, versucht es wahrscheinlich Cookies.
+          // Für maximale Kontrolle und Kompatibilität mit SSR/Cookies:
+          // Wir rufen login ab, nehmen den Token und setzen ihn selbst in den Cookie.
+        )
 
-        // Beispielhafte Benutzerdaten nach erfolgreichem Login
-        // const loggedInUser: User = {
-        //   id: '123',
-        //   email: credentials.email,
-        //   name: 'Test Benutzer',
-        // };
+        if (authResponse.access_token) {
+          // $directus.auth.token wird intern durch login() gesetzt, wenn mode nicht 'json' ist
+          // oder wir setzen ihn manuell, wenn wir 'json' verwenden:
+          // $directus.auth.setToken(authResponse.access_token); // Nur wenn `staticToken` Composable genutzt wird
 
-        // this.user = loggedInUser;
-        this.status = 'authenticated';
-        console.log('Login successful, user set:', this.user);
-
-        // Optional: Weiterleitung nach erfolgreichem Login
-        // const router = useRouter();
-        // const redirectTo = this.redirectPath || '/internal/dashboard';
-        // this.redirectPath = null; // Redirect-Pfad zurücksetzen
-        // router.push(redirectTo);
-
-      } catch (err: any) {
-        console.error('Login failed:', err);
-        this.error = err.data?.message || 'Login fehlgeschlagen.';
-        this.status = 'unauthenticated';
-        this.user = null;
+          // Wir speichern den Token, den `login()` uns gibt (oder der intern gesetzt wurde)
+          // und holen dann den User.
+          this.accessToken = authResponse.access_token // Speichere diesen Token im Cookie
+          await this.fetchUser(authResponse.access_token) // User mit dem neuen Token holen
+          this.setAuthData(authResponse.access_token, this.user /*, authResponse.refresh_token, authResponse.expires */)
+        } else {
+          throw new Error('Login failed, no access token received.')
+        }
+        return true
+      } catch (error) {
+        this.clearAuthData()
+        console.error('Login failed:', error)
+        throw error
       }
     },
 
-    /**
-     * Simuliert einen Logout-Vorgang.
-     */
     async logout () {
-      this.status = 'pending';
+      const { $directus } = useNuxtApp()
       try {
-        // *** Hier würde dein API-Aufruf zum Logout stattfinden ***
-        // Beispiel: await $fetch('/api/auth/logout', { method: 'POST' });
-        console.log('Simulating logout...');
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        this.user = null;
-        this.status = 'unauthenticated';
-        console.log('Logout successful');
-
-        // Navigation zur Login-Seite (oder Startseite)
-        // Die Middleware im Canvas leitet bereits zu /login um, wenn eine geschützte Seite aufgerufen wird.
-        // Ein explizites navigateTo('/login') hier ist auch möglich.
-        const router = useRouter();
-        router.push('/login');
-
-      } catch (err) {
-        console.error('Logout failed:', err);
-        // Setze den Status trotzdem zurück
-        this.user = null;
-        this.status = 'unauthenticated';
+        // Rufe die Logout-Funktion des SDK auf, um serverseitige Sessions/Tokens zu invalidieren
+        // und den internen Token-Cache des SDK-Clients zu löschen.
+        await $directus.logout()
+      } catch (error) {
+        console.warn('Error during SDK logout, proceeding to clear client data:', error)
+      } finally {
+        // Unabhängig vom SDK-Logout-Erfolg, lösche clientseitige Daten.
+        this.clearAuthData()
       }
     },
 
-    /**
-     * Simuliert das Abrufen des Benutzerstatus (z.B. von einem Cookie/Session-Endpunkt).
-     * Setzt den User und den Status im Store.
-     * Wird von der Middleware aufgerufen, wenn status 'pending' ist.
-     */
-    async fetchUser () {
-      // Verhindere mehrfaches Fetchen, wenn bereits ein Vorgang läuft oder abgeschlossen ist
-      // (außer es ist explizit gewünscht, z.B. durch einen Refresh-Button)
-      if (this.status !== 'pending' && this.user) { // Bereits authentifiziert oder unauthentifiziert (und kein User)
-        // console.log('fetchUser: Status already determined or user present, skipping fetch.');
-        // return; // Frühzeitiger Ausstieg, wenn der Status bereits bekannt ist (außer 'pending')
-      }
-      // Wenn der Status nicht 'pending' ist, aber wir trotzdem fetchen wollen (z.B. manueller Refresh),
-      // dann setzen wir ihn auf 'pending'.
-      if (this.status !== 'pending') {
-        this.status = 'pending';
-      }
+    async fetchUser (tokenToUse?: string): Promise<DirectusUser | null> {
+      const { $directus } = useNuxtApp()
+      const token = tokenToUse || this.accessToken
 
-      this.error = null;
+      if (!token) {
+        this.clearAuthData() // Stellt sicher, dass der Status UNAUTHENTICATED ist, wenn kein Token vorhanden ist.
+        return null
+      }
 
       try {
-        // *** Hier würde dein API-Aufruf zu einem Endpunkt wie `/api/auth/me` stattfinden,
-        // der den aktuellen User anhand eines Cookies/Tokens zurückgibt. ***
-        console.log('Simulating fetchUser...');
-        await new Promise(resolve => setTimeout(resolve, 700)); // Simuliere Netzwerkverzögerung
+        // Setze den Token für diese Anfrage, falls noch nicht global im Client gesetzt oder veraltet
+        // Das SDK sollte den Token aus $directus.auth.token (intern gesetzt durch login oder manuell) verwenden.
+        // Wenn wir den Token manuell im Cookie verwalten, müssen wir sicherstellen, dass $directus.auth.token aktuell ist.
+        // Alternativ:
+        // const user = await $directus.users.me.read<DirectusUser>({ /* query params */ }, {
+        //   headers: { Authorization: `Bearer ${token}` }
+        // });
+        // Besser ist es aber, den Token über die SDK-Mechanismen zu verwalten.
+        // Nach einem Login sollte $directus.auth.token gesetzt sein.
 
-        // Szenario 1: Benutzer ist eingeloggt (Cookie/Session ist gültig)
-        // const userDataFromApi = await $fetch('/api/auth/me');
-        // if (userDataFromApi) {
-        //   this.user = userDataFromApi as User;
-        //   this.status = 'authenticated';
-        //   console.log('fetchUser: User found, status authenticated.');
-        // } else {
-        //   this.user = null;
-        //   this.status = 'unauthenticated';
-        //   console.log('fetchUser: No user found, status unauthenticated.');
+        // Wenn wir den Token manuell per Cookie setzen, müssen wir ihn vor Anfragen dem SDK-Client bekannt machen,
+        // falls er ihn nicht automatisch aus dem Cookie liest (abhängig von der SDK Konfiguration).
+        // Die `authentication()` Composable sollte dies aber managen.
+
+        // Versuche, den aktuellen Token zu verwenden, der im Store (und Cookie) ist.
+        // Wenn der SDK-Client `authentication()` nutzt, sollte er den Token selbst verwalten.
+        // Wir stellen sicher, dass unser Store-Token mit dem Client-Token synchron ist.
+        // if ($directus.auth.token !== token) {
+        //   // Dies ist ein kritischer Punkt: Wenn `authentication()` den Token nicht automatisch
+        //   // aus unserem `useCookie` übernimmt, müssen wir ihn manuell setzen.
+        //   // Die `staticToken` Composable hat `.setToken()`. `authentication()` sollte es auch verwalten.
+        //   // Wenn `authentication` mode: 'cookie' verwendet, liest es den Cookie selbst (mit dem richtigen Namen).
+        //   // Wenn wir mode: 'json' verwenden oder den Cookie-Namen ändern, müssen wir manuell eingreifen.
+        //   // Fürs Erste gehen wir davon aus, dass `login()` den Token intern setzt oder wir ihn
+        //   // explizit für Anfragen mitgeben (wie im `customEndpoint` Beispiel mit `withToken`).
         // }
 
-        // Für dieses Beispiel simulieren wir, dass der User nicht eingeloggt ist,
-        // um den Redirect-Flow der Middleware zu testen.
-        // Ändere dies, um einen eingeloggten Zustand zu simulieren:
-        const simulateLoggedIn = false; // Setze auf true, um einen eingeloggten User zu simulieren
-        if (simulateLoggedIn) {
-          // this.user = { id: 'existing-user-123', email: 'test@example.com', name: 'Existierender Nutzer' };
-          this.status = 'authenticated';
-          console.log('fetchUser (simulated): User is authenticated.');
-        } else {
-          this.user = null;
-          this.status = 'unauthenticated';
-          console.log('fetchUser (simulated): User is unauthenticated.');
-        }
-
-      } catch (err: any) {
-        console.error('Failed to fetch user status:', err);
-        this.user = null;
-        this.status = 'unauthenticated';
-        // this.error = 'Fehler beim Abrufen des Benutzerstatus.'; // Optional: Fehler im Store speichern
+        const user = await $directus.request(readMe()) // Directus SDK sollte den Token automatisch verwenden
+        this.user = user
+        this.status = AuthStatus.AUTHENTICATED
+        return user
+      } catch (error) {
+        console.error('Failed to fetch user:', error)
+        // Wenn der Token abgelaufen ist oder ungültig, lösche die Auth-Daten
+        // Du könntest hier spezifischer auf 401 Fehler prüfen
+        this.clearAuthData()
+        return null
       }
     },
 
-    // Optional: Aktion zum Speichern des Redirect-Pfads
-    // setRedirectPath(path: string | null) {
-    //   this.redirectPath = path;
-    // }
+    // Initialisierungsfunktion, die in app.vue aufgerufen wird
+    async initAuth () {
+      if (this.status === AuthStatus.PENDING && this.accessToken) {
+        // Wenn ein Token im Cookie ist, versuche den Benutzer zu laden
+        await this.fetchUser(this.accessToken)
+      } else if (!this.accessToken) {
+        this.status = AuthStatus.UNAUTHENTICATED
+      }
+    },
   },
-  // Wenn du pinia-plugin-persistedstate verwendest, um Teile des Stores
-  // (z.B. den User nach erfolgreichem Login) im localStorage zu speichern:
-  // persist: {
-  //   storage: persistedState.localStorage,
-  //   paths: ['user', 'status'], // Nur 'user' und 'status' persistieren
-  // },
-});
+})
