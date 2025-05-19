@@ -1,60 +1,79 @@
 <script setup lang="ts">
 const navlinks = [
   {
+    label: 'Mitglied',
+    type: 'separator',
+  },
+  {
     label: 'Dashboard',
     link: '/ams',
     icon: 'i-lucide-layout-grid',
     exact: true,
+    type: 'link',
   },
   {
     label: 'My Profile',
     link: '/ams/profile',
     icon: 'i-lucide-user',
+    type: 'link',
   },
   {
     label: 'My Hangar',
     link: '/ams/hangar',
     icon: 'i-fluent-home-garage-24-regular',
+    type: 'link',
   },
   {
     label: 'Comm-Link',
     link: '/ams/comm-link',
     icon: 'i-lucide-newspaper',
+    type: 'link',
   },
   {
     label: 'Nachrichten',
     link: '/ams/messages',
     icon: 'i-lucide-message-square',
+    type: 'link',
+  },
+  {
+    label: 'Organisation',
+    type: 'separator',
   },
   {
     label: 'Mitarbeiter',
     link: '/ams/employees',
     icon: 'i-lucide-users-round',
+    type: 'link',
   },
   {
     label: 'Flotte',
     link: '/ams/fleet',
     icon: 'i-material-symbols-transportation-outline',
+    type: 'link',
   },
   {
     label: 'Flottenstatistiken',
     link: '/ams/fleet-stats',
     icon: 'i-lucide-bar-chart-3',
+    type: 'link',
   },
   {
     label: 'Anteilsrechner',
     link: '/ams/calculator',
     icon: 'i-lucide-calculator',
+    type: 'link',
   },
   {
     label: 'VerseExkurs Editor',
     link: '/ams/verse-exkurs-editor',
     icon: 'i-lucide-book-text',
+    type: 'link',
   },
   {
     label: 'Verwaltung',
     link: '/ams/admin',
     icon: 'i-lucide-shield-check',
+    type: 'link',
   },
 ]
 </script>
@@ -80,13 +99,21 @@ const navlinks = [
       <div class="shrink-0 h-[1px] w-full bg-(--ui-primary)/10" />
       <!-- Content -->
       <nav class="flex-1 space-y-1 px-2 py-4">
-        <AMSUiSidebarLink
-          v-for="link in navlinks"
-          :label="link.label"
-          :link="link.link"
-          :icon="link.icon"
-          :exact="link.exact"
-        />
+        <template v-for="link in navlinks">
+          <AMSUiSidebarLink
+            v-if="link.type === 'link'"
+            :label="link.label"
+            :link="link.link"
+            :icon="link.icon"
+            :exact="link.exact"
+          />
+          <USeparator
+            v-else-if="link.type === 'separator'"
+            color="ams"
+            :label="link.label"
+            class="mt-8"
+          />
+        </template>
       </nav>
       <!-- Footer -->
       <div class="p-4">

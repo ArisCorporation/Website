@@ -9,19 +9,19 @@ const editSlideover = ref<boolean>(false)
 <template>
   <UCard
     variant="ams"
-    class="hover:scale-[1.02] overflow-clip duration-300 translation-all ease-out"
+    class="hover:scale-[1.02] overflow-clip duration-300 translation-all ease-out group"
     :ui="{ header: '!p-0' }"
   >
     <template #header>
       <div class="relative aspect-[21/9] overflow-hidden">
         <div
-          class="absolute inset-0 bg-gradient-to-t from-(--ui-bg-muted) to-transparent opacity-60"
+          class="absolute inset-0 bg-gradient-to-t from-(--ui-bg-muted) to-transparent opacity-40 z-10 group-hover:translate-y-[100%] transition-all duration-300"
         />
         <NuxtImg
           :src="ship.store_image"
           class="h-full not-prose w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div class="absolute bottom-3 left-3 flex items-center space-x-2">
+        <div class="absolute bottom-3 left-3 flex items-center space-x-2 z-20">
           <div
             class="flex items-center rounded-full bg-(--ui-bg-muted)/80 px-2 py-1 text-xs text-green-400 transition-all duration-300 group-hover:bg-(--ui-bg-muted)/90"
           >
