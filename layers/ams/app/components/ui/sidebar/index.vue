@@ -1,60 +1,104 @@
 <script setup lang="ts">
-const navlinks = [
+interface baseElement {
+  label: string
+}
+interface separatorElement extends baseElement {
+  type: 'separator'
+}
+interface linkElement extends baseElement {
+  type: 'link'
+  link: string
+  icon: string
+  exact: boolean
+}
+
+type sidebarElement = separatorElement | linkElement
+
+const sidebarItems: sidebarElement[] = [
+  {
+    label: 'Mitglied',
+    type: 'separator',
+  },
   {
     label: 'Dashboard',
     link: '/ams',
     icon: 'i-lucide-layout-grid',
     exact: true,
+    type: 'link',
   },
   {
     label: 'My Profile',
     link: '/ams/profile',
     icon: 'i-lucide-user',
+    exact: false,
+    type: 'link',
   },
   {
     label: 'My Hangar',
     link: '/ams/hangar',
     icon: 'i-fluent-home-garage-24-regular',
+    exact: false,
+    type: 'link',
   },
   {
     label: 'Comm-Link',
     link: '/ams/comm-link',
     icon: 'i-lucide-newspaper',
+    exact: false,
+    type: 'link',
   },
   {
     label: 'Nachrichten',
     link: '/ams/messages',
     icon: 'i-lucide-message-square',
+    exact: false,
+    type: 'link',
+  },
+  {
+    label: 'Organisation',
+    type: 'separator',
   },
   {
     label: 'Mitarbeiter',
     link: '/ams/employees',
     icon: 'i-lucide-users-round',
+    exact: false,
+    type: 'link',
   },
   {
     label: 'Flotte',
     link: '/ams/fleet',
     icon: 'i-material-symbols-transportation-outline',
+    exact: true,
+    type: 'link',
   },
   {
     label: 'Flottenstatistiken',
     link: '/ams/fleet-stats',
     icon: 'i-lucide-bar-chart-3',
+    exact: true,
+    type: 'link',
   },
   {
     label: 'Anteilsrechner',
     link: '/ams/calculator',
     icon: 'i-lucide-calculator',
+    exact: false,
+    type: 'link',
   },
   {
     label: 'VerseExkurs Editor',
     link: '/ams/verse-exkurs-editor',
     icon: 'i-lucide-book-text',
+    exact: false,
+    type: 'link',
   },
   {
     label: 'Verwaltung',
     link: '/ams/admin',
     icon: 'i-lucide-shield-check',
+    exact: false,
+    type: 'link',
   },
 ]
 </script>
@@ -80,13 +124,21 @@ const navlinks = [
       <div class="shrink-0 h-[1px] w-full bg-(--ui-primary)/10" />
       <!-- Content -->
       <nav class="flex-1 space-y-1 px-2 py-4">
-        <AMSUiSidebarLink
-          v-for="link in navlinks"
-          :label="link.label"
-          :link="link.link"
-          :icon="link.icon"
-          :exact="link.exact"
-        />
+        <template v-for="item in sidebarItems">
+          <AMSUiSidebarLink
+            v-if="item.type === 'link'"
+            :label="item.label"
+            :link="item.link"
+            :icon="item.icon"
+            :exact="item.exact"
+          />
+          <USeparator
+            v-else-if="item.type === 'separator'"
+            color="ams"
+            :label="item.label"
+            class="mt-8"
+          />
+        </template>
       </nav>
       <!-- Footer -->
       <div class="p-4">
