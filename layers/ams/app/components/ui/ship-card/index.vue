@@ -100,7 +100,7 @@ const editSlideover = ref<boolean>(false)
         <template #footer>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
             <UButton
-              @click="() => (editSlideover = false)"
+              @click="editSlideover = false"
               label="Schließen"
               variant="outline"
               color="error"
