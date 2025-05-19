@@ -7,47 +7,27 @@ const password = ref('')
 const errorMsg = ref(null)
 
 const login = async () => {
-  try {
-    errorMsg.value = null
-    await $directus.login(email.value, password.value)
-    router.push('/posts')
-  } catch (error: any) {
-    errorMsg.value = error.errors[0].message
-  }
+    try {
+        errorMsg.value = null
+        await $directus.login(email.value, password.value)
+        router.push('/posts') // Redirect to /posts
+    } catch (error) {
+        errorMsg.value = error.message || 'An unexpected error occurred'
+    }
 }
-
-definePageMeta({
-  middleware: async () => {
-    const { $isAuthenticated, $directus } = useNuxtApp()
-
-    if (await $isAuthenticated()) return navigateTo('/posts')
-  },
-})
 </script>
 <template>
-  <form @submit.prevent="login">
-    <h1>Login</h1>
-    <div v-if="errorMsg">
-      <p>{{ errorMsg }}</p>
-    </div>
-    <div>
-      <input
-        required
-        type="email"
-        v-model="email"
-        name="email"
-        placeholder="Email"
-      />
-    </div>
-    <div>
-      <input
-        required
-        type="password"
-        v-model="password"
-        name="password"
-        placeholder="Password"
-      />
-    </div>
-    <button type="submit">Login</button>
-  </form>
+    <form @submit.prevent="login">
+        <h1>Login</h1>
+        <div v-if="errorMsg">
+            <p>{{ errorMsg }}</p>
+        </div>
+        <div>
+            <UInput required type="text" v-model="email" name="email" placeholder="Email" />
+        </div>
+        <div>
+            <UInput required type="password" v-model="password" name="password" placeholder="Password" />
+        </div>
+        <button type="submit">Login</button>
+    </form>
 </template>

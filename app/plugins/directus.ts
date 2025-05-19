@@ -1,24 +1,54 @@
-// plugins/directus.ts
-import { createDirectus, rest, authentication, staticToken } from '@directus/sdk'
+import {
+  createDirectus,
+  rest,
+  readItems,
+  registerUser,
+  authentication,
+  readMe,
+  refresh,
+  type AuthenticationStorage
+} from "@directus/sdk";
 
-export default defineNuxtPlugin(nuxtApp => {
-  const config = useRuntimeConfig()
-  const directusUrl = config.public.API_URL
+import type { DirectusSchema } from '@@/types'
 
-  if (!directusUrl) {
-    throw new Error('NUXT_PUBLIC_DIRECTUS_URL is not defined in .env')
+export default defineNuxtPlugin(() => {
+  class NuxtCookieStorage {
+    cookie = useCookie('directus-data')
+    get () {
+      return this.cookie.value
+    }
+    set (data: any) {
+      this.cookie.value = data
+    }
   }
 
-  // Initialisiere den Client ohne Authentifizierung oder mit statischem Token,
-  // da der eigentliche Auth-Flow und die Token-Verwaltung über den Pinia-Store laufen.
-  // Wir fügen 'authentication' hinzu, um die Login/Logout-Methoden zu haben,
-  // aber das Token-Handling wird primär manuell über den Store und Cookies gesteuert.
-  const directus = createDirectus(directusUrl).with(rest()).with(authentication())
+  const storage = new NuxtCookieStorage() as AuthenticationStorage
 
-  // Optional: Wenn du einen statischen Token für bestimmte Anfragen benötigst (z.B. öffentliche Daten)
-  // const directusWithStaticToken = createDirectus(directusUrl).with(staticToken('YOUR_STATIC_TOKEN')).with(rest());
+  const directus = createDirectus<DirectusSchema>(
+    "http://localhost:3000/directus",
+  )
+    .with(authentication("cookie", { credentials: "include", storage }))
+    .with(rest({ credentials: "include" }));
 
-  // Mache den Client in der gesamten App verfügbar
-  nuxtApp.provide('directus', directus)
-  // nuxtApp.provide('directusPublic', directusWithStaticToken); // Falls benötigt
-})
+  const isAuthenticated = async () => {
+    try {
+      const me = await directus.request(
+        readMe(),
+      );
+      return me
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  };
+
+  const refreshToken = async () => {
+    return directus.request(
+      refresh('cookie')
+    );
+  };
+
+  return {
+    provide: { directus, readItems, registerUser, isAuthenticated, refreshToken },
+  };
+});

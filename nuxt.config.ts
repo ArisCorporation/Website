@@ -11,6 +11,10 @@ export default defineNuxtConfig({
     }
   },
 
+  routeRules: {
+    "/directus/**": { proxy: import.meta.env.API_URL },
+  },
+
   extends: [
     './layers/ams', // AMS module
   ],
