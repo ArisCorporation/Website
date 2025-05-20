@@ -21,6 +21,11 @@ export default defineAppConfig({
           class: 'hover:shadow-primary-sm ring-(--ui-primary)/20 hover:ring-(--ui-primary)/50'
         },
         {
+          color: 'primary',
+          variant: 'outlinedashed',
+          class: 'hover:shadow-primary-sm border-dashed border border-(--ui-primary)/20 hover:bg-(--ui-primary)/10 hover:border-(--ui-primary)/60'
+        },
+        {
           color: 'error',
           variant: 'solid',
           class: 'hover:shadow-destructive'
@@ -61,6 +66,17 @@ export default defineAppConfig({
         color: {
           ams: {
             border: 'border-(--ui-primary)/10'
+          }
+        }
+      }
+    },
+    radioGroup: {
+      variants: {
+        variant: {
+          amsSpaced: {
+            root: 'rounded-lg ring ring-(--ui-primary)/20 p-1 bg-(--ui-bg-muted)/30 justify-center flex space-x-1 items-center h-fit',
+            item: 'inline-flex hover:cursor-pointer group items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-(--ui-primary)/90 hover:shadow-[0_0_15px_rgba(0,255,232,0.3)] active:scale-95 h-9 rounded-md px-3 has-data-[state=checked]:bg-(--ui-primary) text-black',
+            label: 'text-default group-hover:text-(--ui-text-accented) group-has-data-[state=checked]:text-(--ui-text-accented)'
           }
         }
       }

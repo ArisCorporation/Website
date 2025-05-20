@@ -27,7 +27,7 @@ definePageMeta({
     <template #default>
       <div>
         <UFormField name="biography" class="w-full">
-          <textarea class="w-full border border-(--ui-primary)/20 rounded" />
+          <UiEditor class="size-full" />
         </UFormField>
       </div>
     </template>
