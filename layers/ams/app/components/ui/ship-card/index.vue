@@ -3,6 +3,8 @@ import type { Ships } from '~~/types'
 
 defineProps<{ ship: Ships }>()
 
+const modulesOpen = ref<boolean>(false)
+
 const editSlideover = ref<boolean>(false)
 </script>
 
@@ -149,6 +151,15 @@ const editSlideover = ref<boolean>(false)
                         </template>
                       </URadioGroup>
                     </UFormField>
+                    <UFormField size="sm" label="Abteilung">
+                      <USelectMenu
+                        variant="ams"
+                        value-key="id"
+                        label-key="name"
+                        class="w-full"
+                        size="lg"
+                      />
+                    </UFormField>
                     <UFormField size="sm" label="Sichtbarkeit">
                       <URadioGroup
                         variant="card"
@@ -200,9 +211,6 @@ const editSlideover = ref<boolean>(false)
                 <template v-if="true" #default>
                   <div class="grid grid-cols-1 gap-4">
                     <UFormField size="sm" label="Aktives Modul">
-                      <template #hint>
-                        <UButton variant="ghost" icon="i-lucide-arrow-down" />
-                      </template>
                       <div
                         class="flex w-full p-3 text-sm rounded-md items-center gap-4 ring ring-(--ui-primary)"
                       >
@@ -217,48 +225,63 @@ const editSlideover = ref<boolean>(false)
                           </p>
                         </div>
                       </div>
-                      <USeparator variant="ams" color="ams" class="my-4" />
-                      <div class="grid grid-cols-2 gap-2">
-                        <div
-                          class="flex w-full p-3 hover:cursor-pointer text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
-                        >
-                          <NuxtImg
-                            src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
-                            class="size-8 object-cover rounded-md"
-                          />
-                          <div class="flex-1">
-                            <strong class="pb-1 block">Frachtmodul</strong>
-                            <p class="!m-0 text-(--ui-text-muted) text-[.6rem]">
-                              <span>RSI &bull; Medium-Fracht</span>
-                            </p>
+                      <div class="p-px">
+                        <USeparator
+                          variant="ams"
+                          color="ams"
+                          class="my-4"
+                          label="Andere Module"
+                        />
+                        <div class="grid grid-cols-2 gap-2">
+                          <div
+                            class="flex w-full p-3 hover:cursor-pointer text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
+                          >
+                            <NuxtImg
+                              src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
+                              class="size-8 object-cover rounded-md"
+                            />
+                            <div class="flex-1">
+                              <strong class="pb-1 block">Frachtmodul</strong>
+                              <p
+                                class="!m-0 text-(--ui-text-muted) text-[.6rem]"
+                              >
+                                <span>RSI &bull; Medium-Fracht</span>
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <div
-                          class="flex w-full p-3 text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
-                        >
-                          <NuxtImg
-                            src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
-                            class="size-8 object-cover rounded-md"
-                          />
-                          <div class="flex-1">
-                            <strong class="pb-1 block">Raffineriemodul</strong>
-                            <p class="!m-0 text-(--ui-text-muted) text-[.6rem]">
-                              <span>RSI &bull; Medium-Raffinerie</span>
-                            </p>
+                          <div
+                            class="flex w-full p-3 text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
+                          >
+                            <NuxtImg
+                              src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
+                              class="size-8 object-cover rounded-md"
+                            />
+                            <div class="flex-1">
+                              <strong class="pb-1 block"
+                                >Raffineriemodul</strong
+                              >
+                              <p
+                                class="!m-0 text-(--ui-text-muted) text-[.6rem]"
+                              >
+                                <span>RSI &bull; Medium-Raffinerie</span>
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                        <div
-                          class="flex w-full p-3 text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
-                        >
-                          <NuxtImg
-                            src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
-                            class="size-8 object-cover rounded-md"
-                          />
-                          <div class="flex-1">
-                            <strong class="pb-1 block">Medizinmodul</strong>
-                            <p class="!m-0 text-(--ui-text-muted) text-[.6rem]">
-                              <span>RSI &bull; Medium-Medizin</span>
-                            </p>
+                          <div
+                            class="flex w-full p-3 text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
+                          >
+                            <NuxtImg
+                              src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
+                              class="size-8 object-cover rounded-md"
+                            />
+                            <div class="flex-1">
+                              <strong class="pb-1 block">Medizinmodul</strong>
+                              <p
+                                class="!m-0 text-(--ui-text-muted) text-[.6rem]"
+                              >
+                                <span>RSI &bull; Medium-Medizin</span>
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -280,28 +303,41 @@ const editSlideover = ref<boolean>(false)
                 </template>
                 <template #default>
                   <div class="grid grid-cols-1 gap-4">
-                    <UFormField size="sm" label="Aktives Modul">
-                      <template #hint>
-                        <UButton variant="ghost" icon="i-lucide-arrow-down" />
-                      </template>
+                    <UFormField size="sm" label="Aktive Lackierung">
                       <div
                         class="flex w-full p-3 text-sm rounded-md items-center gap-4 ring ring-(--ui-primary)"
                       >
                         <NuxtImg
-                          src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
+                          src="https://star-hangar.com/media/catalog/product/cache/1c6b3665116ed742072997bd2095a829/r/s/rsi_galaxy_piece_09_16x9.jpg"
                           class="size-12 object-cover rounded-md"
                         />
                         <div class="flex-1">
-                          <strong class="block">Frachtmodul</strong>
+                          <strong class="block">Invictus Paint</strong>
                         </div>
                       </div>
-                      <USeparator variant="ams" color="ams" class="my-4" />
+                      <div
+                        class="flex w-full mt-4 text-sm rounded-md items-center gap-4 ring ring-(--ui-primary)"
+                      >
+                        <NuxtImg
+                          src="https://star-hangar.com/media/catalog/product/cache/1c6b3665116ed742072997bd2095a829/r/s/rsi_galaxy_piece_09_16x9.jpg"
+                          class="size-20 object-cover rounded-l-md"
+                        />
+                        <div class="flex-1 p-3">
+                          <strong class="block">Invictus Paint</strong>
+                        </div>
+                      </div>
+                      <USeparator
+                        variant="ams"
+                        color="ams"
+                        class="my-4"
+                        label="Andere Paints"
+                      />
                       <div class="flex p-px overflow-x-scroll pb-2 gap-2">
                         <div
                           class="flex flex-col hover:cursor-pointer min-w-28 max-w-28 h-36 text-sm rounded-md items-center ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
                         >
                           <NuxtImg
-                            src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
+                            src="https://star-hangar.com/media/catalog/product/cache/1c6b3665116ed742072997bd2095a829/r/s/rsi_galaxy_piece_09_16x9.jpg"
                             class="h-28 w-full object-cover rounded-t-md"
                           />
                           <div class="flex-1 items-center flex">
