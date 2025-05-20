@@ -8,11 +8,9 @@ export default defineNuxtConfig({
 
     public: {
       API_URL: process.env.NUXT_PUBLIC_API_URL || 'https://cms.ariscorp.de',
-    }
-  },
+      SITE_URL: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
 
-  routeRules: {
-    "/directus/**": { proxy: import.meta.env.API_URL },
+    }
   },
 
   extends: [
@@ -44,6 +42,25 @@ export default defineNuxtConfig({
       global: true,
     },
   ],
+
+  directus: {
+    rest: {
+      baseUrl: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:8055',
+      nuxtBaseUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+    },
+    auth: {
+      enabled: true,
+      enableGlobalAuthMiddleware: false, // Enable auth middleware on every page
+      userFields: ['*', { role: ['*'] }], // Select user fields
+      redirect: {
+        login: '/auth/login', // Path to redirect when login is required
+        logout: '/', // Path to redirect after logout
+        home: '/ams', // Path to redirect after successful login
+        resetPassword: '/auth/reset-password', // Path to redirect for password reset
+        callback: '/auth/callback', // Path to redirect after login with provider
+      },
+    },
+  },
 
   image: {
     provider: 'directus',

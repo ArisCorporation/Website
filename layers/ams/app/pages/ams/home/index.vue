@@ -2,6 +2,7 @@
 definePageMeta({
   layout: 'ams',
   path: '/ams',
+  middleware: ['auth'],
 })
 </script>
 
