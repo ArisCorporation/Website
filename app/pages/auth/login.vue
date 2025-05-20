@@ -1,33 +1,56 @@
 <script setup lang="ts">
-const { $directus } = useNuxtApp()
-const router = useRouter()
+const { login } = useDirectusAuth()
 
-const email = ref('')
-const password = ref('')
-const errorMsg = ref(null)
+const credentials = reactive({
+  email: 'thomas.blakeney@ariscorp.de',
+  password: 'CmdaplaG_3',
+})
+const error = ref(null)
 
-const login = async () => {
-    try {
-        errorMsg.value = null
-        await $directus.login(email.value, password.value)
-        router.push('/posts') // Redirect to /posts
-    } catch (error) {
-        errorMsg.value = error.message || 'An unexpected error occurred'
-    }
+async function attemptLogin() {
+  console.log('first')
+  const { email, password } = unref(credentials)
+  error.value = null
+
+  try {
+    // Be careful when using the login function because you have to pass the email and password as separate arguments instead of an object.
+    console.log('before')
+    const res = await login(email, password)
+    console.log('after')
+    console.log(res)
+  } catch (err) {
+    console.log('error')
+    error.value = err.message
+  }
 }
+
+definePageMeta({
+  layout: false,
+  middleware: 'guest',
+})
 </script>
 <template>
-    <form @submit.prevent="login">
-        <h1>Login</h1>
-        <div v-if="errorMsg">
-            <p>{{ errorMsg }}</p>
-        </div>
-        <div>
-            <UInput required type="text" v-model="email" name="email" placeholder="Email" />
-        </div>
-        <div>
-            <UInput required type="password" v-model="password" name="password" placeholder="Password" />
-        </div>
-        <button type="submit">Login</button>
-    </form>
+  <form>
+    <h1>Login</h1>
+    <div>
+      <UInput
+        required
+        type="text"
+        v-model="credentials.email"
+        name="email"
+        placeholder="Email"
+      />
+    </div>
+    <div>
+      <UInput
+        required
+        type="password"
+        v-model="credentials.password"
+        name="password"
+        placeholder="Password"
+      />
+    </div>
+    <button @click="attemptLogin" type="submit">Login</button>
+    {{ error }}
+  </form>
 </template>

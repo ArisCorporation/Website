@@ -1,6 +1,6 @@
 // stores/profileEditStore.ts
 import { defineStore } from 'pinia';
-import { useAuthStore } from './auth-store'; // Annahme: Dein Auth-Store
+// import { useAuthStore } from './auth-store'; // Annahme: Dein Auth-Store
 import { z } from 'zod';
 import type { FormError } from '@nuxt/ui'; // Für Nuxt UI <UForm> :validate Prop
 
