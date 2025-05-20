@@ -11,5 +11,6 @@ definePageMeta({
       title="Comm-Link"
       description="Lese und Verwalte interne Artikel von Mitgliedern der ArisCorp."
     />
+    <UiEditor />
   </div>
 </template>
