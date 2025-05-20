@@ -27,6 +27,7 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@vueuse/nuxt',
     '@compodium/nuxt',
+    'nuxt-tiptap-editor',
   ],
 
   css: ['~/assets/css/main.css'],
@@ -57,6 +58,10 @@ export default defineNuxtConfig({
 
   pinia: {
     storesDirs: ['./app/stores/**'],
+  },
+
+  tiptap: {
+    prefix: 'Tiptap'
   },
 
   future: {
