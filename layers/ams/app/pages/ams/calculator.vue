@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { readItems, readUsers } from '@directus/sdk'
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { DirectusUser as DirectusUsers, Ship } from '~~/types'
-const { $directus } = useNuxtApp()
 
 const store = useAMSCalculatorStore()
 const { settings, workers, crews, incomes, expenses, distribution } =
@@ -16,7 +13,7 @@ const currentStep = ref(0)
 const calculated = ref(false)
 const calculating = ref(false)
 
-const { data: users } = await useAsyncData<DirectusUsers[]>(
+const { data: users } = await useAsyncData(
   'users',
   () => {
     return useDirectus(
@@ -44,13 +41,12 @@ const { data: users } = await useAsyncData<DirectusUsers[]>(
 
         return {
           ...u,
-          label,
         }
       }),
   }
 )
-const { data: ships } = await useAsyncData<Ship[]>('ships', () => {
-  return $directus.request(
+const { data: ships } = await useAsyncData('ships', () => {
+  return useDirectus(
     readItems('ships', { limit: -1, filter: { status: { _eq: 'published' } } })
   )
 })

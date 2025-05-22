@@ -1,11 +1,61 @@
 <script setup lang="ts">
-import type { Ships } from '~~/types'
+import { computed, ref } from 'vue' // computed und ref importieren
+import type { Ship, ShipModule, UserHangar } from '~~/types' // Pfad anpassen, falls nötig
 
-defineProps<{ ship: Ships }>()
+type ShipProps = {
+  mode: 'ship'
+  data: Ship
+}
 
-const modulesOpen = ref<boolean>(false)
+type HangarItemProps = {
+  mode: 'hangar-item'
+  data: UserHangar
+}
 
-const editSlideover = ref<boolean>(false)
+type ShipCardProps = ShipProps | HangarItemProps
+
+const props = defineProps<ShipCardProps>()
+const store = useHangarItemEditStore()
+
+function isShipObject(data: any): data is Ship {
+  return data && typeof data === 'object' && 'id' in data && 'shipName' in data // Beispielhafte Pflichtfelder
+}
+
+const ship = computed<Ship>(() => {
+  if (props.mode === 'ship') {
+    return props.data
+  }
+
+  const shipData = props.data.ship_id
+  if (isShipObject(shipData)) {
+    return shipData
+  }
+
+  console.error(
+    'Konnte kein valides Ship-Objekt aus hangarItem.data.ship_id ableiten:',
+    shipData
+  )
+  throw Error()
+})
+
+const hangarItem = computed<UserHangar | null>(() => {
+  return props.mode === 'hangar-item' ? props.data : null
+})
+
+const editSlideoverOpen = ref<boolean>(false)
+
+function handleEditOpen() {
+  if (hangarItem.value) {
+    store.initForm(hangarItem.value)
+    editSlideoverOpen.value = true
+  }
+}
+
+// @TODO: Logik für handleEditSubmit implementieren
+function handleEditSubmit() {
+  // z.B. store.submitForm().then(() => editSlideoverOpen.value = false)
+  console.log('Edit submit triggered')
+}
 </script>
 
 <template>
@@ -17,7 +67,7 @@ const editSlideover = ref<boolean>(false)
     <template #header>
       <div class="relative aspect-[21/9] overflow-hidden">
         <div
-          class="absolute inset-0 bg-gradient-to-t from-(--ui-bg-muted) to-transparent opacity-60 z-10 group-hover:translate-y-[100%] transition-all duration-300"
+          class="absolute inset-0 bg-gradient-to-t from-(--ui-bg-muted) to-transparent opacity-40 z-10 group-hover:translate-y-[100%] transition-all duration-300"
         />
         <NuxtImg
           :src="ship.store_image"
@@ -64,7 +114,7 @@ const editSlideover = ref<boolean>(false)
     </template>
     <template #footer>
       <USlideover
-        v-model:open="editSlideover"
+        v-model:open="editSlideoverOpen"
         :ui="{
           header: '!p-0',
           content: 'max-w-xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
@@ -72,13 +122,14 @@ const editSlideover = ref<boolean>(false)
       >
         <UButton
           variant="outline"
+          icon="i-lucide-suqare-pen"
           label="Edit Ship"
           class="w-full border-(--ui-primary)/20 text-(--ui-primary) justify-center hover:bg-(--ui-primary)/10 hover:text-(--ui-primary)"
         />
         <template #header>
           <div class="relative aspect-[26/9] overflow-hidden">
             <NuxtImg
-              :src="ship.store_image"
+              :src="getAssetId(ship.store_image) ?? ''"
               class="h-full not-prose w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </div>
@@ -197,7 +248,7 @@ const editSlideover = ref<boolean>(false)
               <UCard
                 variant="ams"
                 class="!shadow-none group"
-                :data-disabled="ship?.modules?.length > 0 ? false : true"
+                :data-disabled="!ship.modules?.length"
                 :ui="{ body: '!pt-0' }"
               >
                 <template #header>
@@ -207,14 +258,15 @@ const editSlideover = ref<boolean>(false)
                     <h4>Modulare Schiffe</h4>
                   </div>
                 </template>
-                <template v-if="ship?.modules?.length > 0" #default>
+                <template v-if="ship.modules?.length" #default>
                   <div class="grid grid-cols-1 gap-4">
                     <UFormField size="sm" label="Aktives Modul">
                       <div
+                        v-if="hangarItem?.active_module"
                         class="flex w-full p-3 text-sm rounded-md items-center gap-4 ring ring-(--ui-primary)"
                       >
                         <NuxtImg
-                          src="3789037a-a550-4be6-9f04-80c9d7eff8f9"
+                          :src="getAssetId(((hangarItem?.active_module as ShipModule)?.gallery?.[0] as string)) ?? ''"
                           class="size-12 object-cover rounded-md"
                         />
                         <div class="flex-1">
@@ -233,52 +285,24 @@ const editSlideover = ref<boolean>(false)
                         />
                         <div class="grid grid-cols-2 gap-2">
                           <div
+                            v-for="module in ship.modules"
                             class="flex w-full p-3 hover:cursor-pointer text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
                           >
                             <NuxtImg
-                              src="3789037a-a550-4be6-9f04-80c9d7eff8f9"
+                              :src="getAssetId(module.store_image) ?? ''"
                               class="size-8 object-cover rounded-md"
                             />
                             <div class="flex-1">
-                              <strong class="pb-1 block">Frachtmodul</strong>
+                              <strong class="pb-1 block">{{
+                                module.name
+                              }}</strong>
                               <p
                                 class="!m-0 text-(--ui-text-muted) text-[.6rem]"
                               >
-                                <span>RSI &bull; Medium-Fracht</span>
-                              </p>
-                            </div>
-                          </div>
-                          <div
-                            class="flex w-full p-3 text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
-                          >
-                            <NuxtImg
-                              src="3789037a-a550-4be6-9f04-80c9d7eff8f9"
-                              class="size-8 object-cover rounded-md"
-                            />
-                            <div class="flex-1">
-                              <strong class="pb-1 block"
-                                >Raffineriemodul</strong
-                              >
-                              <p
-                                class="!m-0 text-(--ui-text-muted) text-[.6rem]"
-                              >
-                                <span>RSI &bull; Medium-Raffinerie</span>
-                              </p>
-                            </div>
-                          </div>
-                          <div
-                            class="flex w-full p-3 text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
-                          >
-                            <NuxtImg
-                              src="3789037a-a550-4be6-9f04-80c9d7eff8f9"
-                              class="size-8 object-cover rounded-md"
-                            />
-                            <div class="flex-1">
-                              <strong class="pb-1 block">Medizinmodul</strong>
-                              <p
-                                class="!m-0 text-(--ui-text-muted) text-[.6rem]"
-                              >
-                                <span>RSI &bull; Medium-Medizin</span>
+                                <span
+                                  >{{ module.manufacturer.name }} &bull;
+                                  TBD</span
+                                >
                               </p>
                             </div>
                           </div>
@@ -307,7 +331,7 @@ const editSlideover = ref<boolean>(false)
                         class="flex w-full p-3 text-sm rounded-md items-center gap-4 ring ring-(--ui-primary)"
                       >
                         <NuxtImg
-                          src="1c0e59ef-8a92-419e-ba49-b4b609fc76da"
+                          src="https://star-hangar.com/media/catalog/product/cache/1c6b3665116ed742072997bd2095a829/r/s/rsi_galaxy_piece_09_16x9.jpg"
                           class="size-12 object-cover rounded-md"
                         />
                         <div class="flex-1">
@@ -318,7 +342,7 @@ const editSlideover = ref<boolean>(false)
                         class="flex w-full mt-4 text-sm rounded-md items-center gap-4 ring ring-(--ui-primary)"
                       >
                         <NuxtImg
-                          src="1c0e59ef-8a92-419e-ba49-b4b609fc76da"
+                          src="https://star-hangar.com/media/catalog/product/cache/1c6b3665116ed742072997bd2095a829/r/s/rsi_galaxy_piece_09_16x9.jpg"
                           class="size-20 object-cover rounded-l-md"
                         />
                         <div class="flex-1 p-3">
@@ -336,7 +360,7 @@ const editSlideover = ref<boolean>(false)
                           class="flex flex-col hover:cursor-pointer min-w-28 max-w-28 h-36 text-sm rounded-md items-center ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
                         >
                           <NuxtImg
-                            src="1c0e59ef-8a92-419e-ba49-b4b609fc76da"
+                            src="https://star-hangar.com/media/catalog/product/cache/1c6b3665116ed742072997bd2095a829/r/s/rsi_galaxy_piece_09_16x9.jpg"
                             class="h-28 w-full object-cover rounded-t-md"
                           />
                           <div class="flex-1 items-center flex">
@@ -354,7 +378,7 @@ const editSlideover = ref<boolean>(false)
         <template #footer>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
             <UButton
-              @click="editSlideover = false"
+              @click="editSlideoverOpen = false"
               label="Schließen"
               variant="outline"
               color="error"
