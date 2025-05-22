@@ -1,35 +1,16 @@
-// types/nuxt.d.ts
+// Example of what a correct type definition might look like
+// (place this in a relevant .d.ts file, e.g., types/directus.d.ts or your module's types)
+import type { RestClient, AuthenticationClient } from '@directus/sdk';
+import type { Schema } from '~~/types'; // Adjust path to your global schema type
 
-import type {
-  DirectusClient as SDKDirectusClient,
-  RestClient,
-  AuthenticationClient, // Stellt das .auth Objekt und Methoden bereit
-  StaticTokenClient     // Erweitert das .auth Objekt um staticToken
-  // Fügen Sie hier weitere Typen hinzu, die Sie direkt benötigen, z.B. User, LoginCredentials
-} from '@directus/sdk';
-
-// Verwenden Sie 'any' für das Schema zu Testzwecken
-type DirectusSchema = any;
-
-// Definieren Sie den Client-Typ
-export type AppDirectusClient = SDKDirectusClient<DirectusSchema> &
-  RestClient<DirectusSchema> &
-  AuthenticationClient<DirectusSchema> &
-  StaticTokenClient<DirectusSchema>;
-
-// Erweitern Sie die NuxtApp Interface
 declare module '#app' {
   interface NuxtApp {
-    $directus: AppDirectusClient;
+    $directus: RestClient<Schema> & AuthenticationClient<Schema>;
   }
 }
 
-// Erweitern Sie Vue Component Properties
-declare module '@vue/runtime-core' {
+declare module '@vue/runtime-core' { // For Vue 3 Options API
   interface ComponentCustomProperties {
-    $directus: AppDirectusClient;
+    $directus: RestClient<Schema> & AuthenticationClient<Schema>;
   }
 }
-
-// Wichtig, damit die Datei als Modul behandelt wird
-export { };
