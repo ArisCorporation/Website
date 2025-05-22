@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { logout } = useDirectusAuth()
+
 interface baseElement {
   label: string
 }
@@ -164,6 +166,7 @@ const sidebarItems: sidebarElement[] = [
               </div>
             </div>
             <UButton
+              @click="logout"
               variant="outline"
               icon="i-lucide-log-out"
               class="h-9 px-3 text-sm text-gray-300 hover:text-(--ui-primary) flex justify-center"

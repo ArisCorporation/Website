@@ -50,7 +50,7 @@ definePageMeta({
         placeholder="Password"
       />
     </div>
-    <button @click="attemptLogin" type="submit">Login</button>
+    <button @click.prevent="attemptLogin" type="submit">Login</button>
     {{ error }}
   </form>
 </template>

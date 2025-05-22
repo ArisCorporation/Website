@@ -9,6 +9,8 @@ export default defineEventHandler(async (event) => {
 
   const target = joinURL(config.public.directus.rest.baseUrl, event.path.replace(/^\/api\/proxy\//, ''));
 
+  console.log(target)
+
   return proxyRequest(event, target, {
     cookieDomainRewrite: new URL(config.public.SITE_URL).hostname,
     cookiePathRewrite: '/',
