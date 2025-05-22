@@ -86,7 +86,6 @@ export const useAuthStore = defineStore('auth', {
         const fetchedUser = await performSdkFetchUser();
         this.user = fetchedUser;
         this.isAuthenticated = !!fetchedUser; // Sicherstellen, dass isAuthenticated korrekt gesetzt wird
-        console.log('AuthStore: Benutzer erfolgreich via SDK synchronisiert.', fetchedUser);
       } catch (error) {
         console.error("Fehler beim Synchronisieren des Benutzers vom SDK:", error);
         // Wenn der Abruf fehlschlägt (kein Token, ungültiges Token etc.), ist der Benutzer nicht authentifiziert.
@@ -104,51 +103,40 @@ export const useAuthStore = defineStore('auth', {
       // Wenn bereits authentifiziert (z.B. durch SSR oder vorherige Client-Aktion),
       // sicherstellen, dass isLoading false ist und nichts weiter tun.
       if (this.isAuthenticated) {
-        console.log('AuthStore: initializeAuth - Benutzer ist bereits authentifiziert (möglicherweise durch SSR).');
         this.isLoading = false; // Stelle sicher, dass isLoading korrekt ist.
         return;
       }
 
       // Wenn ein anderer Authentifizierungsvorgang bereits aktiv ist, nichts weiter tun.
       if (this.isLoading) {
-        console.log('AuthStore: initializeAuth - Authentifizierungsvorgang läuft bereits.');
         return;
       }
 
       this.isLoading = true;
-      console.log('AuthStore: initializeAuth - Starte Authentifizierungsprozess.');
-
       const { getSdkToken, performSdkLightweightUserCheck, performSdkFetchUser } = useDirectusAuth<Schema>();
 
       try {
         const token = getSdkToken(); // Schnelle Prüfung: Existiert ein Token-String?
 
         if (token) {
-          console.log('AuthStore: Token existiert. Führe Lightweight User Check durch.');
           // Tiefere Prüfung: Ist der Token (wahrscheinlich) gültig, indem minimale Benutzerdaten angefordert werden?
           const minimalUser = await performSdkLightweightUserCheck();
 
           if (minimalUser) {
-            console.log('AuthStore: Lightweight User Check erfolgreich. Benutzer ist authentifiziert.');
             this.isAuthenticated = true;
             this.user = minimalUser; // Setze minimale Benutzerdaten sofort
 
-            console.log('AuthStore: Fordere vollständige Benutzerdetails im Hintergrund an.');
             // Lade vollständige Benutzerdaten. Fehler hier sollten nicht unbedingt den isAuthenticated-Status zurücksetzen,
             // es sei denn, es ist ein kritischer Fehler, der die Sitzung ungültig macht.
             // Stelle sicher, dass dieser Aufruf awaited wird, damit der Server wartet.
             await this._syncUserFromSdk(() =>
               performSdkFetchUser({ fields: ['*', { role: ['*'] }] })
             );
-            // Errors from _syncUserFromSdk are handled internally by it setting user/auth state,
-            // or will be caught by the outer try...catch if _syncUserFromSdk re-throws.
           } else {
-            console.log('AuthStore: Lightweight User Check fehlgeschlagen. Token ungültig oder abgelaufen.');
             this.isAuthenticated = false;
             this.user = null;
           }
         } else {
-          console.log('AuthStore: Kein Token gefunden.');
           this.isAuthenticated = false;
           this.user = null;
         }
@@ -173,7 +161,6 @@ export const useAuthStore = defineStore('auth', {
         console.warn("AuthStore: refreshCurrentUser aufgerufen, aber kein Benutzer ist authentifiziert.");
         return;
       }
-      console.log("AuthStore: Aktualisiere Benutzerdaten vom Server...");
       this.isLoading = true; // Optional: Ladezustand für den Refresh setzen
       try {
         const { performSdkFetchUser } = useDirectusAuth<Schema>();
@@ -181,7 +168,6 @@ export const useAuthStore = defineStore('auth', {
           fields: ['*', { role: ['*'] }],
         }); // oder spezifischere Felder
         this.setUser(refreshedUser);
-        console.log("AuthStore: Benutzerdaten erfolgreich aktualisiert.");
       } catch (error) {
         console.error("AuthStore: Fehler beim Aktualisieren der Benutzerdaten:", error);
         // Optional: Fehlerbehandlung, z.B. Benutzer ausloggen, wenn Token ungültig wurde

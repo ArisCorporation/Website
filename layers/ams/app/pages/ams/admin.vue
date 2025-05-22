@@ -1,6 +1,8 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'ams',
+  auth: true,
+  access_level: 4,
 })
 </script>
 

@@ -4,13 +4,6 @@ import { navigateTo, useRuntimeConfig } from '#imports';
 import type { DirectusRole } from '~~/types'; // Importiere den DirectusRole Typ
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
-  if (process.server) {
-    console.log(`[RouteGuard SERVER] Executing for path: ${to.path}. From: ${from.path}`);
-  }
-  if (process.client) {
-    console.log(`[RouteGuard CLIENT] Executing for path: ${to.path}. From: ${from.path}`);
-  }
-
   const authStore = useAuthStore();
   const config = useRuntimeConfig();
 
@@ -33,7 +26,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const requiredAccessLevel = typeof to.meta.access_level === 'number' ? to.meta.access_level : undefined;
 
   if (requiresAuth && requiresGuest) {
-    // Dies sollte in der Seitenkonfiguration vermieden werden.
     console.warn(`Route ${to.path} ist sowohl als 'auth' als auch als 'guest' markiert. Auth-Anforderung wird priorisiert.`);
   }
 
@@ -42,7 +34,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     if (!authStore.isUserLoggedIn) {
       // Benutzer ist nicht eingeloggt, aber die Seite erfordert Authentifizierung.
       // Leite zum Login weiter und speichere den ursprünglichen Pfad für die Rückkehr.
-      console.log(`[RouteGuard] Auth für ${to.path} benötigt, Nutzer nicht eingeloggt. Weiterleitung zu ${loginPath}.`);
       return navigateTo({ path: loginPath, query: { redirect: to.fullPath } });
     }
 
@@ -55,12 +46,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         : undefined;
 
       if (userAccessLevel === undefined) {
-        console.warn(`[RouteGuard] User ${currentUser?.id} hat kein definiertes access_level in der Rolle. Zugriff auf ${to.path} verweigert.`);
         return navigateTo(forbiddenPath); // Oder eine andere Fehlerbehandlung
       }
 
       if (userAccessLevel < requiredAccessLevel) {
-        console.log(`[RouteGuard] User ${currentUser?.id} (Level ${userAccessLevel}) hat nicht das benötigte Level ${requiredAccessLevel} für ${to.path}. Weiterleitung zu ${forbiddenPath}.`);
         return navigateTo(forbiddenPath);
       }
     }
@@ -70,7 +59,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     if (authStore.isUserLoggedIn) {
       // Benutzer ist eingeloggt, aber die Seite ist nur für Gäste.
       // Leite zu einer Standardseite für eingeloggte Benutzer weiter.
-      console.log(`[RouteGuard] Gast-Zugang für ${to.path} benötigt, Nutzer ist eingeloggt. Weiterleitung zu ${defaultAuthenticatedPath}.`);
       return navigateTo(defaultAuthenticatedPath);
     }
   }

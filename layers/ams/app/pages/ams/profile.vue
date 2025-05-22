@@ -88,6 +88,7 @@ function handleReset() {
 
 definePageMeta({
   layout: 'ams',
+  auth: true,
 })
 </script>
 
