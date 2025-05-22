@@ -136,7 +136,7 @@ const sidebarItems: sidebarElement[] = [
             v-else-if="item.type === 'separator'"
             color="ams"
             :label="item.label"
-            class="mt-8"
+            class="mt-8 first:mt-0"
           />
         </template>
       </nav>

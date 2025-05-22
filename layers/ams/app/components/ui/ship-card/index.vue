@@ -17,7 +17,7 @@ const editSlideover = ref<boolean>(false)
     <template #header>
       <div class="relative aspect-[21/9] overflow-hidden">
         <div
-          class="absolute inset-0 bg-gradient-to-t from-(--ui-bg-muted) to-transparent opacity-40 z-10 group-hover:translate-y-[100%] transition-all duration-300"
+          class="absolute inset-0 bg-gradient-to-t from-(--ui-bg-muted) to-transparent opacity-60 z-10 group-hover:translate-y-[100%] transition-all duration-300"
         />
         <NuxtImg
           :src="ship.store_image"
@@ -72,7 +72,6 @@ const editSlideover = ref<boolean>(false)
       >
         <UButton
           variant="outline"
-          icon="i-lucide-suqare-pen"
           label="Edit Ship"
           class="w-full border-(--ui-primary)/20 text-(--ui-primary) justify-center hover:bg-(--ui-primary)/10 hover:text-(--ui-primary)"
         />
@@ -198,7 +197,7 @@ const editSlideover = ref<boolean>(false)
               <UCard
                 variant="ams"
                 class="!shadow-none group"
-                :data-disabled="false"
+                :data-disabled="ship?.modules?.length > 0 ? false : true"
                 :ui="{ body: '!pt-0' }"
               >
                 <template #header>
@@ -208,14 +207,14 @@ const editSlideover = ref<boolean>(false)
                     <h4>Modulare Schiffe</h4>
                   </div>
                 </template>
-                <template v-if="true" #default>
+                <template v-if="ship?.modules?.length > 0" #default>
                   <div class="grid grid-cols-1 gap-4">
                     <UFormField size="sm" label="Aktives Modul">
                       <div
                         class="flex w-full p-3 text-sm rounded-md items-center gap-4 ring ring-(--ui-primary)"
                       >
                         <NuxtImg
-                          src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
+                          src="3789037a-a550-4be6-9f04-80c9d7eff8f9"
                           class="size-12 object-cover rounded-md"
                         />
                         <div class="flex-1">
@@ -237,7 +236,7 @@ const editSlideover = ref<boolean>(false)
                             class="flex w-full p-3 hover:cursor-pointer text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
                           >
                             <NuxtImg
-                              src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
+                              src="3789037a-a550-4be6-9f04-80c9d7eff8f9"
                               class="size-8 object-cover rounded-md"
                             />
                             <div class="flex-1">
@@ -253,7 +252,7 @@ const editSlideover = ref<boolean>(false)
                             class="flex w-full p-3 text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
                           >
                             <NuxtImg
-                              src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
+                              src="3789037a-a550-4be6-9f04-80c9d7eff8f9"
                               class="size-8 object-cover rounded-md"
                             />
                             <div class="flex-1">
@@ -271,7 +270,7 @@ const editSlideover = ref<boolean>(false)
                             class="flex w-full p-3 text-xs rounded-md items-center gap-4 ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
                           >
                             <NuxtImg
-                              src="https://robertsspaceindustries.com/i/dcfe3cd7af5bfd5992d9e9e2f04d1ee121d14e9c/resize(1000,1000,crop(2160,2160,0,0,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseTgLyuqXhHu4sa49vY343BR5nY72m8f82))/75/rsi-modular-ship-promo-modules-refinery.webp"
+                              src="3789037a-a550-4be6-9f04-80c9d7eff8f9"
                               class="size-8 object-cover rounded-md"
                             />
                             <div class="flex-1">
@@ -308,7 +307,7 @@ const editSlideover = ref<boolean>(false)
                         class="flex w-full p-3 text-sm rounded-md items-center gap-4 ring ring-(--ui-primary)"
                       >
                         <NuxtImg
-                          src="https://star-hangar.com/media/catalog/product/cache/1c6b3665116ed742072997bd2095a829/r/s/rsi_galaxy_piece_09_16x9.jpg"
+                          src="1c0e59ef-8a92-419e-ba49-b4b609fc76da"
                           class="size-12 object-cover rounded-md"
                         />
                         <div class="flex-1">
@@ -319,7 +318,7 @@ const editSlideover = ref<boolean>(false)
                         class="flex w-full mt-4 text-sm rounded-md items-center gap-4 ring ring-(--ui-primary)"
                       >
                         <NuxtImg
-                          src="https://star-hangar.com/media/catalog/product/cache/1c6b3665116ed742072997bd2095a829/r/s/rsi_galaxy_piece_09_16x9.jpg"
+                          src="1c0e59ef-8a92-419e-ba49-b4b609fc76da"
                           class="size-20 object-cover rounded-l-md"
                         />
                         <div class="flex-1 p-3">
@@ -337,7 +336,7 @@ const editSlideover = ref<boolean>(false)
                           class="flex flex-col hover:cursor-pointer min-w-28 max-w-28 h-36 text-sm rounded-md items-center ring ring-(--ui-bg-accented) transition-all duration-300 hover:ring-(--ui-primary)/50"
                         >
                           <NuxtImg
-                            src="https://star-hangar.com/media/catalog/product/cache/1c6b3665116ed742072997bd2095a829/r/s/rsi_galaxy_piece_09_16x9.jpg"
+                            src="1c0e59ef-8a92-419e-ba49-b4b609fc76da"
                             class="h-28 w-full object-cover rounded-t-md"
                           />
                           <div class="flex-1 items-center flex">
