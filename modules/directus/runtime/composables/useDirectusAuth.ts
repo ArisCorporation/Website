@@ -1,55 +1,35 @@
-import { readMe, passwordRequest, passwordReset } from '@directus/sdk';
+import { readMe } from '@directus/sdk';
 import type { RestClient, AuthenticationClient } from '@directus/sdk';
 import type { Schema } from '~~/types';
 import type { DirectusUser as User } from '~~/types';
 
-import { useState, useRuntimeConfig, useRoute, navigateTo, clearNuxtData, useNuxtApp } from '#imports';
+import { useRuntimeConfig, clearNuxtData, useNuxtApp } from '#imports';
 
 export default function useDirectusAuth<DirectusSchema extends object> () {
   const nuxtApp = useNuxtApp();
   const $directus = nuxtApp.$directus as RestClient<Schema> & AuthenticationClient<Schema>;
 
-  const user: Ref<User | null | undefined> = useState('user');
-
   const config = useRuntimeConfig();
 
-  const _loggedIn = {
-    get: () => process.client && localStorage.getItem('authenticated'),
-    set: (value: boolean) => process.client && localStorage.setItem('authenticated', value.toString()),
-  };
-
-  async function login (email: string, password: string, otp?: string) {
-    const route = useRoute();
-
-    // 1. Führe den Login über das Directus SDK aus.
-    // Das SDK sollte das Token-Management intern handhaben.
-    await $directus.login(email, password);
-
-    // 2. Rufe die Benutzerdaten ab, NACHDEM der SDK-Login erfolgreich war.
-    // Dies stellt sicher, dass user.value gesetzt ist, bevor weitere Aktionen erfolgen.
-    await fetchUser({ fields: ['*', { role: ['*'] }] });
-
-    // 3. Setze den _loggedIn Status im localStorage erst, NACHDEM die Benutzerdaten erfolgreich abgerufen wurden.
-    // Dies verhindert einen inkonsistenten Zustand, falls fetchUser fehlschlägt.
-    _loggedIn.set(true);
-
-    // 4. Navigiere zur Zielseite.
-    const returnPath = route.query.redirect?.toString();
-    const redirect = returnPath || '/ams'; // Vereinfachte Zuweisung
-    await navigateTo(redirect);
+  async function performSdkLogin (email: string, password: string, otp?: string): Promise<User> {
+    // Das SDK kümmert sich um das Token-Management (Cookies für SSR, localStorage für SPA-Flows).
+    await $directus.login(email, password, otp ? { otp } : undefined);
+    // Nach erfolgreichem SDK-Login die Benutzerdetails abrufen
+    const user = await performSdkFetchUser({ fields: ['*', { role: ['*'] }] });
+    return user;
   }
 
-  async function logout () {
+  async function performSdkLogout (): Promise<void> {
+    // Das SDK kümmert sich um das Entfernen des Tokens.
     await $directus.logout();
-    user.value = null;
-    _loggedIn.set(false); // Setze den Status im localStorage auf false
+    // Löscht Nuxt-spezifische zwischengespeicherte Daten, die mit dem Benutzer zusammenhängen könnten.
     await clearNuxtData();
-    await navigateTo(config.public?.directus?.auth?.redirect?.login || '/auth/login');
   }
 
-  async function fetchUser (params?: object) {
+  async function performSdkFetchUser (params?: object): Promise<User> {
     const fields = config.public?.directus?.auth?.userFields || ['*'];
-
+    // TODO: Die Typisierung für 'fields' könnte verbessert werden, um @ts-ignore zu vermeiden,
+    // abhängig von der genauen Struktur der Directus-Schema-Typen.
     const response = await $directus.request(
       readMe({
         // @ts-ignore
@@ -57,15 +37,33 @@ export default function useDirectusAuth<DirectusSchema extends object> () {
         ...params,
       }),
     );
+    return response as User;
+  }
 
-    user.value = response as User;
+  function getSdkToken (): string | null {
+    // Greift auf die interne Methode des SDK zu, um den Token zu erhalten.
+    // Dies prüft nicht die Gültigkeit des Tokens auf dem Server.
+    return $directus.getToken();
+  }
+
+  async function performSdkLightweightUserCheck (): Promise<User | null> {
+    // Führt eine minimale Anfrage aus, um die Gültigkeit des Tokens serverseitig zu prüfen.
+    // Fordert nur essentielle Felder an, um die Antwort klein zu halten.
+    try {
+      const minimalUser = await $directus.request(readMe({ fields: ['id', 'email'] }));
+      return minimalUser as User;
+    } catch (error) {
+      // Fängt Fehler ab (z.B. 401 Unauthorized), die auf einen ungültigen/abgelaufenen Token hindeuten.
+      console.warn('Lightweight user check failed, token might be invalid:', error);
+      return null;
+    }
   }
 
   return {
-    user,
-    login,
-    logout,
-    fetchUser,
-    _loggedIn,
+    performSdkLogin,
+    performSdkLogout,
+    performSdkFetchUser,
+    getSdkToken,
+    performSdkLightweightUserCheck,
   };
 }

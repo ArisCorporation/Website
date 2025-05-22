@@ -66,7 +66,7 @@ export default defineNuxtConfig({
   image: {
     provider: 'directus',
     directus: {
-      baseURL: process.env.NUXT_PUBLIC_FILE_BASE,
+      baseURL: process.env.NUXT_PUBLIC_API_URL + '/assets',
       modifiers: {
         format: 'webp',
       },

@@ -1,111 +1,195 @@
-// app/stores/auth.ts
+// /home/lgruber/Development/ArisCorporation/Website/stores/auth.ts
 import { defineStore } from 'pinia';
-import type { DirectusUser } from '@@/types'; // Passt auf den Pfad zu deinen Typen auf
-import { AuthStatus } from '@@/types';      // Passt auf den Pfad zu deinen Typen auf
-import { readMe, login as sdkLogin, logout as sdkLogout } from '@directus/sdk';
+import type { DirectusUser as User, Schema, DirectusUser } from '~~/types'; // Korrigierter Pfad
+// import useDirectusAuth from '~/modules/directus/runtime/composables/useDirectusAuth'; // Pfad ggf. anpassen
+import { navigateTo, useRoute, useRuntimeConfig } from '#imports';
 
 interface AuthState {
-  user: DirectusUser | null;
-  status: AuthStatus;
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean; // Für Ladezustände während Login/Logout/Fetch
 }
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
-    user: null,
-    status: AuthStatus.PENDING, // Startet als 'pending', bis der Status geprüft wurde
+    user: null as DirectusUser | null,
+    isAuthenticated: false,
+    isLoading: false, // Beginnt mit false, wird während Auth-Operationen auf true gesetzt
   }),
 
   getters: {
-    isAuthenticated: (state): boolean => state.status === AuthStatus.AUTHENTICATED,
-    currentUser: (state): DirectusUser | null => state.user,
-    authStatus: (state): AuthStatus => state.status,
+    currentUser: (state) => state.user,
+    isUserLoggedIn: (state) => state.isAuthenticated,
+    isAuthLoading: (state): boolean => state.isLoading,
   },
 
   actions: {
-    setUser (userData: DirectusUser | null) {
-      this.user = userData;
-      this.status = userData ? AuthStatus.AUTHENTICATED : AuthStatus.UNAUTHENTICATED;
-      // console.log('AuthStore: User set, new status:', this.status);
-    },
-
-    async fetchUser () {
-      // console.log('AuthStore: Versuch, Benutzer abzurufen...');
-      const { $directus } = useNuxtApp();
-      if (!$directus) {
-        // console.warn('AuthStore: Directus Client nicht verfügbar für fetchUser.');
-        this.setUser(null); // Setze auf nicht authentifiziert, wenn kein Client da ist
-        return;
-      }
+    async loginAndRedirect (email: string, password: string): Promise<void> {
+      this.isLoading = true;
+      // Das Composable wird für die SDK-Interaktion verwendet.
+      // Das SDK sollte das Token-Management (Cookies für SSR, localStorage für SPA) übernehmen.
+      const { performSdkLogin } = useDirectusAuth<Schema>();
 
       try {
-        // Ruft den aktuellen Benutzer ab, inklusive aller Felder (*) und der verknüpften Rolle mit all ihren Feldern (role.*)
-        // Passe 'role.*' an, falls dein Rollenfeld anders heißt oder du spezifischere Felder benötigst.
-        const user = await $directus.request(readMe<DirectusUser>({ fields: ['*', { 'role': ['*'] }] }));
-        this.setUser(user);
-        // console.log('AuthStore: Benutzer erfolgreich abgerufen:', user);
-      } catch (error) {
-        // console.warn('AuthStore: Kein authentifizierter Benutzer gefunden oder Fehler beim Abrufen.', error);
-        this.setUser(null);
-      }
-    },
+        // performSdkLogin führt den SDK-Login durch und gibt den Benutzer zurück.
+        const loggedInUser = await performSdkLogin(email, password);
 
-    async login (credentials: { email: string; password: string }) {
-      // console.log('AuthStore: Login-Versuch...');
-      const { $directus } = useNuxtApp();
-      if (!$directus) {
-        // console.error('AuthStore: Directus Client nicht verfügbar für Login.');
-        throw new Error('Directus Client nicht verfügbar.');
-      }
+        // Aktualisiere den Store-Zustand
+        this.user = loggedInUser;
+        this.isAuthenticated = true;
 
-      try {
-        await $directus.request(sdkLogin(credentials.email, credentials.password));
-        await this.fetchUser(); // Benutzerdaten nach erfolgreichem Login abrufen
-        // console.log('AuthStore: Login erfolgreich. Benutzer:', this.user);
-
-        // Weiterleitung nach dem Login
         const route = useRoute();
-        // Standard-Weiterleitung zu '/ams' oder zum in der URL-Query angegebenen Pfad
-        const redirectPath = route.query.redirect?.toString() || '/ams';
-        console.log(redirectPath)
+        const returnPath = route.query.redirect?.toString();
+        const redirectPath = returnPath || '/ams'; // Deine Standard-Weiterleitungsseite
         await navigateTo(redirectPath);
       } catch (error) {
-        // console.error('AuthStore: Login fehlgeschlagen.', error);
-        this.setUser(null);
-        throw error; // Fehler weitergeben, damit das Login-Formular ihn behandeln kann
+        // Bei einem Fehler den Store-Zustand zurücksetzen.
+        this.user = null;
+        this.isAuthenticated = false;
+        throw error; // Fehler weitergeben, damit die Komponente ihn behandeln kann
+      } finally {
+        this.isLoading = false;
       }
     },
 
-    async logout () {
-      // console.log('AuthStore: Logout-Versuch...');
-      const { $directus } = useNuxtApp();
-      if (!$directus) {
-        // console.warn('AuthStore: Directus Client nicht verfügbar für Logout.');
-        this.setUser(null); // Lokalen Status trotzdem zurücksetzen
-        await navigateTo('/auth/login');
+    async logoutAndRedirect (): Promise<void> {
+      this.isLoading = true;
+      const { performSdkLogout } = useDirectusAuth<Schema>();
+      const config = useRuntimeConfig();
+
+      try {
+        await performSdkLogout();
+        // Nach erfolgreichem SDK-Logout den Store-Zustand zurücksetzen.
+        this.user = null;
+        this.isAuthenticated = false;
+
+        await navigateTo(config.public?.directus?.auth?.redirect?.login || '/auth/login');
+      } catch (error) {
+        console.error("Logout fehlgeschlagen:", error);
+        // Auch bei einem Fehler den Store-Zustand zurücksetzen.
+        this.user = null;
+        this.isAuthenticated = false;
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async _syncUserFromSdk (
+      performSdkFetchUser: () => Promise<User | null>
+    ): Promise<void> {
+      // Diese Aktion dient dazu, den Benutzer zu laden, wenn bereits ein Token vorhanden ist
+      // (z.B. beim Laden der App) und den Store zu aktualisieren.
+      // Der isLoading-Zustand wird vom Aufrufer (z.B. initializeAuth) verwaltet.
+      // const { performSdkFetchUser } = useDirectusAuth<Schema>(); // Moved to caller
+      try {
+        // performSdkFetchUser versucht, den Benutzer basierend auf dem vorhandenen Token (Cookie/localStorage) abzurufen.
+        const fetchedUser = await performSdkFetchUser();
+        this.user = fetchedUser;
+        this.isAuthenticated = !!fetchedUser; // Sicherstellen, dass isAuthenticated korrekt gesetzt wird
+        console.log('AuthStore: Benutzer erfolgreich via SDK synchronisiert.', fetchedUser);
+      } catch (error) {
+        console.error("Fehler beim Synchronisieren des Benutzers vom SDK:", error);
+        // Wenn der Abruf fehlschlägt (kein Token, ungültiges Token etc.), ist der Benutzer nicht authentifiziert.
+        this.user = null;
+        this.isAuthenticated = false;
+        // Es ist nicht zwingend notwendig, den Fehler hier weiterzugeben,
+        // da initializeAuth den Zustand bereits korrekt setzt.
+        // throw error; // Einkommentieren, falls der Aufrufer den Fehler spezifisch behandeln muss.
+      }
+    },
+
+    async initializeAuth (): Promise<void> {
+      // Diese Aktion wird von einem Nuxt-Plugin beim Client-Start aufgerufen
+
+      // Wenn bereits authentifiziert (z.B. durch SSR oder vorherige Client-Aktion),
+      // sicherstellen, dass isLoading false ist und nichts weiter tun.
+      if (this.isAuthenticated) {
+        console.log('AuthStore: initializeAuth - Benutzer ist bereits authentifiziert (möglicherweise durch SSR).');
+        this.isLoading = false; // Stelle sicher, dass isLoading korrekt ist.
         return;
       }
 
+      // Wenn ein anderer Authentifizierungsvorgang bereits aktiv ist, nichts weiter tun.
+      if (this.isLoading) {
+        console.log('AuthStore: initializeAuth - Authentifizierungsvorgang läuft bereits.');
+        return;
+      }
+
+      this.isLoading = true;
+      console.log('AuthStore: initializeAuth - Starte Authentifizierungsprozess.');
+
+      const { getSdkToken, performSdkLightweightUserCheck, performSdkFetchUser } = useDirectusAuth<Schema>();
+
       try {
-        await $directus.request(sdkLogout());
-        // console.log('AuthStore: Logout erfolgreich.');
+        const token = getSdkToken(); // Schnelle Prüfung: Existiert ein Token-String?
+
+        if (token) {
+          console.log('AuthStore: Token existiert. Führe Lightweight User Check durch.');
+          // Tiefere Prüfung: Ist der Token (wahrscheinlich) gültig, indem minimale Benutzerdaten angefordert werden?
+          const minimalUser = await performSdkLightweightUserCheck();
+
+          if (minimalUser) {
+            console.log('AuthStore: Lightweight User Check erfolgreich. Benutzer ist authentifiziert.');
+            this.isAuthenticated = true;
+            this.user = minimalUser; // Setze minimale Benutzerdaten sofort
+
+            console.log('AuthStore: Fordere vollständige Benutzerdetails im Hintergrund an.');
+            // Lade vollständige Benutzerdaten. Fehler hier sollten nicht unbedingt den isAuthenticated-Status zurücksetzen,
+            // es sei denn, es ist ein kritischer Fehler, der die Sitzung ungültig macht.
+            // Stelle sicher, dass dieser Aufruf awaited wird, damit der Server wartet.
+            await this._syncUserFromSdk(() =>
+              performSdkFetchUser({ fields: ['*', { role: ['*'] }] })
+            );
+            // Errors from _syncUserFromSdk are handled internally by it setting user/auth state,
+            // or will be caught by the outer try...catch if _syncUserFromSdk re-throws.
+          } else {
+            console.log('AuthStore: Lightweight User Check fehlgeschlagen. Token ungültig oder abgelaufen.');
+            this.isAuthenticated = false;
+            this.user = null;
+          }
+        } else {
+          console.log('AuthStore: Kein Token gefunden.');
+          this.isAuthenticated = false;
+          this.user = null;
+        }
       } catch (error) {
-        // console.error('AuthStore: Logout auf dem Server fehlgeschlagen, lokaler Status wird trotzdem zurückgesetzt.', error);
+        console.error("AuthStore: Unerwarteter Fehler während initializeAuth:", error);
+        this.isAuthenticated = false;
+        this.user = null;
       } finally {
-        this.setUser(null);
-        await navigateTo('/auth/login'); // Zur Login-Seite weiterleiten
+        // isLoading wird am Ende des gesamten initializeAuth-Prozesses auf false gesetzt,
+        // nachdem alle (auch die vollständigen Benutzerdaten) geladen oder fehlgeschlagen sind.
+        this.isLoading = false;
       }
     },
 
-    /**
-     * Initialisiert den Authentifizierungsstatus.
-     * Wird typischerweise einmal beim App-Start (z.B. durch die Middleware) aufgerufen.
-     */
-    async initializeAuth () {
-      // console.log('AuthStore: Initialisiere Authentifizierung...');
-      if (this.status === AuthStatus.PENDING) {
-        await this.fetchUser();
-      }
-      // console.log('AuthStore: Authentifizierung initialisiert. Status:', this.status);
+    setUser (newUser: DirectusUser | null) {
+      this.user = newUser;
+      this.isAuthenticated = !!newUser;
     },
-  },
+
+    async refreshCurrentUser (): Promise<void> {
+      if (!this.isAuthenticated) {
+        console.warn("AuthStore: refreshCurrentUser aufgerufen, aber kein Benutzer ist authentifiziert.");
+        return;
+      }
+      console.log("AuthStore: Aktualisiere Benutzerdaten vom Server...");
+      this.isLoading = true; // Optional: Ladezustand für den Refresh setzen
+      try {
+        const { performSdkFetchUser } = useDirectusAuth<Schema>();
+        const refreshedUser = await performSdkFetchUser({
+          fields: ['*', { role: ['*'] }],
+        }); // oder spezifischere Felder
+        this.setUser(refreshedUser);
+        console.log("AuthStore: Benutzerdaten erfolgreich aktualisiert.");
+      } catch (error) {
+        console.error("AuthStore: Fehler beim Aktualisieren der Benutzerdaten:", error);
+        // Optional: Fehlerbehandlung, z.B. Benutzer ausloggen, wenn Token ungültig wurde
+        this.logoutAndRedirect(); // Beispiel
+      } finally {
+        this.isLoading = false; // Ladezustand zurücksetzen
+      }
+    },
+
+  }
 });

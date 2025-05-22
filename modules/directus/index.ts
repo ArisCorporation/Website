@@ -149,9 +149,7 @@ export default defineNuxtModule({
 
     // Add plugins
     const restPlugin = resolve(runtimeDir, './plugins/directus');
-    const authPlugin = resolve(runtimeDir, './plugins/auth');
     addPlugin(restPlugin, { append: true });
-    addPlugin(authPlugin, { append: true });
 
     // Add composables directory
     const composables = resolve(runtimeDir, 'composables');
