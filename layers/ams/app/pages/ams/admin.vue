@@ -2,7 +2,7 @@
 definePageMeta({
   layout: 'ams',
   auth: true,
-  access_level: 4,
+  access_level: 5,
 })
 </script>
 

@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import { useSortable } from '@vueuse/integrations/useSortable.mjs'
-import type { Ships } from '~~/types'
+import type { Company, Department, Ship, UserHangar } from '~~/types'
 
-defineProps<{ ships: Ships[] }>()
+const props = defineProps<{ data: UserHangar[] }>()
 
 const store = useAMSCalculatorStore()
 const { crews } = storeToRefs(store)
-const expanded = ref({ 1: true })
+const expanded = ref({ 1: false })
 const editSlideover = ref<boolean>(false)
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
-const columns: TableColumn<Ships>[] = [
+const columns: TableColumn<UserHangar>[] = [
   {
     id: 'expand',
     cell: ({ row }) =>
@@ -34,17 +34,18 @@ const columns: TableColumn<Ships>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
-    cell: ({ row }) => `Custom name`,
+    cell: ({ row }) => `${row.getValue('name')}`,
   },
   {
     accessorKey: 'model',
     header: 'Modell',
-    cell: ({ row }) => `${row.getValue('name')}`,
+    cell: ({ row }) => `${(row.original.ship_id as Ship).name}`,
   },
   {
     accessorKey: 'manufacturer',
     header: 'Hersteller',
-    cell: ({ row }) => `${row.getValue('manufacturer')?.name}`,
+    cell: ({ row }) =>
+      `${((row.original.ship_id as Ship).manufacturer as Company).name}`,
   },
   {
     accessorKey: 'visibility',
@@ -62,22 +63,23 @@ const columns: TableColumn<Ships>[] = [
     },
   },
   {
-    accessorKey: 'allocation',
+    accessorKey: 'group',
     header: 'Zuordnung',
     cell: ({ row }) => {
       const color = {
         ariscorp: 'primary' as const,
         private: 'neutral' as const,
-      }[row.getValue('allocation') as string]
+      }[row.getValue('group') as string]
 
       return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () =>
-        row.getValue('allocation')
+        row.getValue('group')
       )
     },
   },
   {
     accessorKey: 'department',
     header: 'Abteilung',
+    cell: ({ row }) => `${(row.original.department as Department)?.name ?? ''}`,
   },
   {
     id: 'actions',
@@ -91,7 +93,7 @@ const columns: TableColumn<Ships>[] = [
       ref="teamsUiTableRef"
       v-model:expanded="expanded"
       :columns="columns"
-      :data="ships"
+      :data="data"
       :ui="{
         thead:
           'bg-(--ui-primary)/5 hover:bg-(--ui-primary)/15 [&>tr]:after:bg-(--ui-primary)/20',
@@ -102,60 +104,25 @@ const columns: TableColumn<Ships>[] = [
       }"
       class="h-xl"
     >
-      <template #actions-cell="{ row }">
-        <USlideover
-          v-model:open="editSlideover"
-          :ui="{
-            header: '!p-0',
-            content: 'ring-(--ui-primary)/10 divide-(--ui-primary)/10',
-          }"
+      <template #model-cell="{ row }">
+        <NuxtLink
+          :to="`/ships/${(row.original.ship_id as Ship).slug}`"
+          class="hover:text-(--ui-primary) transition-color duration-300 hover:text-shadow-xs hover:text-shadow-primary"
+          >{{ (row.original.ship_id as Ship).name }}</NuxtLink
         >
-          <UButton variant="ghost" icon="i-lucide-square-pen" class="ml-auto" />
-          <template #header>
-            <div class="relative aspect-[26/9] overflow-hidden">
-              <NuxtImg
-                :src="row.original.store_image"
-                class="h-full not-prose w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-            </div>
+      </template>
+      <template #actions-cell="{ row }">
+        <AMSPagesHangarShipEdit :item="row.original">
+          <template #default="{ open }">
+            <UButton
+              @click="open"
+              variant="ghost"
+              icon="i-lucide-square-pen"
+              class="ml-auto"
+            />
           </template>
-          <template #body>
-            <UForm>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <UFormField label="Schiffsname" class="col-span-2">
-                  <UInput variant="ghost" highlight class="w-full" />
-                </UFormField>
-                <UFormField label="Seriennummer">
-                  <UInput variant="ghost" highlight class="w-full" />
-                </UFormField>
-                <UFormField label="Paint">
-                  <UInput variant="ghost" highlight class="w-full" />
-                </UFormField>
-              </div>
-            </UForm>
-          </template>
-          <template #footer>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-              <UButton
-                @click="() => (editSlideover = false)"
-                label="Schließen"
-                variant="outline"
-                color="error"
-                size="lg"
-                class="w-full justify-center"
-              />
-              <UButton
-                label="Speichern"
-                variant="outline"
-                color="success"
-                size="lg"
-                class="w-full justify-center"
-              />
-            </div>
-          </template>
-        </USlideover>
+        </AMSPagesHangarShipEdit>
         <UButton
-          @click="store.removeCrew(row.original.id)"
           variant="ghost"
           color="error"
           icon="i-lucide-trash-2"

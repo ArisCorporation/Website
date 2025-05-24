@@ -8,9 +8,9 @@ import type { DirectusFile } from '@@/types'; // Nuxt 3 auto-importiert Typen, z
  * @param source Die Bildquelle.
  * @returns Die Asset-ID als String oder undefined, wenn keine ID extrahiert werden kann.
  */
-export function getAssetId (source: string | DirectusFile | null | undefined): string | undefined {
+export function getAssetId (source: string | DirectusFile | null | undefined): string {
   if (source === null || source === undefined) {
-    return undefined; // <NuxtImg> behandelt undefined für src meist korrekt (kein Bild / Fallback)
+    return ''; // <NuxtImg> behandelt undefined für src meist korrekt (kein Bild / Fallback)
   }
 
   // Fall 1: Quelle ist bereits ein String
@@ -31,5 +31,5 @@ export function getAssetId (source: string | DirectusFile | null | undefined): s
 
   // Fallback, wenn keine ID extrahiert werden konnte
   console.warn('Konnte keine Asset-ID aus der Quelle extrahieren:', source);
-  return undefined;
+  return '';
 }

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+const store = useAuthStore()
+const { currentUserId: userId } = storeToRefs(store)
+
 const mode = useCookie<'cards' | 'table'>('ams:hangar-view')
 mode.value = mode.value || 'cards'
 const shortFilterOptions = reactive([
@@ -29,7 +32,57 @@ const viewOptions = reactive([
   },
 ])
 
-const shortFilter = ref<(typeof shortFilterOptions)[number]['key']>('all')
+const shortFilter = ref<'ariscorp' | 'personal' | 'all'>('all')
+const shortFilterValue = ref<'ariscorp' | 'private' | null>(null)
+
+watch(
+  () => shortFilter.value,
+  (value) => {
+    if (value === 'ariscorp') {
+      shortFilterValue.value = 'ariscorp'
+    } else if (value === 'personal') {
+      shortFilterValue.value = 'private'
+    } else {
+      shortFilterValue.value = null
+    }
+  }
+)
+
+const { data } = await useAsyncData(
+  computed(() => `ams:user-hangar-${userId.value}`),
+  () =>
+    useDirectus(
+      readItems('user_hangars', {
+        filter: {
+          user_id: { _eq: userId.value },
+        },
+        fields: [
+          '*',
+          { department: ['name'] },
+          {
+            ship_id: [
+              'id',
+              'name',
+              'slug',
+              'classification',
+              'focuses',
+              { store_image: ['id'] },
+              { manufacturer: ['name', 'code', 'slug'] },
+              {
+                modules: [
+                  'id',
+                  'name',
+                  'slug',
+                  { manufacturer: ['name', 'code'] },
+                  { gallery: ['directus_file_id'] },
+                ],
+              },
+            ],
+          },
+        ],
+      })
+    )
+)
 
 definePageMeta({
   layout: 'ams',
@@ -193,16 +246,25 @@ definePageMeta({
       </URadioGroup>
     </div>
     <template v-if="mode === 'table'">
-      <AMSPagesHangarShips :hangarItem="mockUser?.hangar_items" />
+      <AMSPagesHangarShips
+        :data="
+          data?.filter((item) =>
+            shortFilterValue ? item.group === shortFilterValue : true
+          )
+        "
+      />
     </template>
     <template v-else-if="mode === 'cards'">
       <div
         class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
       >
         <AMSUiShipCard
-          v-for="ship in mockUser?.hangar_items"
-          :hangarItem="ship"
+          v-for="ship in data?.filter((item) =>
+            shortFilterValue ? item.group === shortFilterValue : true
+          )"
           :key="ship.id"
+          mode="hangar-item"
+          :data="ship"
         />
       </div>
     </template>

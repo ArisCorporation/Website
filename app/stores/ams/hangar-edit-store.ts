@@ -99,6 +99,7 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
      * Stellt sicher, dass `formData` immer ein valides POJO gemäß Schema ist.
      */
     initForm (item: UserHangar) {
+      console.log(item)
       this.apiValidationErrors = {}; // Alte API-Fehler zurücksetzen
       this.submitError = null;       // Alten generellen Fehler zurücksetzen
 
@@ -118,17 +119,17 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
         // name: UserHangar.name ist string | null, schema.name ist string().optional()
         name: pickedSourceData.name ?? undefined,
         // name_public: UserHangar.name_public ist boolean | null, schema.name_public ist z.boolean()
-        name_public: pickedSourceData.name_public ?? false,
+        name_public: pickedSourceData.name_public ?? true,
         // serial: UserHangar.serial ist string | null, schema.serial ist string().optional()
         serial: pickedSourceData.serial ?? undefined,
         // group: UserHangar.group ist enum | null, schema.group ist z.enum(['ariscorp', 'private']) (erforderlich)
         group: (pickedSourceData.group === 'ariscorp' || pickedSourceData.group === 'private')
           ? pickedSourceData.group
-          : 'private',
+          : 'ariscorp',
         // visibility: UserHangar.visibility ist enum | null, schema.visibility ist z.enum(...) (erforderlich)
         visibility: (pickedSourceData.visibility === 'public' || pickedSourceData.visibility === 'internal' || pickedSourceData.visibility === 'hidden')
           ? pickedSourceData.visibility
-          : 'hidden',
+          : 'public',
         // department: UserHangar.department ist Department | string | null, schema.department ist string().optional()
         department: resolveToStringOrUndefined(pickedSourceData.department),
         // planned: UserHangar.planned ist boolean | null, schema.planned ist z.boolean() (erforderlich)

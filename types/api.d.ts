@@ -594,7 +594,7 @@ export interface ShipModule {
   price?: number | null;
   production_status?: `flight-ready` | `in-production` | `in-concept` | null;
   description?: string | null;
-  gallery?: DirectusFile[] | string[] | null;
+  gallery?: ShipModulesGallery[] | string[] | null;
 }
 
 export interface ShipModulesGallery {

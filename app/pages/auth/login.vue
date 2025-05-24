@@ -36,7 +36,7 @@ async function attemptLogin() {
 
 definePageMeta({
   layout: false,
-  middleware: 'guest',
+  guest: true,
 })
 </script>
 <template>
