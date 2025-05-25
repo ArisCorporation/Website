@@ -52,6 +52,8 @@ jobs:
             NUXT_PUBLIC_URL=${{ vars.NUXT_PUBLIC_URL }}
             # Diese Variable kommt weiterhin aus GitHub Secrets (secrets.*)
             NUXT_SENTRY_AUTH_TOKEN=${{ secrets.NUXT_SENTRY_AUTH_TOKEN }}
+            NUXT_DISCORD_GUILD_ID=${{ secrets.NUXT_DISCORD_GUILD_ID }}
+            NUXT_DISCORD_BOT_TOKEN=${{ secrets.NUXT_DISCORD_BOT_TOKEN }}
             # Diese Variable kommt dynamisch aus dem GitHub Kontext
             SOURCE_COMMIT=${{ github.sha }}
           # Optional: Caching aktivieren für schnellere Builds
