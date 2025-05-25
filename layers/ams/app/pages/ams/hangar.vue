@@ -48,41 +48,7 @@ watch(
   }
 )
 
-const { data } = await useAsyncData(
-  computed(() => `ams:user-hangar-${userId.value}`),
-  () =>
-    useDirectus(
-      readItems('user_hangars', {
-        filter: {
-          user_id: { _eq: userId.value },
-        },
-        fields: [
-          '*',
-          { department: ['name'] },
-          {
-            ship_id: [
-              'id',
-              'name',
-              'slug',
-              'classification',
-              'focuses',
-              { store_image: ['id'] },
-              { manufacturer: ['name', 'code', 'slug'] },
-              {
-                modules: [
-                  'id',
-                  'name',
-                  'slug',
-                  { manufacturer: ['name', 'code'] },
-                  { gallery: ['directus_file_id'] },
-                ],
-              },
-            ],
-          },
-        ],
-      })
-    )
-)
+const { data, refresh } = await useFetchAMSHangar(userId)
 
 definePageMeta({
   layout: 'ams',
@@ -97,118 +63,16 @@ definePageMeta({
       title="Hangar"
       description="Verwalte deine eigenen Schiffe und Fahrzeuge."
     >
-      <USlideover
-        :ui="{
-          content: 'max-w-xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
-        }"
-      >
-        <UButton
-          label="Schiffe hinzufügen"
-          icon="i-lucide-circle-plus"
-          variant="subtle"
-        />
-        <template #header>
-          <h3 class="!my-0">Schiffe hinzufügen</h3>
-        </template>
-        <template #body>
-          <!-- <UInput
-            highlight
-            variant="outline"
-            icon="i-lucide-search"
-            placeholder="Hersteller, Modell"
-            size="lg"
-            class="w-full mb-6"
+      <AMSPagesHangarAddSlideover @added="refresh">
+        <template #default="{ openSlideover }">
+          <UButton
+            @click="openSlideover"
+            label="Schiffe hinzufügen"
+            icon="i-lucide-circle-plus"
+            variant="subtle"
           />
-          <USeparator variant="ams" /> -->
-          <div class="space-y-4">
-            <UCard variant="ams">
-              <div class="space-y-4">
-                <p class="text-(--ui-primary)">Schiff 1</p>
-                <UFormField label="Modell" required>
-                  <USelectMenu
-                    variant="ams"
-                    value-key="id"
-                    label-key="name"
-                    class="w-full"
-                  />
-                </UFormField>
-                <UFormField label="Schiffsname" hint="Optional">
-                  <UInput
-                    highlight
-                    variant="outline"
-                    placeholder="Aris ONE"
-                    class="w-full"
-                  />
-                </UFormField>
-                <USeparator variant="ams" />
-                <UFormField label="Zuordnung" required>
-                  <URadioGroup
-                    indicator="hidden"
-                    variant="table"
-                    orientation="horizontal"
-                    size="sm"
-                    default-value="ariscorp"
-                    :items="[
-                      { label: 'ArisCorp', value: 'ariscorp' },
-                      { label: 'Privat', value: 'private' },
-                    ]"
-                    class="prose-p:my-0"
-                    :ui="{ item: 'p-2' }"
-                  />
-                </UFormField>
-                <UFormField label="Sichtbarkeit">
-                  <URadioGroup
-                    indicator="hidden"
-                    variant="table"
-                    orientation="horizontal"
-                    size="sm"
-                    default-value="public"
-                    :items="[
-                      { label: 'Öffentlich', value: 'public' },
-                      { label: 'Intern', value: 'internal' },
-                      { label: 'Privat', value: 'private' },
-                    ]"
-                    class="prose-p:my-0"
-                    :ui="{ item: 'p-2' }"
-                  />
-                </UFormField>
-                <div
-                  class="flex w-full p-3 text-sm rounded-md items-center gap-4 ring ring-(--ui-bg-accented)"
-                >
-                  <NuxtImg
-                    src="https://media.starcitizen.tools/1/1b/RSI_Galaxy_concept_-_front_quarter_-_Cut.jpg?format=webp"
-                    class="size-12 object-cover rounded-md"
-                  />
-                  <div class="flex-1">
-                    <strong class="pb-1 block">Galaxy</strong>
-                    <p class="!m-0 text-(--ui-text-muted) text-xs">
-                      <span>RSI &bull; Modular</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </UCard>
-            <UButton
-              highlight
-              variant="outlinedashed"
-              label="Weiteres Schiff hinzufügen"
-              icon="i-lucide-plus"
-              size="lg"
-              class="w-full justify-center mt-4 !ring-none"
-            />
-          </div>
         </template>
-        <template #footer>
-          <div class="ml-auto items-center space-x-4 flex">
-            <UButton variant="outline" label="Abbrechen" />
-            <UButton
-              icon="i-lucide-check"
-              trailing
-              label="Zum Hangar hinzufügen"
-            />
-          </div>
-        </template>
-      </USlideover>
+      </AMSPagesHangarAddSlideover>
     </AMSPageHeader>
     <UInput
       highlight

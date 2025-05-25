@@ -153,7 +153,8 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
      * Sendet die validierten Formulardaten an das Backend.
      * @param validatedDataFromForm Die von <UForm> bereits validierten Daten.
      */
-    async submitHangarItem (validatedDataFromForm: HangarItemFormData): Promise<boolean> {
+    async submitHangarItem (): Promise<boolean> {
+      const validatedDataFromForm = this.formData
       this.submitError = null;
       this.apiValidationErrors = {}; // Alte API-Feldfehler vor neuem Versuch löschen
       this.isSubmitting = true;
@@ -177,6 +178,8 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
           console.error("SubmitHangarItem Error: Item ID is missing.", { payloadId: payload.id, formDataId: this.formData.id });
           return false;
         }
+
+        const updatedItem = await useDirectus(updateItem('user_hangars', itemId, payload))
 
         // @TODO Update Logic
 

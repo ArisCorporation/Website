@@ -10,7 +10,9 @@ import type {
 const props = defineProps<{ item: UserHangar }>()
 
 const store = useHangarItemEditStore()
+const authStore = useAuthStore()
 const { formData } = storeToRefs(store)
+const { currentUserId: userId } = storeToRefs(authStore)
 
 const editSlideoverOpen = ref<boolean>(false)
 
@@ -26,7 +28,16 @@ function handleEditOpen() {
 }
 
 // @TODO: Logik für handleEditSubmit implementieren
-function handleEditSubmit() {
+async function handleEditSubmit() {
+  editSlideoverOpen.value = false
+
+  await setTimeout(async () => {
+    await store.submitHangarItem()
+
+    const { refresh } = await useFetchAMSHangar(userId)
+    refresh()
+  }, 300)
+
   // z.B. store.submitForm().then(() => editSlideoverOpen.value = false)
   console.log('Edit submit triggered')
 }
@@ -166,7 +177,7 @@ const { data: departments } = useLazyAsyncData(
                         icon: 'i-lucide-shield',
                       },
                       {
-                        key: 'private',
+                        key: 'hidden',
                         label: 'Privat',
                         icon: 'i-lucide-eye-off',
                       },
@@ -353,6 +364,7 @@ const { data: departments } = useLazyAsyncData(
           class="w-full justify-center"
         />
         <UButton
+          @click="handleEditSubmit"
           label="Speichern"
           variant="outline"
           color="success"

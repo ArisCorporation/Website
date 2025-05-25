@@ -986,7 +986,7 @@ export interface Uee {
 
 export interface UserHangar {
   /** @primaryKey */
-  id: number;
+  id?: number;
   user_id?: DirectusUser | string | null;
   ship_id?: Ship | string | null;
   name?: string | null;

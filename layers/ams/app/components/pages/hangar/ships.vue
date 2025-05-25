@@ -123,6 +123,7 @@ const columns: TableColumn<UserHangar>[] = [
           </template>
         </AMSPagesHangarShipEdit>
         <UButton
+          @click="removeHangarItem(row.original.id)"
           variant="ghost"
           color="error"
           icon="i-lucide-trash-2"

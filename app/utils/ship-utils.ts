@@ -64,12 +64,12 @@ const germanFocusMap: Record<string, string> = {
 };
 
 export function getFocusLabels (focusses: string[]): string[] {
-  return focusses.map(focusValue => germanFocusMap[focusValue] || focusValue);
+  return focusses?.map(focusValue => germanFocusMap[focusValue] || focusValue);
 }
 
 export function getMainFocusLabel (focusses: string[]): string {
-  const labels = focusses.map(focusValue => germanFocusMap[focusValue] || focusValue);
-  if (!labels[0]) return 'N/A'
+  const labels = focusses?.map(focusValue => germanFocusMap[focusValue] || focusValue);
+  if (!labels?.length) return 'N/A'
 
   if (labels.find((e) => e === 'Modular')) return 'Modular'
   else return labels[0]
