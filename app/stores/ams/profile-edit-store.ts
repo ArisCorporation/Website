@@ -11,7 +11,7 @@ import resolveToStringOrUndefined from '~~/layers/ams/app/utils/resolve-string-o
 // Passe dies genau an die Felder an, die du im Profil-Bearbeitungsformular haben möchtest.
 export const userProfileSchema = z.object({
   first_name: z.string().min(1, 'Vorname ist erforderlich').optional().nullable(),
-  last_name: z.string().min(1, 'Nachname ist erforderlich').optional().nullable(),
+  last_name: z.string().optional().nullable(),
   // Email wird oft separat oder gar nicht im Standard-Profil-Edit geändert
   // email: z.string().email("Ungültige E-Mail-Adresse").optional().nullable(),
   location: z.string().optional().nullable(),
@@ -112,7 +112,12 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
   },
 
   actions: {
-    initForm (user: DirectusUser) {
+    initForm () {
+      const authStore = useAuthStore();
+      const user = authStore.currentUser;
+
+      if (!user) return
+
       this.apiValidationErrors = {};
       this.submitError = null;
 
@@ -217,7 +222,7 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         // Der Watcher in der Vue-Komponente auf authStore.currentUser sollte dies auch tun,
         // aber ein direkter Aufruf hier ist expliziter.
         if (authStore.currentUser) {
-          this.initForm(authStore.currentUser);
+          this.initForm();
         }
 
         return true;

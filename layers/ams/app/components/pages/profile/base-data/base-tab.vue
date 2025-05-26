@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const profileEdit = useProfileEditStore()
+// const profileEdit = useProfileEditStore()
 
 interface gender {
   label: string
@@ -12,15 +12,15 @@ const genderOptions = reactive<gender[]>([
 ])
 
 // Beispiel für dynamischen Hilfetext basierend auf dem Input-Wert
-const firstNameHelpText = computed(() => {
-  if (
-    profileEdit.currentFormData.firstName &&
-    profileEdit.currentFormData.firstName.length < 2
-  ) {
-    return 'Mindestens 2 Zeichen benötigt.'
-  }
-  return ''
-})
+// const firstNameHelpText = computed(() => {
+//   if (
+//     profileEdit.currentFormData.firstName &&
+//     profileEdit.currentFormData.firstName.length < 2
+//   ) {
+//     return 'Mindestens 2 Zeichen benötigt.'
+//   }
+//   return ''
+// })
 </script>
 
 <template>

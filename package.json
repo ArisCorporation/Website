@@ -11,35 +11,37 @@
     "generate:types": "npx directus-sdk-typegen -u https://cms.ariscorp.de -t TOKEN -o ./types/api.d.ts"
   },
   "dependencies": {
-    "@compodium/nuxt": "0.1.0-beta.9",
+    "@compodium/nuxt": "0.1.0-beta.10",
     "@directus/sdk": "^19.1.0",
-    "@nuxt/eslint": "1.3.0",
+    "@nuxt/eslint": "1.4.1",
     "@nuxt/image": "1.10.0",
-    "@nuxt/kit": "^3.17.3",
-    "@nuxt/test-utils": "3.17.2",
-    "@nuxt/ui": "^3.1.1",
+    "@nuxt/kit": "^3.17.4",
+    "@nuxt/test-utils": "3.19.0",
+    "@nuxt/ui": "^3.1.2",
     "@tanstack/vue-table": "^8.21.3",
     "@tiptap/starter-kit": "^2.12.0",
     "@types/sortablejs": "^1.15.8",
-    "@vueuse/integrations": "^13.1.0",
-    "eslint": "^9.26.0",
-    "nuxt": "^3.17.2",
+    "@vueuse/integrations": "^13.2.0",
+    "eslint": "^9.27.0",
+    "nuxt": "^3.17.4",
     "nuxt-tiptap-editor": "2.2.1",
     "pinia": "^3.0.2",
     "sortablejs": "^1.15.6",
-    "tailwindcss": "^4.1.6",
+    "tailwindcss": "^4.1.7",
     "typescript": "^5.8.3",
     "ufo": "^1.6.1",
-    "vue": "^3.5.13",
+    "vue": "^3.5.14",
     "vue-router": "^4.5.1",
-    "zod": "^3.24.4"
+    "zod": "^3.25.28"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.44",
     "@pinia/nuxt": "^0.11.0",
     "@tailwindcss/typography": "^0.5.16",
-    "@vueuse/nuxt": "^13.1.0",
-    "lodash": "^4.17.21"
+    "@types/lodash": "^4.17.17",
+    "@vueuse/nuxt": "^13.2.0",
+    "lodash": "^4.17.21",
+    "vitest": "^3.1.4"
   },
-  "packageManager": "pnpm@10.9.0+sha512.0486e394640d3c1fb3c9d43d49cf92879ff74f8516959c235308f5a8f62e2e19528a65cdc2a3058f587cde71eba3d5b56327c8c33a97e4c4051ca48a10ca2d5f"
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
 }

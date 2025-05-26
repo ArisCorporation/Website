@@ -109,7 +109,7 @@ definePageMeta({
         </template>
       </URadioGroup>
     </div>
-    <template v-if="mode === 'table'">
+    <template v-if="data?.length && mode === 'table'">
       <AMSPagesHangarShips
         :data="
           data?.filter((item) =>
@@ -118,7 +118,7 @@ definePageMeta({
         "
       />
     </template>
-    <template v-else-if="mode === 'cards'">
+    <template v-else-if="data?.length && mode === 'cards'">
       <div
         class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
       >
@@ -130,6 +130,17 @@ definePageMeta({
           mode="hangar-item"
           :data="ship"
         />
+      </div>
+    </template>
+    <template v-else>
+      <div class="size-full flex flex-wrap items-center justify-center">
+        <h2 class="text-center w-full">Dein Hangar ist leer.</h2>
+        <UButton
+          variant="subtle"
+          size="xl"
+          class="transition-shadow shadow shadow-primary hover:shadow-none duration-300 hover:drop-shadow-xl hover:drop-shadow-primary"
+          >Füge jetzt Schiffe hinzu</UButton
+        >
       </div>
     </template>
   </div>
