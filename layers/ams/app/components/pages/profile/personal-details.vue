@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const profileEdit = useUserProfileEditStore()
+
 interface title {
   label: string
   value: string | null
@@ -36,7 +38,13 @@ const genderOptions = reactive<gender[]>([
           size="xs"
           class="w-full"
         >
-          <UInput highlight size="md" placeholder="Chris" class="w-full" />
+          <UInput
+            v-model="profileEdit.formData.first_name"
+            highlight
+            size="md"
+            placeholder="Chris"
+            class="w-full"
+          />
         </UFormField>
         <UFormField
           label="Zweiter Vorname"
@@ -45,7 +53,13 @@ const genderOptions = reactive<gender[]>([
           size="xs"
           class="w-full"
         >
-          <UInput highlight size="md" placeholder="Chris" class="w-full" />
+          <UInput
+            v-model="profileEdit.formData.middle_name"
+            highlight
+            size="md"
+            placeholder="Chris"
+            class="w-full"
+          />
         </UFormField>
         <UFormField
           label="Nachname"
@@ -55,18 +69,14 @@ const genderOptions = reactive<gender[]>([
           class="w-full"
         >
           <UInput
+            v-model="profileEdit.formData.last_name"
             highlight
             size="md"
             placeholder="Roberts"
             class="w-full"
           />
         </UFormField>
-        <UFormField
-          label="Benutzername"
-          name="slug"
-          size="xs"
-          class="w-full"
-        >
+        <UFormField label="Benutzername" name="slug" size="xs" class="w-full">
           <UInput
             disabled
             highlight
@@ -93,6 +103,7 @@ const genderOptions = reactive<gender[]>([
           class="w-full"
         >
           <USelectMenu
+            v-model="profileEdit.formData.title"
             :items="titleOptions"
             variant="ams"
             size="md"
@@ -100,12 +111,7 @@ const genderOptions = reactive<gender[]>([
             class="w-full"
           />
         </UFormField>
-        <UFormField
-          label="Passwort"
-          name="password"
-          size="xs"
-          class="w-full"
-        >
+        <UFormField label="Passwort" name="password" size="xs" class="w-full">
           <UInput
             highlight
             size="md"
@@ -121,6 +127,7 @@ const genderOptions = reactive<gender[]>([
           class="w-full"
         >
           <UInput
+            v-model="profileEdit.formData.rsi_handle"
             highlight
             size="md"
             placeholder="chris_roberts"

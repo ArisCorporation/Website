@@ -1,49 +1,13 @@
 <script setup lang="ts">
-interface MyData {
-  hobbies: string[]
-  talents: string[]
-  habits: string[]
-  tics: string[]
-  activities: string[]
-  mysterious_things: string[]
-  character_trait: string[]
-  fears: string[]
-  books: string[]
-  music: string[]
-  movies: string[]
-  clothing: string[]
-  food: string[]
-  drink: string[]
-  alcohol: string[]
-  loves: string[]
-  hates: string[]
-}
+import type { UserProfileFormData } from '@/stores/ams/profile-edit-store'
+
+const profileEdit = useUserProfileEditStore()
 
 interface InputConfig {
-  property: keyof MyData
+  property: keyof UserProfileFormData // Ensure this aligns with UserProfileFormData keys
   label: string
   placeholder: string
 }
-
-const data: MyData = reactive({
-  hobbies: ['Schrauben', 'Fliegen'],
-  talents: [],
-  habits: [],
-  tics: [],
-  activities: [],
-  mysterious_things: [],
-  character_trait: [],
-  fears: [],
-  books: [],
-  music: [],
-  movies: [],
-  clothing: [],
-  food: [],
-  drink: [],
-  alcohol: [],
-  loves: [],
-  hates: [],
-})
 
 // 5. Wende den 'InputConfig'-Typ auf dein 'inputs'-Array an
 const inputs: InputConfig[][] = [
@@ -137,14 +101,14 @@ const inputs: InputConfig[][] = [
     >
       <UFormField
         v-for="(configItem, itemIdx) in inputGroup"
-        :key="`${configItem.property}-${itemIdx}`"
+        :key="`${String(configItem.property)}-${itemIdx}`"
         :label="configItem.label"
-        :name="configItem.property"
+        :name="String(configItem.property)"
         size="xs"
         class="w-full"
       >
         <AMSUiDynamicList
-          v-model="data[configItem.property]"
+          v-model="(profileEdit.formData as any)[configItem.property]"
           handle
           :placeholder="configItem.placeholder"
         />

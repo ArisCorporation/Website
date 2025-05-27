@@ -12,70 +12,72 @@ import resolveToStringOrUndefined from '~~/layers/ams/app/utils/resolve-string-o
 export const userProfileSchema = z.object({
   first_name: z.string().min(1, 'Vorname ist erforderlich').optional().nullable(),
   last_name: z.string().optional().nullable(),
+  middle_name: z.string().optional().nullable(),
   // Email wird oft separat oder gar nicht im Standard-Profil-Edit geändert
   // email: z.string().email("Ungültige E-Mail-Adresse").optional().nullable(),
   location: z.string().optional().nullable(),
   title: z.string().optional().nullable(),
   description: z.string().optional().nullable(), // Könnte ein Rich-Text-Editor sein
-  // tags: z.array(z.string()).optional().nullable(), // Beispiel für ein Array-Feld
-  // avatar: z.string().optional().nullable(), // ID der DirectusFile, oder komplexeres Objekt für Upload
+  avatar: z.string().optional().nullable(), // ID der DirectusFile, oder URL
   language: z.string().optional().nullable(),
 
   rsi_handle: z.string().optional().nullable(),
   discord_name: z.string().optional().nullable(),
   contact_email: z.string().email("Ungültige Kontakt-E-Mail").optional().nullable(),
+  discord_id: z.string().optional().nullable(),
 
   sex: z.enum(['male', 'female']).optional().nullable(),
-  // department: z.string().optional().nullable(), // ID des Departments
+  department: z.string().optional().nullable(), // ID des Departments
   // leading_department: z.string().optional().nullable(), // ID des Departments
   // head_of_department: z.boolean().optional().nullable(),
 
-  // birthplace: z.string().optional().nullable(), // ID der LandingZone
-  // current_residence: z.string().optional().nullable(), // ID der LandingZone
+  birthplace: z.string().optional().nullable(), // ID der LandingZone oder Name
+  current_residence: z.string().optional().nullable(), // ID der LandingZone oder Name
+  birthdate: z.string().optional().nullable(), // Ggf. als z.date() und dann transformieren. Format "YYYY-MM-DD" or similar.
 
-  // citizen: z.boolean().optional().nullable(),
-  // citizen_reason: z.enum(['military', 'special_education', 'social_commitment']).optional().nullable(),
-  // duty_state: z.boolean().optional().nullable(),
-  // duty_period: z.string().optional().nullable(),
-  // duty_division: z.string().optional().nullable(),
-  // duty_end: z.enum(['honorable', 'dishonorable']).optional().nullable(),
+  citizen: z.enum(['true', 'false']).optional().nullable(), // Storing as string from radio
+  citizen_reason: z.enum(['military', 'education', 'social']).optional().nullable(),
+
+  duty_division: z.string().optional().nullable(),
+  duty_period: z.string().optional().nullable(), // z.B. "MM/YYYY - MM/YYYY"
+  duty_end: z.enum(['honorably', 'dishonorably']).optional().nullable(),
+  duty_dismissal_reason: z.string().optional().nullable(),
 
   hair_color: z.string().optional().nullable(),
   eye_color: z.string().optional().nullable(),
   height: z.number().positive('Größe muss positiv sein').optional().nullable(),
   weight: z.number().positive('Gewicht muss positiv sein').optional().nullable(),
 
-  hobbies: z.string().optional().nullable(),
-  habits: z.string().optional().nullable(),
-  talents: z.string().optional().nullable(),
-  tics: z.string().optional().nullable(),
-  activities: z.string().optional().nullable(),
-  mysterious_things: z.string().optional().nullable(),
-  character_trait: z.string().optional().nullable(),
-  fears: z.string().optional().nullable(),
-  books: z.string().optional().nullable(),
-  music: z.string().optional().nullable(),
-  movies: z.string().optional().nullable(),
-  colors: z.string().optional().nullable(),
-  clothing: z.string().optional().nullable(),
-  food: z.string().optional().nullable(),
-  drink: z.string().optional().nullable(),
-  alcohol: z.string().optional().nullable(),
-  loves: z.string().optional().nullable(),
-  hates: z.string().optional().nullable(),
+  hobbies: z.array(z.string()).optional().nullable(),
+  habits: z.array(z.string()).optional().nullable(),
+  talents: z.array(z.string()).optional().nullable(),
+  tics: z.array(z.string()).optional().nullable(),
+  activities: z.array(z.string()).optional().nullable(),
+  mysterious_things: z.array(z.string()).optional().nullable(),
+  character_trait: z.array(z.string()).optional().nullable(),
+  fears: z.array(z.string()).optional().nullable(),
+  books: z.array(z.string()).optional().nullable(),
+  music: z.array(z.string()).optional().nullable(),
+  movies: z.array(z.string()).optional().nullable(),
+  // colors: z.array(z.string()).optional().nullable(), // Assuming these follow the same pattern
+  clothing: z.array(z.string()).optional().nullable(),
+  food: z.array(z.string()).optional().nullable(),
+  drink: z.array(z.string()).optional().nullable(),
+  alcohol: z.array(z.string()).optional().nullable(),
+  loves: z.array(z.string()).optional().nullable(),
+  hates: z.array(z.string()).optional().nullable(),
   medical_informations: z.string().optional().nullable(),
   biography: z.string().optional().nullable(), // Oft ein Rich-Text-Feld
 
-  // education_name: z.string().optional().nullable(),
-  // education_period: z.string().optional().nullable(),
-  discord_id: z.string().optional().nullable(),
+  education_name: z.string().optional().nullable(),
+  education_place: z.string().optional().nullable(),
+  education_period: z.string().optional().nullable(), // z.B. "MM/YYYY - MM/YYYY"
   // education_state: z.boolean().optional().nullable(),
-  birthdate: z.string().optional().nullable(), // Ggf. als z.date() und dann transformieren
 
   // Felder, die typischerweise nicht direkt vom Benutzer geändert werden:
   id: z.string().optional(), // ID ist für Updates wichtig, aber nicht editierbar
   // status: z.string().optional(),
-  // role: z.string().optional(),
+  role: z.array(z.string()).optional().nullable(), // Array of role IDs/keys
   // email_notifications: z.boolean().optional(),
 });
 
@@ -116,7 +118,32 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
       const authStore = useAuthStore();
       const user = authStore.currentUser;
 
-      if (!user) return
+      if (!user) {
+        console.warn('ProfileEditStore: initForm called but authStore.currentUser is not available. Form will be initialized with empty/default data.');
+        // Initialize with empty/default data to prevent errors with `formData` being undefined
+        // and to ensure the form object has a defined structure.
+        try {
+          this.formData = userProfileSchema.parse({});
+        } catch (e) {
+          console.error("Fehler beim Parsen leerer Formulardaten für User Profile (Fallback):", e);
+          // As an absolute fallback if even empty parse fails (should not with optional fields)
+          const emptyData: UserProfileFormData = {} as any;
+          for (const key in userProfileSchema.shape) {
+            if (Object.prototype.hasOwnProperty.call(userProfileSchema.shape, key)) {
+              // @ts-ignore
+              if (userProfileSchema.shape[key]._def.typeName === 'ZodArray') {
+                (emptyData as any)[key] = [];
+              } else {
+                (emptyData as any)[key] = null;
+              }
+            }
+          }
+          this.formData = emptyData;
+        }
+        this.apiValidationErrors = {};
+        this.submitError = null;
+        return;
+      }
 
       this.apiValidationErrors = {};
       this.submitError = null;
@@ -127,44 +154,61 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
       const initialData: Partial<UserProfileFormData> = {
         id: user.id, // ID immer vom Quellobjekt übernehmen
         first_name: pickedSourceData.first_name ?? null,
+        middle_name: pickedSourceData.middle_name ?? null,
         last_name: pickedSourceData.last_name ?? null,
         location: pickedSourceData.location ?? null,
         title: pickedSourceData.title ?? null,
         description: pickedSourceData.description ?? null,
-        // tags: pickedSourceData.tags ?? null,
-        // avatar: resolveToStringOrUndefined(pickedSourceData.avatar), // Hängt davon ab, wie Avatare gehandhabt werden
+        avatar: resolveToStringOrUndefined(pickedSourceData.avatar), // Assuming avatar is a file object or ID string
         language: pickedSourceData.language ?? null,
         rsi_handle: pickedSourceData.rsi_handle ?? null,
         discord_name: pickedSourceData.discord_name ?? null,
+        discord_id: pickedSourceData.discord_id ?? null,
         contact_email: pickedSourceData.contact_email ?? null,
         sex: pickedSourceData.sex ?? null,
-        // department: resolveToStringOrUndefined(pickedSourceData.department),
+        department: resolveToStringOrUndefined(pickedSourceData.department),
+        // birthplace: pickedSourceData.birthplace ?? null,
+        // current_residence: pickedSourceData.current_residence ?? null,
+        // birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
+
+        // citizen: pickedSourceData.citizen ?? null, // Expects 'true' or 'false'
+        // citizen_reason: pickedSourceData.citizen_reason ?? null,
+
+        duty_division: pickedSourceData.duty_division ?? null,
+        duty_period: pickedSourceData.duty_period ?? null,
+        // duty_end: pickedSourceData.duty_end ?? null,
+        // duty_dismissal_reason: pickedSourceData.duty_dismissal_reason ?? null,
+
         hair_color: pickedSourceData.hair_color ?? null,
         eye_color: pickedSourceData.eye_color ?? null,
         height: pickedSourceData.height ?? null, // Zod behandelt number | null
         weight: pickedSourceData.weight ?? null, // Zod behandelt number | null
-        hobbies: pickedSourceData.hobbies ?? null,
-        habits: pickedSourceData.habits ?? null,
-        talents: pickedSourceData.talents ?? null,
-        tics: pickedSourceData.tics ?? null,
-        activities: pickedSourceData.activities ?? null,
-        mysterious_things: pickedSourceData.mysterious_things ?? null,
-        character_trait: pickedSourceData.character_trait ?? null,
-        fears: pickedSourceData.fears ?? null,
-        books: pickedSourceData.books ?? null,
-        music: pickedSourceData.music ?? null,
-        movies: pickedSourceData.movies ?? null,
-        colors: pickedSourceData.colors ?? null,
-        clothing: pickedSourceData.clothing ?? null,
-        food: pickedSourceData.food ?? null,
-        drink: pickedSourceData.drink ?? null,
-        alcohol: pickedSourceData.alcohol ?? null,
-        loves: pickedSourceData.loves ?? null,
-        hates: pickedSourceData.hates ?? null,
+
+        // hobbies: pickedSourceData.hobbies ?? [],
+        // habits: pickedSourceData.habits ?? [],
+        // talents: pickedSourceData.talents ?? [],
+        // tics: pickedSourceData.tics ?? [],
+        // activities: pickedSourceData.activities ?? [],
+        // mysterious_things: pickedSourceData.mysterious_things ?? [],
+        // character_trait: pickedSourceData.character_trait ?? [],
+        // fears: pickedSourceData.fears ?? [],
+        // books: pickedSourceData.books ?? [],
+        // music: pickedSourceData.music ?? [],
+        // movies: pickedSourceData.movies ?? [],
+        // // colors: pickedSourceData.colors ?? [],
+        // clothing: pickedSourceData.clothing ?? [],
+        // food: pickedSourceData.food ?? [],
+        // drink: pickedSourceData.drink ?? [],
+        // alcohol: pickedSourceData.alcohol ?? [],
+        // loves: pickedSourceData.loves ?? [],
+        // hates: pickedSourceData.hates ?? [],
         medical_informations: pickedSourceData.medical_informations ?? null,
         biography: pickedSourceData.biography ?? null,
-        discord_id: pickedSourceData.discord_id ?? null,
-        birthdate: pickedSourceData.birthdate ?? null, // Ggf. Format anpassen, falls als Date-Objekt benötigt
+
+        education_name: pickedSourceData.education_name ?? null,
+        education_place: pickedSourceData.education_place ?? null,
+        education_period: pickedSourceData.education_period ?? null,
+        // role: pickedSourceData.role ?? [],
       };
 
       // Filtere undefined Werte heraus, wenn das Schema sie nicht als optional nullable erlaubt
@@ -189,33 +233,35 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
       this.isSubmitting = true;
       const authStore = useAuthStore(); // Zugriff auf den Auth-Store für User-ID
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { $directus } = useNuxtApp(); // Import Directus client
+
       try {
-        const payload = validatedDataFromForm;
+        // Clone data to avoid modifying the form data directly if pre-processing is needed
+        const payload = { ...validatedDataFromForm };
+
+        // Example: Transform 'true'/'false' string for citizen to boolean if Directus expects boolean
+        // if (typeof payload.citizen === 'string') {
+        //   (payload as any).citizen = payload.citizen === 'true';
+        // }
+
+        // TODO: Handle file uploads separately if payload.avatar is a File object.
+        // For now, assuming avatar is already an ID or URL string.
+
         const userId = authStore.currentUser?.id; // Oder this.formData.id, falls es zuverlässig gesetzt ist
 
         if (!userId) {
           this.submitError = "Benutzer-ID konnte nicht ermittelt werden. Speichern nicht möglich.";
           console.error("SubmitUserProfile Error: User ID is missing.");
+          this.isSubmitting = false;
           return false;
         }
 
         console.log(`Aktualisiere Benutzerprofil für User-ID ${userId}:`, payload);
 
-        // --- ECHTER API AUFRUF ---
-        // const { $directus } = useNuxtApp();
-        // const updatedUserData = await $directus.users.updateOne(userId, payload as Partial<DirectusUser>);
-        // console.log('Benutzerprofil erfolgreich aktualisiert via API:', updatedUserDataFromApi);
-        // // Informiere den authStore, seine Daten neu zu laden
-        // await authStore.refreshCurrentUser();
-        // // Das Formular mit den (nun im authStore aktualisierten) Daten neu initialisieren
-        // if (authStore.currentUser) {
-        //  this.initForm(authStore.currentUser);
-        // }
-        // --- ENDE ECHTER API AUFRUF ---
+        const updatedUserDataFromApi = await $directus.users.updateOne(userId, payload as Partial<DirectusUser>);
+        console.log('Benutzerprofil erfolgreich aktualisiert via API:', updatedUserDataFromApi);
 
-        // Simulierter Erfolg für Testzwecke
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Benutzerprofil erfolgreich aktualisiert (simuliert)');
         // Informiere den authStore, seine Daten neu zu laden (auch in der Simulation)
         await authStore.refreshCurrentUser();
         // Das Formular mit den (nun im authStore aktualisierten) Daten neu initialisieren
@@ -227,6 +273,20 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
 
         return true;
       } catch (error: any) {
+        // Log the raw error for more details
+        console.error('Raw error object:', JSON.parse(JSON.stringify(error)));
+
+        // Check for Directus specific error structure
+        // Directus errors often come in `error.errors` array
+        const directusErrors = error.errors || (error.data && error.data.errors) || (error.response && error.response._data && error.response._data.errors);
+
+        // More robust error message extraction
+        let errorMessage = 'Ein unbekannter Fehler ist aufgetreten.';
+        if (error.message) errorMessage = error.message;
+        if (directusErrors && directusErrors.length > 0 && directusErrors[0].message) errorMessage = directusErrors[0].message;
+        else if (error.data && error.data.message) errorMessage = error.data.message;
+        else if (error.response && error.response._data && error.response._data.message) errorMessage = error.response._data.message;
+
         console.error('Fehler beim Aktualisieren des Benutzerprofils:', error);
         if (error.data && error.data.errors) {
           // Directus gibt Feldfehler oft in error.data.errors zurück
@@ -248,7 +308,7 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
           this.submitError = error.response._data.message || 'Ein Validierungsfehler ist aufgetreten.';
         }
         else {
-          this.submitError = error.message || 'Ein Netzwerkfehler oder ein unbekannter Fehler ist aufgetreten.';
+          this.submitError = errorMessage;
         }
         return false;
       } finally {
