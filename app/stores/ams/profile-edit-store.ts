@@ -44,6 +44,9 @@ export const userProfileSchema = z.object({
   duty_end: z.enum(['honorable', 'dishonorable']).optional().nullable(),
   duty_dismissal_reason: z.string().optional().nullable(),
 
+  roles: z.array(z.enum(['recruitment', 'marketing_and_press', 'content_writer'])).optional().nullable(), // Directus stores roles as a many-to-many relationship, not a simple string array
+  // role: z.array(z.string()).optional().nullable(), // Array of role IDs/keys
+
   hair_color: z.string().optional().nullable(),
   eye_color: z.string().optional().nullable(),
   height: z.number().positive('Größe muss positiv sein').optional().nullable(),
@@ -185,7 +188,7 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         discord_id: pickedSourceData.discord_id ?? null,
         contact_email: pickedSourceData.contact_email ?? null,
         sex: pickedSourceData.sex ?? null,
-        department: resolveToStringOrUndefined(pickedSourceData.department),
+        // department: ,
         // birthplace: pickedSourceData.birthplace ?? null,
         // current_residence: pickedSourceData.current_residence ?? null,
         birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
@@ -248,6 +251,7 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         education_place: pickedSourceData.education_place ?? null,
         education_period: pickedSourceData.education_period ?? null,
         // role: pickedSourceData.role ?? [],
+        roles: pickedSourceData.roles ?? [],
       };
 
       // Filtere undefined Werte heraus, wenn das Schema sie nicht als optional nullable erlaubt

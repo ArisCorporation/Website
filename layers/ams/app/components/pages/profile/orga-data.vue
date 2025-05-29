@@ -1,9 +1,22 @@
 <script setup lang="ts">
-const roleOptions = reactive<string[]>([
-  'Rekrutierung',
-  'Marketing & Presse',
-  'Inhaltsersteller',
+const store = useUserProfileEditStore()
+
+const roleOptions = reactive([
+  { label: 'Rekrutierung', value: 'recruitment' },
+  { label: 'Marketing & Presse', value: 'marketing_and_press' },
+  { label: 'Inhaltsersteller', value: 'content_writer' },
 ])
+
+const { data: departments } = useLazyAsyncData(
+  'global:simple_departments',
+  () =>
+    useDirectus(
+      readItems('departments', {
+        limit: -1,
+        fields: ['*'],
+      })
+    )
+)
 </script>
 
 <template>
@@ -25,9 +38,12 @@ const roleOptions = reactive<string[]>([
           class="w-full"
         >
           <USelectMenu
-            :items="titleOptions"
+            v-model="store.formData.department"
+            :items="departments"
             variant="ams"
             size="md"
+            value-key="id"
+            label-key="name"
             placeholder="z.B. Logistik"
             class="w-full"
           />
@@ -39,6 +55,8 @@ const roleOptions = reactive<string[]>([
           class="w-full prose-p:my-0"
         >
           <UCheckboxGroup
+            v-model="store.formData.roles"
+            value-key="value"
             disabled
             orientation="horizontal"
             :items="roleOptions"
