@@ -188,9 +188,9 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         discord_id: pickedSourceData.discord_id ?? null,
         contact_email: pickedSourceData.contact_email ?? null,
         sex: pickedSourceData.sex ?? null,
-        // department: ,
-        // birthplace: pickedSourceData.birthplace ?? null,
-        // current_residence: pickedSourceData.current_residence ?? null,
+        department: resolveToStringOrUndefined(pickedSourceData.department),
+        birthplace: resolveToStringOrUndefined(pickedSourceData.birthplace),
+        current_residence: resolveToStringOrUndefined(pickedSourceData.current_residence),
         birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
 
         citizen: pickedSourceData.citizen ? 'true' : 'false', // Expects 'true' or 'false'

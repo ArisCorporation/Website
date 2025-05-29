@@ -177,17 +177,34 @@ const hasItems = computed(() => model.value.length > 0)
 
 /* Styles for SortableJS ghost element (placeholder during drag) */
 .sortable-ghost {
-  opacity: 0.4 !important;
-  background-color: var(--ui-primary-100, #e0f2fe) !important;
-  border: 1px dashed var(--ui-primary-500, #3b82f6) !important;
-  z-index: 10;
+  opacity: 1 !important; /* Ensure background and border are not further faded by opacity */
+  /* Use a very light, neutral gray for the background. Theme should override --ui-gray-50 if dark. */
+  background-color: color-mix(
+    in oklab,
+    var(--ui-primary) 5%,
+    transparent
+  ) !important;
+  /* Dashed border using a standard shade of the primary color. */
+  border-radius: calc(var(--ui-radius) * 1.5) !important;
+  box-sizing: border-box !important; /* Ensures padding and border are included in the element's total width and height */
+  z-index: 10; /* Keep z-index */
 }
 
 /* Styles for SortableJS dragged element */
 .sortable-drag {
-  opacity: 0.85 !important;
-  transform: scale(1.02);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
-  z-index: 20;
+  max-width: 200px !important;
+  padding-right: 10px !important;
+  opacity: 1 !important; /* Full opacity for the dragged item */
+  /* Use a theme-aware variable for card/surface backgrounds, falling back to app background then white. */
+  background-color: color-mix(in oklab, var(--ui-primary) 5%, #000) !important;
+  /* Apply a modern shadow, similar to Tailwind's shadow-lg */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 0.375rem !important; /* Apply consistent rounding (e.g., md) */
+  /* Use a theme-aware variable for border colors, falling back to a light gray. */
+  border: 1px solid var(--ui-border-color, var(--ui-gray-300, #d1d5db)) !important;
+  /* transform: scale(1.02); /* Removing scale to prevent size change and potential jitters */
+  z-index: 20; /* Keep z-index to ensure it's above other elements */
+  cursor: grabbing !important; /* Indicate draggable state */
 }
 </style>

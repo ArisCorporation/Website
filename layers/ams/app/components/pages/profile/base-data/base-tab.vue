@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import type { LandingZone, Planet, Moon, System } from '~~/types'
 
 const profileEdit = useUserProfileEditStore()
 
@@ -144,6 +144,128 @@ watch([birthDay, birthMonth, birthYear], ([dayObj, monthObj, yearVal]) => {
   // oder wenn das Jahr keine 4 Ziffern hat, wird nichts unternommen.
   // Dies ermöglicht es dem Benutzer, die Felder nacheinander auszufüllen, ohne dass sie zurückgesetzt werden.
 })
+
+// --- Landing Zone Options for Birthplace and Current Residence ---
+const { $directus } = useNuxtApp()
+
+interface LandingZoneProcessed {
+  id: string
+  name: string | null
+  planet?: {
+    name: string | null
+    astronomical_designation: string | null
+    star_system?: {
+      name: string | null
+    } | null
+  } | null
+  moon?: {
+    name: string | null
+    astronomical_designation: string | null
+    planet?: {
+      name: string | null // Name of the planet the moon orbits
+      astronomical_designation: string | null
+      star_system?: {
+        name: string | null
+      } | null
+    } | null
+  } | null
+}
+
+const allLandingZones = ref<LandingZoneProcessed[]>([])
+
+// const fetchLandingZoneData = async () => {
+//   try {
+//     // It's good practice to type the response if possible, though Directus SDK might return `any` by default for complex queries
+//     const response = await $directus.items('landing_zones').readByQuery({
+//       fields: [
+//         'id',
+//         'name',
+//         'planet.name',
+//         'planet.star_system.name',
+//         'moon.name',
+//         'moon.planet.name',
+//         'moon.planet.star_system.name',
+//       ],
+//       limit: -1, // Fetch all landing zones
+//     })
+//     allLandingZones.value = (response.data as LandingZoneProcessed[]) || []
+//   } catch (error) {
+//     console.error('Failed to fetch landing zones:', error)
+//     allLandingZones.value = [] // Ensure it's an array in case of error
+//   }
+// }
+
+await useAsyncData(
+  'ams:landing-zones-list',
+  () =>
+    useDirectus(
+      readItems('landing_zones', {
+        fields: [
+          'id',
+          'name',
+          {
+            planet: [
+              'name',
+              'astronomical_designation',
+              { star_system: ['name'] },
+            ],
+          },
+          {
+            moon: [
+              'name',
+              'astronomical_designation',
+              {
+                planet: [
+                  'name',
+                  'astronomical_designation',
+                  { star_system: ['name'] },
+                ],
+              },
+            ],
+          },
+        ],
+        limit: -1,
+      })
+    ),
+  {
+    transform: (response) => {
+      allLandingZones.value = (response as LandingZoneProcessed[]) || []
+    },
+  }
+)
+console.log('test', allLandingZones.value)
+const landingZoneOptions = computed(() => {
+  return allLandingZones.value
+    .map((lz) => {
+      console.log('lz:', lz)
+      let systemName = 'N/A System'
+      let parentName = 'N/A Parent'
+      const landingZoneName = lz.name || 'N/A Landing Zone'
+
+      if (lz.planet) {
+        parentName =
+          lz.planet.name || lz.planet.astronomical_designation || 'N/A Planet'
+        if (lz.planet.star_system && lz.planet.star_system.name) {
+          systemName = lz.planet.star_system.name
+        }
+      } else if (lz.moon && lz.moon.planet) {
+        // Check lz.moon first, then lz.moon.planet for system info
+        parentName =
+          lz.moon.name || lz.moon.astronomical_designation || 'N/A Moon'
+        if (lz.moon.planet.star_system && lz.moon.planet.star_system.name) {
+          systemName = lz.moon.planet.star_system.name
+        }
+      }
+
+      return {
+        label: `${systemName} / ${parentName} / ${landingZoneName}`,
+        value: lz.id,
+      }
+    })
+    .sort((a, b) => a.label.localeCompare(b.label)) // Sort alphabetically
+})
+
+console.log(allLandingZones.value)
 </script>
 
 <template>
@@ -211,35 +333,33 @@ watch([birthDay, birthMonth, birthYear], ([dayObj, monthObj, yearVal]) => {
     >
       <USelectMenu
         v-model="profileEdit.formData.current_residence"
+        value-key="value"
+        label-key="label"
         indicator="hidden"
         orientation="horizontal"
         variant="ams"
         size="md"
-        :items="[
-          { label: 'Stanton / ArcCorp / Area 18', value: '0' },
-          {
-            label: 'Stanton / MicroTech / New Babbage',
-            value: '1',
-          },
-        ]"
+        :items="landingZoneOptions"
+        placeholder="Wohnort auswählen"
         class="prose-p:my-0 w-full max-w-sm"
+        searchable
+        searchable-placeholder="Suchen..."
       />
     </UFormField>
     <UFormField label="Geburtsort" name="birthplace" class="w-full" size="xs">
       <USelectMenu
         v-model="profileEdit.formData.birthplace"
+        value-key="value"
+        label-key="label"
         indicator="hidden"
         orientation="horizontal"
         variant="ams"
         size="md"
-        :items="[
-          { label: 'Stanton / ArcCorp / Area 18', value: '0' },
-          {
-            label: 'Stanton / MicroTech / New Babbage',
-            value: '1',
-          },
-        ]"
+        :items="landingZoneOptions"
+        placeholder="Geburtsort auswählen"
         class="prose-p:my-0 w-full max-w-sm"
+        searchable
+        searchable-placeholder="Suchen..."
       />
     </UFormField>
   </div>
