@@ -16,6 +16,7 @@ const profileEdit = useUserProfileEditStore()
         highlight
         size="md"
         placeholder="182"
+        type="number"
         class="w-full"
       />
     </UFormField>
@@ -31,6 +32,7 @@ const profileEdit = useUserProfileEditStore()
         highlight
         size="md"
         placeholder="85"
+        type="number"
         class="w-full"
       />
     </UFormField>

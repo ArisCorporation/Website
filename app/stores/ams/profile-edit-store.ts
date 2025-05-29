@@ -36,11 +36,12 @@ export const userProfileSchema = z.object({
   birthdate: z.string().optional().nullable(), // Ggf. als z.date() und dann transformieren. Format "YYYY-MM-DD" or similar.
 
   citizen: z.enum(['true', 'false']).optional().nullable(), // Storing as string from radio
-  citizen_reason: z.enum(['military', 'education', 'social']).optional().nullable(),
+  citizen_reason: z.enum(['military', 'special_education', 'social_commitment']).optional().nullable(),
 
+  duty_state: z.boolean().optional().nullable(),
   duty_division: z.string().optional().nullable(),
   duty_period: z.string().optional().nullable(), // z.B. "MM/YYYY - MM/YYYY"
-  duty_end: z.enum(['honorably', 'dishonorably']).optional().nullable(),
+  duty_end: z.enum(['honorable', 'dishonorable']).optional().nullable(),
   duty_dismissal_reason: z.string().optional().nullable(),
 
   hair_color: z.string().optional().nullable(),
@@ -90,7 +91,7 @@ export const userProfileSchema = z.object({
   education_name: z.string().optional().nullable(),
   education_place: z.string().optional().nullable(),
   education_period: z.string().optional().nullable(), // z.B. "MM/YYYY - MM/YYYY"
-  // education_state: z.boolean().optional().nullable(),
+  education_state: z.boolean().optional().nullable(),
 
   // Felder, die typischerweise nicht direkt vom Benutzer geändert werden:
   id: z.string().optional(), // ID ist für Updates wichtig, aber nicht editierbar
@@ -187,14 +188,16 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         department: resolveToStringOrUndefined(pickedSourceData.department),
         // birthplace: pickedSourceData.birthplace ?? null,
         // current_residence: pickedSourceData.current_residence ?? null,
-        // birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
+        birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
 
-        // citizen: pickedSourceData.citizen ?? null, // Expects 'true' or 'false'
-        // citizen_reason: pickedSourceData.citizen_reason ?? null,
+        citizen: pickedSourceData.citizen ? 'true' : 'false', // Expects 'true' or 'false'
+        // Map API values to UI/Zod values for citizen_reason
+        citizen_reason: pickedSourceData.citizen_reason,
 
+        duty_state: pickedSourceData.duty_state ?? null,
         duty_division: pickedSourceData.duty_division ?? null,
         duty_period: pickedSourceData.duty_period ?? null,
-        // duty_end: pickedSourceData.duty_end ?? null,
+        duty_end: pickedSourceData.duty_end ?? null,
         // duty_dismissal_reason: pickedSourceData.duty_dismissal_reason ?? null,
 
         hair_color: pickedSourceData.hair_color ?? null,
@@ -240,6 +243,7 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         medical_informations: pickedSourceData.medical_informations ?? null,
         biography: pickedSourceData.biography ?? null,
 
+        education_state: pickedSourceData.education_state ?? null,
         education_name: pickedSourceData.education_name ?? null,
         education_place: pickedSourceData.education_place ?? null,
         education_period: pickedSourceData.education_period ?? null,
@@ -276,8 +280,11 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         const payload = { ...validatedDataFromForm };
 
         // Example: Transform 'true'/'false' string for citizen to boolean if Directus expects boolean
+        // This might be needed depending on your Directus field configuration for 'citizen'
         // if (typeof payload.citizen === 'string') {
         //   (payload as any).citizen = payload.citizen === 'true';
+        // } else if (payload.citizen === null || payload.citizen === undefined) {
+        //   (payload as any).citizen = null; // Ensure null is sent if that's what API expects for empty
         // }
 
         // TODO: Handle file uploads separately if payload.avatar is a File object.
@@ -294,17 +301,20 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
 
         console.log(`Aktualisiere Benutzerprofil für User-ID ${userId}:`, payload);
 
-        const updatedUserDataFromApi = await $directus.users.updateOne(userId, payload as Partial<DirectusUser>);
-        console.log('Benutzerprofil erfolgreich aktualisiert via API:', updatedUserDataFromApi);
+        // For Development 
+        console.log('Submitted Data:', payload)
 
-        // Informiere den authStore, seine Daten neu zu laden (auch in der Simulation)
-        await authStore.refreshCurrentUser();
-        // Das Formular mit den (nun im authStore aktualisierten) Daten neu initialisieren
-        // Der Watcher in der Vue-Komponente auf authStore.currentUser sollte dies auch tun,
-        // aber ein direkter Aufruf hier ist expliziter.
-        if (authStore.currentUser) {
-          this.initForm();
-        }
+        // const updatedUserDataFromApi = await $directus.users.updateOne(userId, payload as Partial<DirectusUser>);
+        // console.log('Benutzerprofil erfolgreich aktualisiert via API:', updatedUserDataFromApi);
+
+        // // Informiere den authStore, seine Daten neu zu laden (auch in der Simulation)
+        // await authStore.refreshCurrentUser();
+        // // Das Formular mit den (nun im authStore aktualisierten) Daten neu initialisieren
+        // // Der Watcher in der Vue-Komponente auf authStore.currentUser sollte dies auch tun,
+        // // aber ein direkter Aufruf hier ist expliziter.
+        // if (authStore.currentUser) {
+        //   this.initForm();
+        // }
 
         return true;
       } catch (error: any) {

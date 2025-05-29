@@ -1399,6 +1399,7 @@ export interface DirectusUser {
   alcohol_list?: string[] | null
   loves_list?: string[] | null
   hates_list?: string[] | null
+  education_place?: string | null
 }
 
 export interface DirectusWebhook {

@@ -1,9 +1,106 @@
 <script setup lang="ts">
-const citizenship = ref<'true' | 'false'>('false')
+import { ref, watch, watchEffect } from 'vue'
+import _ from 'lodash' // Für _.isEqual, um unnötige Updates zu vermeiden
 
-const reason = ref<'military' | 'education' | 'social' | null>()
+// Annahme: Der Store ist ähnlich wie in details-tab.vue aufgebaut.
+// Passe ggf. den Importpfad und den Store-Namen an.
+const profileEdit = useUserProfileEditStore()
 
-const test = ref<string[]>([])
+const citizenship = ref<'true' | 'false'>(
+  profileEdit.formData.citizen ? 'true' : 'false'
+)
+const reason = ref<
+  'military' | 'special_education' | 'social_commitment' | null
+>(profileEdit.formData.citizen_reason ?? null)
+const hasDone = ref<string[]>([])
+
+// --- Synchronisation: Store -> Lokaler State (hasDone) ---
+// Initialisiert `hasDone` basierend auf dem Store und hält es synchron.
+watch(
+  () => [profileEdit.formData.duty_state, profileEdit.formData.education_state],
+  ([dutyState, educationState]) => {
+    // Nur ausführen, wenn formData initialisiert ist.
+    if (
+      !profileEdit.formData ||
+      Object.keys(profileEdit.formData).length === 0
+    ) {
+      if (!_.isEqual(hasDone.value, [])) {
+        hasDone.value = []
+      }
+      return
+    }
+
+    const newHasDone: string[] = []
+    if (dutyState) {
+      newHasDone.push('military')
+    }
+    if (educationState) {
+      newHasDone.push('education')
+    }
+
+    // Vergleiche sortierte Arrays, um unnötige Updates zu vermeiden.
+    if (!_.isEqual(hasDone.value.slice().sort(), newHasDone.slice().sort())) {
+      hasDone.value = newHasDone
+    }
+  },
+  { immediate: true } // `immediate: true` für Ausführung beim Mounten/Initialisierung.
+)
+
+// --- Synchronisation: Lokaler State (hasDone) -> Store ---
+// Aktualisiert den Store, wenn `hasDone` sich ändert.
+watchEffect(() => {
+  if (profileEdit.formData && Object.keys(profileEdit.formData).length > 0) {
+    const militarySelected = hasDone.value.includes('military')
+    const educationSelected = hasDone.value.includes('education')
+
+    if (profileEdit.formData.duty_state !== militarySelected) {
+      profileEdit.formData.duty_state = militarySelected
+    }
+    if (profileEdit.formData.education_state !== educationSelected) {
+      profileEdit.formData.education_state = educationSelected
+    }
+  }
+})
+
+// --- Synchronisation für `citizenship` (Store <-> Lokaler State) ---
+watch(
+  () => profileEdit.formData.citizen,
+  (newVal) => {
+    const storeValue = newVal ?? 'false'
+    if (citizenship.value !== storeValue) {
+      citizenship.value = storeValue
+    }
+  },
+  { immediate: true }
+)
+
+watchEffect(() => {
+  if (profileEdit.formData && Object.keys(profileEdit.formData).length > 0) {
+    if (profileEdit.formData.citizen !== citizenship.value) {
+      profileEdit.formData.citizen = citizenship.value
+    }
+  }
+})
+
+// --- Synchronisation für `reason` (Store <-> Lokaler State) ---
+watch(
+  () => profileEdit.formData.citizen_reason,
+  (newVal) => {
+    const storeValue = newVal ?? null
+    if (reason.value !== storeValue) {
+      reason.value = storeValue
+    }
+  },
+  { immediate: true }
+)
+
+watchEffect(() => {
+  if (profileEdit.formData && Object.keys(profileEdit.formData).length > 0) {
+    if (profileEdit.formData.citizen_reason !== reason.value) {
+      profileEdit.formData.citizen_reason = reason.value
+    }
+  }
+})
 </script>
 
 <template>
@@ -15,7 +112,7 @@ const test = ref<string[]>([])
       class="col-span-2"
     >
       <AMSUiTableButtonGroup
-        v-model="test"
+        v-model="hasDone"
         :options="[
           { key: 'military', label: 'Militärischer Dienst' },
           { key: 'education', label: 'Hochschulausbildung' },
@@ -32,7 +129,6 @@ const test = ref<string[]>([])
         indicator="hidden"
         variant="table"
         orientation="horizontal"
-        default-value="male"
         :items="[
           { label: 'Ja', value: 'true' },
           { label: 'Nein', value: 'false' },
@@ -50,13 +146,12 @@ const test = ref<string[]>([])
         indicator="hidden"
         variant="table"
         orientation="horizontal"
-        default-value="male"
         :disabled="citizenship === 'false'"
         :items="[
-          ...(test.includes('military')
+          ...(hasDone.includes('military')
             ? [{ label: 'Militärischer Dienst', value: 'military' }]
             : []),
-          ...(test.includes('education')
+          ...(hasDone.includes('education')
             ? [{ label: 'Hochschulausbildung', value: 'education' }]
             : []),
           { label: 'Soziales Engagement', value: 'social' },

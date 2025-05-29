@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { SelectMenuItem, RadioGroupItem } from '@nuxt/ui'
 
+const store = useUserProfileEditStore()
+
 const divisionOptions = reactive<SelectMenuItem[]>([
   { label: 'UEE Army', value: 'army' },
   { label: 'UEE Marine', value: 'marines' },
@@ -8,8 +10,8 @@ const divisionOptions = reactive<SelectMenuItem[]>([
 ])
 
 const dismissalOptions = reactive<RadioGroupItem[]>([
-  { label: 'Ehrenhaft', value: 'honorably' },
-  { label: 'Unehrenhaft', value: 'dishonorably' },
+  { label: 'Ehrenhaft', value: 'honorable' },
+  { label: 'Unehrenhaft', value: 'dishonorable' },
 ])
 </script>
 
@@ -17,20 +19,24 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <UFormField label="Division" name="division" size="xs" class="w-full">
       <USelectMenu
+        v-model="store.formData.duty_division"
         indicator="hidden"
         orientation="horizontal"
         variant="ams"
         size="md"
         :items="divisionOptions"
+        value-key="value"
         class="prose-p:my-0 w-48"
       />
     </UFormField>
     <UFormField label="Entlassung" name="dismissal" size="xs" class="w-full">
       <URadioGroup
+        v-model="store.formData.duty_end"
         indicator="hidden"
         variant="table"
         orientation="horizontal"
         :items="dismissalOptions"
+        value-key="value"
         class="prose-p:my-0"
       />
     </UFormField>

@@ -17,6 +17,7 @@ function handleToggle(key: string) {
   <div class="flex -space-x-px">
     <button
       v-for="option in options"
+      type="button"
       :key="option.key"
       @click="() => handleToggle(option.key)"
       class="border text-xs border-(--ui-border-muted) first:rounded-l-md last:rounded-r-md p-2.5 h-fit"

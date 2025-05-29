@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui'
 
+const store = useUserProfileEditStore()
+
 const tabs = computed<TabsItem[]>(() => {
   const baseTab = {
     label: 'Basis Daten',
@@ -20,14 +22,14 @@ const tabs = computed<TabsItem[]>(() => {
   }
   const tabList = [baseTab, physicsTab, citizenshipTab, detailsTab]
 
-  if (true) {
+  if (store.formData.duty_state) {
     tabList.push({
       label: 'Militärdienst',
       slot: 'military',
     })
   }
 
-  if (true) {
+  if (store.formData.education_state) {
     tabList.push({
       label: 'Hochschulausbildung',
       slot: 'education',
