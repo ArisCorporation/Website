@@ -13,79 +13,79 @@ interface InputConfig {
 const inputs: InputConfig[][] = [
   [
     {
-      property: 'hobbies', // Jetzt typsicher und von TypeScript als gültig erkannt
+      property: 'hobbies_list', // Jetzt typsicher und von TypeScript als gültig erkannt
       label: 'Hobbies',
       placeholder: 'Fliegen, Schrauben',
     },
     {
-      property: 'activities', // Ebenfalls typsicher
+      property: 'activities_list', // Ebenfalls typsicher
       label: 'Frezeitgestaltung',
       placeholder: 'Saufen',
     },
     {
-      property: 'talents', // Ebenfalls typsicher
+      property: 'talents_list', // Ebenfalls typsicher
       label: 'Talente',
       placeholder: 'Fliegen, Schrauben',
     },
     {
-      property: 'tics', // Ebenfalls typsicher
+      property: 'tics_list', // Ebenfalls typsicher
       label: 'Tics & Marotten',
       placeholder: '',
     },
     {
-      property: 'fears', // Ebenfalls typsicher
+      property: 'fears_list', // Ebenfalls typsicher
       label: 'Ängste',
       placeholder: 'Höhenangst',
     },
     {
-      property: 'character_trait', // Ebenfalls typsicher
+      property: 'character_trait_list', // Ebenfalls typsicher
       label: 'Hervorstechender Charakterzug',
       placeholder: 'Arrogant',
     },
     {
-      property: 'mysterious_things', // Ebenfalls typsicher
+      property: 'mysterious_list', // Ebenfalls typsicher
       label: 'Rätselhafte Züge',
       placeholder: 'Mag Drake',
     },
   ],
   [
     {
-      property: 'music',
+      property: 'music_list',
       label: 'Musik', // Beispiel für geändertes Label
       placeholder: 'AC/DC',
     },
     {
-      property: 'movies',
+      property: 'movies_list',
       label: 'Filme',
       placeholder: 'Top Gun',
     },
     {
-      property: 'books',
+      property: 'books_list',
       label: 'Bücher',
       placeholder: 'Faust',
     },
     {
-      property: 'food',
+      property: 'food_list',
       label: 'Essen',
       placeholder: 'Whammers Burger',
     },
     {
-      property: 'drink',
+      property: 'drink_list',
       label: 'Getränke',
       placeholder: 'FiZz Cola',
     },
     {
-      property: 'alcohol',
+      property: 'alcohol_list',
       label: 'Alkohol',
       placeholder: 'Whiskey',
     },
     {
-      property: 'loves',
+      property: 'loves_list',
       label: 'Liebt..',
       placeholder: 'Loyale Menschen',
     },
     {
-      property: 'hates',
+      property: 'hates_list',
       label: 'Hasst...',
       placeholder: 'Unzuverlässige Schiffe',
     },

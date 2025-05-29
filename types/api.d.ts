@@ -1297,6 +1297,7 @@ export interface DirectusUser {
   /** @primaryKey */
   id: string;
   first_name?: string | null;
+  middle_name?: string | null;
   last_name?: string | null;
   email?: string | null;
   password?: string | null;
@@ -1381,6 +1382,23 @@ export interface DirectusUser {
   assigned_tasks?: TasksDirectusUser[] | string[];
   password_reset_tokens?: UserPasswordResetToken[] | string[];
   policies?: DirectusAccess[] | string[];
+  hobbies_list?: string[] | null
+  habits_list?: string[] | null
+  talents_list?: string[] | null
+  tics_list?: string[] | null
+  activities_list?: string[] | null
+  mysterious_list?: string[] | null
+  character_trait_list?: string[] | null
+  fears_list?: string[] | null
+  books_list?: string[] | null
+  music_list?: string[] | null
+  movies_list?: string[] | null
+  clothing_list?: string[] | null
+  food_list?: string[] | null
+  drink_list?: string[] | null
+  alcohol_list?: string[] | null
+  loves_list?: string[] | null
+  hates_list?: string[] | null
 }
 
 export interface DirectusWebhook {

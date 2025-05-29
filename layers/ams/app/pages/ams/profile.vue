@@ -116,6 +116,7 @@ definePageMeta({
       :validate="validateFormWithApiErrors"
       class="space-y-6"
       @submit="handleFormSubmit"
+      @keydown.enter.prevent="() => {}"
     >
       <UTabs
         :items="tabs"
