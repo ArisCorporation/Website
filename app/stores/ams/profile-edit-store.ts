@@ -10,16 +10,14 @@ import resolveToStringOrUndefined from '~~/layers/ams/app/utils/resolve-string-o
 // Definiere, welche Felder des DirectusUser editierbar sein sollen.
 // Passe dies genau an die Felder an, die du im Profil-Bearbeitungsformular haben möchtest.
 export const userProfileSchema = z.object({
-  first_name: z.string().min(1, 'Vorname ist erforderlich').optional().nullable(),
+  first_name: z.string().min(1, 'Vorname ist erforderlich'),
   last_name: z.string().optional().nullable(),
   middle_name: z.string().optional().nullable(),
   // Email wird oft separat oder gar nicht im Standard-Profil-Edit geändert
-  // email: z.string().email("Ungültige E-Mail-Adresse").optional().nullable(),
-  location: z.string().optional().nullable(),
+  email: z.string().email("Ungültige E-Mail-Adresse").optional().nullable(),
   title: z.string().optional().nullable(),
-  description: z.string().optional().nullable(), // Könnte ein Rich-Text-Editor sein
   avatar: z.string().optional().nullable(), // ID der DirectusFile, oder URL
-  language: z.string().optional().nullable(),
+  password: z.string().optional().nullable(),
 
   rsi_handle: z.string().optional().nullable(),
   discord_name: z.string().optional().nullable(),
@@ -181,14 +179,11 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
 
       const initialData: Partial<UserProfileFormData> = {
         id: user.id, // ID immer vom Quellobjekt übernehmen
-        first_name: pickedSourceData.first_name ?? null,
+        first_name: pickedSourceData.first_name ?? '',
         middle_name: pickedSourceData.middle_name ?? null,
         last_name: pickedSourceData.last_name ?? null,
-        location: pickedSourceData.location ?? null,
         title: pickedSourceData.title ?? null,
-        description: pickedSourceData.description ?? null,
         avatar: resolveToStringOrUndefined(pickedSourceData.avatar), // Assuming avatar is a file object or ID string
-        language: pickedSourceData.language ?? null,
         rsi_handle: pickedSourceData.rsi_handle ?? null,
         discord_name: pickedSourceData.discord_name ?? null,
         discord_id: pickedSourceData.discord_id ?? null,
@@ -307,6 +302,13 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         // TODO: Handle file uploads separately if payload.avatar is a File object.
         // For now, assuming avatar is already an ID or URL string.
 
+        if (!payload.password) delete payload.password
+
+        if ((payload.first_name != authStore.currentUser?.first_name) || (payload.last_name != authStore.currentUser?.last_name) || (payload.middle_name != authStore.currentUser?.middle_name)) {
+          let email = `${payload.first_name}${payload.middle_name ? '.' + payload.middle_name : ''}${payload.last_name ? '.' + payload.last_name : ''}@ariscorp.de`
+          payload.email = email
+        }
+
         const userId = authStore.currentUser?.id; // Oder this.formData.id, falls es zuverlässig gesetzt ist
 
         if (!userId) {
@@ -317,9 +319,6 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         }
 
         console.log(`Aktualisiere Benutzerprofil für User-ID ${userId}:`, payload);
-
-        // For Development 
-        console.log('Submitted Data:', payload)
 
         // const updatedUserDataFromApi = await $directus.users.updateOne(userId, payload as Partial<DirectusUser>);
         // console.log('Benutzerprofil erfolgreich aktualisiert via API:', updatedUserDataFromApi);

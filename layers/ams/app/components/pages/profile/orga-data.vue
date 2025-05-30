@@ -17,6 +17,11 @@ const { data: departments } = useLazyAsyncData(
       })
     )
 )
+
+const { data: discordUserList, pending: discordUserListPending } = useAsyncData(
+  'global:discord_users',
+  () => $fetch('/api/ams/getDiscordUser')
+)
 </script>
 
 <template>
@@ -62,6 +67,43 @@ const { data: departments } = useLazyAsyncData(
             :items="roleOptions"
             class="translate-y-2"
           />
+        </UFormField>
+        <UFormField
+          label="Discord Benutzer"
+          name="discord_user"
+          size="xs"
+          class="w-full"
+        >
+          <USelectMenu
+            v-model="store.formData.discord_id"
+            :items="discordUserList"
+            variant="ams"
+            size="md"
+            placeholder="Discord Benutzer"
+            class="w-full"
+            label-key="label"
+            value-key="id"
+            :loading="discordUserListPending"
+          >
+            <template #leading="">
+              <img
+                v-if="store.formData.discord_id"
+                :src="
+                  discordUserList?.find(
+                    (e) => e.id === store.formData.discord_id
+                  )?.profile_image
+                "
+                class="size-5 rounded-full object-cover mr-2"
+              />
+              <USkeleton v-else class="size-5 rounded-full mr-2" />
+            </template>
+            <template #item-leading="{ item }">
+              <img
+                :src="item.profile_image"
+                class="size-5 rounded-full object-cover mr-2"
+              />
+            </template>
+          </USelectMenu>
         </UFormField>
       </div>
     </template>
