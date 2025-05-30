@@ -40,9 +40,12 @@ export const userProfileSchema = z.object({
 
   duty_state: z.boolean().optional().nullable(),
   duty_division: z.string().optional().nullable(),
-  duty_period: z.string().optional().nullable(), // z.B. "MM/YYYY - MM/YYYY"
   duty_end: z.enum(['honorable', 'dishonorable']).optional().nullable(),
   duty_dismissal_reason: z.string().optional().nullable(),
+  duty_from_month: z.number().optional().nullable(),
+  duty_from_year: z.number().optional().nullable(),
+  duty_to_month: z.number().optional().nullable(),
+  duty_to_year: z.number().optional().nullable(),
 
   roles: z.array(z.enum(['recruitment', 'marketing_and_press', 'content_writer'])).optional().nullable(), // Directus stores roles as a many-to-many relationship, not a simple string array
   // role: z.array(z.string()).optional().nullable(), // Array of role IDs/keys
@@ -93,8 +96,11 @@ export const userProfileSchema = z.object({
 
   education_name: z.string().optional().nullable(),
   education_place: z.string().optional().nullable(),
-  education_period: z.string().optional().nullable(), // z.B. "MM/YYYY - MM/YYYY"
   education_state: z.boolean().optional().nullable(),
+  education_from_month: z.number().optional().nullable(),
+  education_from_year: z.number().optional().nullable(),
+  education_to_month: z.number().optional().nullable(),
+  education_to_year: z.number().optional().nullable(),
 
   // Felder, die typischerweise nicht direkt vom Benutzer geändert werden:
   id: z.string().optional(), // ID ist für Updates wichtig, aber nicht editierbar
@@ -199,9 +205,12 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
 
         duty_state: pickedSourceData.duty_state ?? null,
         duty_division: pickedSourceData.duty_division ?? null,
-        duty_period: pickedSourceData.duty_period ?? null,
         duty_end: pickedSourceData.duty_end ?? null,
-        // duty_dismissal_reason: pickedSourceData.duty_dismissal_reason ?? null,
+        duty_dismissal_reason: pickedSourceData.duty_dismissal_reason ?? null,
+        duty_from_month: pickedSourceData.duty_from_month ?? null,
+        duty_from_year: pickedSourceData.duty_from_year ?? null,
+        duty_to_month: pickedSourceData.duty_to_month ?? null,
+        duty_to_year: pickedSourceData.duty_to_year ?? null,
 
         hair_color: pickedSourceData.hair_color ?? null,
         eye_color: pickedSourceData.eye_color ?? null,
@@ -249,7 +258,11 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         education_state: pickedSourceData.education_state ?? null,
         education_name: pickedSourceData.education_name ?? null,
         education_place: pickedSourceData.education_place ?? null,
-        education_period: pickedSourceData.education_period ?? null,
+        education_from_month: pickedSourceData.education_from_month ?? null,
+        education_from_year: pickedSourceData.education_from_year ?? null,
+        education_to_month: pickedSourceData.education_to_month ?? null,
+        education_to_year: pickedSourceData.education_to_year ?? null,
+
         // role: pickedSourceData.role ?? [],
         roles: pickedSourceData.roles ?? [],
       };

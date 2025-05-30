@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { SelectMenuItem } from '@nuxt/ui'
 
+const store = useUserProfileEditStore()
+
 const schools = reactive<SelectMenuItem[]>([
   { label: 'University of Mentor (UM)', value: 'um' },
   { label: 'Astravin University at Cestulus (AUC)', value: 'auc' },
@@ -23,6 +25,7 @@ const schools = reactive<SelectMenuItem[]>([
       class="w-full"
     >
       <UInput
+        v-model="store.formData.education_name"
         highlight
         size="md"
         placeholder="Medizinstudium mit Schwerpunkt auf Neurochirurgie"
@@ -36,11 +39,13 @@ const schools = reactive<SelectMenuItem[]>([
       size="xs"
     >
       <USelectMenu
+        v-model="store.formData.education_place"
         indicator="hidden"
         orientation="horizontal"
         variant="ams"
         size="md"
         :items="schools"
+        value-key="value"
         class="prose-p:my-0 w-full max-w-xl"
       />
     </UFormField>
@@ -57,8 +62,20 @@ const schools = reactive<SelectMenuItem[]>([
           size="xs"
           class="w-1/2 shrink"
         >
-          <UInput highlight size="md" class="w-full mb-1" placeholder="12" />
-          <UInput highlight size="md" class="w-full" placeholder="2939" />
+          <UInput
+            v-model="store.formData.education_from_month"
+            highlight
+            size="md"
+            class="w-full mb-1"
+            placeholder="12"
+          />
+          <UInput
+            v-model="store.formData.education_from_year"
+            highlight
+            size="md"
+            class="w-full"
+            placeholder="2939"
+          />
         </UFormField>
         <UFormField
           label="Bis"
@@ -66,8 +83,20 @@ const schools = reactive<SelectMenuItem[]>([
           size="xs"
           class="w-1/2 shrink"
         >
-          <UInput highlight size="md" class="w-full mb-1" placeholder="12" />
-          <UInput highlight size="md" class="w-full" placeholder="2945" />
+          <UInput
+            v-model="store.formData.education_to_month"
+            highlight
+            size="md"
+            class="w-full mb-1"
+            placeholder="12"
+          />
+          <UInput
+            v-model="store.formData.education_to_year"
+            highlight
+            size="md"
+            class="w-full"
+            placeholder="2945"
+          />
         </UFormField>
       </div>
     </UFormField>

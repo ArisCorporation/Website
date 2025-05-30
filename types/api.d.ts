@@ -1400,6 +1400,15 @@ export interface DirectusUser {
   loves_list?: string[] | null
   hates_list?: string[] | null
   education_place?: string | null
+  duty_from_month?: number | null
+  duty_from_year?: number | null
+  duty_to_month?: number | null
+  duty_to_year?: number | null
+  education_from_month?: number | null
+  education_from_year?: number | null
+  education_to_month?: number | null
+  education_to_year?: number | null
+  duty_dismissal_reason?: string | null
 }
 
 export interface DirectusWebhook {

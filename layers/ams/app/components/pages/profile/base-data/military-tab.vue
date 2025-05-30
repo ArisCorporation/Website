@@ -53,8 +53,20 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
           size="xs"
           class="w-1/2 shrink"
         >
-          <UInput highlight size="md" class="w-full mb-1" placeholder="12" />
-          <UInput highlight size="md" class="w-full" placeholder="2939" />
+          <UInput
+            v-model="store.formData.duty_from_month"
+            highlight
+            size="md"
+            class="w-full mb-1"
+            placeholder="12"
+          />
+          <UInput
+            v-model="store.formData.duty_from_year"
+            highlight
+            size="md"
+            class="w-full"
+            placeholder="2939"
+          />
         </UFormField>
         <UFormField
           label="Bis"
@@ -62,8 +74,20 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
           size="xs"
           class="w-1/2 shrink"
         >
-          <UInput highlight size="md" class="w-full mb-1" placeholder="12" />
-          <UInput highlight size="md" class="w-full" placeholder="2945" />
+          <UInput
+            v-model="store.formData.duty_to_month"
+            highlight
+            size="md"
+            class="w-full mb-1"
+            placeholder="12"
+          />
+          <UInput
+            v-model="store.formData.duty_to_month"
+            highlight
+            size="md"
+            class="w-full"
+            placeholder="2945"
+          />
         </UFormField>
       </div>
     </UFormField>
@@ -74,6 +98,7 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
       class="w-full col-span-2"
     >
       <UTextarea
+        v-model="store.formData.duty_dismissal_reason"
         :rows="12"
         class="w-full"
         :ui="{
