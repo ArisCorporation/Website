@@ -76,7 +76,9 @@ const { data: discordUserList, pending: discordUserListPending } = useAsyncData(
         >
           <USelectMenu
             v-model="store.formData.discord_id"
-            :items="discordUserList"
+            :items="
+              discordUserList?.sort((a, b) => a.label.localeCompare(b.label))
+            "
             variant="ams"
             size="md"
             placeholder="Discord Benutzer"

@@ -127,11 +127,11 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         for (const path in state.apiValidationErrors) {
           const errorMessages = state.apiValidationErrors[path];
           if (Array.isArray(errorMessages)) {
-            errorMessages.forEach(message => {
-              messages.push({ name: path, message }); // Nuxt UI erwartet 'name' statt 'path'
+            errorMessages.forEach(message => { // Nuxt UI FormError uses 'path'
+              messages.push({ path, message });
             });
           } else if (typeof errorMessages === 'string') {
-            messages.push({ name: path, message: errorMessages });
+            messages.push({ path, message: errorMessages });
           }
         }
       }
@@ -146,25 +146,57 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
 
       if (!user) {
         console.warn('ProfileEditStore: initForm called but authStore.currentUser is not available. Form will be initialized with empty/default data.');
-        // Initialize with empty/default data to prevent errors with `formData` being undefined
-        // and to ensure the form object has a defined structure.
+        // Initialize with a default structure that is compliant with userProfileSchema
+        // to prevent hydration mismatches.
+        const defaultData: Partial<UserProfileFormData> = {
+          first_name: "-", // Placeholder to satisfy min(1). Consider schema adjustment or ClientOnly for the form.
+          last_name: null,
+          middle_name: null,
+          email: null,
+          title: null,
+          avatar: null,
+          password: null,
+          rsi_handle: null,
+          discord_name: null,
+          contact_email: null,
+          discord_id: null,
+          sex: null,
+          department: null,
+          birthplace: null,
+          current_residence: null,
+          birthdate: null,
+          citizen: null, // Schema allows null
+          citizen_reason: null,
+          duty_state: null,
+          duty_division: null,
+          duty_end: null,
+          duty_dismissal_reason: null,
+          duty_from_month: null, duty_from_year: null, duty_to_month: null, duty_to_year: null,
+          roles: null, // Or [] if preferred for nullable arrays and schema allows
+          hair_color: null, eye_color: null, height: null, weight: null,
+          hobbies_list: [], habits_list: [], talents_list: [], tics_list: [],
+          activities_list: [], mysterious_list: [], character_trait_list: [], fears_list: [],
+          books_list: [], music_list: [], movies_list: [], clothing_list: [], food_list: [],
+          drink_list: [], alcohol_list: [], loves_list: [], hates_list: [],
+          // Ensure all fields from schema are covered with valid defaults
+          hobbies: [], habits: [], talents: [], tics: [], activities: [], mysterious_things: [],
+          character_trait: [], fears: [], books: [], music: [], movies: [], clothing: [],
+          food: [], drink: [], alcohol: [], loves: [], hates: [],
+          medical_informations: null, biography: null,
+          education_name: null, education_place: null, education_state: null,
+          education_from_month: null, education_from_year: null, education_to_month: null, education_to_year: null,
+          id: undefined, // Optional
+          role: null, // Or []
+        };
         try {
-          this.formData = userProfileSchema.parse({});
-        } catch (e) {
-          console.error("Fehler beim Parsen leerer Formulardaten für User Profile (Fallback):", e);
-          // As an absolute fallback if even empty parse fails (should not with optional fields)
-          const emptyData: UserProfileFormData = {} as any;
-          for (const key in userProfileSchema.shape) {
-            if (Object.prototype.hasOwnProperty.call(userProfileSchema.shape, key)) {
-              // @ts-ignore
-              if (userProfileSchema.shape[key]._def.typeName === 'ZodArray') {
-                (emptyData as any)[key] = [];
-              } else {
-                (emptyData as any)[key] = null;
-              }
-            }
-          }
-          this.formData = emptyData;
+          this.formData = userProfileSchema.parse(defaultData);
+        } catch (parseError) {
+          console.error("Fehler beim Parsen der Standard-Formulardaten für User Profile:", parseError, defaultData);
+          // If parsing defaultData fails, the schema or defaultData is incorrect.
+          // Assigning a potentially invalid object to this.formData should be avoided.
+          // As a last resort, create an absolutely minimal valid object if possible,
+          // but this indicates a deeper issue with schema/defaults.
+          this.formData = {} as UserProfileFormData; // Avoids runtime error but data is not ideal
         }
         this.apiValidationErrors = {};
         this.submitError = null;
@@ -194,8 +226,14 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         current_residence: resolveToStringOrUndefined(pickedSourceData.current_residence),
         birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
 
-        citizen: pickedSourceData.citizen ? 'true' : 'false', // Expects 'true' or 'false'
-        // Map API values to UI/Zod values for citizen_reason
+        citizen: (() => {
+          if (pickedSourceData.citizen === true) return 'true';
+          if (pickedSourceData.citizen === false) return 'false';
+          return null; // Preserve null if source is null/undefined, schema allows null
+        })(),
+
+        // citizen: pickedSourceData.citizen ? 'true' : 'false', // Old logic
+
         citizen_reason: pickedSourceData.citizen_reason,
 
         duty_state: pickedSourceData.duty_state ?? null,
@@ -270,7 +308,7 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
 
       try {
         this.formData = userProfileSchema.parse(cleanedInitialData);
-        console.log('User Profile Formular initialisiert:', this.formData);
+        // console.log('User Profile Formular initialisiert:', this.formData);
       } catch (e) {
         console.error("Fehler beim Parsen der initialen Formulardaten für User Profile:", e);
         // Fallback auf leeres Objekt oder Standardwerte, um UI-Fehler zu vermeiden
