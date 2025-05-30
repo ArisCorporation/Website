@@ -146,8 +146,6 @@ watch([birthDay, birthMonth, birthYear], ([dayObj, monthObj, yearVal]) => {
 })
 
 // --- Landing Zone Options for Birthplace and Current Residence ---
-const { $directus } = useNuxtApp()
-
 interface LandingZoneProcessed {
   id: string
   name: string | null
@@ -233,11 +231,10 @@ await useAsyncData(
     },
   }
 )
-console.log('test', allLandingZones.value)
+
 const landingZoneOptions = computed(() => {
   return allLandingZones.value
     .map((lz) => {
-      console.log('lz:', lz)
       let systemName = 'N/A System'
       let parentName = 'N/A Parent'
       const landingZoneName = lz.name || 'N/A Landing Zone'
@@ -264,8 +261,6 @@ const landingZoneOptions = computed(() => {
     })
     .sort((a, b) => a.label.localeCompare(b.label)) // Sort alphabetically
 })
-
-console.log(allLandingZones.value)
 </script>
 
 <template>

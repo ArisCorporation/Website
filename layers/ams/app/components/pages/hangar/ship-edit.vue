@@ -37,9 +37,6 @@ async function handleEditSubmit() {
     const { refresh } = await useFetchAMSHangar(userId)
     refresh()
   }, 300)
-
-  // z.B. store.submitForm().then(() => editSlideoverOpen.value = false)
-  console.log('Edit submit triggered')
 }
 
 const { data: departments } = useLazyAsyncData(

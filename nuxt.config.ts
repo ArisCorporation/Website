@@ -5,6 +5,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     apiKey: process.env.NUXT_API_KEY || 'default_fallback_key',
     apiSecret: process.env.NUXT_API_SECRET,
+    discordGuildId: process.env.NXUT_DISCORD_GUILD_ID,
+    discordBotToken: process.env.NUXT_DISCORD_BOT_TOKEN,
 
     public: {
       API_URL: process.env.NUXT_PUBLIC_API_URL || 'https://cms.ariscorp.de',

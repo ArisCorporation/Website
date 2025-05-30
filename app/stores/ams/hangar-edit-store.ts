@@ -99,7 +99,6 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
      * Stellt sicher, dass `formData` immer ein valides POJO gemäß Schema ist.
      */
     initForm (item: UserHangar) {
-      console.log(item)
       this.apiValidationErrors = {}; // Alte API-Fehler zurücksetzen
       this.submitError = null;       // Alten generellen Fehler zurücksetzen
 
@@ -146,7 +145,6 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
 
       // Weise die aufbereiteten Daten dem Formularstatus deiner Komponente zu
       this.formData = hangarItemSchema.parse(initialData);
-      console.log('Formulardaten initialisiert:', this.formData);
     },
 
     /**

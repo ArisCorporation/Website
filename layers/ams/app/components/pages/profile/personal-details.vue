@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const profileEdit = useUserProfileEditStore()
+const authStore = useAuthStore()
 
 interface title {
   label: string
@@ -12,7 +13,11 @@ interface gender {
 
 const titleOptions = reactive<title[]>([
   { label: 'Kein Titel', value: null },
+  { label: 'Dr.', value: 'Dr.' },
   { label: 'Dr. Med.', value: 'Dr. Med.' },
+  { label: 'Prof. Med.', value: 'Prof. Med.' },
+  { label: 'Dipl.', value: 'Dipl.' },
+  { label: 'Dipl. Ing.', value: 'Dipl. Ing.' },
 ])
 
 const genderOptions = reactive<gender[]>([
@@ -78,6 +83,17 @@ const genderOptions = reactive<gender[]>([
         </UFormField>
         <UFormField label="Benutzername" name="slug" size="xs" class="w-full">
           <UInput
+            :model-value="
+              `${profileEdit.formData.first_name}${
+                profileEdit.formData.middle_name
+                  ? '.' + profileEdit.formData.middle_name
+                  : ''
+              }${
+                profileEdit.formData.last_name
+                  ? '.' + profileEdit.formData.last_name
+                  : ''
+              }`.toLowerCase()
+            "
             disabled
             highlight
             size="md"
@@ -108,11 +124,14 @@ const genderOptions = reactive<gender[]>([
             variant="ams"
             size="md"
             placeholder="z.B. Dr. Med."
+            value-key="value"
+            label-key="label"
             class="w-full"
           />
         </UFormField>
         <UFormField label="Passwort" name="password" size="xs" class="w-full">
           <UInput
+            v-model="profileEdit.formData.password"
             highlight
             size="md"
             placeholder="************"
