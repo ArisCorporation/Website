@@ -7,11 +7,11 @@ import _ from 'lodash' // Für _.isEqual, um unnötige Updates zu vermeiden
 const profileEdit = useUserProfileEditStore()
 
 const citizenship = ref<'true' | 'false'>(
-  profileEdit.formData.citizen ? 'true' : 'false'
+  profileEdit.formData.citizen_state ? 'true' : 'false'
 )
 const reason = ref<
   'military' | 'special_education' | 'social_commitment' | null
->(profileEdit.formData.citizen_reason ?? null)
+>(profileEdit.formData.citizen_state_reason ?? null)
 const hasDone = ref<string[]>([])
 
 // --- Synchronisation: Store -> Lokaler State (hasDone) ---
@@ -64,7 +64,7 @@ watchEffect(() => {
 
 // --- Synchronisation für `citizenship` (Store <-> Lokaler State) ---
 watch(
-  () => profileEdit.formData.citizen,
+  () => profileEdit.formData.citizen_state,
   (newVal) => {
     const storeValue = newVal ?? 'false'
     if (citizenship.value !== storeValue) {
@@ -76,15 +76,15 @@ watch(
 
 watchEffect(() => {
   if (profileEdit.formData && Object.keys(profileEdit.formData).length > 0) {
-    if (profileEdit.formData.citizen !== citizenship.value) {
-      profileEdit.formData.citizen = citizenship.value
+    if (profileEdit.formData.citizen_state !== citizenship.value) {
+      profileEdit.formData.citizen_state = citizenship.value
     }
   }
 })
 
 // --- Synchronisation für `reason` (Store <-> Lokaler State) ---
 watch(
-  () => profileEdit.formData.citizen_reason,
+  () => profileEdit.formData.citizen_state_reason,
   (newVal) => {
     const storeValue = newVal ?? null
     if (reason.value !== storeValue) {
@@ -96,8 +96,8 @@ watch(
 
 watchEffect(() => {
   if (profileEdit.formData && Object.keys(profileEdit.formData).length > 0) {
-    if (profileEdit.formData.citizen_reason !== reason.value) {
-      profileEdit.formData.citizen_reason = reason.value
+    if (profileEdit.formData.citizen_state_reason !== reason.value) {
+      profileEdit.formData.citizen_state_reason = reason.value
     }
   }
 })

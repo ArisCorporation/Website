@@ -33,7 +33,8 @@ export const userProfileSchema = z.object({
   current_residence: z.string().optional().nullable(), // ID der LandingZone oder Name
   birthdate: z.string().optional().nullable(), // Ggf. als z.date() und dann transformieren. Format "YYYY-MM-DD" or similar.
 
-  citizen: z.enum(['true', 'false']).optional().nullable(), // Storing as string from radio
+  citizen_state: z.enum(['true', 'false']).optional().nullable(), // Storing as string from radio
+  citizen: z.boolean().optional().nullable(), // Storing as string from radio
   citizen_reason: z.enum(['military', 'special_education', 'social_commitment']).optional().nullable(),
 
   duty_state: z.boolean().optional().nullable(),
@@ -53,7 +54,6 @@ export const userProfileSchema = z.object({
   height: z.number().positive('Größe muss positiv sein').optional().nullable(),
   weight: z.number().positive('Gewicht muss positiv sein').optional().nullable(),
 
-  hobbies: z.array(z.string()).optional().nullable(),
   hobbies_list: z.array(z.string()).optional().nullable(),
   habits_list: z.array(z.string()).optional().nullable(),
   talents_list: z.array(z.string()).optional().nullable(),
@@ -72,23 +72,6 @@ export const userProfileSchema = z.object({
   loves_list: z.array(z.string()).optional().nullable(),
   hates_list: z.array(z.string()).optional().nullable(),
 
-  habits: z.array(z.string()).optional().nullable(),
-  talents: z.array(z.string()).optional().nullable(),
-  tics: z.array(z.string()).optional().nullable(),
-  activities: z.array(z.string()).optional().nullable(),
-  mysterious_things: z.array(z.string()).optional().nullable(),
-  character_trait: z.array(z.string()).optional().nullable(),
-  fears: z.array(z.string()).optional().nullable(),
-  books: z.array(z.string()).optional().nullable(),
-  music: z.array(z.string()).optional().nullable(),
-  movies: z.array(z.string()).optional().nullable(),
-  // colors: z.array(z.string()).optional().nullable(), // Assuming these follow the same pattern
-  clothing: z.array(z.string()).optional().nullable(),
-  food: z.array(z.string()).optional().nullable(),
-  drink: z.array(z.string()).optional().nullable(),
-  alcohol: z.array(z.string()).optional().nullable(),
-  loves: z.array(z.string()).optional().nullable(),
-  hates: z.array(z.string()).optional().nullable(),
   medical_informations: z.string().optional().nullable(),
   biography: z.string().optional().nullable(), // Oft ein Rich-Text-Feld
 
@@ -179,9 +162,6 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
           books_list: [], music_list: [], movies_list: [], clothing_list: [], food_list: [],
           drink_list: [], alcohol_list: [], loves_list: [], hates_list: [],
           // Ensure all fields from schema are covered with valid defaults
-          hobbies: [], habits: [], talents: [], tics: [], activities: [], mysterious_things: [],
-          character_trait: [], fears: [], books: [], music: [], movies: [], clothing: [],
-          food: [], drink: [], alcohol: [], loves: [], hates: [],
           medical_informations: null, biography: null,
           education_name: null, education_place: null, education_state: null,
           education_from_month: null, education_from_year: null, education_to_month: null, education_to_year: null,
@@ -207,7 +187,14 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
       this.submitError = null;
 
       const formSchemaKeys = Object.keys(userProfileSchema.shape) as Array<keyof UserProfileFormData>;
-      const pickedSourceData = _.pick(user, formSchemaKeys);
+
+      // Pre-process user.avatar to be string | null | undefined before picking.
+      // This helps _.pick if it has trouble with the DirectusFile type within DirectusUser.
+      // The error indicates _.pick expects a simpler structure for 'avatar' than DirectusUser provides.
+      const userForPicking = {
+        ...user,
+      };
+      const pickedSourceData = _.pick(userForPicking, formSchemaKeys);
 
       const initialData: Partial<UserProfileFormData> = {
         id: user.id, // ID immer vom Quellobjekt übernehmen
@@ -215,7 +202,7 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         middle_name: pickedSourceData.middle_name ?? null,
         last_name: pickedSourceData.last_name ?? null,
         title: pickedSourceData.title ?? null,
-        avatar: resolveToStringOrUndefined(pickedSourceData.avatar), // Assuming avatar is a file object or ID string
+        // avatar: resolveToStringOrUndefined(pickedSourceData.avatar), // Assuming avatar is a file object or ID string
         rsi_handle: pickedSourceData.rsi_handle ?? null,
         discord_name: pickedSourceData.discord_name ?? null,
         discord_id: pickedSourceData.discord_id ?? null,
@@ -226,13 +213,13 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         current_residence: resolveToStringOrUndefined(pickedSourceData.current_residence),
         birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
 
-        citizen: (() => {
+        citizen_state: (() => {
           if (pickedSourceData.citizen === true) return 'true';
           if (pickedSourceData.citizen === false) return 'false';
           return null; // Preserve null if source is null/undefined, schema allows null
         })(),
 
-        // citizen: pickedSourceData.citizen ? 'true' : 'false', // Old logic
+        citizen: pickedSourceData.citizen,
 
         citizen_reason: pickedSourceData.citizen_reason,
 
@@ -297,7 +284,9 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         education_to_year: pickedSourceData.education_to_year ?? null,
 
         // role: pickedSourceData.role ?? [],
-        roles: pickedSourceData.roles ?? [],
+        roles: typeof pickedSourceData.roles === 'string'
+          ? [pickedSourceData.roles as ('recruitment' | 'marketing_and_press' | 'content_writer')]
+          : pickedSourceData.roles, // Keeps null or undefined as is, which is valid for .optional().nullable()
       };
 
       // Filtere undefined Werte heraus, wenn das Schema sie nicht als optional nullable erlaubt
@@ -329,22 +318,30 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         // Clone data to avoid modifying the form data directly if pre-processing is needed
         const payload = { ...validatedDataFromForm };
 
-        // Example: Transform 'true'/'false' string for citizen to boolean if Directus expects boolean
-        // This might be needed depending on your Directus field configuration for 'citizen'
-        // if (typeof payload.citizen === 'string') {
-        //   (payload as any).citizen = payload.citizen === 'true';
-        // } else if (payload.citizen === null || payload.citizen === undefined) {
-        //   (payload as any).citizen = null; // Ensure null is sent if that's what API expects for empty
-        // }
-
-        // TODO: Handle file uploads separately if payload.avatar is a File object.
-        // For now, assuming avatar is already an ID or URL string.
-
+        // Handle password: remove if empty to avoid sending an empty string
         if (!payload.password) delete payload.password
 
+        // Auto-generate email based on name parts if they changed
         if ((payload.first_name != authStore.currentUser?.first_name) || (payload.last_name != authStore.currentUser?.last_name) || (payload.middle_name != authStore.currentUser?.middle_name)) {
           let email = `${payload.first_name}${payload.middle_name ? '.' + payload.middle_name : ''}${payload.last_name ? '.' + payload.last_name : ''}@ariscorp.de`
-          payload.email = email
+            ; (payload as any).email = email; // Assign to the payload that will be sent
+        }
+
+        // Transform citizen_state (string from form) to citizen (boolean | null for API)
+        if (payload.citizen_state === 'true') {
+          (payload as any).citizen = true;
+        } else if (payload.citizen_state === 'false') {
+          (payload as any).citizen = false;
+        } else {
+          (payload as any).citizen = null; // DirectusUser.citizen is boolean | null
+        }
+        delete (payload as any).citizen_state; // Remove the form-specific field
+
+        // Transform roles (array from form) to single string enum or null for API
+        if (Array.isArray(payload.roles) && payload.roles.length > 0) {
+          (payload as any).roles = payload.roles[0] as 'recruitment' | 'marketing_and_press' | 'content_writer';
+        } else {
+          (payload as any).roles = null; // DirectusUser.roles is 'recruitment' | ... | null
         }
 
         const userId = authStore.currentUser?.id; // Oder this.formData.id, falls es zuverlässig gesetzt ist
@@ -358,17 +355,22 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
 
         console.log(`Aktualisiere Benutzerprofil für User-ID ${userId}:`, payload);
 
-        // const updatedUserDataFromApi = await $directus.users.updateOne(userId, payload as Partial<DirectusUser>);
+        const apiPayload = payload as Partial<DirectusUser>
+        delete apiPayload.avatar
+
+        // The payload should now conform to Partial<DirectusUser> for the relevant fields
+        // @ts-ignore
+        const updatedUserDataFromApi = await useDirectus(updateUser(userId, apiPayload));
         // console.log('Benutzerprofil erfolgreich aktualisiert via API:', updatedUserDataFromApi);
 
-        // // Informiere den authStore, seine Daten neu zu laden (auch in der Simulation)
-        // await authStore.refreshCurrentUser();
-        // // Das Formular mit den (nun im authStore aktualisierten) Daten neu initialisieren
-        // // Der Watcher in der Vue-Komponente auf authStore.currentUser sollte dies auch tun,
-        // // aber ein direkter Aufruf hier ist expliziter.
-        // if (authStore.currentUser) {
-        //   this.initForm();
-        // }
+        // Informiere den authStore, seine Daten neu zu laden (auch in der Simulation)
+        await authStore.refreshCurrentUser();
+        // Das Formular mit den (nun im authStore aktualisierten) Daten neu initialisieren
+        // Der Watcher in der Vue-Komponente auf authStore.currentUser sollte dies auch tun,
+        // aber ein direkter Aufruf hier ist expliziter.
+        if (authStore.currentUser) {
+          this.initForm();
+        }
 
         return true;
       } catch (error: any) {
