@@ -60,25 +60,18 @@ async function handleFormSubmit(event: FormSubmitEvent<UserProfileFormData>) {
       icon: 'i-lucide-circle-check',
     })
   } else {
-    // Der UAlert zeigt bereits profileEdit.getSubmitError
-    // Ein zusätzlicher Toast kann hier als Fallback dienen, falls der Alert nicht sichtbar ist oder für zusätzliche Infos.
-    if (
-      !profileEdit.getSubmitError &&
-      !profileEdit.getApiFieldErrorMessages.length
-    ) {
-      useToast().add({
-        title: 'Fehler beim Speichern.',
-        description: 'Bitte überprüfe deine Eingaben.',
-        color: 'red', // Geändert zu 'red' für Nuxt UI Standardfarben
-        icon: 'i-lucide-circle-alert',
-      })
-    }
+    // Immer einen generischen Fehler-Toast anzeigen, wenn die Übermittlung fehlschlägt.
+    // Spezifische Fehler werden weiterhin durch UAlerts und UForm-Validierung angezeigt.
+    useToast().add({
+      title: 'Ein Fehler ist aufgetreten.',
+      description:
+        'Bitte überprüfe deine Eingaben und die Hinweise auf der Seite.',
+      color: 'red',
+      icon: 'i-lucide-alert-triangle',
+    })
   }
 }
 
-// Die validate-Funktion für UForm ist nützlich, wenn man client-seitige Validierung
-// mit Server-Fehlern kombinieren möchte, die nicht direkt vom Zod-Schema abgedeckt werden.
-// Da getApiFieldErrorMessages bereits das korrekte Format hat, ist diese Funktion so in Ordnung.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const validateFormWithApiErrors = (
   formState: UserProfileFormData
@@ -196,7 +189,7 @@ definePageMeta({
               v-for="(error, index) in profileEdit.getApiFieldErrorMessages"
               :key="index"
             >
-              <strong>{{ error.name }}:</strong> {{ error.message }}
+              <strong>{{ error.path }}:</strong> {{ error.message }}
             </li>
           </ul>
         </template>

@@ -2,6 +2,8 @@
 import { useAuthStore } from '~/stores/auth' // Pfad ggf. anpassen
 const authStore = useAuthStore()
 
+const { currentUser } = storeToRefs(authStore)
+
 interface baseElement {
   label: string
 }
@@ -156,11 +158,17 @@ const sidebarItems: sidebarElement[] = [
                 <NuxtImg
                   class="size-full object-cover"
                   alt="Thomas Blakeney"
-                  src="31733e00-f4ff-4ebf-9499-668508d6c0fc"
+                  :src="
+                    getAssetId(currentUser?.avatar) ??
+                    'c46969b5-8414-49cd-ab90-cb71dd2a3e57'
+                  "
                 />
               </div>
               <div class="flex-1 not-prose">
-                <p class="text-sm font-medium text-white">Thomas Blakeney</p>
+                <p class="text-sm font-medium text-white">
+                  {{ getUserLabel(currentUser) }}
+                </p>
+                <!-- TODO: ADD DEPARTMENT OR HEAD OF DEPARTMENT LABEL -->
                 <p class="text-xs text-(--ui-primary)">
                   Chief of Logistics Department
                 </p>
