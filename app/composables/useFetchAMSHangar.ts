@@ -14,6 +14,13 @@ const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
       'slug',
       'classification',
       'focuses',
+      'crew_min',
+      'crew_max',
+      'length',
+      'beam',
+      'height',
+      'mass',
+      'description',
       { store_image: ['id'] },
       { manufacturer: ['name', 'code', 'slug'] },
       {
