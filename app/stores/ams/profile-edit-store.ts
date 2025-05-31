@@ -284,9 +284,9 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         education_to_year: pickedSourceData.education_to_year ?? null,
 
         // role: pickedSourceData.role ?? [],
-        roles: typeof pickedSourceData.roles === 'string'
-          ? [pickedSourceData.roles as ('recruitment' | 'marketing_and_press' | 'content_writer')]
-          : pickedSourceData.roles, // Keeps null or undefined as is, which is valid for .optional().nullable()
+        roles: pickedSourceData.roles
+        //   ? [pickedSourceData.roles as ('recruitment' | 'marketing_and_press' | 'content_writer' | null | undefined)[]]
+        //   : pickedSourceData.roles, // Keeps null or undefined as is, which is valid for .optional().nullable()
       };
 
       // Filtere undefined Werte heraus, wenn das Schema sie nicht als optional nullable erlaubt
@@ -338,11 +338,11 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         delete (payload as any).citizen_state; // Remove the form-specific field
 
         // Transform roles (array from form) to single string enum or null for API
-        if (Array.isArray(payload.roles) && payload.roles.length > 0) {
-          (payload as any).roles = payload.roles[0] as 'recruitment' | 'marketing_and_press' | 'content_writer';
-        } else {
-          (payload as any).roles = null; // DirectusUser.roles is 'recruitment' | ... | null
-        }
+        // if (Array.isArray(payload.roles) && payload.roles.length > 0) {
+        //   (payload as any).roles = payload.roles[0] as 'recruitment' | 'marketing_and_press' | 'content_writer';
+        // } else {
+        //   (payload as any).roles = null; // DirectusUser.roles is 'recruitment' | ... | null
+        // }
 
         const userId = authStore.currentUser?.id; // Oder this.formData.id, falls es zuverlässig gesetzt ist
 

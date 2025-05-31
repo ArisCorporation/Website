@@ -1327,7 +1327,7 @@ export interface DirectusUser {
   rsi_handle?: string | null;
   discord_name?: string | null;
   contact_email?: string | null;
-  roles?: 'recruitment' | 'marketing_and_press' | 'content_writer' | null;
+  roles?: ('recruitment' | 'marketing_and_press' | 'content_writer')[] | null;
   sex?: 'male' | 'female' | null;
   department?: Department | string | null;
   leading_department?: Department | string | null;
