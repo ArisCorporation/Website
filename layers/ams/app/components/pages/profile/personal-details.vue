@@ -101,6 +101,7 @@ const genderOptions = reactive<gender[]>([
             class="w-full"
           />
         </UFormField>
+        <!-- TODO: Add Avatar function -->
         <UFormField label="Avatar" name="avatar" size="xs" class="w-full">
           <UInput
             highlight

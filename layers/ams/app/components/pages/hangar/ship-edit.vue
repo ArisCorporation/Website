@@ -27,7 +27,7 @@ function handleEditOpen() {
   }
 }
 
-// @TODO: Logik für handleEditSubmit implementieren
+// TODO: Logik für handleEditSubmit implementieren
 async function handleEditSubmit() {
   editSlideoverOpen.value = false
 
@@ -225,6 +225,7 @@ const { data: departments } = useLazyAsyncData(
                         ).name
                       }}</strong>
                       <p class="!m-0 text-(--ui-text-muted) text-xs">
+                        <!-- TODO: ADD MULTI MODULE SELECTION -->
                         <!-- TODO IMPLEMENT MODULE FOCUS -->
                         <span
                           >{{

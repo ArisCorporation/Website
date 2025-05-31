@@ -12,7 +12,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   // Definiere einen Standardpfad für bereits eingeloggte Benutzer, die eine Gast-Seite aufrufen
   const defaultAuthenticatedPath = config.public?.directus?.auth?.redirect?.home || '/ams';
   // Definiere einen Pfad für Benutzer, die nicht die benötigte Berechtigungsstufe haben
-  // @TODO ADD FORBIDDEN PAGE
+  // TODO ADD FORBIDDEN PAGE
   const forbiddenPath = '/forbidden'; // Oder eine andere Seite deiner Wahl, z.B. '/ams/dashboard'
 
 

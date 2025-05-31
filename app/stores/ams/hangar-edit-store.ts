@@ -179,7 +179,7 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
 
         const updatedItem = await useDirectus(updateItem('user_hangars', itemId, payload))
 
-        // @TODO Update Logic
+        // TODO Update Logic
 
         // Simulierter API-Endpunkt; ersetze dies durch deinen tatsächlichen $fetch Aufruf
         // const apiUrl = `/api/user/profile/${userId}`;
@@ -191,7 +191,7 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
         // });
 
         // authStore.setUser(updatedUser); // Aktualisiere den User im globalen Auth-Store
-        // @TODO MIT ITEM VON API: this.initForm(); // Setze das Bearbeitungsformular mit den neuen, frischen Daten zurück
+        // TODO MIT ITEM VON API: this.initForm(); // Setze das Bearbeitungsformular mit den neuen, frischen Daten zurück
 
         return true; // Signalisiert Erfolg
       } catch (error: any) {
