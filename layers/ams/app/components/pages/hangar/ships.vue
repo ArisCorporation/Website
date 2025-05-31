@@ -164,7 +164,7 @@ const columns: TableColumn<UserHangar>[] = [
               {{ row.original.ship_id?.manufacturer?.name }}
             </p>
           </div>
-          <div class="w-1/3 text-base">
+          <div class="w-1/2 text-base">
             <h2 class="text-(--ui-primary) text-xl font-semibold">
               Schiffsdetails
             </h2>

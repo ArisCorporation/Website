@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import type { UserHangar } from '~~/types'
+
 const store = useAuthStore()
 const { currentUserId: userId } = storeToRefs(store)
 
 const mode = useCookie<'cards' | 'table'>('ams:hangar-view')
 mode.value = mode.value || 'cards'
+
+const searchInput = ref('')
+
 const shortFilterOptions = reactive([
   {
     key: 'all',
@@ -50,6 +55,23 @@ watch(
 
 const { data, refresh } = await useFetchAMSHangar(userId)
 
+const filteredShips = computed<UserHangar[]>(() => {
+  const shortFiltered: UserHangar[] = data.value?.filter((item) =>
+    shortFilterValue.value ? item.group === shortFilterValue.value : true
+  )
+
+  return searchItems<UserHangar>(
+    shortFiltered,
+    [
+      'name',
+      'ship_id.name',
+      'ship_id.manufacturer.name',
+      'ship_id.manufacturer.code',
+    ],
+    searchInput.value
+  )
+})
+
 definePageMeta({
   layout: 'ams',
   auth: true,
@@ -75,6 +97,7 @@ definePageMeta({
       </AMSPagesHangarAddSlideover>
     </AMSPageHeader>
     <UInput
+      v-model="searchInput"
       highlight
       variant="outline"
       icon="i-lucide-search"
@@ -110,22 +133,14 @@ definePageMeta({
       </URadioGroup>
     </div>
     <template v-if="data?.length && mode === 'table'">
-      <AMSPagesHangarShips
-        :data="
-          data?.filter((item) =>
-            shortFilterValue ? item.group === shortFilterValue : true
-          )
-        "
-      />
+      <AMSPagesHangarShips :data="filteredShips" />
     </template>
     <template v-else-if="data?.length && mode === 'cards'">
       <div
         class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
       >
         <AMSUiShipCard
-          v-for="ship in data?.filter((item) =>
-            shortFilterValue ? item.group === shortFilterValue : true
-          )"
+          v-for="ship in filteredShips"
           :key="ship.id"
           mode="hangar-item"
           :data="ship"
