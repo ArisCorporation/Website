@@ -2,26 +2,7 @@
 import type { ECSSRClientEventParams } from 'echarts/ssr/client/index'
 import type { Company } from '~~/types'
 
-const { data } = useAsyncData('ams:internal-fleet', () =>
-  useDirectus(
-    readItems('user_hangars', {
-      fields: [
-        'id',
-        'name',
-        { department: ['id', 'name'] },
-        {
-          ship_id: [
-            'name',
-            'focuses',
-            'size',
-            'production_status',
-            { manufacturer: ['id', 'name', 'slug', 'code'] },
-          ],
-        },
-      ],
-    })
-  )
-)
+const { data } = useFetchAMSFleet()
 const manuacturerOptions = ref<ECOption>({
   tooltip: {
     trigger: 'item',

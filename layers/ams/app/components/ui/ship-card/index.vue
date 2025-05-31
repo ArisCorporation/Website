@@ -5,11 +5,13 @@ import type { Ship, UserHangar } from '~~/types' // Pfad anpassen, falls nötig
 type ShipProps = {
   mode: 'ship'
   data: Ship
+  fleetMode: boolean
 }
 
 type HangarItemProps = {
   mode: 'hangar-item'
   data: UserHangar
+  fleetMode: boolean
 }
 
 type ShipCardProps = ShipProps | HangarItemProps
@@ -68,10 +70,15 @@ const hangarItem = computed<UserHangar | null>(() => {
             {{ getMainFocusLabel(ship.focuses) }}
           </p>
         </div>
-        <!-- <NuxtImg
-          src="5d5d3d41-1157-4d2f-bc59-83e1d6f5ca74"
-          class="size-12 !my-0"
-        /> -->
+        <UTooltip
+          v-if="mode === 'hangar-item' && fleetMode && hangarItem?.department"
+          :text="`Abteilung: ${hangarItem?.department?.name}`"
+        >
+          <NuxtImg
+            :src="getAssetId(hangarItem?.department?.logo)"
+            class="size-12 !my-0"
+          />
+        </UTooltip>
       </div>
       <USeparator color="ams" class="my-2" />
       <div class="flex justify-between">
@@ -81,12 +88,15 @@ const hangarItem = computed<UserHangar | null>(() => {
         >
           " {{ hangarItem.name }} "
         </h3>
-        <!-- <UTooltip text="Besitzer: Thomas Blakeney">
+        <UTooltip
+          v-if="mode === 'hangar-item' && fleetMode"
+          :text="`Besitzer: ${getUserLabel(hangarItem?.user_id)}`"
+        >
           <NuxtImg
-            src="31733e00-f4ff-4ebf-9499-668508d6c0fc"
+            :src="getAssetId(hangarItem?.user_id?.avatar)"
             class="w-12 h-auto aspect-[270/320] !my-0 ml-auto rounded"
           />
-        </UTooltip> -->
+        </UTooltip>
       </div>
       <div v-if="false" class="mt-4 space-y-3 animate-fadeIn prose-p:my-0">
         <div class="grid grid-cols-2 gap-2 text-sm">

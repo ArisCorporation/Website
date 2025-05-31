@@ -16,7 +16,7 @@ export const useAMSCalculatorStore = defineStore('ams-calculator', {
     settings: {
       name: '',
       fee_enabled: true,
-      fee_percentage: 2.5,
+      fee_percentage: 0.05,
       manager: 1
     },
     crews: [

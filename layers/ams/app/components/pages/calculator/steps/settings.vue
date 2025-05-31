@@ -39,9 +39,9 @@ const { settings } = storeToRefs(store)
       <USlider
         v-model="settings.fee_percentage"
         size="xl"
-        :min="0.5"
+        :min="0.05"
         :max="20"
-        :step="0.5"
+        :step="0.05"
         class="py-4"
       />
       <div class="flex justify-between items-center">

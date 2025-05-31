@@ -17,7 +17,8 @@ export function getUserLabel (user: DirectusUser): string {
 
   let label = parts.join(' ');
   if (user.title) {
-    label += ` (${user.title})`;
+    // label += ` (${user.title})`;
+    label = user.title + label;
   }
 
   return label;
