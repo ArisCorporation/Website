@@ -28,6 +28,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@compodium/nuxt',
     'nuxt-tiptap-editor',
+    'nuxt-echarts',
   ],
 
   css: ['~/assets/css/main.css'],
@@ -81,6 +82,21 @@ export default defineNuxtConfig({
 
   tiptap: {
     prefix: 'Tiptap'
+  },
+
+  echarts: {
+    ssr: true,
+    renderer: 'svg',
+    charts: ['BarChart', 'MapChart', 'PieChart'],
+    components: [
+      'DatasetComponent',
+      'GridComponent',
+      'TooltipComponent',
+      'ToolboxComponent',
+      'GeoComponent',
+      'VisualMapComponent',
+      'LegendComponent'
+    ],
   },
 
   future: {
