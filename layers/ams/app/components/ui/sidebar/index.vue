@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth' // Pfad ggf. anpassen
+import type { DirectusRole } from '~~/types'
 const authStore = useAuthStore()
 
 const { currentUser } = storeToRefs(authStore)
+
+const router = useRouter()
 
 interface baseElement {
   label: string
@@ -19,93 +22,129 @@ interface linkElement extends baseElement {
 
 type sidebarElement = separatorElement | linkElement
 
-const sidebarItems: sidebarElement[] = [
-  {
-    label: 'Mitglied',
-    type: 'separator',
-  },
-  {
-    label: 'Dashboard',
-    link: '/ams',
-    icon: 'i-lucide-layout-grid',
-    exact: true,
-    type: 'link',
-  },
-  {
-    label: 'My Profile',
-    link: '/ams/profile',
-    icon: 'i-lucide-user',
-    exact: false,
-    type: 'link',
-  },
-  {
-    label: 'My Hangar',
-    link: '/ams/hangar',
-    icon: 'i-fluent-home-garage-24-regular',
-    exact: false,
-    type: 'link',
-  },
-  {
-    label: 'Comm-Link',
-    link: '/ams/comm-link',
-    icon: 'i-lucide-newspaper',
-    exact: false,
-    type: 'link',
-  },
-  {
-    label: 'Nachrichten',
-    link: '/ams/messages',
-    icon: 'i-lucide-message-square',
-    exact: false,
-    type: 'link',
-  },
-  {
-    label: 'Organisation',
-    type: 'separator',
-  },
-  {
-    label: 'Mitarbeiter',
-    link: '/ams/employees',
-    icon: 'i-lucide-users-round',
-    exact: false,
-    type: 'link',
-  },
-  {
-    label: 'Flotte',
-    link: '/ams/fleet',
-    icon: 'i-material-symbols-transportation-outline',
-    exact: true,
-    type: 'link',
-  },
-  {
-    label: 'Flottenstatistiken',
-    link: '/ams/fleet-stats',
-    icon: 'i-lucide-bar-chart-3',
-    exact: true,
-    type: 'link',
-  },
-  {
-    label: 'Anteilsrechner',
-    link: '/ams/calculator',
-    icon: 'i-lucide-calculator',
-    exact: false,
-    type: 'link',
-  },
-  {
-    label: 'VerseExkurs Editor',
-    link: '/ams/verse-exkurs-editor',
-    icon: 'i-lucide-book-text',
-    exact: false,
-    type: 'link',
-  },
-  {
-    label: 'Verwaltung',
-    link: '/ams/admin',
-    icon: 'i-lucide-shield-check',
-    exact: false,
-    type: 'link',
-  },
-]
+const sidebarItems = computed<sidebarElement[]>(() => {
+  const items: sidebarElement[] = [
+    {
+      label: 'Mitglied',
+      type: 'separator',
+    },
+    {
+      label: 'Dashboard',
+      link: '/ams',
+      icon: 'i-lucide-layout-grid',
+      exact: true,
+      type: 'link',
+    },
+    {
+      label: 'My Profile',
+      link: '/ams/profile',
+      icon: 'i-lucide-user',
+      exact: false,
+      type: 'link',
+    },
+    {
+      label: 'My Hangar',
+      link: '/ams/hangar',
+      icon: 'i-fluent-home-garage-24-regular',
+      exact: false,
+      type: 'link',
+    },
+    {
+      label: 'Comm-Link',
+      link: '/ams/comm-link',
+      icon: 'i-lucide-newspaper',
+      exact: false,
+      type: 'link',
+    },
+    {
+      label: 'Nachrichten',
+      link: '/ams/messages',
+      icon: 'i-lucide-message-square',
+      exact: false,
+      type: 'link',
+    },
+    {
+      label: 'Organisation',
+      type: 'separator',
+    },
+    {
+      label: 'Mitarbeiter',
+      link: '/ams/employees',
+      icon: 'i-lucide-users-round',
+      exact: false,
+      type: 'link',
+    },
+    {
+      label: 'Flotte',
+      link: '/ams/fleet',
+      icon: 'i-material-symbols-transportation-outline',
+      exact: true,
+      type: 'link',
+    },
+    {
+      label: 'Flottenstatistiken',
+      link: '/ams/fleet-stats',
+      icon: 'i-lucide-bar-chart-3',
+      exact: true,
+      type: 'link',
+    },
+    {
+      label: 'Anteilsrechner',
+      link: '/ams/calculator',
+      icon: 'i-lucide-calculator',
+      exact: false,
+      type: 'link',
+    },
+    {
+      label: 'VerseExkurs Editor',
+      link: '/ams/verse-exkurs-editor',
+      icon: 'i-lucide-book-text',
+      exact: false,
+      type: 'link',
+    },
+    {
+      label: 'Verwaltung',
+      link: '/ams/admin',
+      icon: 'i-lucide-shield-check',
+      exact: false,
+      type: 'link',
+    },
+  ]
+
+  return items.filter((item: sidebarElement): boolean => {
+    if (item.type === 'separator') {
+      return true // Separatoren immer anzeigen
+    }
+
+    // Ab hier ist item.type === 'link'
+    const resolvedRoute = router.resolve(item.link)
+
+    // 1. Die Route muss existieren und auflösbar sein
+    if (!resolvedRoute.matched.length) {
+      return false
+    }
+
+    const pageAccessLevel = resolvedRoute.meta?.access_level as
+      | number
+      | undefined
+
+    // 2. Wenn die Seite keine spezifische Zugriffsebene erfordert, anzeigen
+    if (pageAccessLevel === undefined) {
+      return true
+    }
+
+    // 3. Die Seite erfordert eine spezifische Zugriffsebene.
+    //    Benutzer muss eine Rolle und eine ausreichende Zugriffsebene haben.
+    const userAccessLevel = (
+      currentUser.value?.role as DirectusRole | undefined
+    )?.access_level
+
+    // Prüfen, ob userAccessLevel eine Zahl ist und größer/gleich der pageAccessLevel
+    return (
+      typeof userAccessLevel === 'number' && userAccessLevel >= pageAccessLevel
+    )
+  })
+})
 </script>
 
 <template>
