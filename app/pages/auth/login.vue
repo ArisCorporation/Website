@@ -4,14 +4,17 @@ import { useAuthStore } from '~/stores/auth' // Pfad ggf. anpassen
 const authStore = useAuthStore()
 
 const credentials = reactive({
-  email: 'thomas.blakeney@ariscorp.de',
-  password: 'CmdaplaG_3',
+  username: '',
+  password: '',
 })
+
 const error = ref<string | null>(null) // Explizite Typisierung für bessere Code-Intelligenz und Sicherheit
 
 async function attemptLogin() {
   // console.log('Login attempt started') // Für Debugging, ggf. entfernen
-  const { email, password } = unref(credentials)
+  const { username, password } = credentials
+  const email = username + '@ariscorp.de'
+
   error.value = null
   try {
     // Be careful when using the login function because you have to pass the email and password as separate arguments instead of an object.
@@ -41,32 +44,45 @@ definePageMeta({
 </script>
 <template>
   <!-- @submit.prevent auf dem Formular verwenden -->
-  <form @submit.prevent="attemptLogin">
-    <h1>Login</h1>
-    <div>
-      <UInput
-        required
-        type="text"
-        v-model="credentials.email"
-        name="email"
-        placeholder="Email"
-      />
+  <div class="flex h-screen max-h-screen w-screen max-w-screen">
+    <div
+      class="w-lg m-auto bg-(--ui-bg-muted) rounded-xl p-6 pb-8 prose prose-invert border-(--ui-bg-accented)"
+    >
+      <form @submit.prevent="attemptLogin" class="mt-0 flex flex-col gap-y-8">
+        <h2 class="text-center mt-2">Log in</h2>
+        <UFormField required name="username" label="Benutzername">
+          <UInput
+            required
+            size="xl"
+            type="text"
+            v-model="credentials.username"
+            placeholder="chris.roberts"
+            class="w-full"
+          />
+        </UFormField>
+        <UFormField required name="password" label="Passwort">
+          <UInput
+            required
+            size="xl"
+            type="password"
+            v-model="credentials.password"
+            placeholder="*********"
+            class="w-full"
+          />
+        </UFormField>
+        <UButton
+          :loading="authStore.isAuthLoading"
+          variant="subtle"
+          size="xl"
+          type="submit"
+          label="Log in"
+          class="w-full mt-16 flex justify-center"
+        />
+        <div v-if="error" style="color: red; margin-top: 10px">
+          <!-- TODO: ERROR HANDLING -->
+          {{ error }}
+        </div>
+      </form>
     </div>
-    <div>
-      <UInput
-        required
-        type="password"
-        v-model="credentials.password"
-        name="password"
-        placeholder="Password"
-      />
-    </div>
-    <button type="submit">
-      {{ authStore.isAuthLoading ? 'Logging in...' : 'Login' }}
-    </button>
-    {{ authStore.isAuthLoading }}
-    <div v-if="error" style="color: red; margin-top: 10px">
-      {{ error }}
-    </div>
-  </form>
+  </div>
 </template>
