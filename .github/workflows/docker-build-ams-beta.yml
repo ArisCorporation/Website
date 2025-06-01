@@ -44,6 +44,7 @@ jobs:
           push: true # Da Trigger nur auf main ist, können wir immer pushen
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
             NUXT_PUBLIC_SOURCE_COMMIT=${{ github.sha }}
             NUXT_PUBLIC_ENVIRONMENT=LIVE
           # Optional: Caching aktivieren für schnellere Builds
