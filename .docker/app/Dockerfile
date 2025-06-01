@@ -1,6 +1,9 @@
 # Stage 1: Build the Nuxt application
 FROM node:20-alpine AS builder
 
+ARG NUXT_PUBLIC_SOURCE_COMMIT
+ARG NUXT_PUBLIC_ENVIRONMENT
+
 WORKDIR /app
 
 # Copy package.json and package-lock.json (or yarn.lock)
@@ -21,6 +24,9 @@ COPY . .
 # Build the application
 # Disable Nuxt telemetry during build to prevent potential prompts
 ENV NUXT_TELEMETRY_DISABLED=1
+ENV NUXT_PUBLIC_SOURCE_COMMIT=${NUXT_PUBLIC_SOURCE_COMMIT}
+ENV NUXT_PUBLIC_ENVIRONMENT=${NUXT_PUBLIC_ENVIRONMENT}
+
 RUN pnpm run build
 
 # Stage 2: Serve the application from a lean image
