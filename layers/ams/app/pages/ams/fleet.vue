@@ -21,6 +21,15 @@ const viewOptions = reactive([
 
 const { data, refresh } = await useFetchAMSFleet()
 
+useLazyAsyncData('global:simple_departments', () =>
+  useDirectus(
+    readItems('departments', {
+      limit: -1,
+      fields: ['id', 'name'],
+    })
+  )
+)
+
 const filteredShips = computed<UserHangar[]>(() => {
   return searchItems<UserHangar>(
     data.value ?? [],
@@ -83,7 +92,7 @@ definePageMeta({
     </template>
     <template v-else-if="data?.length && mode === 'cards'">
       <div
-        class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+        class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       >
         <AMSUiShipCard
           v-for="ship in filteredShips"

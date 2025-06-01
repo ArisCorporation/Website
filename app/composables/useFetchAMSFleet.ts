@@ -6,8 +6,8 @@ import type { Schema, UserHangar } from '~~/types'
 // Definiere die Felder-Struktur für bessere Lesbarkeit und Wartbarkeit
 const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
   '*',
-  { department: ['name', 'logo'] },
-  { active_module: ['name'] },
+  { department: ['id', 'name', 'logo'] },
+  { active_module: ['id', 'name'] },
   {
     user_id: [
       'id',

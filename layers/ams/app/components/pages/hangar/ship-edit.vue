@@ -22,6 +22,7 @@ const ship = computed<Ship>(() => {
 
 function handleEditOpen() {
   if (props.item) {
+    console.log(props.item)
     store.initForm(props.item)
     editSlideoverOpen.value = true
   }
@@ -45,7 +46,7 @@ const { data: departments } = useLazyAsyncData(
     useDirectus(
       readItems('departments', {
         limit: -1,
-        fields: ['*'],
+        fields: ['id', 'name'],
       })
     )
 )
@@ -72,7 +73,7 @@ const { data: departments } = useLazyAsyncData(
     </template>
     <template #body>
       <!-- TODO: Add Form Details -->
-      <UForm>
+      <div>
         <div class="space-y-4">
           <UCard variant="ams" class="!shadow-none" :ui="{ body: '!pt-0' }">
             <template #header>
@@ -350,7 +351,7 @@ const { data: departments } = useLazyAsyncData(
             </template>
           </UCard>
         </div>
-      </UForm>
+      </div>
     </template>
     <template #footer>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
