@@ -130,7 +130,7 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
           ? pickedSourceData.visibility
           : 'public',
         // department: UserHangar.department ist Department | string | null, schema.department ist string().optional()
-        department: resolveToStringOrUndefined(pickedSourceData.department),
+        department: resolveToStringOrUndefined(pickedSourceData.department?.id),
         // planned: UserHangar.planned ist boolean | null, schema.planned ist z.boolean() (erforderlich)
         planned: pickedSourceData.planned ?? false,
         // active_module: UserHangar.active_module ist ShipModule | string | null, schema.active_module ist string().optional()

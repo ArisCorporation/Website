@@ -9,6 +9,8 @@ import type {
   UserHangar,
 } from '~~/types'
 
+const authStore = useAuthStore()
+
 const props = defineProps<{ data: UserHangar[]; search: string }>()
 
 const expanded = ref({})
@@ -150,14 +152,12 @@ watch(props, () => {
               </div>
               <div>
                 <p class="text-(--ui-text-muted)">Aktives Modul</p>
-                <p class="p-0 font-normal text-white">
-                  {{
-                    row.original.active_module &&
-                    row.original?.ship_id?.modules?.length
-                      ? (row.original.active_module as ShipModule)?.name
-                      : 'N/A'
-                  }}
-                </p>
+                <UBadge
+                  v-if="row.original.active_module"
+                  :label="(row.original.active_module as ShipModule)?.name"
+                  variant="subtle"
+                  class="mr-2"
+                />
               </div>
             </div>
             <h4 class="text-(--ui-primary) font-medium mt-2">
@@ -227,7 +227,7 @@ watch(props, () => {
                 </p>
               </div>
             </div>
-            <div
+            <!-- <div
               v-if="(row.original.ship_id as Ship)?.modules?.length"
               class="mt-4"
             >
@@ -239,7 +239,7 @@ watch(props, () => {
                 variant="subtle"
                 class="mr-2"
               />
-            </div>
+            </div> -->
             <!-- TODO: ADD PAINTS -->
             <!-- <div class="mt-4">
               <p class="text-(--ui-primary)">Module</p>

@@ -20,6 +20,7 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     currentUser: (state) => state.user,
     currentUserId: (state) => state.user?.id,
+    currentUserAL: (state) => state.user?.role?.access_level,
     isUserLoggedIn: (state) => state.isAuthenticated,
     isAuthLoading: (state): boolean => state.isLoading,
   },
