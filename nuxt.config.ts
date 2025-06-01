@@ -2,6 +2,11 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
+  sourcemap: {
+    server: true,
+    client: true
+  },
+
   runtimeConfig: {
     apiKey: process.env.NUXT_API_KEY || 'default_fallback_key',
     apiSecret: process.env.NUXT_API_SECRET,
@@ -11,7 +16,8 @@ export default defineNuxtConfig({
     public: {
       API_URL: process.env.NUXT_PUBLIC_API_URL || 'https://cms.ariscorp.de',
       SITE_URL: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-
+      SOURCE_COMMIT: process.env.NUXT_PUBLIC_SOURCE_COMMIT || 'DEV',
+      ENVIRONMENT: process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEV',
     }
   },
 
@@ -67,11 +73,12 @@ export default defineNuxtConfig({
   },
 
   image: {
+    domains: ['cms.ariscorp.de', 'cdn.discordapp.com'],
     provider: 'directus',
     directus: {
-      baseURL: process.env.NUXT_PUBLIC_API_URL + '/assets',
+      baseURL: 'https://cms.ariscorp.de/assets',
       modifiers: {
-        format: 'webp',
+        format: 'avif',
       },
     },
   },

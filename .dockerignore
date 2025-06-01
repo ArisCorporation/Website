@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Node modules
+node_modules
+
+# Nuxt build artifacts & cache
+# These are generated during the Docker build process
+.nuxt
+.output
+dist
+
+# Environment files
+# Sensitive information should be passed via environment variables at runtime,
+# not baked into the image.
+.env
+.env.*
+# You can choose to explicitly keep .env.example if needed for some reason,
+# but it's generally not required in the final image.
+# !.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# IDE & Editor specific folders
+.vscode
+.idea
+
+# OS-generated files
+.DS_Store
+Thumbs.db
