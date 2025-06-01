@@ -64,6 +64,7 @@ const filteredShips = computed<UserHangar[]>(() => {
     shortFiltered,
     [
       'name',
+      'department.name',
       'ship_id.name',
       'ship_id.manufacturer.name',
       'ship_id.manufacturer.code',

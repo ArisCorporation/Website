@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue' // computed und ref importieren
-import type { Ship, UserHangar } from '~~/types' // Pfad anpassen, falls nötig
+import type { DirectusRole, Ship, UserHangar } from '~~/types' // Pfad anpassen, falls nötig
+
+const authStore = useAuthStore()
 
 type ShipProps = {
   mode: 'ship'
@@ -28,6 +29,18 @@ const ship = computed<Ship>(() => {
 
 const hangarItem = computed<UserHangar | null>(() => {
   return props.mode === 'hangar-item' ? props.data : null
+})
+
+const editMode = computed<boolean>(() => {
+  if (props.mode === 'ship') return false
+
+  if (!props.fleetMode) return true
+
+  if (authStore.currentUserAL >= 5) return true
+
+  if (authStore.currentUserId === props.data.user_id?.id) return true
+
+  return false
 })
 </script>
 
@@ -88,6 +101,12 @@ const hangarItem = computed<UserHangar | null>(() => {
         >
           " {{ hangarItem.name }} "
         </h3>
+        <h3
+          v-else
+          class="text-lg italic font-semibold text-(--ui-text-muted) transition-colors duration-300 !my-0"
+        >
+          N/A
+        </h3>
         <UTooltip
           v-if="mode === 'hangar-item' && fleetMode"
           :text="`Besitzer: ${getUserLabel(hangarItem?.user_id)}`"
@@ -120,7 +139,7 @@ const hangarItem = computed<UserHangar | null>(() => {
         </div>
       </div>
     </template>
-    <template #footer>
+    <template v-if="editMode" #footer>
       <div class="flex w-full gap-x-2">
         <AMSPagesHangarShipEdit
           v-if="hangarItem"
@@ -138,7 +157,7 @@ const hangarItem = computed<UserHangar | null>(() => {
         </AMSPagesHangarShipEdit>
         <UButton
           v-if="hangarItem"
-          @click="removeHangarItem(hangarItem.id)"
+          @click="removeHangarItem(hangarItem.id, fleetMode)"
           variant="outline"
           color="error"
           icon="i-lucide-trash-2"
