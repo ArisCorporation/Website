@@ -1,4 +1,4 @@
-name: Build and Push Nuxt3 Docker Image
+name: Build and Push AMS BETA
 
 on:
   push:
