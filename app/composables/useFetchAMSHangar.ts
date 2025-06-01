@@ -6,7 +6,7 @@ import type { Schema, UserHangar } from '~~/types'
 // Definiere die Felder-Struktur für bessere Lesbarkeit und Wartbarkeit
 const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
   '*',
-  { department: ['name'] },
+  { department: ['id', 'name', 'logo'] },
   {
     ship_id: [
       'id',
