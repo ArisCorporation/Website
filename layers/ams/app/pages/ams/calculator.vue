@@ -47,7 +47,11 @@ const { data: users } = await useAsyncData(
 )
 const { data: ships } = await useAsyncData('ships', () => {
   return useDirectus(
-    readItems('ships', { limit: -1, filter: { status: { _eq: 'published' } } })
+    readItems('ships', {
+      limit: -1,
+      filter: { status: { _eq: 'published' } },
+      sort: ['name'],
+    })
   )
 })
 
