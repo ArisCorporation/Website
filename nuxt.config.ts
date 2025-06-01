@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     head: {
       htmlAttrs: {
         lang: 'de',
-        'data-app-version': `${version}-${process.env.NUXT_PUBLIC_SOURCE_COMMIT || 'DEV'}.${process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEVELOPMENT'}`
+        'data-app-version': `${version}-${process.env.NUXT_PUBLIC_SOURCE_COMMIT?.slice(0, 7) || 'DEV'}.${process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEVELOPMENT'}`
       }
     }
   },
