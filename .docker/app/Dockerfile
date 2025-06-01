@@ -28,6 +28,10 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Declare build arguments that can be passed with --build-arg
+ARG NUXT_PUBLIC_SOURCE_COMMIT
+ARG NUXT_PUBLIC_ENVIRONMENT
+
 # Copy the built application output from the builder stage
 COPY --from=builder /app/.output ./.output
 
@@ -38,6 +42,11 @@ EXPOSE 3000
 # These can be overridden by environment variables passed at runtime.
 ENV HOST=0.0.0.0
 ENV PORT=3000
+
+# Set Nuxt specific environment variables from build arguments
+# These will be available to the Nuxt app via runtimeConfig
+ENV NUXT_PUBLIC_SOURCE_COMMIT=${NUXT_PUBLIC_SOURCE_COMMIT}
+ENV NUXT_PUBLIC_ENVIRONMENT=${NUXT_PUBLIC_ENVIRONMENT}
 # NUXT_ prefixed environment variables (e.g., NUXT_PUBLIC_API_URL, NUXT_SOME_SECRET)
 # passed via `docker run -e` will be available to your Nuxt app via runtimeConfig.
 
