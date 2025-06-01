@@ -1,0 +1,51 @@
+name: Build and Push Nuxt3 Docker Image
+
+on:
+  push:
+    branches:
+      - ams-beta
+
+# WICHTIG: Berechtigungen hinzufügen, falls noch nicht vorhanden
+permissions:
+  contents: read # Zum Auschecken des Codes
+  packages: write # Zum Pushen zur GitHub Container Registry
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Optional: Metadaten extrahieren (ersetzt "Set image name")
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/ariscorporation/website # Dein Image-Name
+          tags: |
+            type=sha
+            type=raw,value=latest-ams-beta,enable={{is_default_branch}}
+
+      # Build and Push mit der spezialisierten Action
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: './.docker/app/Dockerfile'
+          push: true # Da Trigger nur auf main ist, können wir immer pushen
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+            NUXT_PUBLIC_SOURCE_COMMIT=${{ github.sha }}
+            NUXT_PUBLIC_ENVIRONMENT="LIVE"
+          # Optional: Caching aktivieren für schnellere Builds
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
