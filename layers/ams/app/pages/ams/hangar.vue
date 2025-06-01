@@ -133,7 +133,7 @@ definePageMeta({
       </URadioGroup>
     </div>
     <template v-if="data?.length && mode === 'table'">
-      <AMSPagesHangarShips :data="filteredShips" />
+      <AMSPagesHangarShips :data="filteredShips" :search="searchInput" />
     </template>
     <template v-else-if="data?.length && mode === 'cards'">
       <div

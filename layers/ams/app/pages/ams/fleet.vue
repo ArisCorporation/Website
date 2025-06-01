@@ -26,6 +26,10 @@ const filteredShips = computed<UserHangar[]>(() => {
     data.value ?? [],
     [
       'name',
+      'department.name',
+      'user_id.first_name',
+      'user_id.middle_name',
+      'user_id.last_name',
       'ship_id.name',
       'ship_id.manufacturer.name',
       'ship_id.manufacturer.code',
@@ -75,7 +79,7 @@ definePageMeta({
       </URadioGroup>
     </div>
     <template v-if="data?.length && mode === 'table'">
-      <AMSPagesFleetShipsTable :data="filteredShips" />
+      <AMSPagesFleetShipsTable :data="filteredShips" :search="searchInput" />
     </template>
     <template v-else-if="data?.length && mode === 'cards'">
       <div

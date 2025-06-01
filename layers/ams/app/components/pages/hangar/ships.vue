@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import { useSortable } from '@vueuse/integrations/useSortable.mjs'
 import type {
   Company,
   Department,
@@ -9,12 +8,9 @@ import type {
   UserHangar,
 } from '~~/types'
 
-const props = defineProps<{ data: UserHangar[] }>()
+const props = defineProps<{ data: UserHangar[]; search: string }>()
 
-const store = useAMSCalculatorStore()
-const { crews } = storeToRefs(store)
-const expanded = ref({ 1: false })
-const editSlideover = ref<boolean>(false)
+const expanded = ref()
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
@@ -100,6 +96,10 @@ const columns: TableColumn<UserHangar>[] = [
     id: 'actions',
   },
 ]
+
+watch(props, () => {
+  expanded.value = {}
+})
 </script>
 
 <template>
@@ -158,16 +158,37 @@ const columns: TableColumn<UserHangar>[] = [
               :src="getAssetId(row.original.ship_id?.store_image)"
               class="w-full rounded h-auto aspect-video object-cover"
             />
-            <h2 class="text-2xl font-bold">{{ row.original.ship_id?.name }}</h2>
-            <p class="text-(--ui-text-muted)">
+          </div>
+          <div class="w-1/2 text-base">
+            <h2 class="text-2xl font-bold">
+              {{ row.original.ship_id?.name }}
+            </h2>
+            <p class="text-(--ui-text-muted) mb-4">
               {{ getMainFocusLabel(row.original.ship_id?.focuses) }} -
               {{ row.original.ship_id?.manufacturer?.name }}
             </p>
-          </div>
-          <div class="w-1/2 text-base">
             <h2 class="text-(--ui-primary) text-xl font-semibold">
               Schiffsdetails
             </h2>
+            <div class="grid grid-cols-2 gap-y-2">
+              <div>
+                <p class="text-(--ui-text-muted)">Schiffsname</p>
+                <p class="p-0 font-normal text-white">
+                  {{ row.original?.name ? row.original?.name : 'N/A' }}
+                </p>
+              </div>
+              <div>
+                <p class="text-(--ui-text-muted)">Aktives Modul</p>
+                <p class="p-0 font-normal text-white">
+                  {{
+                    row.original.active_module &&
+                    row.original?.ship_id?.modules?.length
+                      ? (row.original.active_module as ShipModule)?.name
+                      : 'N/A'
+                  }}
+                </p>
+              </div>
+            </div>
             <h4 class="text-(--ui-primary) font-medium mt-2">
               Spezifikationen
             </h4>
