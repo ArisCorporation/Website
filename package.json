@@ -1,5 +1,6 @@
 {
-  "name": "nuxt-app",
+  "name": "ArisCorp-Website",
+  "version": "V4.3-PRE",
   "private": true,
   "type": "module",
   "scripts": {

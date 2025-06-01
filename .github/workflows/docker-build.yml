@@ -45,6 +45,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
             NUXT_PUBLIC_SOURCE_COMMIT=${{ github.sha }}
+            NUXT_PUBLIC_ENVIRONMENT="LIVE"
           # Optional: Caching aktivieren für schnellere Builds
           # cache-from: type=gha
           # cache-to: type=gha,mode=max

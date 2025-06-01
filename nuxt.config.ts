@@ -1,10 +1,21 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { version } from './package.json';
+
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
   sourcemap: {
     server: true,
     client: true
+  },
+
+  app: {
+    head: {
+      htmlAttrs: {
+        lang: 'de',
+        'data-app-version': `${version}-${process.env.NUXT_PUBLIC_SOURCE_COMMIT || 'DEV'}.${process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEVELOPMENT'}`
+      }
+    }
   },
 
   runtimeConfig: {
@@ -17,7 +28,7 @@ export default defineNuxtConfig({
       API_URL: process.env.NUXT_PUBLIC_API_URL || 'https://cms.ariscorp.de',
       SITE_URL: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       SOURCE_COMMIT: process.env.NUXT_PUBLIC_SOURCE_COMMIT || 'DEV',
-      ENVIRONMENT: process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEV',
+      ENVIRONMENT: process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEVELOPMENT',
     }
   },
 
