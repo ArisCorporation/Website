@@ -71,7 +71,7 @@ const hangarItem = computed<UserHangar | null>(() => {
           </p>
         </div>
         <UTooltip
-          v-if="mode === 'hangar-item' && fleetMode && hangarItem?.department"
+          v-if="mode === 'hangar-item' && hangarItem?.department"
           :text="`Abteilung: ${hangarItem?.department?.name}`"
         >
           <NuxtImg
@@ -122,7 +122,11 @@ const hangarItem = computed<UserHangar | null>(() => {
     </template>
     <template #footer>
       <div class="flex w-full gap-x-2">
-        <AMSPagesHangarShipEdit v-if="hangarItem" :item="hangarItem">
+        <AMSPagesHangarShipEdit
+          v-if="hangarItem"
+          :item="hangarItem"
+          :fleet-mode="fleetMode"
+        >
           <template #default="{ open }">
             <UButton
               @click="open"
