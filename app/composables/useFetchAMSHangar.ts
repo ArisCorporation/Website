@@ -7,6 +7,7 @@ import type { Schema, UserHangar } from '~~/types'
 const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
   '*',
   { department: ['id', 'name', 'logo'] },
+  { active_module: ['id', 'name'] },
   {
     ship_id: [
       'id',

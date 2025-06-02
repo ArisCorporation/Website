@@ -3,6 +3,8 @@ import type { DirectusRole, Ship, UserHangar } from '~~/types' // Pfad anpassen,
 
 const authStore = useAuthStore()
 
+const expanded = ref(false)
+
 type ShipProps = {
   mode: 'ship'
   data: Ship
@@ -47,11 +49,23 @@ const editMode = computed<boolean>(() => {
 <template>
   <UCard
     variant="ams"
-    class="hover:scale-[1.02] overflow-clip duration-300 translation-all ease-out group"
-    :ui="{ header: '!p-0', root: 'flex flex-col', body: 'flex-1' }"
+    class="overflow-clip hover:scale-[1.02] duration-300 transition-transform ease-out group"
+    :class="[expanded ? 'col-span-2 mr-6' : '']"
+    :ui="{
+      header: '!p-0' + (expanded ? ' w-1/2' : ''),
+      root: 'flex flex-col relative',
+      body: 'flex-1' + (expanded ? ' w-1/2' : ''),
+    }"
   >
     <template #header>
-      <div class="relative aspect-[21/9] overflow-hidden">
+      <div class="relative aspect-[21/9] overflow-hidden !mb-0">
+        <UButton
+          icon="i-lucide-chevron-right"
+          variant="ghost"
+          @click="expanded = !expanded"
+          class="absolute right-1 top-1 z-20"
+          :class="[expanded ? 'rotate-180' : 'rotate-0']"
+        />
         <div
           class="absolute inset-0 bg-gradient-to-t from-(--ui-bg-muted) to-transparent opacity-60 z-10 group-hover:translate-y-[100%] transition-all duration-300"
         />
@@ -67,6 +81,86 @@ const editMode = computed<boolean>(() => {
             Operational
           </div>
         </div> -->
+      </div>
+      <div
+        v-if="expanded"
+        class="text-xs pl-2 w-1/2 prose-p:m-0 absolute right-0 top-0"
+      >
+        <h4 class="text-(--ui-primary) font-semibold">Schiffsdetails</h4>
+        <div class="grid grid-cols-2 gap-y-2">
+          <div>
+            <p class="text-(--ui-text-muted)">Schiffsname</p>
+            <p class="font-normal text-white">
+              {{ hangarItem.name ? hangarItem.name : 'N/A' }}
+            </p>
+          </div>
+          <div>
+            <p class="text-(--ui-text-muted)">Aktives Modul</p>
+            <UBadge
+              v-if="hangarItem.active_module"
+              :label="(hangarItem.active_module as ShipModule)?.name"
+              variant="subtle"
+              class="mr-2"
+            />
+            <p v-else>N/A</p>
+          </div>
+        </div>
+        <h4 class="text-(--ui-primary) font-medium mt-2">Spezifikationen</h4>
+        <div class="grid grid-cols-2 gap-y-2">
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Hersteller</p>
+            <UButton
+              variant="link"
+              color="neutral"
+              :to="`/verseexkurs/companies/${ship?.manufacturer?.slug}`"
+              class="p-0 font-normal text-white"
+            >
+              <p class="text-xs">
+                {{
+                  ship?.manufacturer?.name
+                    ? getCompanyCode(ship?.manufacturer)?.split(' ')[0]
+                    : 'N/A'
+                }}
+              </p>
+            </UButton>
+          </div>
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Crew</p>
+            <p class="p-0 font-normal text-white">
+              {{ ship?.crew_min ?? 'N/A' }}
+              -
+              {{ ship?.crew_max ?? 'N/A' }}
+            </p>
+          </div>
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Länge</p>
+            <p class="p-0 font-normal text-white">
+              {{ ship?.length ? ship?.length + 'm' : 'N/A' }}
+            </p>
+          </div>
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Breite</p>
+            <p class="p-0 font-normal text-white">
+              {{ ship?.beam ? ship?.beam + 'm' : 'N/A' }}
+            </p>
+          </div>
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Höhe</p>
+            <p class="p-0 font-normal text-white">
+              {{ ship?.height ? ship?.height + 'm' : 'N/A' }}
+            </p>
+          </div>
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Gewicht</p>
+            <p class="p-0 font-normal text-white">
+              {{
+                ship?.mass
+                  ? formatCurrency(ship?.mass / 1000) + ' Tonnen'
+                  : 'N/A'
+              }}
+            </p>
+          </div>
+        </div>
       </div>
     </template>
     <template #default>
@@ -116,27 +210,6 @@ const editMode = computed<boolean>(() => {
             class="w-12 h-auto aspect-[270/320] !my-0 ml-auto rounded"
           />
         </UTooltip>
-      </div>
-      <div v-if="false" class="mt-4 space-y-3 animate-fadeIn prose-p:my-0">
-        <div class="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <p class="text-(--ui-primary)">Manufacturer</p>
-            <p class="text-white">{{ ship.manufacturer }}</p>
-          </div>
-          <div>
-            <p class="text-(--ui-primary)">Crew Size</p>
-            <p class="text-white">{{ ship.crew_min }}-{{ ship.crew_max }}</p>
-          </div>
-        </div>
-        <div>
-          <p class="text-(--ui-primary) text-sm">Specifications</p>
-          <div class="grid grid-cols-3 gap-2 mt-1 text-xs">
-            <div class="bg-(--ui-bg-muted)/60 rounded p-1 text-center">
-              <p class="text-white">Length</p>
-              <p class="text-(--ui-primary) font-mono">{{ ship.length }}m</p>
-            </div>
-          </div>
-        </div>
       </div>
     </template>
     <template v-if="editMode" #footer>
