@@ -67,10 +67,10 @@ const memberSinceDate = computed(() => {
           </div>
           <UTooltip
             v-if="!data.head_of_department && data.department"
-            :text="`Abteilung: ${data?.department?.name}`"
+            :text="`Abteilung: ${data?.primary_department?.name}`"
           >
             <NuxtImg
-              :src="getAssetId(data.department?.logo)"
+              :src="getAssetId(data.primary_department?.logo)"
               class="size-12 rounded-full"
             />
           </UTooltip>

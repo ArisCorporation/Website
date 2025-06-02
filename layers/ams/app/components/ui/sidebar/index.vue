@@ -209,7 +209,8 @@ const sidebarItems = computed<sidebarElement[]>(() => {
                 </p>
                 <!-- TODO: ADD DEPARTMENT OR HEAD OF DEPARTMENT LABEL -->
                 <p class="text-xs text-(--ui-primary)">
-                  Chief of Logistics Department
+                  {{ currentUser.head_of_department ? 'Chief of ' : ''
+                  }}{{ currentUser.primary_department?.name }} Department
                 </p>
               </div>
             </div>

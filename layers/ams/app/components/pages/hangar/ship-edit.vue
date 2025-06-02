@@ -91,7 +91,7 @@ const { data: departments } = useLazyAsyncData(
                     v-model="formData.name"
                     highlight
                     variant="outline"
-                    placeholder="Aris ONE"
+                    placeholder="z.B. Aris ONE"
                     size="md"
                     class="w-full"
                   />
