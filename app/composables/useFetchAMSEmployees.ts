@@ -7,6 +7,7 @@ import type { DirectusUser, Schema } from '~~/types'
 const EMPLOYEE_FIELDS: QueryFields<Schema, DirectusUser> = [
   '*',
   { department: ['name', 'logo'] },
+  { leading_department: ['name', 'logo'] },
   { role: ['name', 'label'] },
 ]
 
