@@ -7,6 +7,8 @@ const { currentUser } = storeToRefs(authStore)
 
 const router = useRouter()
 
+const mobileOpen = ref(false)
+
 interface baseElement {
   label: string
 }
@@ -148,85 +150,192 @@ const sidebarItems = computed<sidebarElement[]>(() => {
 </script>
 
 <template>
-  <aside
-    class="fixed inset-y-0 left-0 z-50 hidden w-64 border-r border-(--ui-primary)/10 bg-(--ui-bg-muted)/90 backdrop-blur-xs lg:block"
-  >
-    <div class="flex h-full flex-col">
-      <!-- Header -->
-      <div class="flex h-16 items-center px-4">
-        <NuxtLink
-          to="/ams"
-          class="flex items-center gap-2 transition-all duration-300 hover:scale-105"
-        >
-          <span class="text-xl font-bold tracking-wider text-white"
-            >ArisCorp</span
-          >
-          <span class="text-(--ui-primary) ml-2">AMS</span>
-        </NuxtLink>
-      </div>
-      <!-- Separator -->
-      <div class="shrink-0 h-[1px] w-full bg-(--ui-primary)/10" />
-      <!-- Content -->
-      <nav class="flex-1 space-y-1 px-2 py-4">
-        <template v-for="item in sidebarItems">
-          <AMSUiSidebarLink
-            v-if="item.type === 'link'"
-            :label="item.label"
-            :link="item.link"
-            :icon="item.icon"
-            :exact="item.exact"
-          />
-          <USeparator
-            v-else-if="item.type === 'separator'"
-            color="ams"
-            :label="item.label"
-            class="mt-8 first:mt-0"
-          />
-        </template>
-      </nav>
-      <!-- Footer -->
-      <div class="p-4">
+  <div>
+    <header
+      class="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-between border-b border-(--ui-primary)/10 bg-(--ui-bg-muted)/95 px-4 backdrop-blur-sm lg:hidden"
+    >
+      <NuxtLink to="/" class="flex items-center gap-2">
         <div
-          class="rounded-lg border border-(--ui-primary)/20 bg-(--ui-bg-muted)/50 p-4 transition-all duration-300 hover:border-(--ui-primary)/30 hover:shadow-primary-xs"
+          class="rounded bg-(--ui-primary)/20 p-1 transition-all duration-300 hover:bg-(--ui-primary)/30 hover:shadow-[0_0_10px_rgba(0,255,232,0.3)]"
         >
-          <div class="flex flex-col space-y-3">
-            <div class="flex items-center gap-3 prose-img:my-0">
-              <div
-                class="flex shrink-0 overflow-hidden rounded-full h-12 w-12 border border-(--ui-primary)/20 ring-1 ring-(--ui-primary)/10"
+          <UIcon name="i-lucide-rocket" class="h-6 w-6 text-(--ui-primary)" />
+        </div>
+        <span class="text-xl font-bold tracking-wider text-white">
+          ArisCorp<span class="text-(--ui-primary)">AMS</span>
+        </span>
+      </NuxtLink>
+      <UButton
+        @click="mobileOpen = true"
+        variant="ghost"
+        icon="i-lucide-menu"
+        class="size-fit transition-all duration-300"
+      />
+    </header>
+    <div
+      v-if="mobileOpen"
+      @click="mobileOpen = false"
+      class="fixed inset-0 z-50 bg-(--ui-bg-muted)/50 backdrop-blur-xs lg:hidden"
+    >
+      <div
+        class="fixed inset-y-0 left-0 z-50 w-64 border-r border-(--ui-primary)/10 bg-(--ui-bg-muted) lg:hidden"
+      >
+        <div class="flex h-full flex-col">
+          <!-- Header -->
+          <div class="flex h-16 items-center px-4">
+            <NuxtLink
+              to="/ams"
+              class="flex items-center gap-2 transition-all duration-300 hover:scale-105"
+            >
+              <span class="text-xl font-bold tracking-wider text-white"
+                >ArisCorp</span
               >
-                <NuxtImg
-                  class="size-full object-cover"
-                  alt="Thomas Blakeney"
-                  :src="
-                    getAssetId(currentUser?.avatar) ??
-                    'c46969b5-8414-49cd-ab90-cb71dd2a3e57'
-                  "
-                />
-              </div>
-              <div class="flex-1 not-prose">
-                <p class="text-sm font-medium text-white">
-                  {{ getUserLabel(currentUser) }}
-                </p>
-                <!-- TODO: ADD DEPARTMENT OR HEAD OF DEPARTMENT LABEL -->
-                <p class="text-xs text-(--ui-primary)">
-                  {{ currentUser.head_of_department ? 'Chief of ' : ''
-                  }}{{ currentUser.primary_department?.name }} Department
-                </p>
+              <span class="text-(--ui-primary) ml-2">AMS</span>
+            </NuxtLink>
+          </div>
+          <!-- Separator -->
+          <div class="shrink-0 h-[1px] w-full bg-(--ui-primary)/10" />
+          <!-- Content -->
+          <nav class="flex-1 space-y-1 px-2 py-4">
+            <template v-for="item in sidebarItems">
+              <AMSUiSidebarLink
+                v-if="item.type === 'link'"
+                :label="item.label"
+                :link="item.link"
+                :icon="item.icon"
+                :exact="item.exact"
+              />
+              <USeparator
+                v-else-if="item.type === 'separator'"
+                color="ams"
+                :label="item.label"
+                class="mt-8 first:mt-0"
+              />
+            </template>
+          </nav>
+          <!-- Footer -->
+          <div class="p-4">
+            <div
+              class="rounded-lg border border-(--ui-primary)/20 bg-(--ui-bg-muted)/50 p-4 transition-all duration-300 hover:border-(--ui-primary)/30 hover:shadow-primary-xs"
+            >
+              <div class="flex flex-col space-y-3">
+                <div class="flex items-center gap-3 prose-img:my-0">
+                  <div
+                    class="flex shrink-0 overflow-hidden rounded-full h-12 w-12 border border-(--ui-primary)/20 ring-1 ring-(--ui-primary)/10"
+                  >
+                    <NuxtImg
+                      class="size-full object-cover"
+                      alt="Thomas Blakeney"
+                      :src="
+                        getAssetId(currentUser?.avatar) ??
+                        'c46969b5-8414-49cd-ab90-cb71dd2a3e57'
+                      "
+                    />
+                  </div>
+                  <div class="flex-1 not-prose">
+                    <p class="text-sm font-medium text-white">
+                      {{ getUserLabel(currentUser) }}
+                    </p>
+                    <!-- TODO: ADD DEPARTMENT OR HEAD OF DEPARTMENT LABEL -->
+                    <p class="text-xs text-(--ui-primary)">
+                      {{ currentUser.head_of_department ? 'Chief of ' : ''
+                      }}{{ currentUser.primary_department?.name }} Department
+                    </p>
+                  </div>
+                </div>
+                <UButton
+                  @click="authStore.logoutAndRedirect()"
+                  variant="outline"
+                  icon="i-lucide-log-out"
+                  class="h-9 px-3 text-sm text-gray-300 hover:text-(--ui-primary) flex justify-center"
+                >
+                  Logout
+                </UButton>
               </div>
             </div>
-            <UButton
-              @click="authStore.logoutAndRedirect()"
-              variant="outline"
-              icon="i-lucide-log-out"
-              class="h-9 px-3 text-sm text-gray-300 hover:text-(--ui-primary) flex justify-center"
-            >
-              Logout
-            </UButton>
           </div>
         </div>
       </div>
     </div>
-  </aside>
+    <aside
+      class="fixed inset-y-0 left-0 z-50 hidden w-64 border-r border-(--ui-primary)/10 bg-(--ui-bg-muted)/90 backdrop-blur-xs lg:block"
+    >
+      <div class="flex h-full flex-col">
+        <!-- Header -->
+        <div class="flex h-16 items-center px-4">
+          <NuxtLink
+            to="/ams"
+            class="flex items-center gap-2 transition-all duration-300 hover:scale-105"
+          >
+            <span class="text-xl font-bold tracking-wider text-white"
+              >ArisCorp</span
+            >
+            <span class="text-(--ui-primary) ml-2">AMS</span>
+          </NuxtLink>
+        </div>
+        <!-- Separator -->
+        <div class="shrink-0 h-[1px] w-full bg-(--ui-primary)/10" />
+        <!-- Content -->
+        <nav class="flex-1 space-y-1 px-2 py-4">
+          <template v-for="item in sidebarItems">
+            <AMSUiSidebarLink
+              v-if="item.type === 'link'"
+              :label="item.label"
+              :link="item.link"
+              :icon="item.icon"
+              :exact="item.exact"
+            />
+            <USeparator
+              v-else-if="item.type === 'separator'"
+              color="ams"
+              :label="item.label"
+              class="mt-8 first:mt-0"
+            />
+          </template>
+        </nav>
+        <!-- Footer -->
+        <div class="p-4">
+          <div
+            class="rounded-lg border border-(--ui-primary)/20 bg-(--ui-bg-muted)/50 p-4 transition-all duration-300 hover:border-(--ui-primary)/30 hover:shadow-primary-xs"
+          >
+            <div class="flex flex-col space-y-3">
+              <div class="flex items-center gap-3 prose-img:my-0">
+                <div
+                  class="flex shrink-0 overflow-hidden rounded-full h-12 w-12 border border-(--ui-primary)/20 ring-1 ring-(--ui-primary)/10"
+                >
+                  <NuxtImg
+                    class="size-full object-cover"
+                    alt="Thomas Blakeney"
+                    :src="
+                      getAssetId(currentUser?.avatar) ??
+                      'c46969b5-8414-49cd-ab90-cb71dd2a3e57'
+                    "
+                  />
+                </div>
+                <div class="flex-1 not-prose">
+                  <p class="text-sm font-medium text-white">
+                    {{ getUserLabel(currentUser) }}
+                  </p>
+                  <!-- TODO: ADD DEPARTMENT OR HEAD OF DEPARTMENT LABEL -->
+                  <p class="text-xs text-(--ui-primary)">
+                    {{ currentUser.head_of_department ? 'Chief of ' : ''
+                    }}{{ currentUser.primary_department?.name }} Department
+                  </p>
+                </div>
+              </div>
+              <UButton
+                @click="authStore.logoutAndRedirect()"
+                variant="outline"
+                icon="i-lucide-log-out"
+                class="h-9 px-3 text-sm text-gray-300 hover:text-(--ui-primary) flex justify-center"
+              >
+                Logout
+              </UButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
 </template>
 
 <style>
