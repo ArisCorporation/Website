@@ -64,7 +64,7 @@ const editMode = computed<boolean>(() => {
       >
         <UButton
           icon="i-lucide-chevron-right"
-          variant="ghost"
+          :variant="expanded ? 'subtle' : 'ghost'"
           @click="expanded = !expanded"
           class="absolute right-1 top-1 z-20"
           :class="[expanded ? 'rotate-180' : 'rotate-0']"

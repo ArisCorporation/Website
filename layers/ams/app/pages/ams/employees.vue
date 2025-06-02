@@ -8,7 +8,14 @@ const { data, refresh } = await useFetchAMSEmployees()
 const filteredEmployees = computed<DirectusUser[]>(() => {
   return searchItems<DirectusUser>(
     data.value ?? [],
-    ['first_name', 'middle_name', 'last_name', 'department.name'],
+    [
+      'first_name',
+      'middle_name',
+      'last_name',
+      'department.name',
+      'leading_department.name',
+      'role.label',
+    ],
     searchInput.value
   )
 })
@@ -35,7 +42,9 @@ definePageMeta({
       size="lg"
       class="w-full mb-6"
     />
-    <div class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+    >
       <AMSUiEmployeeCard
         v-for="employee in filteredEmployees"
         :key="employee.id"
