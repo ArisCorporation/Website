@@ -21,6 +21,7 @@
     "@nuxt/ui": "^3.1.2",
     "@tanstack/vue-table": "^8.21.3",
     "@tiptap/extension-blockquote": "^2.12.0",
+    "@tiptap/extension-character-count": "^2.12.0",
     "@tiptap/extension-code": "^2.12.0",
     "@tiptap/extension-link": "^2.12.0",
     "@tiptap/extension-text-align": "^2.12.0",

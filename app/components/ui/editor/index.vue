@@ -4,6 +4,7 @@ import Link from '@tiptap/extension-link'
 import Code from '@tiptap/extension-code'
 import Blockquote from '@tiptap/extension-blockquote'
 import TextAlign from '@tiptap/extension-text-align'
+import CharacterCount from '@tiptap/extension-character-count'
 
 const model = defineModel<string>()
 
@@ -29,6 +30,7 @@ const editor = useEditor({
     Code,
     Blockquote,
     TextAlign,
+    CharacterCount,
   ],
   onUpdate: ({ editor }) => {
     model.value = editor.getHTML()
@@ -76,8 +78,11 @@ onBeforeUnmount(() => {
     variant="ams"
     class="min-h-screen !shadow-none"
     :ui="{
-      body: 'size-full !py-0',
-      root: '!divide-y !divide-(--ui-primary)/20',
+      header: 'sticky top-0 !py-3 z-10 bg-(--ui-bg-muted)/95',
+      footer:
+        'sticky bottom-0 z-10 bg-(--ui-bg-muted)/95 border-t border-t-(--ui-primary)/20',
+      body: 'flex-1 !py-0 min-h-screen border-b-0',
+      root: '!divide-y max-h-[calc(100vh_-_50px)] overflow-y-scroll !divide-(--ui-primary)/20',
     }"
   >
     <template #header>
@@ -218,46 +223,34 @@ onBeforeUnmount(() => {
           :color="editor?.isActive('code') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
-        <div
+        <!-- <div
           data-orientation="vertical"
           role="none"
           class="shrink-0 bg-border w-[1px] mx-1 h-6"
-        />
-        <UButton
+        /> -->
+        <!-- <UButton
           icon="i-lucide-link"
           variant="subtle"
           class="size-8"
           :color="editor?.isActive('link') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
-        />
+        /> -->
         <!-- TODO: ADD IMAGES AND VIDEOS -->
-        <UButton
+        <!-- <UButton
           icon="i-lucide-image"
           variant="subtle"
           class="size-8"
           :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
-        />
+        /> -->
         <!-- TODO: ADD COLOR -->
-        <UButton
+        <!-- <UButton
           icon="i-lucide-palette"
           variant="subtle"
           class="size-8"
           :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
-        />
-        <div
-          data-orientation="vertical"
-          role="none"
-          class="shrink-0 bg-border w-[1px] mx-1 h-6"
-        />
-        <UButton
-          icon="i-lucide-type"
-          variant="subtle"
-          class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
-          :ui="{ leadingIcon: 'size-4 m-auto' }"
-        />
+        /> -->
         <span class="ml-auto gap-1 flex">
           <UButton
             icon="i-lucide-undo"
@@ -281,6 +274,28 @@ onBeforeUnmount(() => {
     </template>
     <template #default>
       <TiptapEditorContent :editor="editor" class="size-full" />
+    </template>
+    <template #footer>
+      <div class="flex not-prose w-full divide-x divide-(--ui-primary)/20">
+        <p class="ml-auto mr-2 pr-2">
+          {{
+            editor?.storage.characterCount
+              .characters()
+              .toString()
+              .replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.')
+          }}
+          Buchstaben
+        </p>
+        <p>
+          {{
+            editor?.storage.characterCount
+              .words()
+              .toString()
+              .replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1.')
+          }}
+          Wörter
+        </p>
+      </div>
     </template>
   </UCard>
 </template>
