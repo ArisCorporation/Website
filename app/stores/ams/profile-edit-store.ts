@@ -362,7 +362,6 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
 
         const apiPayload = payload as Partial<DirectusUser>
         delete apiPayload.avatar
-
         // The payload should now conform to Partial<DirectusUser> for the relevant fields
         // @ts-ignore
         const updatedUserDataFromApi = await useDirectus(updateUser(userId, apiPayload));

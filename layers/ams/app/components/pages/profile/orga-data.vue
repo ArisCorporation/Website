@@ -4,7 +4,6 @@ import { some } from 'lodash'
 const store = useUserProfileEditStore()
 
 const roleOptions = reactive([
-  { label: 'Abteilungsleiter', value: 'hod' },
   { label: 'Rekrutierung', value: 'recruitment' },
   { label: 'Marketing & Presse', value: 'marketing_and_press' },
   { label: 'Inhaltsersteller', value: 'content_writer' },
@@ -27,13 +26,13 @@ const { data: discordUserList, pending: discordUserListPending } = useAsyncData(
   () => $fetch('/api/ams/getDiscordUser')
 )
 
-const activeRoles = computed(() => {
-  const roles = store.formData.roles
+// const activeRoles = computed(() => {
+//   const roles = store.formData.roles
 
-  if (store?.formData?.head_of_department) roles?.push('hod')
+//   if (store?.formData?.head_of_department) roles?.push('hod')
 
-  return roles
-})
+//   return roles
+// })
 </script>
 
 <template>
@@ -71,14 +70,22 @@ const activeRoles = computed(() => {
           size="xs"
           class="w-full prose-p:my-0"
         >
-          <UCheckboxGroup
-            :model-value="activeRoles"
-            value-key="value"
-            disabled
-            orientation="horizontal"
-            :items="roleOptions"
-            class="translate-y-2"
-          />
+          <div class="flex flex-wrap">
+            <UCheckbox
+              disabled
+              v-model="store.formData.head_of_department"
+              label="Abteilungsleiter"
+              class="mr-2 mt-auto translate-y-2"
+            />
+            <UCheckboxGroup
+              v-model="store.formData.roles"
+              value-key="value"
+              disabled
+              orientation="horizontal"
+              :items="roleOptions"
+              class="translate-y-2"
+            />
+          </div>
         </UFormField>
         <UFormField
           label="Sekundäre Abteilung"
