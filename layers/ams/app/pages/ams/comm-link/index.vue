@@ -2,7 +2,7 @@
 import type { CommLink } from '~~/types'
 
 const authStore = useAuthStore()
-const { currentUserId: userId } = storeToRefs(authStore)
+const { currentUserId: userId, currentUserAL: userAL } = storeToRefs(authStore)
 
 const mode = useCookie<'cards' | 'table'>('ams:commlink-view')
 mode.value = mode.value || 'cards'
@@ -49,6 +49,7 @@ const { data } = useAsyncData<CommLink[]>('ams:comm-links', async () => {
   return (await useDirectus(
     readItems('comm_links', {
       fields: [
+        'id',
         'name',
         'banner',
         'content',
@@ -65,38 +66,16 @@ const { data } = useAsyncData<CommLink[]>('ams:comm-links', async () => {
         },
         { channel: ['name'] },
       ],
+      filter: {
+        ...(userAL.value < 5 && { user_created: { _eq: userId.value } }),
+      },
       limit: -1,
-      sort: ['date_created'],
+      sort: ['-date_created'],
     })
   )) as CommLink[]
 })
 
 const searchInput = ref('')
-
-function publishingSinceDate(item: CommLink) {
-  if (!item.date_created) return 'N/A'
-  const date = new Date(item.date_created)
-  date.setFullYear(date.getFullYear())
-  // Format to yyyy-mm-dd
-  const year = date.getFullYear()
-  const month = (date.getMonth() + 1).toString().padStart(2, '0')
-  const day = date.getDate().toString().padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function createSnippet(
-  htmlContent: string | null | undefined,
-  maxLength: number = 100
-): string {
-  if (!htmlContent) return ''
-  // Strip HTML tags
-  const text = htmlContent.replace(/<[^>]*>?/gm, '')
-  // Truncate and add ellipsis
-  if (text.length > maxLength) {
-    return text.substring(0, maxLength) + '...'
-  }
-  return text
-}
 
 const filteredCommLinks = computed<CommLink[]>(() => {
   const shortFiltered: CommLink[] | undefined = data.value?.filter((item) =>
@@ -143,6 +122,7 @@ definePageMeta({
     />
     <div class="flex justify-between flex-wrap prose-p:m-0 mb-6">
       <URadioGroup
+        v-if="userAL >= 5"
         v-model="shortFilter"
         indicator="hidden"
         variant="amsSpaced"
@@ -151,7 +131,7 @@ definePageMeta({
         value-key="key"
         :items="shortFilterOptions"
       />
-      <URadioGroup
+      <!-- <URadioGroup
         v-model="mode"
         indicator="hidden"
         variant="amsSpaced"
@@ -166,47 +146,14 @@ definePageMeta({
             {{ item.label }}</span
           >
         </template>
-      </URadioGroup>
+      </URadioGroup> -->
     </div>
     <div class="grid sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-      <UCard
+      <AMSUiCommLinkCard
         v-for="item in filteredCommLinks"
-        :key="item.name"
-        variant="ams"
-        :ui="{ header: 'mb-0', body: 'mt-0 flex-1', root: 'flex flex-col' }"
-        class="hover:scale-[1.02] duration-300 transition-transform ease-out group"
-      >
-        <template #header>
-          <div class="flex flex-wrap gap-y-2 justify-between not-prose">
-            <UBadge
-              variant="outline"
-              :label="item.channel?.name"
-              class="h-fit"
-            />
-            <p class="text-sm ml-auto">
-              {{ publishingSinceDate(item as CommLink) }}
-            </p>
-          </div>
-        </template>
-        <template #default>
-          <div class="flex flex-col h-full">
-            <NuxtLink :to="`/ams/comm-link/${item.name}`">
-              <h4
-                class="mt-0 transition-color duration-300 hover:text-(--ui-primary)"
-              >
-                {{ item.name }}
-              </h4>
-            </NuxtLink>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {{ createSnippet(item.content, 80) }}
-            </p>
-            <div class="flex gap-x-2 items-center flex-wrap mt-auto">
-              <UAvatar :src="getAssetId(item.user_created?.avatar)" />
-              <p class="not-prose">{{ getUserLabel(item.user_created) }}</p>
-            </div>
-          </div>
-        </template>
-      </UCard>
+        :data="item"
+        :key="item.id"
+      />
     </div>
   </div>
 </template>
