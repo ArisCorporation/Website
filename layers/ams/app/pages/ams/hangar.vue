@@ -7,6 +7,8 @@ const { currentUserId: userId } = storeToRefs(store)
 const mode = useCookie<'cards' | 'table'>('ams:hangar-view')
 mode.value = mode.value || 'cards'
 
+const allCardsExpanded = ref(false)
+
 const searchInput = ref('')
 
 const shortFilterOptions = reactive([
@@ -126,6 +128,11 @@ definePageMeta({
         value-key="key"
         :items="shortFilterOptions"
       />
+      <UButton
+        @click="allCardsExpanded = !allCardsExpanded"
+        :variant="allCardsExpanded ? 'solid' : 'outline'"
+        :label="`Alle ${allCardsExpanded ? 'einklappen' : 'ausklappen'}`"
+      />
       <URadioGroup
         v-model="mode"
         indicator="hidden"
@@ -155,6 +162,7 @@ definePageMeta({
           :key="ship.id"
           mode="hangar-item"
           :data="ship"
+          :forceExpanded="allCardsExpanded"
         />
       </div>
     </template>
