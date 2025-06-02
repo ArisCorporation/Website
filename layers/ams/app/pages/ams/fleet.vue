@@ -26,6 +26,7 @@ useLazyAsyncData('global:simple_departments', () =>
     readItems('departments', {
       limit: -1,
       fields: ['id', 'name'],
+      sort: ['name'],
     })
   )
 )
