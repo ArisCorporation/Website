@@ -5,6 +5,7 @@ import Code from '@tiptap/extension-code'
 import Blockquote from '@tiptap/extension-blockquote'
 import TextAlign from '@tiptap/extension-text-align'
 import CharacterCount from '@tiptap/extension-character-count'
+import Image from '@tiptap/extension-image'
 
 const model = defineModel<string>()
 
@@ -31,6 +32,7 @@ const editor = useEditor({
     Blockquote,
     TextAlign,
     CharacterCount,
+    Image,
   ],
   onUpdate: ({ editor }) => {
     model.value = editor.getHTML()
@@ -76,7 +78,7 @@ onBeforeUnmount(() => {
 <template>
   <UCard
     variant="ams"
-    class="min-h-screen !shadow-none"
+    class="min-h-full !shadow-none"
     :ui="{
       header: 'sticky top-0 !py-3 z-10 bg-(--ui-bg-muted)/95',
       footer:

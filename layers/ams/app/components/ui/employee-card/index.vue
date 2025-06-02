@@ -83,6 +83,7 @@ const memberSinceDate = computed(() => {
               class="size-12 animate-pulse-glow rounded-full"
             />
           </UTooltip>
+          <div v-else class="size-12" />
         </div>
       </template>
     </UCard>

@@ -237,7 +237,10 @@ const sidebarItems = computed<sidebarElement[]>(() => {
                       {{ getUserLabel(currentUser) }}
                     </p>
                     <!-- TODO: ADD DEPARTMENT OR HEAD OF DEPARTMENT LABEL -->
-                    <p class="text-xs text-(--ui-primary)">
+                    <p
+                      v-if="currentUser?.primary_department"
+                      class="text-xs text-(--ui-primary)"
+                    >
                       {{ currentUser.head_of_department ? 'Chief of ' : ''
                       }}{{ currentUser.primary_department?.name }} Department
                     </p>
@@ -317,7 +320,10 @@ const sidebarItems = computed<sidebarElement[]>(() => {
                     {{ getUserLabel(currentUser) }}
                   </p>
                   <!-- TODO: ADD DEPARTMENT OR HEAD OF DEPARTMENT LABEL -->
-                  <p class="text-xs text-(--ui-primary)">
+                  <p
+                    v-if="currentUser?.primary_department"
+                    class="text-xs text-(--ui-primary)"
+                  >
                     {{ currentUser.head_of_department ? 'Chief of ' : ''
                     }}{{ currentUser.primary_department?.name }} Department
                   </p>
