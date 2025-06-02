@@ -2,9 +2,9 @@
 import type { TableColumn } from '@nuxt/ui'
 import { useSortable } from '@vueuse/integrations/useSortable.mjs'
 import type { Crew } from '~~/types'
-import type { Ships } from '~~/types'
+import type { Ship } from '~~/types'
 
-defineProps<{ ships: Ships[] }>()
+defineProps<{ ships: Ship[] }>()
 
 const store = useAMSCalculatorStore()
 const { crews } = storeToRefs(store)
