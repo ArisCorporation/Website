@@ -50,6 +50,7 @@ const { data: departments } = useLazyAsyncData(
       readItems('departments', {
         limit: -1,
         fields: ['id', 'name'],
+        sort: ['name'],
       })
     )
 )
