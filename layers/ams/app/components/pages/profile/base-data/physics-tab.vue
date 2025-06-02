@@ -15,7 +15,7 @@ const profileEdit = useUserProfileEditStore()
         v-model="profileEdit.formData.height"
         highlight
         size="md"
-        placeholder="182"
+        placeholder="z.B. 182"
         type="number"
         class="w-full"
       />
@@ -31,7 +31,7 @@ const profileEdit = useUserProfileEditStore()
         v-model="profileEdit.formData.weight"
         highlight
         size="md"
-        placeholder="85"
+        placeholder="z.B. 85"
         type="number"
         class="w-full"
       />
@@ -41,7 +41,7 @@ const profileEdit = useUserProfileEditStore()
         v-model="profileEdit.formData.hair_color"
         highlight
         size="md"
-        placeholder="Blond"
+        placeholder="z.B. Blond"
         class="w-full"
       />
     </UFormField>
@@ -50,7 +50,7 @@ const profileEdit = useUserProfileEditStore()
         v-model="profileEdit.formData.eye_color"
         highlight
         size="md"
-        placeholder="Blau/Grau"
+        placeholder="z.B. Blau/Grau"
         class="w-full"
       />
     </UFormField>
