@@ -1331,6 +1331,8 @@ export interface DirectusUser {
   sex?: 'male' | 'female' | null;
   department?: Department | string | null;
   leading_department?: Department | string | null;
+  primary_department?: Department | string | null;
+  secondary_department?: Department | string | null;
   head_of_department?: boolean | null;
   birthplace?: LandingZone | string | null;
   current_residence?: LandingZone | string | null;
