@@ -58,14 +58,14 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
             highlight
             size="md"
             class="w-full mb-1"
-            placeholder="12"
+            placeholder="z.B. 12"
           />
           <UInput
             v-model="store.formData.duty_from_year"
             highlight
             size="md"
             class="w-full"
-            placeholder="2939"
+            placeholder="z.B. 2939"
           />
         </UFormField>
         <UFormField
@@ -79,14 +79,14 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
             highlight
             size="md"
             class="w-full mb-1"
-            placeholder="12"
+            placeholder="z.B. 12"
           />
           <UInput
-            v-model="store.formData.duty_to_month"
+            v-model="store.formData.duty_to_year"
             highlight
             size="md"
             class="w-full"
-            placeholder="2945"
+            placeholder="z.B. 2945"
           />
         </UFormField>
       </div>
