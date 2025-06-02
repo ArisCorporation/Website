@@ -7,7 +7,7 @@ import type {
   UserHangar,
 } from '~~/types'
 
-const props = defineProps<{ item: UserHangar }>()
+const props = defineProps<{ item: UserHangar; fleetMode: boolean }>()
 
 const store = useHangarItemEditStore()
 const authStore = useAuthStore()
@@ -35,8 +35,11 @@ async function handleEditSubmit() {
   await setTimeout(async () => {
     await store.submitHangarItem()
 
-    const { refresh } = await useFetchAMSHangar(userId)
-    refresh()
+    const { refresh: refreshHangar } = await useFetchAMSHangar(userId)
+    const { refresh: refreshFleet } = await useFetchAMSFleet()
+
+    if (props.fleetMode) refreshFleet()
+    else refreshHangar()
   }, 300)
 }
 
