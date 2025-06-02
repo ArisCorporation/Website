@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { some } from 'lodash'
+
 const store = useUserProfileEditStore()
 
 const roleOptions = reactive([
+  { label: 'Abteilungsleiter', value: 'hod' },
   { label: 'Rekrutierung', value: 'recruitment' },
   { label: 'Marketing & Presse', value: 'marketing_and_press' },
   { label: 'Inhaltsersteller', value: 'content_writer' },
@@ -22,6 +25,14 @@ const { data: discordUserList, pending: discordUserListPending } = useAsyncData(
   'global:discord_users',
   () => $fetch('/api/ams/getDiscordUser')
 )
+
+const activeRoles = computed(() => {
+  const roles = store.formData.roles
+
+  if (store?.formData?.head_of_department) roles?.push('hod')
+
+  return roles
+})
 </script>
 
 <template>
@@ -37,13 +48,13 @@ const { data: discordUserList, pending: discordUserListPending } = useAsyncData(
     <template #default>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <UFormField
-          label="Abteilung"
+          label="Primäre Abteilung"
           name="department"
           size="xs"
           class="w-full"
         >
           <USelectMenu
-            v-model="store.formData.department"
+            v-model="store.formData.primary_department"
             :items="departments"
             variant="ams"
             size="md"
@@ -60,12 +71,29 @@ const { data: discordUserList, pending: discordUserListPending } = useAsyncData(
           class="w-full prose-p:my-0"
         >
           <UCheckboxGroup
-            v-model="store.formData.roles"
+            :model-value="activeRoles"
             value-key="value"
             disabled
             orientation="horizontal"
             :items="roleOptions"
             class="translate-y-2"
+          />
+        </UFormField>
+        <UFormField
+          label="Sekundäre Abteilung"
+          name="department"
+          size="xs"
+          class="w-full"
+        >
+          <USelectMenu
+            v-model="store.formData.secondary_department"
+            :items="departments"
+            variant="ams"
+            size="md"
+            value-key="id"
+            label-key="name"
+            placeholder="z.B. Logistik"
+            class="w-full"
           />
         </UFormField>
         <UFormField
