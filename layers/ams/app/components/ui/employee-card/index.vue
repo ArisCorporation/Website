@@ -46,7 +46,11 @@ const memberSinceDate = computed(() => {
                 {{ getUserLabel(data) }}
               </h3>
               <!-- <p class="text-sm font-medium text-ariscorp-orange">Commander</p> -->
-              <UBadge variant="outline" :label="data.role?.label" />
+              <UBadge
+                v-if="data.head_of_department"
+                variant="outline"
+                label="Abteilungsleiter"
+              />
             </div>
           </div>
         </div>
@@ -55,7 +59,7 @@ const memberSinceDate = computed(() => {
         <div class="flex items-center justify-between not-prose">
           <div>
             <p class="text-sm text-muted-foreground">
-              {{ data.head_of_department ? 'Abteilungsleiter' : 'Mitarbeiter' }}
+              {{ data.role?.label }}
             </p>
             <p class="text-[.6rem] text-muted-foreground mt-1">
               Mitglied seit {{ memberSinceDate }}
