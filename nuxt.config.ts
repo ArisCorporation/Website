@@ -72,7 +72,7 @@ export default defineNuxtConfig({
     auth: {
       enabled: true,
       enableGlobalAuthMiddleware: false, // Enable auth middleware on every page
-      userFields: ['*', { role: ['*'] }, { primary_department: ['name'] }, { secondary_department: ['name'] }], // Select user fields
+      userFields: ['*', { role: ['*'] }, { primary_department: ['id', 'name'] }, { secondary_department: ['id', 'name'] }], // Select user fields
       redirect: {
         login: '/auth/login', // Path to redirect when login is required
         logout: '/', // Path to redirect after logout
