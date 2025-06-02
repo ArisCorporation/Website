@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import Underline from '@tiptap/extension-underline'
+import Link from '@tiptap/extension-link'
+import Code from '@tiptap/extension-code'
+import Blockquote from '@tiptap/extension-blockquote'
+import TextAlign from '@tiptap/extension-text-align'
+
 const model = defineModel<string>()
 
 const props = defineProps<{
@@ -9,7 +15,7 @@ const props = defineProps<{
 const editorHeight = computed(() => (props.simpleMode ? '120px' : '100%'))
 
 const editor = useEditor({
-  content: 'test',
+  content: model.value,
   extensions: [
     TiptapStarterKit.configure({
       heading: {
@@ -18,7 +24,15 @@ const editor = useEditor({
       gapcursor: false,
       dropcursor: false,
     }),
+    Underline,
+    Link,
+    Code,
+    Blockquote,
+    TextAlign,
   ],
+  onUpdate: ({ editor }) => {
+    model.value = editor.getHTML()
+  },
 })
 
 onBeforeUnmount(() => {
@@ -58,11 +72,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <UCard variant="outline" class="min-h-screen" :ui="{ body: 'size-full' }">
+  <UCard
+    variant="ams"
+    class="min-h-screen !shadow-none"
+    :ui="{
+      body: 'size-full !py-0',
+      root: '!divide-y !divide-(--ui-primary)/20',
+    }"
+  >
     <template #header>
-      <div
-        class="flex flex-wrap items-center gap-1 border-b border-(--ui-primary)/20 bg-(--ui-bg-muted)/70 p-2"
-      >
+      <div class="flex flex-wrap items-center gap-1 bg-(--ui-bg-muted)/0 p-2">
         <UButton
           @click="editor?.commands.toggleBold"
           icon="i-lucide-bold"
@@ -76,14 +95,15 @@ onBeforeUnmount(() => {
           icon="i-lucide-italic"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="editor?.isActive('italic') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <UButton
+          @click="editor.chain().focus()?.toggleUnderline()?.run()"
           icon="i-lucide-underline"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="editor?.isActive('underline') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <div
@@ -96,7 +116,9 @@ onBeforeUnmount(() => {
           icon="i-lucide-heading-1"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="
+            editor?.isActive('heading', { level: 2 }) ? 'primary' : 'neutral'
+          "
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <UButton
@@ -104,7 +126,9 @@ onBeforeUnmount(() => {
           icon="i-lucide-heading-2"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="
+            editor?.isActive('heading', { level: 3 }) ? 'primary' : 'neutral'
+          "
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <UButton
@@ -112,7 +136,9 @@ onBeforeUnmount(() => {
           icon="i-lucide-heading-3"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="
+            editor?.isActive('heading', { level: 4 }) ? 'primary' : 'neutral'
+          "
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <div
@@ -125,7 +151,7 @@ onBeforeUnmount(() => {
           icon="i-lucide-list"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="editor?.isActive('bulletList') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <UButton
@@ -133,7 +159,7 @@ onBeforeUnmount(() => {
           icon="i-lucide-list-ordered"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="editor?.isActive('orderedList') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <div
@@ -143,23 +169,32 @@ onBeforeUnmount(() => {
         />
         <UButton
           icon="i-lucide-align-left"
+          @click="editor?.chain()?.focus()?.setTextAlign('left')?.run()"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="
+            editor?.isActive({ textAlign: 'left' }) ? 'primary' : 'neutral'
+          "
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <UButton
           icon="i-lucide-align-center"
+          @click="editor?.chain()?.focus()?.setTextAlign('center')?.run()"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="
+            editor?.isActive({ textAlign: 'center' }) ? 'primary' : 'neutral'
+          "
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <UButton
           icon="i-lucide-align-right"
+          @click="editor?.chain()?.focus()?.setTextAlign('right')?.run()"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="
+            editor?.isActive({ textAlign: 'right' }) ? 'primary' : 'neutral'
+          "
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <div
@@ -169,16 +204,18 @@ onBeforeUnmount(() => {
         />
         <UButton
           icon="i-lucide-quote"
+          @click="editor?.chain()?.focus()?.toggleBlockquote()?.run()"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="editor?.isActive('blockquote') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <UButton
           icon="i-lucide-code"
+          @click="editor?.chain()?.focus()?.toggleCode()?.run()"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="editor?.isActive('code') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
         <div
@@ -190,9 +227,10 @@ onBeforeUnmount(() => {
           icon="i-lucide-link"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          :color="editor?.isActive('link') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
+        <!-- TODO: ADD IMAGES AND VIDEOS -->
         <UButton
           icon="i-lucide-image"
           variant="subtle"
@@ -200,6 +238,7 @@ onBeforeUnmount(() => {
           :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
+        <!-- TODO: ADD COLOR -->
         <UButton
           icon="i-lucide-palette"
           variant="subtle"
@@ -222,6 +261,8 @@ onBeforeUnmount(() => {
         <span class="ml-auto gap-1 flex">
           <UButton
             icon="i-lucide-undo"
+            @click="editor?.chain()?.focus()?.undo().run()"
+            :disabled="!editor?.can()?.undo()"
             variant="subtle"
             class="size-8"
             :ui="{ leadingIcon: 'size-4 m-auto' }"
@@ -229,6 +270,8 @@ onBeforeUnmount(() => {
 
           <UButton
             icon="i-lucide-redo"
+            @click="editor?.chain()?.focus()?.redo().run()"
+            :disabled="!editor?.can()?.redo()"
             variant="subtle"
             class="size-8"
             :ui="{ leadingIcon: 'size-4 m-auto' }"
