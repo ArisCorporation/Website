@@ -11,7 +11,7 @@ const citizenship = ref<'true' | 'false'>(
 )
 const reason = ref<
   'military' | 'special_education' | 'social_commitment' | null
->(profileEdit.formData.citizen_state_reason ?? null)
+>(profileEdit.formData.citizen_reason ?? null)
 const hasDone = ref<string[]>([])
 
 // --- Synchronisation: Store -> Lokaler State (hasDone) ---
@@ -84,7 +84,7 @@ watchEffect(() => {
 
 // --- Synchronisation für `reason` (Store <-> Lokaler State) ---
 watch(
-  () => profileEdit.formData.citizen_state_reason,
+  () => profileEdit.formData.citizen_reason,
   (newVal) => {
     const storeValue = newVal ?? null
     if (reason.value !== storeValue) {
@@ -96,8 +96,8 @@ watch(
 
 watchEffect(() => {
   if (profileEdit.formData && Object.keys(profileEdit.formData).length > 0) {
-    if (profileEdit.formData.citizen_state_reason !== reason.value) {
-      profileEdit.formData.citizen_state_reason = reason.value
+    if (profileEdit.formData.citizen_reason !== reason.value) {
+      profileEdit.formData.citizen_reason = reason.value
     }
   }
 })
@@ -156,6 +156,7 @@ watchEffect(() => {
             : []),
           { label: 'Soziales Engagement', value: 'social' },
         ]"
+        value-key="value"
         v-model="reason"
         class="prose-p:my-0"
       />
