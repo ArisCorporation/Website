@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DirectusUsers, Ships } from '~~/types'
+import type { DirectusUser, Ship } from '~~/types'
 import type { CalculatorSettings, OverallDistributionSummary } from '~~/types'
 
 defineProps<{
@@ -7,8 +7,8 @@ defineProps<{
   settings: CalculatorSettings
   calculated: boolean
   calculating: boolean
-  users: DirectusUsers[]
-  ships: Ships[]
+  users: DirectusUser[]
+  ships: Ship[]
   nextDisabled: boolean
 }>()
 </script>
