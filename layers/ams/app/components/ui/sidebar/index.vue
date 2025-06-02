@@ -158,10 +158,11 @@ const sidebarItems = computed<sidebarElement[]>(() => {
         <div
           class="rounded bg-(--ui-primary)/20 p-1 transition-all duration-300 hover:bg-(--ui-primary)/30 hover:shadow-[0_0_10px_rgba(0,255,232,0.3)]"
         >
+          <!-- TODO: ARISCORP LOGO -->
           <UIcon name="i-lucide-rocket" class="h-6 w-6 text-(--ui-primary)" />
         </div>
         <span class="text-xl font-bold tracking-wider text-white">
-          ArisCorp<span class="text-(--ui-primary)">AMS</span>
+          ArisCorp<span class="text-(--ui-primary)"> AMS</span>
         </span>
       </NuxtLink>
       <UButton
