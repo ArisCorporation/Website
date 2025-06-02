@@ -3,10 +3,10 @@ import type { TableColumn } from '@nuxt/ui'
 import { useSortable } from '@vueuse/integrations/useSortable.mjs'
 import type { MoveEvent, SortableEvent } from 'sortablejs'
 import type { Worker, Crew } from '~~/types'
-import type { DirectusUsers } from '~~/types'
+import type { DirectusUser } from '~~/types'
 
-defineProps<{ users: DirectusUsers[] }>()
-
+const props = defineProps<{ users: DirectusUser[] }>()
+console.log(props.users)
 const store = useAMSCalculatorStore()
 const { workers, crews, settings } = storeToRefs(store)
 
@@ -117,12 +117,7 @@ useSortable('.worker-tbody', workers.value, {
         <USelectMenu
           v-else
           v-model="workers.find((w) => w.id === row.original.id)!.internal_id"
-          :items="
-            users?.map((u) => ({
-              ...u,
-              avatar: { src: 'https://cms.ariscorp.de/assets/' + u.avatar },
-            }))
-          "
+          :items="users"
           variant="ams"
           value-key="id"
           class="w-48"

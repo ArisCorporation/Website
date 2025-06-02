@@ -25,9 +25,10 @@ export const userProfileSchema = z.object({
   discord_id: z.string().optional().nullable(),
 
   sex: z.enum(['male', 'female']).optional().nullable(),
-  department: z.string().optional().nullable(), // ID des Departments
+  primary_department: z.string().optional().nullable(), // ID des Departments
+  secondary_department: z.string().optional().nullable(), // ID des Departments
   // leading_department: z.string().optional().nullable(), // ID des Departments
-  // head_of_department: z.boolean().optional().nullable(),
+  head_of_department: z.boolean().optional().nullable(),
 
   birthplace: z.string().optional().nullable(), // ID der LandingZone oder Name
   current_residence: z.string().optional().nullable(), // ID der LandingZone oder Name
@@ -144,7 +145,9 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
           contact_email: null,
           discord_id: null,
           sex: null,
-          department: null,
+          primary_department: null,
+          secondary_department: null,
+          head_of_department: null,
           birthplace: null,
           current_residence: null,
           birthdate: null,
@@ -208,7 +211,9 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         discord_id: pickedSourceData.discord_id ?? null,
         contact_email: pickedSourceData.contact_email ?? null,
         sex: pickedSourceData.sex ?? null,
-        department: resolveToStringOrUndefined(pickedSourceData.department),
+        primary_department: resolveToStringOrUndefined(pickedSourceData.primary_department),
+        secondary_department: resolveToStringOrUndefined(pickedSourceData.secondary_department),
+        head_of_department: pickedSourceData.head_of_department ?? null,
         birthplace: resolveToStringOrUndefined(pickedSourceData.birthplace),
         current_residence: resolveToStringOrUndefined(pickedSourceData.current_residence),
         birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string

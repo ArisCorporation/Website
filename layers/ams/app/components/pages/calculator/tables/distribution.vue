@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import type { CalculatedPayout, DirectusUsers } from '~~/types'
+import type { CalculatedPayout, DirectusUser } from '~~/types'
 
-defineProps<{ users: DirectusUsers[] }>()
+defineProps<{ users: DirectusUser[] }>()
 
 const store = useAMSCalculatorStore()
 const { distribution, workers, expenses } = storeToRefs(store)

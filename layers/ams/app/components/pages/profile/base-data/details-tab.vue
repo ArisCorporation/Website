@@ -110,7 +110,7 @@ const inputs: InputConfig[][] = [
         <AMSUiDynamicList
           v-model="(profileEdit.formData as any)[configItem.property]"
           handle
-          :placeholder="configItem.placeholder"
+          :placeholder="'z.B. ' + configItem.placeholder"
         />
       </UFormField>
       <USeparator

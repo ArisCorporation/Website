@@ -13,38 +13,15 @@ const currentStep = ref(0)
 const calculated = ref(false)
 const calculating = ref(false)
 
-const { data: users } = await useAsyncData(
-  'users',
-  () => {
-    return useDirectus(
-      readUsers({
-        sort: ['first_name'],
-        filter: { status: { _eq: 'active' }, api_account: { _eq: false } },
-      })
-    )
-  },
-  {
-    transform: (data) =>
-      data.map((u) => {
-        const parts: string[] = []
-        if (u.title) {
-          parts.push(u.title)
-        }
-        if (u.first_name) {
-          parts.push(u.first_name)
-        }
-        if (u.last_name) {
-          parts.push(u.last_name)
-        }
+const { data: userList } = await useFetchAMSEmployees()
 
-        const label = parts.filter(Boolean).join(' ')
-
-        return {
-          ...u,
-        }
-      }),
-  }
+const users = computed(() =>
+  userList.value?.map((user) => ({
+    avatar: { src: user.avatar },
+    label: getUserLabel(user),
+  }))
 )
+console.log(users)
 const { data: ships } = await useAsyncData('ships', () => {
   return useDirectus(
     readItems('ships', {

@@ -28,7 +28,7 @@ const schools = reactive<SelectMenuItem[]>([
         v-model="store.formData.education_name"
         highlight
         size="md"
-        placeholder="Medizinstudium mit Schwerpunkt auf Neurochirurgie"
+        placeholder="z.B. z.B. Medizinstudium mit Schwerpunkt auf Neurochirurgie"
         class="w-full"
       />
     </UFormField>
@@ -67,14 +67,14 @@ const schools = reactive<SelectMenuItem[]>([
             highlight
             size="md"
             class="w-full mb-1"
-            placeholder="12"
+            placeholder="z.B. z.B. 12"
           />
           <UInput
             v-model="store.formData.education_from_year"
             highlight
             size="md"
             class="w-full"
-            placeholder="2939"
+            placeholder="z.B. z.B. 2939"
           />
         </UFormField>
         <UFormField
@@ -88,14 +88,14 @@ const schools = reactive<SelectMenuItem[]>([
             highlight
             size="md"
             class="w-full mb-1"
-            placeholder="12"
+            placeholder="z.B. z.B. 12"
           />
           <UInput
             v-model="store.formData.education_to_year"
             highlight
             size="md"
             class="w-full"
-            placeholder="2945"
+            placeholder="z.B. z.B. 2945"
           />
         </UFormField>
       </div>

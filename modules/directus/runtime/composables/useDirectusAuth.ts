@@ -13,9 +13,10 @@ export default function useDirectusAuth<DirectusSchema extends object> () {
 
   async function performSdkLogin (email: string, password: string, otp?: string): Promise<User> {
     // Das SDK kümmert sich um das Token-Management (Cookies für SSR, localStorage für SPA-Flows).
+    const fields = config.public?.directus?.auth?.userFields || ['*'];
     await $directus.login(email, password, otp ? { otp } : undefined);
     // Nach erfolgreichem SDK-Login die Benutzerdetails abrufen
-    const user = await performSdkFetchUser({ fields: ['*', { role: ['*'] }] });
+    const user = await performSdkFetchUser({ fields });
     return user;
   }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { DirectusUsers, Ships } from '~~/types'
+import type { DirectusUser, Ship } from '~~/types'
 
-defineProps<{ users: DirectusUsers[]; ships: Ships[] }>()
+defineProps<{ users: DirectusUser[]; ships: Ship[] }>()
 </script>
 
 <template>

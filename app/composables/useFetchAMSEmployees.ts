@@ -6,7 +6,8 @@ import type { DirectusUser, Schema } from '~~/types'
 // Definiere die Felder-Struktur für bessere Lesbarkeit und Wartbarkeit
 const EMPLOYEE_FIELDS: QueryFields<Schema, DirectusUser> = [
   '*',
-  { department: ['name', 'logo'] },
+  { primary_department: ['name', 'logo'] },
+  { secondary_department: ['name', 'logo'] },
   { leading_department: ['name', 'logo'] },
   { role: ['name', 'label'] },
 ]
