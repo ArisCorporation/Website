@@ -9,12 +9,14 @@ type ShipProps = {
   mode: 'ship'
   data: Ship
   fleetMode: boolean
+  forceExpanded: boolean
 }
 
 type HangarItemProps = {
   mode: 'hangar-item'
   data: UserHangar
   fleetMode: boolean
+  forceExpanded: boolean
 }
 
 type ShipCardProps = ShipProps | HangarItemProps
@@ -50,7 +52,7 @@ const editMode = computed<boolean>(() => {
   <UCard
     variant="ams"
     class="overflow-clip hover:scale-[1.02] duration-300 transition-transform ease-out group"
-    :class="[expanded ? 'col-span-2 mr-6' : '']"
+    :class="[expanded || forceExpanded ? 'col-span-2 mr-6' : '']"
     :ui="{
       header: '!p-0 relative',
       root: 'flex flex-col relative',
@@ -59,15 +61,20 @@ const editMode = computed<boolean>(() => {
   >
     <template #header>
       <div
-        :class="[expanded ? 'w-1/2 border-r border-r-(--ui-primary)/20' : '']"
+        :class="[
+          expanded || forceExpanded
+            ? 'w-1/2 border-r border-r-(--ui-primary)/20'
+            : '',
+        ]"
         class="relative aspect-[21/9] overflow-hidden !mb-0"
       >
         <UButton
+          v-if="!forceExpanded"
           icon="i-lucide-chevron-right"
-          :variant="expanded ? 'subtle' : 'ghost'"
+          variant="subtle"
           @click="expanded = !expanded"
           class="absolute right-1 top-1 z-20"
-          :class="[expanded ? 'rotate-180' : 'rotate-0']"
+          :class="[expanded || forceExpanded ? 'rotate-180' : 'rotate-0']"
         />
         <div
           class="absolute inset-0 bg-gradient-to-t from-(--ui-bg-muted) to-transparent opacity-60 z-10 group-hover:translate-y-[100%] transition-all duration-300"
@@ -86,7 +93,7 @@ const editMode = computed<boolean>(() => {
         </div> -->
       </div>
       <div
-        v-if="expanded"
+        v-if="expanded || forceExpanded"
         class="text-xs pl-2 w-1/2 prose-p:m-0 absolute right-0 top-0 h-full"
       >
         <h4 class="text-(--ui-primary) font-semibold">Schiffsdetails</h4>
@@ -97,7 +104,7 @@ const editMode = computed<boolean>(() => {
               {{ hangarItem.name ? hangarItem.name : 'N/A' }}
             </p>
           </div>
-          <div>
+          <div v-if="ship.modules?.length">
             <p class="text-(--ui-text-muted)">Aktives Modul</p>
             <UBadge
               v-if="hangarItem.active_module"
@@ -169,7 +176,9 @@ const editMode = computed<boolean>(() => {
     <template #default>
       <div
         :class="[
-          expanded ? 'w-1/2 pr-6 border-r border-r-(--ui-primary)/20' : '',
+          expanded || forceExpanded
+            ? 'w-1/2 pr-6 border-r border-r-(--ui-primary)/20'
+            : '',
         ]"
         class="py-4"
       >
