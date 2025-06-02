@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import type { DirectusRole, Ship, UserHangar } from '~~/types' // Pfad anpassen, falls nötig
+import type { Ship, UserHangar } from '~~/types' // Pfad anpassen, falls nötig
 
 const authStore = useAuthStore()
+
+const expanded = ref(false)
 
 type ShipProps = {
   mode: 'ship'
@@ -47,11 +49,26 @@ const editMode = computed<boolean>(() => {
 <template>
   <UCard
     variant="ams"
-    class="hover:scale-[1.02] overflow-clip duration-300 translation-all ease-out group"
-    :ui="{ header: '!p-0', root: 'flex flex-col', body: 'flex-1' }"
+    class="overflow-clip hover:scale-[1.02] duration-300 transition-transform ease-out group"
+    :class="[expanded ? 'col-span-2 mr-6' : '']"
+    :ui="{
+      header: '!p-0 relative',
+      root: 'flex flex-col relative',
+      body: 'flex-1 !py-0',
+    }"
   >
     <template #header>
-      <div class="relative aspect-[21/9] overflow-hidden">
+      <div
+        :class="[expanded ? 'w-1/2 border-r border-r-(--ui-primary)/20' : '']"
+        class="relative aspect-[21/9] overflow-hidden !mb-0"
+      >
+        <UButton
+          icon="i-lucide-chevron-right"
+          variant="ghost"
+          @click="expanded = !expanded"
+          class="absolute right-1 top-1 z-20"
+          :class="[expanded ? 'rotate-180' : 'rotate-0']"
+        />
         <div
           class="absolute inset-0 bg-gradient-to-t from-(--ui-bg-muted) to-transparent opacity-60 z-10 group-hover:translate-y-[100%] transition-all duration-300"
         />
@@ -68,74 +85,140 @@ const editMode = computed<boolean>(() => {
           </div>
         </div> -->
       </div>
+      <div
+        v-if="expanded"
+        class="text-xs pl-2 w-1/2 prose-p:m-0 absolute right-0 top-0 h-full"
+      >
+        <h4 class="text-(--ui-primary) font-semibold">Schiffsdetails</h4>
+        <div class="grid grid-cols-2 gap-y-2">
+          <div>
+            <p class="text-(--ui-text-muted)">Schiffsname</p>
+            <p class="font-normal text-white">
+              {{ hangarItem.name ? hangarItem.name : 'N/A' }}
+            </p>
+          </div>
+          <div>
+            <p class="text-(--ui-text-muted)">Aktives Modul</p>
+            <UBadge
+              v-if="hangarItem.active_module"
+              :label="(hangarItem.active_module as ShipModule)?.name"
+              variant="subtle"
+              class="mr-2"
+            />
+            <p v-else>N/A</p>
+          </div>
+        </div>
+        <h4 class="text-(--ui-primary) font-medium mt-2">Spezifikationen</h4>
+        <div class="grid grid-cols-2 gap-y-2">
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Hersteller</p>
+            <UButton
+              variant="link"
+              color="neutral"
+              :to="`/verseexkurs/companies/${ship?.manufacturer?.slug}`"
+              class="p-0 font-normal text-white"
+            >
+              <p class="text-xs">
+                {{
+                  ship?.manufacturer?.name
+                    ? getCompanyCode(ship?.manufacturer)?.split(' ')[0]
+                    : 'N/A'
+                }}
+              </p>
+            </UButton>
+          </div>
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Crew</p>
+            <p class="p-0 font-normal text-white">
+              {{ ship?.crew_min ?? 'N/A' }}
+              -
+              {{ ship?.crew_max ?? 'N/A' }}
+            </p>
+          </div>
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Länge</p>
+            <p class="p-0 font-normal text-white">
+              {{ ship?.length ? ship?.length + 'm' : 'N/A' }}
+            </p>
+          </div>
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Breite</p>
+            <p class="p-0 font-normal text-white">
+              {{ ship?.beam ? ship?.beam + 'm' : 'N/A' }}
+            </p>
+          </div>
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Höhe</p>
+            <p class="p-0 font-normal text-white">
+              {{ ship?.height ? ship?.height + 'm' : 'N/A' }}
+            </p>
+          </div>
+          <div class="w-1/2">
+            <p class="text-(--ui-text-muted)">Gewicht</p>
+            <p class="p-0 font-normal text-white">
+              {{
+                ship?.mass
+                  ? formatCurrency(ship?.mass / 1000) + ' Tonnen'
+                  : 'N/A'
+              }}
+            </p>
+          </div>
+        </div>
+      </div>
     </template>
     <template #default>
-      <div class="flex justify-between">
-        <div>
-          <NuxtLink :to="`/ships/${ship.slug}`" class="not-prose">
-            <h3
-              class="text-lg font-semibold text-white group-hover:text-shadow-primary group-hover:text-shadow-xs transition-all duration-300 hover:text-xl group-hover:text-(--ui-primary) !my-0"
-            >
-              {{ ship.name }}
-            </h3>
-          </NuxtLink>
-          <p class="text-sm text-(--ui-text-muted) !my-0">
-            {{ getMainFocusLabel(ship.focuses) }}
-          </p>
-        </div>
-        <UTooltip
-          v-if="mode === 'hangar-item' && hangarItem?.department"
-          :text="`Abteilung: ${hangarItem?.department?.name}`"
-        >
-          <NuxtImg
-            :src="getAssetId(hangarItem?.department?.logo)"
-            class="size-12 !my-0"
-          />
-        </UTooltip>
-      </div>
-      <USeparator color="ams" class="my-2" />
-      <div class="flex justify-between">
-        <h3
-          v-if="mode === 'hangar-item' && hangarItem?.name"
-          class="text-lg italic font-semibold text-(--ui-primary) transition-colors duration-300 group-hover:text-(--ui-primary)/60 !my-0"
-        >
-          " {{ hangarItem.name }} "
-        </h3>
-        <h3
-          v-else
-          class="text-lg italic font-semibold text-(--ui-text-muted) transition-colors duration-300 !my-0"
-        >
-          N/A
-        </h3>
-        <UTooltip
-          v-if="mode === 'hangar-item' && fleetMode"
-          :text="`Besitzer: ${getUserLabel(hangarItem?.user_id)}`"
-        >
-          <NuxtImg
-            :src="getAssetId(hangarItem?.user_id?.avatar)"
-            class="w-12 h-auto aspect-[270/320] !my-0 ml-auto rounded"
-          />
-        </UTooltip>
-      </div>
-      <div v-if="false" class="mt-4 space-y-3 animate-fadeIn prose-p:my-0">
-        <div class="grid grid-cols-2 gap-2 text-sm">
+      <div
+        :class="[
+          expanded ? 'w-1/2 pr-6 border-r border-r-(--ui-primary)/20' : '',
+        ]"
+        class="py-4"
+      >
+        <div class="flex justify-between">
           <div>
-            <p class="text-(--ui-primary)">Manufacturer</p>
-            <p class="text-white">{{ ship.manufacturer }}</p>
+            <NuxtLink :to="`/ships/${ship.slug}`" class="not-prose">
+              <h3
+                class="text-lg font-semibold text-white group-hover:text-shadow-primary group-hover:text-shadow-xs transition-all duration-300 hover:text-xl group-hover:text-(--ui-primary) !my-0"
+              >
+                {{ ship.name }}
+              </h3>
+            </NuxtLink>
+            <p class="text-sm text-(--ui-text-muted) !my-0">
+              {{ getMainFocusLabel(ship.focuses) }}
+            </p>
           </div>
-          <div>
-            <p class="text-(--ui-primary)">Crew Size</p>
-            <p class="text-white">{{ ship.crew_min }}-{{ ship.crew_max }}</p>
-          </div>
+          <UTooltip
+            v-if="mode === 'hangar-item' && hangarItem?.department"
+            :text="`Abteilung: ${hangarItem?.department?.name}`"
+          >
+            <NuxtImg
+              :src="getAssetId(hangarItem?.department?.logo)"
+              class="size-12 !my-0"
+            />
+          </UTooltip>
         </div>
-        <div>
-          <p class="text-(--ui-primary) text-sm">Specifications</p>
-          <div class="grid grid-cols-3 gap-2 mt-1 text-xs">
-            <div class="bg-(--ui-bg-muted)/60 rounded p-1 text-center">
-              <p class="text-white">Length</p>
-              <p class="text-(--ui-primary) font-mono">{{ ship.length }}m</p>
-            </div>
-          </div>
+        <USeparator color="ams" class="my-2" />
+        <div class="flex justify-between">
+          <h3
+            v-if="mode === 'hangar-item' && hangarItem?.name"
+            class="text-lg italic font-semibold text-(--ui-primary) transition-colors duration-300 group-hover:text-(--ui-primary)/60 !my-0"
+          >
+            " {{ hangarItem.name }} "
+          </h3>
+          <h3
+            v-else
+            class="text-lg italic font-semibold text-(--ui-text-muted) transition-colors duration-300 !my-0"
+          >
+            N/A
+          </h3>
+          <UTooltip
+            v-if="mode === 'hangar-item' && fleetMode"
+            :text="`Besitzer: ${getUserLabel(hangarItem?.user_id)}`"
+          >
+            <NuxtImg
+              :src="getAssetId(hangarItem?.user_id?.avatar)"
+              class="w-12 h-auto aspect-[270/320] !my-0 ml-auto rounded"
+            />
+          </UTooltip>
         </div>
       </div>
     </template>
