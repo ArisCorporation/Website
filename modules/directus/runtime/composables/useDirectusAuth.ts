@@ -29,6 +29,7 @@ export default function useDirectusAuth<DirectusSchema extends object> () {
 
   async function performSdkFetchUser (params?: object): Promise<User> {
     const fields = config.public?.directus?.auth?.userFields || ['*'];
+    console.log('fetch', fields)
     // TODO: Die Typisierung für 'fields' könnte verbessert werden, um @ts-ignore zu vermeiden,
     // abhängig von der genauen Struktur der Directus-Schema-Typen.
     const response = await $directus.request(

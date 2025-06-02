@@ -100,6 +100,9 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async initializeAuth (): Promise<void> {
+      const config = useRuntimeConfig();
+      const fields = config.public?.directus?.auth?.userFields || ['*'];
+
       // Diese Aktion wird von einem Nuxt-Plugin beim Client-Start aufgerufen
 
       // Wenn bereits authentifiziert (z.B. durch SSR oder vorherige Client-Aktion),
@@ -132,7 +135,7 @@ export const useAuthStore = defineStore('auth', {
             // es sei denn, es ist ein kritischer Fehler, der die Sitzung ungültig macht.
             // Stelle sicher, dass dieser Aufruf awaited wird, damit der Server wartet.
             await this._syncUserFromSdk(() =>
-              performSdkFetchUser({ fields: ['*', { role: ['*'] }] })
+              performSdkFetchUser({ fields })
             );
           } else {
             this.isAuthenticated = false;
