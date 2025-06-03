@@ -53,7 +53,7 @@ function createSnippet(
       <div class="flex flex-col h-full">
         <UButton @click="$emit('select', data)" variant="link" class="p-0">
           <h4
-            class="mt-0 prose prose-invert transition-color duration-300 hover:text-(--ui-primary)"
+            class="mt-0 prose prose-invert text-left transition-color duration-300 hover:text-(--ui-primary)"
           >
             {{ data.name }}
           </h4>

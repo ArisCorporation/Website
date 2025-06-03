@@ -194,6 +194,7 @@ async function handleSubmit() {
 definePageMeta({
   layout: 'ams',
   auth: true,
+  access_level: 2,
 })
 </script>
 
