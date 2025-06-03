@@ -21,7 +21,7 @@ const users = computed(() =>
     label: getUserLabel(user),
   }))
 )
-console.log(users)
+
 const { data: ships } = await useAsyncData('ships', () => {
   return useDirectus(
     readItems('ships', {
