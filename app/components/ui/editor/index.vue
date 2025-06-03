@@ -83,8 +83,8 @@ onBeforeUnmount(() => {
       header: 'sticky top-0 !py-3 z-10 bg-(--ui-bg-muted)/95',
       footer:
         'sticky bottom-0 z-10 bg-(--ui-bg-muted)/95 border-t border-t-(--ui-primary)/20',
-      body: 'flex-1 !py-0 min-h-screen border-b-0',
-      root: '!divide-y max-h-[calc(100vh_-_50px)] overflow-y-scroll !divide-(--ui-primary)/20',
+      body: 'flex-1 !py-2 border-b-0 overflow-y-scroll [scrollbar-width:_none] !pr-0',
+      root: '!divide-y flex flex-col h-[calc(100vh_-_120px)] overflow-clip !divide-(--ui-primary)/20',
     }"
   >
     <template #header>
@@ -275,7 +275,10 @@ onBeforeUnmount(() => {
       </div>
     </template>
     <template #default>
-      <TiptapEditorContent :editor="editor" class="size-full" />
+      <TiptapEditorContent
+        :editor="editor"
+        class="size-full overflow-y-clip pr-0"
+      />
     </template>
     <template #footer>
       <div class="flex not-prose w-full divide-x divide-(--ui-primary)/20">
@@ -310,5 +313,6 @@ onBeforeUnmount(() => {
 .ProseMirror {
   height: v-bind('editorHeight') !important;
   overflow-y: auto;
+  padding-right: 16px;
 }
 </style>

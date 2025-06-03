@@ -165,7 +165,8 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
           books_list: [], music_list: [], movies_list: [], clothing_list: [], food_list: [],
           drink_list: [], alcohol_list: [], loves_list: [], hates_list: [],
           // Ensure all fields from schema are covered with valid defaults
-          medical_informations: null, biography: null,
+          medical_informations: null,
+          biography: null,
           education_name: null, education_place: null, education_state: null,
           education_from_month: null, education_from_year: null, education_to_month: null, education_to_year: null,
           id: undefined, // Optional
