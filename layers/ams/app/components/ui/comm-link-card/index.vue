@@ -51,7 +51,7 @@ function createSnippet(
     </template>
     <template #default>
       <div class="flex flex-col h-full">
-        <UButton variant="link" :to="`/ams/comm-link/${data.id}`" class="p-0">
+        <UButton @click="$emit('select', data)" variant="link" class="p-0">
           <h4
             class="mt-0 prose prose-invert transition-color duration-300 hover:text-(--ui-primary)"
           >
