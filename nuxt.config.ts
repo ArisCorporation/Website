@@ -9,6 +9,10 @@ export default defineNuxtConfig({
     client: true
   },
 
+  routeRules: {
+    '/': { redirect: '/ams' }
+  },
+
   app: {
     head: {
       htmlAttrs: {
