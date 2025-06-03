@@ -65,8 +65,18 @@ async function handleCropComplete(croppedImageBlob: Blob) {
     // You might want to specify a folder in Directus if you have one for avatars
     // formData.append('folder', 'YOUR_AVATAR_FOLDER_UUID');
 
+    const oldAvatar = getAssetId(authStore.currentUser?.avatar)
+
     const uploadedFile = await useDirectus(uploadFiles(formData))
-    profileEdit.formData.avatar = uploadedFile.id // Assuming avatar stores the file ID
+
+    await useDirectus(
+      updateUser(authStore.currentUserId ?? '', { avatar: uploadedFile.id })
+    )
+
+    await authStore.refreshCurrentUser()
+
+    if (uploadedFile && oldAvatar) await useDirectus(deleteFile(oldAvatar))
+    // profileEdit.formData.avatar = uploadedFile.id // Assuming avatar stores the file ID
   } catch (error) {
     console.error('Error uploading avatar:', error)
     // Handle upload error (e.g., show a notification to the user)
@@ -183,9 +193,9 @@ function handleCropCancel() {
           />
         </UFormField>
         <AMSPagesProfileImageCropperModal
-          v-if="showCropperModal && imageToCropSrc"
           :image-url="imageToCropSrc"
           :aspect-ratio="270 / 320"
+          :open="showCropperModal && imageToCropSrc ? true : false"
           @cropped="handleCropComplete"
           @cancel="handleCropCancel"
           @close="handleCropCancel"

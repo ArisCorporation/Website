@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, onBeforeUnmount } from 'vue'
 
 const props = defineProps<{
   imageUrl: string
   aspectRatio?: number // e.g., 1 for square, 16/9 for landscape
+  open: boolean
 }>()
 
 const emit = defineEmits(['cropped', 'cancel', 'close'])
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-const image = new Image()
+// Declare image variable; it will be initialized on the client-side
+let image: HTMLImageElement
 
 const zoom = ref(1)
 const offsetX = ref(0) // Pan X from center
@@ -25,9 +27,14 @@ const lastMouseX = ref(0)
 const lastMouseY = ref(0)
 
 onMounted(() => {
-  // Ensure CORS is handled if images are from a different origin
-  image.crossOrigin = 'anonymous'
-  loadImage()
+  // This code runs only on the client
+  image = new Image() // Instantiate on the client
+  image.crossOrigin = 'anonymous' // Ensure CORS is handled
+
+  // Load image if imageUrl is already provided
+  if (props.imageUrl) {
+    loadImage()
+  }
 
   // Add global mouseup listener to stop dragging if mouse is released outside canvas
   window.addEventListener('mouseup', endPanGlobal)
@@ -35,6 +42,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('mouseup', endPanGlobal)
+  if (image) {
+    image.onload = null // Clean up event listeners
+    image.onerror = null
+  }
 })
 
 watch(
@@ -42,18 +53,26 @@ watch(
   (newUrl) => {
     if (newUrl) {
       loadImage()
+    } else if (image) {
+      // If imageUrl becomes null/empty, clear the image src to avoid displaying old image
+      image.src = ''
     }
   }
 )
 
 function loadImage() {
+  // Guard against running on server or if image object isn't initialized yet
+  if (typeof window === 'undefined' || !image) {
+    return
+  }
+
   image.onload = () => {
     resetTransformations()
     nextTick(drawImageOnCanvas) // Ensure canvas is ready
   }
   image.onerror = () => {
     console.error('Failed to load image for cropping.')
-    emit('cancel') // Or handle error appropriately
+    emit('cancel')
   }
   image.src = props.imageUrl
 }
@@ -165,24 +184,65 @@ function drawCropBoxOverlay(
   const cropX = (canvas.width - cropBox.width) / 2
   const cropY = (canvas.height - cropBox.height) / 2
 
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'
-  ctx.lineWidth = 2
-  ctx.strokeRect(cropX, cropY, cropBox.width, cropBox.height)
+  // Round coordinates and dimensions for a sharper stroke
+  const finalCropX = Math.round(cropX)
+  const finalCropY = Math.round(cropY)
+  const finalCropWidth = Math.round(cropBox.width)
+  const finalCropHeight = Math.round(cropBox.height)
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
-  ctx.fillRect(0, 0, canvasWidth, cropY)
+  ctx.strokeStyle = '#00ffe8'
+  ctx.lineWidth = 2
+  ctx.strokeRect(finalCropX, finalCropY, finalCropWidth, finalCropHeight)
+
+  // Draw a small, sharp crosshair in the center
+  const crosshairSize = 10 // Length of each arm of the crosshair
+  // Center crosshair relative to the rounded (visual) crop box
+  const centerX = finalCropX + finalCropWidth / 2
+  const centerY = finalCropY + finalCropHeight / 2
+
+  ctx.lineWidth = 1
+  ctx.strokeStyle = '#00ffe8' // White, slightly less transparent for sharpness
+
+  ctx.beginPath()
+  // Horizontal line
+  ctx.moveTo(
+    Math.round(centerX - crosshairSize / 2) + 0.5,
+    Math.round(centerY) + 0.5
+  )
+  ctx.lineTo(
+    Math.round(centerX + crosshairSize / 2) + 0.5,
+    Math.round(centerY) + 0.5
+  )
+  // Vertical line
+  ctx.moveTo(
+    Math.round(centerX) + 0.5,
+    Math.round(centerY - crosshairSize / 2) + 0.5
+  )
+  ctx.lineTo(
+    Math.round(centerX) + 0.5,
+    Math.round(centerY + crosshairSize / 2) + 0.5
+  )
+  ctx.stroke()
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)' // Make overlay darker
+
+  // Top overlay
+  ctx.fillRect(0, 0, canvasWidth, finalCropY)
+  // Bottom overlay
   ctx.fillRect(
     0,
-    cropY + cropBox.height,
+    finalCropY + finalCropHeight,
     canvasWidth,
-    canvasHeight - (cropY + cropBox.height)
+    canvasHeight - (finalCropY + finalCropHeight)
   )
-  ctx.fillRect(0, cropY, cropX, cropBox.height)
+  // Left overlay
+  ctx.fillRect(0, finalCropY, finalCropX, finalCropHeight)
+  // Right overlay
   ctx.fillRect(
-    cropX + cropBox.width,
-    cropY,
-    canvasWidth - (cropX + cropBox.width),
-    cropBox.height
+    finalCropX + finalCropWidth,
+    finalCropY,
+    canvasWidth - (finalCropX + finalCropWidth),
+    finalCropHeight
   )
 }
 
@@ -235,7 +295,7 @@ function handleWheel(event: WheelEvent) {
     (cropBox.height + MIN_PIXEL_OVERLAP) / image.naturalHeight
   )
 
-  const zoomFactor = 0.1
+  const zoomFactor = 0.02
   const scale = event.deltaY < 0 ? 1 + zoomFactor : 1 - zoomFactor
   const calculatedNewZoom = zoom.value * scale
 
@@ -311,23 +371,30 @@ function performCrop() {
     0.9
   ) // Adjust type and quality as needed
 }
-const test = ref(true)
+
+const modalOpen = computed(() => props.open)
 </script>
 
 <template>
-  <UModal v-model:open="test" @close="emit('close')">
+  <UModal
+    v-model:open="modalOpen"
+    :dismissible="false"
+    @close="emit('close')"
+    :ui="{ content: 'max-w-xl' }"
+  >
     <template #content>
       <UCard
+        variant="ams"
         :ui="{
-          ring: '',
-          divide: 'divide-y divide-gray-100 dark:divide-gray-800',
+          header: 'border-b',
+          root: '!divide-y divide-(--ui-primary)/20',
         }"
       >
         <template #header>
           <h3
             class="text-base font-semibold leading-6 text-gray-900 dark:text-white"
           >
-            Crop Avatar
+            Avatar hochladen
           </h3>
         </template>
 
@@ -335,7 +402,7 @@ const test = ref(true)
           ref="canvasRef"
           width="400"
           height="300"
-          class="border bg-gray-200 dark:bg-gray-700 rounded-md w-full"
+          class="border border-(--ui-primary)/20 dark:bg-(--ui-bg-muted) rounded-md w-full"
           style="cursor: grab"
           @mousedown="handleMouseDown"
           @mousemove="handleMouseMove"
@@ -346,10 +413,12 @@ const test = ref(true)
 
         <template #footer>
           <div class="flex justify-end space-x-2">
-            <UButton color="gray" variant="ghost" @click="emit('cancel')">
-              Cancel
+            <UButton color="error" variant="outline" @click="emit('cancel')">
+              Abbrechen
             </UButton>
-            <UButton @click="performCrop"> Crop & Save </UButton>
+            <UButton variant="subtle" @click="performCrop">
+              Zuschneiden und speichern
+            </UButton>
           </div>
         </template>
       </UCard>
