@@ -1,17 +1,24 @@
 <script setup lang="ts">
+import type { DirectusFile } from '~~/types'
+
 const profileEdit = useUserProfileEditStore()
 const authStore = useAuthStore()
 
-interface title {
+const fileInputRef = useTemplateRef('fileInputRef')
+const showCropperModal = ref(false)
+const imageToCropSrc = ref<string | null>(null)
+let selectedFileForUpload: File | null = null
+
+interface TitleOption {
   label: string
   value: string | null
 }
-interface gender {
+interface GenderOption {
   label: string
   value: string | null
 }
 
-const titleOptions = reactive<title[]>([
+const titleOptions = reactive<TitleOption[]>([
   { label: 'Kein Titel', value: null },
   { label: 'Dr.', value: 'Dr.' },
   { label: 'Dr. Med.', value: 'Dr. Med.' },
@@ -20,10 +27,66 @@ const titleOptions = reactive<title[]>([
   { label: 'Dipl. Ing.', value: 'Dipl. Ing.' },
 ])
 
-const genderOptions = reactive<gender[]>([
+const genderOptions = reactive<GenderOption[]>([
   { label: 'Männlich', value: 'male' },
   { label: 'Weiblich', value: 'female' },
 ])
+
+async function handleFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files[0]) {
+    const file = target.files[0]
+    if (!file.type.startsWith('image/')) {
+      // Handle non-image file selection (e.g., show an error)
+      console.error('Selected file is not an image.')
+      return
+    }
+    selectedFileForUpload = file
+    imageToCropSrc.value = URL.createObjectURL(file)
+    showCropperModal.value = true
+    // Reset file input to allow selecting the same file again if needed
+    target.value = ''
+  }
+}
+
+async function handleCropComplete(croppedImageBlob: Blob) {
+  if (!selectedFileForUpload || !croppedImageBlob) return
+
+  showCropperModal.value = false
+  const fileName = selectedFileForUpload.name // Use original file name or generate a new one
+
+  try {
+    const formData = new FormData()
+    formData.append('file', croppedImageBlob, fileName)
+    formData.append(
+      'title',
+      `Avatar for ${profileEdit.formData.first_name || 'user'}`
+    )
+    // You might want to specify a folder in Directus if you have one for avatars
+    // formData.append('folder', 'YOUR_AVATAR_FOLDER_UUID');
+
+    const uploadedFile = await useDirectus(uploadFiles(formData))
+    profileEdit.formData.avatar = uploadedFile.id // Assuming avatar stores the file ID
+  } catch (error) {
+    console.error('Error uploading avatar:', error)
+    // Handle upload error (e.g., show a notification to the user)
+  } finally {
+    if (imageToCropSrc.value) {
+      URL.revokeObjectURL(imageToCropSrc.value)
+      imageToCropSrc.value = null
+    }
+    selectedFileForUpload = null
+  }
+}
+
+function handleCropCancel() {
+  showCropperModal.value = false
+  if (imageToCropSrc.value) {
+    URL.revokeObjectURL(imageToCropSrc.value)
+    imageToCropSrc.value = null
+  }
+  selectedFileForUpload = null
+}
 </script>
 
 <template>
@@ -104,14 +167,29 @@ const genderOptions = reactive<gender[]>([
         <!-- TODO: Add Avatar function -->
         <UFormField label="Avatar" name="avatar" size="xs" class="w-full">
           <UInput
+            ref="fileInputRef"
             highlight
             size="md"
-            placeholder="chris.roberts"
             type="file"
             accept="image/*"
-            class="w-full"
+            class="hidden"
+            @change="handleFileSelect"
+          />
+          <UButton
+            icon="i-lucide-camera"
+            label="Avatar ändern"
+            variant="outline"
+            @click="fileInputRef?.inputRef?.click()"
           />
         </UFormField>
+        <AMSPagesProfileImageCropperModal
+          v-if="showCropperModal && imageToCropSrc"
+          :image-url="imageToCropSrc"
+          :aspect-ratio="270 / 320"
+          @cropped="handleCropComplete"
+          @cancel="handleCropCancel"
+          @close="handleCropCancel"
+        />
         <UFormField
           label="Titel"
           hint="Optional"
