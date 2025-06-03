@@ -258,6 +258,11 @@ definePageMeta({
           'bg-(--ui-bg-muted)/50 backdrop-blur-xs divide-(--ui-primary)/20',
       }"
     >
+      <template #header>
+        <h3 class="font-bold">
+          Comm-Link {{ editId ? 'bearbeiten' : 'erstellen' }}
+        </h3>
+      </template>
       <template #body>
         <UForm :state="formData" :schema="commLinkSchema">
           <div class="flex flex-wrap-reverse">
@@ -312,7 +317,6 @@ definePageMeta({
                         value-key="value"
                         label-key="label"
                         variant="ams"
-                        highlight
                         class="w-full"
                       />
                     </UFormField>
