@@ -19,6 +19,7 @@ const users = computed(() =>
   userList.value?.map((user) => ({
     avatar: { src: user.avatar },
     label: getUserLabel(user),
+    id: user.id,
   }))
 )
 
