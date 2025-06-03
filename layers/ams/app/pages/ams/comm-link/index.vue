@@ -252,17 +252,18 @@ definePageMeta({
     </div>
     <UModal
       v-model:open="modalOpen"
+      :title="`Comm-Link ${editId ? 'bearbeiten' : 'erstellen'}`"
       :fullscreen="true"
       :ui="{
         content:
           'bg-(--ui-bg-muted)/50 backdrop-blur-xs divide-(--ui-primary)/20',
       }"
     >
-      <template #header>
+      <!-- <template #header>
         <h3 class="font-bold">
           Comm-Link {{ editId ? 'bearbeiten' : 'erstellen' }}
         </h3>
-      </template>
+      </template> -->
       <template #body>
         <UForm :state="formData" :schema="commLinkSchema">
           <div class="flex flex-wrap-reverse">
