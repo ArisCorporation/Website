@@ -991,6 +991,7 @@ export interface UserHangar {
   ship_id?: Ship | string | null;
   name?: string | null;
   name_public?: boolean | null;
+  deleted?: boolean | null;
   serial?: string | null;
   group?: 'ariscorp' | 'private' | null;
   visibility?: 'public' | 'internal' | 'hidden' | null;
@@ -998,6 +999,7 @@ export interface UserHangar {
   planned?: boolean | null;
   active_module?: ShipModule | string | null;
   date_created?: string | null;
+  date_updated?: string | null;
 }
 
 export interface UserPasswordResetToken {
@@ -1372,6 +1374,7 @@ export interface DirectusUser {
   education_state?: boolean | null;
   birthdate?: string | null;
   date_created?: string | null;
+  date_updated?: string | null;
   social_state?: boolean | null;
   onboarded?: boolean | null;
   onboardings?: 'hangar' | 'profile' | 'home' | 'fleet' | 'employees' | 'admin' | null;

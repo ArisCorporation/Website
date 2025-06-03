@@ -58,7 +58,8 @@ export default function useFetchAMSFleet () {
         readItems('user_hangars', {
           filter: {
             group: { _eq: 'ariscorp' },
-            visibility: { _neq: 'hidden' }
+            visibility: { _neq: 'hidden' },
+            deleted: { _eq: false }
           },
           fields: USER_HANGAR_FIELDS,
           sort: ['ship_id.name']
