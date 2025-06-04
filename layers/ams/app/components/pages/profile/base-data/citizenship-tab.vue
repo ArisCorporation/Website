@@ -95,9 +95,15 @@ watch(
 )
 
 watchEffect(() => {
+  console.log(1)
+
   if (profileEdit.formData && Object.keys(profileEdit.formData).length > 0) {
+    console.log(2)
     if (profileEdit.formData.citizen_reason !== reason.value) {
+      console.log(3)
       profileEdit.formData.citizen_reason = reason.value
+      console.log(4)
+      console.log(profileEdit.formData.citizen_reason)
     }
   }
 })
@@ -152,9 +158,9 @@ watchEffect(() => {
             ? [{ label: 'Militärischer Dienst', value: 'military' }]
             : []),
           ...(hasDone.includes('education')
-            ? [{ label: 'Hochschulausbildung', value: 'education' }]
+            ? [{ label: 'Hochschulausbildung', value: 'special_education' }]
             : []),
-          { label: 'Soziales Engagement', value: 'social' },
+          { label: 'Soziales Engagement', value: 'social_commitment' },
         ]"
         value-key="value"
         v-model="reason"
