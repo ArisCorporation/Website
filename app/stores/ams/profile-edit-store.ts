@@ -330,7 +330,7 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         // Auto-generate email based on name parts if they changed
         if ((payload.first_name != authStore.currentUser?.first_name) || (payload.last_name != authStore.currentUser?.last_name) || (payload.middle_name != authStore.currentUser?.middle_name)) {
           let email = `${payload.first_name}${payload.middle_name ? '.' + payload.middle_name : ''}${payload.last_name ? '.' + payload.last_name : ''}@ariscorp.de`
-            ; (payload as any).email = email; // Assign to the payload that will be sent
+            ; (payload as any).email = email.replace(/\s/g, ''); // Assign to the payload that will be sent
         }
 
         // Transform citizen_state (string from form) to citizen (boolean | null for API)
