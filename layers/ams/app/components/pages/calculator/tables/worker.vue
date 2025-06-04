@@ -6,7 +6,7 @@ import type { Worker, Crew } from '~~/types'
 import type { DirectusUser } from '~~/types'
 
 const props = defineProps<{ users: DirectusUser[] }>()
-console.log(props.users)
+
 const store = useAMSCalculatorStore()
 const { workers, crews, settings } = storeToRefs(store)
 

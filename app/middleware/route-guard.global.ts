@@ -59,7 +59,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     if (authStore.isUserLoggedIn) {
       // Benutzer ist eingeloggt, aber die Seite ist nur für Gäste.
       // Leite zu einer Standardseite für eingeloggte Benutzer weiter.
-      return navigateTo(defaultAuthenticatedPath);
+      const redirectPath = useRoute().query.redirect as string || defaultAuthenticatedPath;
+      return navigateTo(redirectPath);
     }
   }
 

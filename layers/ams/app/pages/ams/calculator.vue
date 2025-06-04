@@ -19,9 +19,10 @@ const users = computed(() =>
   userList.value?.map((user) => ({
     avatar: { src: user.avatar },
     label: getUserLabel(user),
+    id: user.id,
   }))
 )
-console.log(users)
+
 const { data: ships } = await useAsyncData('ships', () => {
   return useDirectus(
     readItems('ships', {

@@ -48,6 +48,7 @@ export default function useFetchAMSHangar (userId: Ref<string | number | undefin
         readItems('user_hangars', {
           filter: {
             user_id: { _eq: userId.value },
+            deleted: { _eq: false }
           },
           fields: USER_HANGAR_FIELDS,
           sort: ['ship_id.name']

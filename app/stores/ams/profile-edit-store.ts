@@ -350,6 +350,12 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         //   (payload as any).roles = null; // DirectusUser.roles is 'recruitment' | ... | null
         // }
 
+        // Remove read-only Data
+        delete payload.id
+        delete payload.head_of_department
+        delete payload.role
+        delete payload.roles
+
         const userId = authStore.currentUser?.id; // Oder this.formData.id, falls es zuverlässig gesetzt ist
 
         if (!userId) {
