@@ -29,7 +29,10 @@ definePageMeta({
     <template #default>
       <div>
         <UFormField name="biography" class="w-full">
-          <UiEditor v-model="store.formData.biography" class="size-full" />
+          <UiEditor
+            v-model="store.formData.biography"
+            class="h-[calc(100vh_-_75px)]"
+          />
         </UFormField>
       </div>
     </template>
