@@ -33,27 +33,46 @@ export const userProfileSchema = z.object({
   birthplace: z.string().optional().nullable(), // ID der LandingZone oder Name
   current_residence: z.string().optional().nullable(), // ID der LandingZone oder Name
   birthdate: z.string().optional().nullable(), // Ggf. als z.date() und dann transformieren. Format "YYYY-MM-DD" or similar.
+  birthdate_day: z.number().min(1, 'Ungültiger Tag').max(31, 'Ungültiger Tag').optional().nullable(),
+  birthdate_month: z.number().min(1, 'Ungültiger Tag').max(12, 'Ungültiger Monat').optional().nullable(),
+  birthdate_year: z.number().min(2800, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
+  // birthdate: z.string()
+  //   .refine((val) => {
+  //     // Diese Validierung greift nur, wenn val ein String ist.
+  //     // optional() und nullable() werden separat behandelt.
+  //     if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) return false; // Prüft das Format YYYY-MM-DD
+  //     const date = new Date(val);
+  //     // Zerlegt den String in Jahr, Monat, Tag als Zahlen
+  //     const [year, month, day] = val.split('-').map(Number);
+  //     // Prüft, ob das Datum gültig ist (z.B. nicht 2023-02-30)
+  //     // und ob die Komponenten des Date-Objekts mit den ursprünglichen Werten übereinstimmen.
+  //     return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+  //   }, {
+  //     message: 'Ungültiges Datum.'
+  //   })
+  //   .optional()
+  //   .nullable(),
 
   citizen_state: z.enum(['true', 'false']).optional().nullable(), // Storing as string from radio
   citizen: z.boolean().optional().nullable(), // Storing as string from radio
   citizen_reason: z.enum(['military', 'special_education', 'social_commitment']).optional().nullable(),
 
   duty_state: z.boolean().optional().nullable(),
-  duty_division: z.string().optional().nullable(),
+  duty_division: z.enum(['army', 'marines', 'navy']).optional().nullable(),
   duty_end: z.enum(['honorable', 'dishonorable']).optional().nullable(),
   duty_dismissal_reason: z.string().optional().nullable(),
-  duty_from_month: z.number().optional().nullable(),
-  duty_from_year: z.number().optional().nullable(),
-  duty_to_month: z.number().optional().nullable(),
-  duty_to_year: z.number().optional().nullable(),
+  duty_from_month: z.number().min(1, 'Ungültiger Monat').max(12, 'Ungültiger Monat').optional().nullable(),
+  duty_from_year: z.number().min(2900, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
+  duty_to_month: z.number().min(1, 'Ungültiger Monat').max(12, 'Ungültiger Monat').optional().nullable(),
+  duty_to_year: z.number().min(2900, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
 
   roles: z.array(z.enum(['recruitment', 'marketing_and_press', 'content_writer'])).optional().nullable(), // Directus stores roles as a many-to-many relationship, not a simple string array
   // role: z.array(z.string()).optional().nullable(), // Array of role IDs/keys
 
   hair_color: z.string().optional().nullable(),
   eye_color: z.string().optional().nullable(),
-  height: z.number().positive('Größe muss positiv sein').optional().nullable(),
-  weight: z.number().positive('Gewicht muss positiv sein').optional().nullable(),
+  height: z.number().min(120, 'Du kannst nicht kleiner als 120cm sein').max(250, 'Du kannst nicht größer als 250cm sein').optional().nullable(),
+  weight: z.number().min(40, 'Du kannst nicht leichter als 40kg sein').max(300, 'Du kannst nicht schwerer als 300kg sein').optional().nullable(),
 
   hobbies_list: z.array(z.string()).optional().nullable(),
   habits_list: z.array(z.string()).optional().nullable(),
@@ -79,17 +98,17 @@ export const userProfileSchema = z.object({
   education_name: z.string().optional().nullable(),
   education_place: z.string().optional().nullable(),
   education_state: z.boolean().optional().nullable(),
-  education_from_month: z.number().optional().nullable(),
-  education_from_year: z.number().optional().nullable(),
-  education_to_month: z.number().optional().nullable(),
-  education_to_year: z.number().optional().nullable(),
+  education_from_month: z.number().min(1, 'Ungültiger Monat').max(12, 'Ungültiger Monat').optional().nullable(),
+  education_from_year: z.number().min(2900, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
+  education_to_month: z.number().min(1, 'Ungültiger Monat').max(12, 'Ungültiger Monat').optional().nullable(),
+  education_to_year: z.number().min(2900, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
 
   // Felder, die typischerweise nicht direkt vom Benutzer geändert werden:
   id: z.string().optional(), // ID ist für Updates wichtig, aber nicht editierbar
   // status: z.string().optional(),
   role: z.array(z.string()).optional().nullable(), // Array of role IDs/keys
   // email_notifications: z.boolean().optional(),
-});
+})
 
 export type UserProfileFormData = z.infer<typeof userProfileSchema>;
 
@@ -151,6 +170,9 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
           birthplace: null,
           current_residence: null,
           birthdate: null,
+          birthdate_day: null,
+          birthdate_month: null,
+          birthdate_year: null,
           citizen: null, // Schema allows null
           citizen_reason: null,
           duty_state: null,
@@ -218,6 +240,9 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         birthplace: resolveToStringOrUndefined(pickedSourceData.birthplace),
         current_residence: resolveToStringOrUndefined(pickedSourceData.current_residence),
         birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
+        birthdate_day: Number(pickedSourceData.birthdate?.split('-')[2]) ?? null,
+        birthdate_month: Number(pickedSourceData.birthdate?.split('-')[1]) ?? null,
+        birthdate_year: Number(pickedSourceData.birthdate?.split('-')[0]) ?? null,
 
         citizen_state: (() => {
           if (pickedSourceData.citizen === true) return 'true';
@@ -350,11 +375,27 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         //   (payload as any).roles = null; // DirectusUser.roles is 'recruitment' | ... | null
         // }
 
+        // Birthdate from day, month and year
+        if (payload.birthdate_year && payload.birthdate_month && payload.birthdate_day) {
+          const year = payload.birthdate_year;
+          const month = String(payload.birthdate_month).padStart(2, '0');
+          const day = String(payload.birthdate_day).padStart(2, '0');
+          payload.birthdate = `${year}-${month}-${day}`;
+        } else {
+          payload.birthdate = null;
+        }
+
+
         // Remove read-only Data
         delete payload.id
         delete payload.head_of_department
         delete payload.role
         delete payload.roles
+
+        // Delete utilities
+        delete payload.birthdate_day
+        delete payload.birthdate_month
+        delete payload.birthdate_year
 
         const userId = authStore.currentUser?.id; // Oder this.formData.id, falls es zuverlässig gesetzt ist
 
