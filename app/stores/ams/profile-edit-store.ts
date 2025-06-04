@@ -33,6 +33,25 @@ export const userProfileSchema = z.object({
   birthplace: z.string().optional().nullable(), // ID der LandingZone oder Name
   current_residence: z.string().optional().nullable(), // ID der LandingZone oder Name
   birthdate: z.string().optional().nullable(), // Ggf. als z.date() und dann transformieren. Format "YYYY-MM-DD" or similar.
+  birthdate_day: z.number().min(1, 'Ungültiger Tag').max(31, 'Ungültiger Tag').optional().nullable(),
+  birthdate_month: z.number().min(1, 'Ungültiger Tag').max(12, 'Ungültiger Monat').optional().nullable(),
+  birthdate_year: z.number().min(2800, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
+  // birthdate: z.string()
+  //   .refine((val) => {
+  //     // Diese Validierung greift nur, wenn val ein String ist.
+  //     // optional() und nullable() werden separat behandelt.
+  //     if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) return false; // Prüft das Format YYYY-MM-DD
+  //     const date = new Date(val);
+  //     // Zerlegt den String in Jahr, Monat, Tag als Zahlen
+  //     const [year, month, day] = val.split('-').map(Number);
+  //     // Prüft, ob das Datum gültig ist (z.B. nicht 2023-02-30)
+  //     // und ob die Komponenten des Date-Objekts mit den ursprünglichen Werten übereinstimmen.
+  //     return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+  //   }, {
+  //     message: 'Ungültiges Datum.'
+  //   })
+  //   .optional()
+  //   .nullable(),
 
   citizen_state: z.enum(['true', 'false']).optional().nullable(), // Storing as string from radio
   citizen: z.boolean().optional().nullable(), // Storing as string from radio
@@ -89,7 +108,7 @@ export const userProfileSchema = z.object({
   // status: z.string().optional(),
   role: z.array(z.string()).optional().nullable(), // Array of role IDs/keys
   // email_notifications: z.boolean().optional(),
-});
+})
 
 export type UserProfileFormData = z.infer<typeof userProfileSchema>;
 
@@ -151,6 +170,9 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
           birthplace: null,
           current_residence: null,
           birthdate: null,
+          birthdate_day: null,
+          birthdate_month: null,
+          birthdate_year: null,
           citizen: null, // Schema allows null
           citizen_reason: null,
           duty_state: null,
@@ -218,6 +240,9 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         birthplace: resolveToStringOrUndefined(pickedSourceData.birthplace),
         current_residence: resolveToStringOrUndefined(pickedSourceData.current_residence),
         birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
+        birthdate_day: Number(pickedSourceData.birthdate?.split('-')[2]) ?? null,
+        birthdate_month: Number(pickedSourceData.birthdate?.split('-')[1]) ?? null,
+        birthdate_year: Number(pickedSourceData.birthdate?.split('-')[0]) ?? null,
 
         citizen_state: (() => {
           if (pickedSourceData.citizen === true) return 'true';
@@ -350,11 +375,27 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         //   (payload as any).roles = null; // DirectusUser.roles is 'recruitment' | ... | null
         // }
 
+        // Birthdate from day, month and year
+        if (payload.birthdate_year && payload.birthdate_month && payload.birthdate_day) {
+          const year = payload.birthdate_year;
+          const month = String(payload.birthdate_month).padStart(2, '0');
+          const day = String(payload.birthdate_day).padStart(2, '0');
+          payload.birthdate = `${year}-${month}-${day}`;
+        } else {
+          payload.birthdate = null;
+        }
+
+
         // Remove read-only Data
         delete payload.id
         delete payload.head_of_department
         delete payload.role
         delete payload.roles
+
+        // Delete utilities
+        delete payload.birthdate_day
+        delete payload.birthdate_month
+        delete payload.birthdate_year
 
         const userId = authStore.currentUser?.id; // Oder this.formData.id, falls es zuverlässig gesetzt ist
 
