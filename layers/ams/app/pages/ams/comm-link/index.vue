@@ -92,6 +92,7 @@ const { data: channels } = await useAsyncData<CommLinkChannel[]>(
       readItems('comm_link_channels', {
         fields: ['*'],
         limit: -1,
+        sort: ['name'],
       })
     )
 )
