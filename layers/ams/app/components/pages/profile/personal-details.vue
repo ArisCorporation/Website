@@ -165,7 +165,9 @@ function handleCropCancel() {
                 profileEdit.formData.last_name
                   ? '.' + profileEdit.formData.last_name
                   : ''
-              }`.toLowerCase()
+              }`
+                .toLowerCase()
+                .replace(/\s/g, '')
             "
             disabled
             highlight

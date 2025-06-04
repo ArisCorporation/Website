@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
-import Code from '@tiptap/extension-code'
-import Blockquote from '@tiptap/extension-blockquote'
 import TextAlign from '@tiptap/extension-text-align'
 import CharacterCount from '@tiptap/extension-character-count'
 import Image from '@tiptap/extension-image'
@@ -28,8 +26,6 @@ const editor = useEditor({
     }),
     Underline,
     Link,
-    Code,
-    Blockquote,
     TextAlign,
     CharacterCount,
     Image,
