@@ -53,20 +53,26 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
           size="xs"
           class="w-1/2 shrink"
         >
-          <UInput
-            v-model="store.formData.duty_from_month"
-            highlight
-            size="md"
-            class="w-full mb-1"
-            placeholder="z.B. 12"
-          />
-          <UInput
-            v-model="store.formData.duty_from_year"
-            highlight
-            size="md"
-            class="w-full"
-            placeholder="z.B. 2939"
-          />
+          <UFormField name="duty_from_month" :ui="{ error: '!mt-0' }">
+            <UInput
+              v-model="store.formData.duty_from_month"
+              type="number"
+              highlight
+              size="md"
+              class="w-full mb-1"
+              placeholder="z.B. 12"
+            />
+          </UFormField>
+          <UFormField name="duty_from_year" :ui="{ error: '!mt-0' }">
+            <UInput
+              v-model="store.formData.duty_from_year"
+              type="number"
+              highlight
+              size="md"
+              class="w-full"
+              placeholder="z.B. 2939"
+            />
+          </UFormField>
         </UFormField>
         <UFormField
           label="Bis"
@@ -74,20 +80,26 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
           size="xs"
           class="w-1/2 shrink"
         >
-          <UInput
-            v-model="store.formData.duty_to_month"
-            highlight
-            size="md"
-            class="w-full mb-1"
-            placeholder="z.B. 12"
-          />
-          <UInput
-            v-model="store.formData.duty_to_year"
-            highlight
-            size="md"
-            class="w-full"
-            placeholder="z.B. 2945"
-          />
+          <UFormField name="duty_to_month" :ui="{ error: '!mt-0' }">
+            <UInput
+              v-model="store.formData.duty_to_month"
+              type="number"
+              highlight
+              size="md"
+              class="w-full mb-1"
+              placeholder="z.B. 12"
+            />
+          </UFormField>
+          <UFormField name="duty_to_year" :ui="{ error: '!mt-0' }">
+            <UInput
+              v-model="store.formData.duty_to_year"
+              type="number"
+              highlight
+              size="md"
+              class="w-full"
+              placeholder="z.B. 2945"
+            /> </UFormField
+          >"
         </UFormField>
       </div>
     </UFormField>

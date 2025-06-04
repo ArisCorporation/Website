@@ -62,20 +62,26 @@ const schools = reactive<SelectMenuItem[]>([
           size="xs"
           class="w-1/2 shrink"
         >
-          <UInput
-            v-model="store.formData.education_from_month"
-            highlight
-            size="md"
-            class="w-full mb-1"
-            placeholder="z.B. z.B. 12"
-          />
-          <UInput
-            v-model="store.formData.education_from_year"
-            highlight
-            size="md"
-            class="w-full"
-            placeholder="z.B. z.B. 2939"
-          />
+          <UFormField name="education_from_month" :ui="{ error: '!mt-0' }">
+            <UInput
+              v-model="store.formData.education_from_month"
+              type="number"
+              highlight
+              size="md"
+              class="w-full mb-1"
+              placeholder="z.B. z.B. 12"
+            />
+          </UFormField>
+          <UFormField name="education_from_year" :ui="{ error: '!mt-0' }">
+            <UInput
+              v-model="store.formData.education_from_year"
+              type="number"
+              highlight
+              size="md"
+              class="w-full"
+              placeholder="z.B. z.B. 2939"
+            />
+          </UFormField>
         </UFormField>
         <UFormField
           label="Bis"
@@ -83,20 +89,26 @@ const schools = reactive<SelectMenuItem[]>([
           size="xs"
           class="w-1/2 shrink"
         >
-          <UInput
-            v-model="store.formData.education_to_month"
-            highlight
-            size="md"
-            class="w-full mb-1"
-            placeholder="z.B. z.B. 12"
-          />
-          <UInput
-            v-model="store.formData.education_to_year"
-            highlight
-            size="md"
-            class="w-full"
-            placeholder="z.B. z.B. 2945"
-          />
+          <UFormField name="education_to_month" :ui="{ error: '!mt-0' }">
+            <UInput
+              v-model="store.formData.education_to_month"
+              type="number"
+              highlight
+              size="md"
+              class="w-full mb-1"
+              placeholder="z.B. z.B. 12"
+            />
+          </UFormField>
+          <UFormField name="education_to_year" :ui="{ error: '!mt-0' }">
+            <UInput
+              v-model="store.formData.education_to_year"
+              type="number"
+              highlight
+              size="md"
+              class="w-full"
+              placeholder="z.B. z.B. 2945"
+            />
+          </UFormField>
         </UFormField>
       </div>
     </UFormField>
