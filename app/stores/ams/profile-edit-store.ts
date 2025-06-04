@@ -39,21 +39,21 @@ export const userProfileSchema = z.object({
   citizen_reason: z.enum(['military', 'special_education', 'social_commitment']).optional().nullable(),
 
   duty_state: z.boolean().optional().nullable(),
-  duty_division: z.string().optional().nullable(),
+  duty_division: z.enum(['army', 'marines', 'navy']).optional().nullable(),
   duty_end: z.enum(['honorable', 'dishonorable']).optional().nullable(),
   duty_dismissal_reason: z.string().optional().nullable(),
-  duty_from_month: z.number().optional().nullable(),
-  duty_from_year: z.number().optional().nullable(),
-  duty_to_month: z.number().optional().nullable(),
-  duty_to_year: z.number().optional().nullable(),
+  duty_from_month: z.number().min(1, 'Ungültiger Monat').max(12, 'Ungültiger Monat').optional().nullable(),
+  duty_from_year: z.number().min(2900, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
+  duty_to_month: z.number().min(1, 'Ungültiger Monat').max(12, 'Ungültiger Monat').optional().nullable(),
+  duty_to_year: z.number().min(2900, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
 
   roles: z.array(z.enum(['recruitment', 'marketing_and_press', 'content_writer'])).optional().nullable(), // Directus stores roles as a many-to-many relationship, not a simple string array
   // role: z.array(z.string()).optional().nullable(), // Array of role IDs/keys
 
   hair_color: z.string().optional().nullable(),
   eye_color: z.string().optional().nullable(),
-  height: z.number().positive('Größe muss positiv sein').optional().nullable(),
-  weight: z.number().positive('Gewicht muss positiv sein').optional().nullable(),
+  height: z.number().min(120, 'Du kannst nicht kleiner als 120cm sein').max(250, 'Du kannst nicht größer als 250cm sein').optional().nullable(),
+  weight: z.number().min(40, 'Du kannst nicht leichter als 40kg sein').max(300, 'Du kannst nicht schwerer als 300kg sein').optional().nullable(),
 
   hobbies_list: z.array(z.string()).optional().nullable(),
   habits_list: z.array(z.string()).optional().nullable(),
@@ -79,10 +79,10 @@ export const userProfileSchema = z.object({
   education_name: z.string().optional().nullable(),
   education_place: z.string().optional().nullable(),
   education_state: z.boolean().optional().nullable(),
-  education_from_month: z.number().optional().nullable(),
-  education_from_year: z.number().optional().nullable(),
-  education_to_month: z.number().optional().nullable(),
-  education_to_year: z.number().optional().nullable(),
+  education_from_month: z.number().min(1, 'Ungültiger Monat').max(12, 'Ungültiger Monat').optional().nullable(),
+  education_from_year: z.number().min(2900, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
+  education_to_month: z.number().min(1, 'Ungültiger Monat').max(12, 'Ungültiger Monat').optional().nullable(),
+  education_to_year: z.number().min(2900, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
 
   // Felder, die typischerweise nicht direkt vom Benutzer geändert werden:
   id: z.string().optional(), // ID ist für Updates wichtig, aber nicht editierbar
