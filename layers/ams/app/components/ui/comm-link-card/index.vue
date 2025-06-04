@@ -58,7 +58,7 @@ function createSnippet(
             {{ data.name }}
           </h4>
         </UButton>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 wrap-anywhere">
           {{ createSnippet(data.content, 80) }}
         </p>
         <div class="flex gap-x-2 datas-center flex-wrap mt-auto">

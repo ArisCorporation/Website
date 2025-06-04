@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
       footer:
         'sticky bottom-0 z-10 bg-(--ui-bg-muted)/95 border-t border-t-(--ui-primary)/20',
       body: 'flex-1 !py-2 border-b-0 overflow-y-scroll [scrollbar-width:_none] !pr-0',
-      root: '!divide-y flex flex-col h-[calc(100vh_-_120px)] overflow-clip !divide-(--ui-primary)/20',
+      root: '!divide-y relative flex flex-col h-[calc(100vh_-_120px)] overflow-clip !divide-(--ui-primary)/20',
     }"
   >
     <template #header>
