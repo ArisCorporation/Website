@@ -295,7 +295,7 @@ function handleWheel(event: WheelEvent) {
     (cropBox.height + MIN_PIXEL_OVERLAP) / image.naturalHeight
   )
 
-  const zoomFactor = 0.02
+  const zoomFactor = 0.05
   const scale = event.deltaY < 0 ? 1 + zoomFactor : 1 - zoomFactor
   const calculatedNewZoom = zoom.value * scale
 
