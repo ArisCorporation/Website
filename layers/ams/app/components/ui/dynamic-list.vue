@@ -64,7 +64,7 @@ const hasItems = computed(() => model.value.length > 0)
       <li
         v-for="(item, index) in model"
         :key="item"
-        class="not-prose flex text-sm hover:z-10 relative group gap-x-4 justify-between py-2 pl-2 pr-6 bg-(--ui-bg-muted)/50 backdrop-blur-xs border border-(--ui-primary)/10 hover:border-(--ui-primary)/20 hover:bg-(--ui-primary)/5"
+        class="not-prose wrap-anywhere flex text-sm hover:z-10 relative group gap-x-4 justify-between py-2 pl-2 pr-6 bg-(--ui-bg-muted)/50 backdrop-blur-xs border border-(--ui-primary)/10 hover:border-(--ui-primary)/20 hover:bg-(--ui-primary)/5"
         :class="{
           'first:rounded-t-md': index === 0,
         }"
