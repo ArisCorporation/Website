@@ -53,14 +53,14 @@ const schools = reactive<SelectMenuItem[]>([
       label="Bildungszeitraum"
       name="education_range"
       size="xs"
-      class="w-full col-span-2"
+      class="w-full md:col-span-2"
     >
-      <div class="flex gap-x-2">
+      <div class="md:flex gap-x-2">
         <UFormField
           label="Von"
           name="education_range_from"
           size="xs"
-          class="w-1/2 shrink"
+          class="w-full md:w-1/2 shrink"
         >
           <UFormField name="education_from_month" :ui="{ error: '!mt-0' }">
             <UInput
@@ -87,7 +87,7 @@ const schools = reactive<SelectMenuItem[]>([
           label="Bis"
           name="education_range_to"
           size="xs"
-          class="w-1/2 shrink"
+          class="w-full md:w-1/2 shrink"
         >
           <UFormField name="education_to_month" :ui="{ error: '!mt-0' }">
             <UInput

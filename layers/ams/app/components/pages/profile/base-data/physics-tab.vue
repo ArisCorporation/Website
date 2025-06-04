@@ -58,7 +58,7 @@ const profileEdit = useUserProfileEditStore()
       label="Medizinisch relevante Informationen?"
       name="medical_information"
       size="xs"
-      class="w-full col-span-2"
+      class="w-full md:col-span-2"
     >
       <UTextarea
         v-model="profileEdit.formData.medical_informations"

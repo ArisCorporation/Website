@@ -115,7 +115,7 @@ watchEffect(() => {
       label="Was trifft auf dich zu?"
       name="active_extras"
       size="xs"
-      class="col-span-2"
+      class="md:col-span-2"
     >
       <AMSUiTableButtonGroup
         v-model="hasDone"

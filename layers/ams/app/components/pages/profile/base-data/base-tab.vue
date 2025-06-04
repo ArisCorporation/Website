@@ -225,7 +225,7 @@ const landingZoneOptions = computed(() => {
         size="md"
         :items="landingZoneOptions"
         placeholder="Wohnort auswählen"
-        class="prose-p:my-0 w-full max-w-sm"
+        class="prose-p:my-0 w-full"
         searchable
         searchable-placeholder="Suchen..."
       />
@@ -241,7 +241,7 @@ const landingZoneOptions = computed(() => {
         size="md"
         :items="landingZoneOptions"
         placeholder="Geburtsort auswählen"
-        class="prose-p:my-0 w-full max-w-sm"
+        class="prose-p:my-0 w-full"
         searchable
         searchable-placeholder="Suchen..."
       />
