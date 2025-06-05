@@ -15,11 +15,11 @@ export function getUserLabel (user: DirectusUser): string {
     parts.push(user.last_name);
   }
 
-  let label = parts.join(' ');
   if (user.title) {
-    // label += ` (${user.title})`;
-    label = user.title + label;
+    parts.unshift(user.title)
   }
+
+  let label = parts.join(' ');
 
   return label;
 }
