@@ -186,7 +186,7 @@ const editMode = computed<boolean>(() => {
           <div>
             <NuxtLink :to="`/ships/${ship.slug}`" class="not-prose">
               <h3
-                class="text-lg font-semibold text-white group-hover:text-shadow-primary group-hover:text-shadow-xs transition-all duration-300 hover:text-xl group-hover:text-(--ui-primary) !my-0"
+                class="text-lg w-fit font-semibold text-white group-hover:text-shadow-primary group-hover:text-shadow-xs transition-all duration-300 hover:text-xl group-hover:text-(--ui-primary) !my-0"
               >
                 {{ ship.name }}
               </h3>
