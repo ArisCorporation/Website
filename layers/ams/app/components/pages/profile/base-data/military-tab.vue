@@ -44,14 +44,14 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
       label="Dienstzeitraum"
       name="military_range"
       size="xs"
-      class="w-full col-span-2"
+      class="w-full md:col-span-2"
     >
-      <div class="flex gap-x-2">
+      <div class="md:flex gap-x-2">
         <UFormField
           label="Von"
           name="military_range_from"
           size="xs"
-          class="w-1/2 shrink"
+          class="md:w-1/2 w-full shrink"
         >
           <UFormField name="duty_from_month" :ui="{ error: '!mt-0' }">
             <UInput
@@ -78,7 +78,7 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
           label="Bis"
           name="military_range_to"
           size="xs"
-          class="w-1/2 shrink"
+          class="md:w-1/2 w-full shrink"
         >
           <UFormField name="duty_to_month" :ui="{ error: '!mt-0' }">
             <UInput
@@ -107,7 +107,7 @@ const dismissalOptions = reactive<RadioGroupItem[]>([
       label="Wieso wurdest du entlassen?"
       name="dismissal_reason"
       size="xs"
-      class="w-full col-span-2"
+      class="w-full md:col-span-2"
     >
       <UTextarea
         v-model="store.formData.duty_dismissal_reason"

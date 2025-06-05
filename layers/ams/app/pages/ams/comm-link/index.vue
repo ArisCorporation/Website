@@ -92,6 +92,7 @@ const { data: channels } = await useAsyncData<CommLinkChannel[]>(
       readItems('comm_link_channels', {
         fields: ['*'],
         limit: -1,
+        sort: ['name'],
       })
     )
 )
@@ -192,6 +193,7 @@ async function onFormSubmit(
         updateItem('comm_links', editId.value as string, event.data)
       )
     } else {
+      delete event.data?.id
       await useDirectus(createItem('comm_links', event.data))
     }
     handleCancel()
