@@ -193,6 +193,7 @@ async function onFormSubmit(
         updateItem('comm_links', editId.value as string, event.data)
       )
     } else {
+      delete event.data?.id
       await useDirectus(createItem('comm_links', event.data))
     }
     handleCancel()
