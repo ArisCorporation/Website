@@ -2,7 +2,6 @@
 definePageMeta({
   layout: 'ams',
   auth: true,
-  access_level: 99,
 })
 </script>
 
@@ -13,5 +12,17 @@ definePageMeta({
       title="VerseExkurs Editor"
       description="Verwalte den Inhalt des öffentlichen VerseExkurses."
     />
+    <USlideover
+      variant="ams"
+      :ui="{
+        header: '!p-0',
+        content: 'max-w-3xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
+      }"
+    >
+      <UButton>Öffnen</UButton>
+      <template #body>
+        <UiFileLibrary />
+      </template>
+    </USlideover>
   </div>
 </template>

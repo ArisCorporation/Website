@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import type { FormError, FormErrorEvent, FormSubmitEvent } from '#ui/types' // Import for UForm event
-import type { CommLink, CommLinkChannel } from '~~/types'
+import type { CommLink, CommLinkChannel, DirectusFile } from '~~/types'
 
 const authStore = useAuthStore()
 const { currentUserId: userId, currentUserAL: userAL } = storeToRefs(authStore)
@@ -101,6 +101,10 @@ const searchInput = ref('')
 const formRef = ref() // Use ref() for template refs
 const modalOpen = ref(false)
 
+const librarySlideover = ref(false)
+const bannerInput = useTemplateRef('bannerInput')
+const bannerUploading = ref(false)
+
 const filteredCommLinks = computed<CommLink[]>(() => {
   if (!data.value) return []
 
@@ -135,7 +139,7 @@ const commLinkSchema = z.object({
   status: z.enum(['draft', 'published'], {
     message: 'Status ist erforderlich',
   }),
-  banner: z.string().optional(),
+  banner: z.string().min(1, 'Banner ist erforderlich').optional(),
   channel: z.string().min(1, 'Channel ist erforderlich'),
   content: z.string().min(50, 'Inhalt ist erforderlich'),
 })
@@ -193,9 +197,6 @@ async function onFormSubmit(
         updateItem('comm_links', editId.value as string, event.data)
       )
     } else {
-      // TEMPORARY -- FOR TESTING
-      delete event.data?.id
-      delete event.data?.banner
       await useDirectus(createItem('comm_links', event.data))
     }
     handleCancel()
@@ -220,6 +221,36 @@ async function handleDelete(): Promise<void> {
     console.error('Error deleting comm-link:', error)
     // Consider adding user-facing error notification here
   }
+}
+
+async function handleBannerUpload(event: Event): Promise<void> {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+
+  if (!file) return
+
+  try {
+    bannerUploading.value = true
+    const form = new FormData()
+    form.append('file', file)
+    form.append('folder', 'c558dbe9-3f85-4c86-bdac-7b4988cde5c5')
+
+    const response = await useDirectus(uploadFiles(form))
+
+    if (response?.id) {
+      formData.banner = getAssetId(response.id)
+      bannerUploading.value = false
+    }
+  } catch (error) {
+    console.error('Error uploading banner:', error)
+    // Consider adding user-facing error notification here
+  }
+}
+
+function handleFileSelect(file: DirectusFile) {
+  console.log(file)
+  formData.banner = getAssetId(file)
+  librarySlideover.value = false
 }
 
 definePageMeta({
@@ -361,16 +392,50 @@ definePageMeta({
                       <div class="space-y-4">
                         <UFormField name="banner" id="bannerField">
                           <div
-                            class="aspect-[21/9] overflow-clip rounded-lg w-full group h-auto border border-dashed hover:border-(--ui-primary)/60 transition-all border-(--ui-bg-accented) items-center flex justify-center"
+                            class="aspect-[24/9] relative overflow-clip rounded-lg w-full group h-auto border border-dashed hover:border-(--ui-primary)/60 transition-all border-(--ui-bg-accented) items-center flex justify-center"
                           >
-                            <p
-                              v-if="!formData.banner"
-                              class="text-(--ui-text)/50 group-hover:text-(--ui-text) transition-colors"
+                            <div
+                              class="space-x-2 opacity-75 group-hover:opacity-100 transition-opacity z-10 absolute left-0 right-0 bottom-0 top-0 m-auto size-fit"
                             >
-                              Banner hier ablegen oder klicken
-                            </p>
+                              <UInput
+                                ref="bannerInput"
+                                type="file"
+                                accept="image/*"
+                                class="hidden"
+                                @change="handleBannerUpload"
+                              />
+                              <USlideover
+                                v-model:open="librarySlideover"
+                                :ui="{
+                                  header: '!p-0',
+                                  content:
+                                    'max-w-3xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
+                                }"
+                              >
+                                <UButton
+                                  icon="i-lucide-folder-open"
+                                  label="Datei Bibliothek"
+                                  variant="subtle"
+                                />
+                                <template #body>
+                                  <UiFileLibrary
+                                    @selected:file="handleFileSelect"
+                                  />
+                                </template>
+                              </USlideover>
+                              <UButton
+                                @click="bannerInput?.inputRef?.click()"
+                                icon="i-lucide-upload"
+                                label="Datei hochladen"
+                                variant="subtle"
+                                :loading="bannerUploading"
+                              />
+                            </div>
+                            <div
+                              class="absolute size-full bg-black/50 opacity-0 group-hover:opacity-100"
+                            />
                             <NuxtImg
-                              v-else-if="formData.banner"
+                              v-if="formData.banner"
                               :src="formData.banner"
                               alt="Comm-Link Banner"
                               class="size-full object-cover"
