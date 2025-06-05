@@ -273,7 +273,7 @@ onBeforeUnmount(() => {
     <template #default>
       <TiptapEditorContent
         :editor="editor"
-        class="size-full overflow-y-clip pr-0"
+        class="size-full overflow-y-clip pr-0 prose prose-invert max-w-none"
       />
     </template>
     <template #footer>
