@@ -53,7 +53,7 @@ function createSnippet(
       <div class="flex flex-col h-full">
         <UButton @click="$emit('select', data)" variant="link" class="p-0">
           <h4
-            class="mt-0 prose prose-invert text-left transition-color duration-300 hover:text-(--ui-primary)"
+            class="mt-0 prose prose-invert w-fit text-left transition-color duration-300 hover:text-(--ui-primary)"
           >
             {{ data.name }}
           </h4>
@@ -63,7 +63,7 @@ function createSnippet(
         </p>
         <div class="flex gap-x-2 datas-center flex-wrap mt-auto">
           <UAvatar :src="getAssetId(data.user_created?.avatar)" />
-          <p class="not-prose">{{ getUserLabel(data.user_created) }}</p>
+          <p class="not-prose my-auto">{{ getUserLabel(data.user_created) }}</p>
         </div>
       </div>
     </template>
