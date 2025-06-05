@@ -193,7 +193,9 @@ async function onFormSubmit(
         updateItem('comm_links', editId.value as string, event.data)
       )
     } else {
+      // TEMPORARY -- FOR TESTING
       delete event.data?.id
+      delete event.data?.banner
       await useDirectus(createItem('comm_links', event.data))
     }
     handleCancel()
