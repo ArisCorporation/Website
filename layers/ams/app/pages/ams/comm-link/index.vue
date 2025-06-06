@@ -145,7 +145,7 @@ const commLinkSchema = z.object({
   }),
   banner: z.string().min(1, 'Banner ist erforderlich').optional(),
   channel: z.string().min(1, 'Channel ist erforderlich'),
-  content: z.string().min(50, 'Inhalt ist erforderlich'),
+  content: z.string().min(10, 'Inhalt ist erforderlich'),
 })
 
 type CommLinkForm = z.output<typeof commLinkSchema>
