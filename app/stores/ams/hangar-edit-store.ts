@@ -7,9 +7,9 @@ import type { UserHangar } from '~~/types';
 import resolveToStringOrUndefined from '~~/layers/ams/app/utils/resolve-string-or-undefined';
 
 export const hangarItemSchema = z.object({
-  name: z.string().optional(),
+  name: z.string().max(50, 'Der Schiffsname darf maximal 50 Zeichen lang sein.').trim().optional(),
   name_public: z.boolean(),
-  serial: z.string().optional(),
+  serial: z.string().trim().optional(),
   group: z.enum(['ariscorp', 'private']),
   visibility: z.enum(['public', 'internal', 'hidden']),
   department: z.string().optional(),
