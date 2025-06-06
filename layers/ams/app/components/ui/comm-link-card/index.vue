@@ -20,7 +20,9 @@ function createSnippet(
 ): string {
   if (!htmlContent) return ''
   // Strip HTML tags
-  const text = htmlContent.replace(/<[^>]*>?/gm, '')
+  let text = htmlContent.replace(/<[^>]*>?/gm, '')
+  // Replace line breaks with a space
+  text = text.replace(/\r?\n|\r/gm, ' ')
   // Truncate and add ellipsis
   if (text.length > maxLength) {
     return text.substring(0, maxLength) + '...'
