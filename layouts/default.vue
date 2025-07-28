@@ -38,6 +38,8 @@ function handleShare() {
                 <video
                   id="fullscreen-trailer"
                   controls
+                  autoplay
+                  preload="auto"
                   class="mx-auto"
                   :src="$config.public.fileBase + '893966c7-3541-4605-a00f-633f5234ddd4'"
                 />
@@ -59,7 +61,7 @@ function handleShare() {
             class="w-fit"
             variant="outline"
             icon="i-heroicons-share"
-            label="Embed"
+            label="Teilen"
             size="2xl"
             @click="handleShare"
           />
@@ -69,6 +71,7 @@ function handleShare() {
         class="w-full h-full"
         autoplay
         muted
+        preload="auto"
         controlslist="nofullscreen nodownload"
         loop
         :src="$config.public.fileBase + '893966c7-3541-4605-a00f-633f5234ddd4'"
