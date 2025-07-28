@@ -1,5 +1,12 @@
 <script setup>
 const modalOpen = ref(false);
+const { copy } = useClipboard();
+const toast = useToast();
+
+function handleShare() {
+  copy('https://trailer.ariscorp.de');
+  toast.add({ title: 'URL in Zwischenablage kopiert!' });
+}
 </script>
 
 <template>
@@ -39,14 +46,24 @@ const modalOpen = ref(false);
           </UModal>
         </div>
 
-        <UButton
-          class="absolute bottom-12 right-0 left-0 mx-auto w-fit"
-          variant="outline"
-          icon="i-mdi-fullscreen"
-          label="Trailer abspielen"
-          size="2xl"
-          @click="modalOpen = true"
-        />
+        <div class="absolute bottom-12 right-0 left-0 mx-auto w-fit flex justify-between space-x-6">
+          <UButton
+            class="w-fit"
+            variant="outline"
+            icon="i-mdi-fullscreen"
+            label="Trailer abspielen"
+            size="2xl"
+            @click="modalOpen = true"
+          />
+          <UButton
+            class="w-fit"
+            variant="outline"
+            icon="i-heroicons-share"
+            label="Embed"
+            size="2xl"
+            @click="handleShare"
+          />
+        </div>
       </div>
       <video
         class="w-full h-full"
