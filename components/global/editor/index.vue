@@ -535,7 +535,8 @@ onBeforeUnmount(() => {
   height: v-bind('editorHeight') !important;
   overflow-y: auto;
 }
-.ProseMirror p:has(a) {
+.ProseMirror a {
   @apply animate-link;
+  display: inline-block; /* Wichtig, damit Transformationen und Animationen korrekt funktionieren */
 }
 </style>
