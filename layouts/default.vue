@@ -20,9 +20,10 @@ const modalOpen = ref(false);
             alt="ArisCorp Banner"
           />
           <UButton
-            class="absolute right-0 bottom-0"
-            variant="ghost"
+            class="absolute right-0 left-0 mx-auto w-fit bottom-0"
+            variant="outline"
             icon="i-mdi-fullscreen"
+            label="Trailer abspielen"
             @click="modalOpen = true"
           />
           <UModal v-model="modalOpen" fullscreen :ui="{ background: 'backdrop-blur-sm bg-black/80' }">
