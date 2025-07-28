@@ -19,13 +19,6 @@ const modalOpen = ref(false);
             class="mx-auto"
             alt="ArisCorp Banner"
           />
-          <UButton
-            class="absolute right-0 left-0 mx-auto w-fit bottom-0"
-            variant="outline"
-            icon="i-mdi-fullscreen"
-            label="Trailer abspielen"
-            @click="modalOpen = true"
-          />
           <UModal v-model="modalOpen" fullscreen :ui="{ background: 'backdrop-blur-sm bg-black/80' }">
             <div class="h-full relative flex">
               <UButton
@@ -45,6 +38,15 @@ const modalOpen = ref(false);
             </div>
           </UModal>
         </div>
+
+        <UButton
+          class="absolute bottom-12 right-0 left-0 mx-auto w-fit"
+          variant="outline"
+          icon="i-mdi-fullscreen"
+          label="Trailer abspielen"
+          size="2xl"
+          @click="modalOpen = true"
+        />
       </div>
       <video
         class="w-full h-full"
