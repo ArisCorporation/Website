@@ -2,6 +2,7 @@
 const props = defineProps({
   src: { type: null, required: true },
   posterUrl: { type: String, required: true },
+  panelClass: { type: String, default: '' },
 });
 
 const commercialVideo = ref();
@@ -175,8 +176,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <DefaultPanel bg="bprimary" class="mb-3">
-    <div>
+  <DefaultPanel bg="bprimary" class="mb-3" panel-classes="h-full" inner-classes="h-full">
+    <div class="h-full flex flex-col">
       <div class="relative w-full h-fit" @click="toggleCommercialPlayback">
         <div
           class="absolute z-10 flex items-center justify-center w-full h-full transition-all duration-500 bg-black"
@@ -221,7 +222,7 @@ onMounted(() => {
           }"
         />
       </div>
-      <div class="w-full px-2 pb-2 mt-1 space-y-2">
+      <div class="w-full px-2 pb-2 space-y-2 my-auto">
         <URange
           v-model="commercialCurrentTime"
           :max="commercialDuration"
@@ -289,3 +290,9 @@ onMounted(() => {
     </div>
   </DefaultPanel>
 </template>
+
+<style>
+#sentry-feedback {
+  display: none !important;
+}
+</style>
