@@ -1,3 +1,7 @@
+<script setup>
+const modalOpen = ref(false);
+</script>
+
 <template>
   <div>
     <HomeTheNavbar />
@@ -15,6 +19,28 @@
             class="mx-auto"
             alt="ArisCorp Banner"
           />
+          <UButton
+            class="absolute right-0 bottom-0"
+            variant="ghost"
+            icon="i-mdi-fullscreen"
+            @click="modalOpen = true"
+          />
+          <UModal v-model="modalOpen" fullscreen :ui="{ background: 'backdrop-blur bg-black/80' }">
+            <div class="h-full relative flex">
+              <UButton
+                variant="outline"
+                class="absolute top-2 right-2 p-2 rounded-full"
+                icon="i-heroicons-x-mark-16-solid"
+                @click="modalOpen = false"
+              />
+              <video
+                id="fullscree-trailer"
+                controls
+                class="w-full h-auto my-auto"
+                :src="$config.public.fileBase + '893966c7-3541-4605-a00f-633f5234ddd4'"
+              />
+            </div>
+          </UModal>
         </div>
       </div>
       <video
