@@ -48,7 +48,7 @@ function handleShare() {
           </UModal>
         </div>
 
-        <div class="absolute bottom-12 right-0 left-0 mx-auto w-fit flex justify-between space-x-6">
+        <div class="absolute bottom-12 scale-125 right-0 left-0 mx-auto w-fit flex justify-between space-x-6">
           <UButton
             class="w-fit"
             variant="outline"
