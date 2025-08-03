@@ -10,16 +10,16 @@ import resolveToStringOrUndefined from '~~/layers/ams/app/utils/resolve-string-o
 // Definiere, welche Felder des DirectusUser editierbar sein sollen.
 // Passe dies genau an die Felder an, die du im Profil-Bearbeitungsformular haben möchtest.
 export const userProfileSchema = z.object({
-  first_name: z.string().min(1, 'Vorname ist erforderlich'),
-  last_name: z.string().optional().nullable(),
-  middle_name: z.string().optional().nullable(),
+  first_name: z.string().trim().min(1, 'Vorname ist erforderlich'),
+  last_name: z.string().trim().optional().nullable(),
+  middle_name: z.string().trim().optional().nullable(),
   // Email wird oft separat oder gar nicht im Standard-Profil-Edit geändert
   email: z.string().email("Ungültige E-Mail-Adresse").optional().nullable(),
   title: z.string().optional().nullable(),
   avatar: z.string().optional().nullable(), // ID der DirectusFile, oder URL
   password: z.string().optional().nullable(),
 
-  rsi_handle: z.string().optional().nullable(),
+  rsi_handle: z.string().trim().optional().nullable(),
   discord_name: z.string().optional().nullable(),
   contact_email: z.string().email("Ungültige Kontakt-E-Mail").optional().nullable(),
   discord_id: z.string().optional().nullable(),
@@ -67,35 +67,35 @@ export const userProfileSchema = z.object({
   duty_to_year: z.number().min(2900, 'Ungültiges Jahr').max(3000, 'Ungültiges Jahr').optional().nullable(),
 
   roles: z.array(z.enum(['recruitment', 'marketing_and_press', 'content_writer'])).optional().nullable(), // Directus stores roles as a many-to-many relationship, not a simple string array
-  // role: z.array(z.string()).optional().nullable(), // Array of role IDs/keys
+  // role: z.array(z.string().trim()).optional().nullable(), // Array of role IDs/keys
 
   hair_color: z.string().optional().nullable(),
   eye_color: z.string().optional().nullable(),
   height: z.number().min(120, 'Du kannst nicht kleiner als 120cm sein').max(250, 'Du kannst nicht größer als 250cm sein').optional().nullable(),
   weight: z.number().min(40, 'Du kannst nicht leichter als 40kg sein').max(300, 'Du kannst nicht schwerer als 300kg sein').optional().nullable(),
 
-  hobbies_list: z.array(z.string()).optional().nullable(),
-  habits_list: z.array(z.string()).optional().nullable(),
-  talents_list: z.array(z.string()).optional().nullable(),
-  tics_list: z.array(z.string()).optional().nullable(),
-  activities_list: z.array(z.string()).optional().nullable(),
-  mysterious_list: z.array(z.string()).optional().nullable(),
-  character_trait_list: z.array(z.string()).optional().nullable(),
-  fears_list: z.array(z.string()).optional().nullable(),
-  books_list: z.array(z.string()).optional().nullable(),
-  music_list: z.array(z.string()).optional().nullable(),
-  movies_list: z.array(z.string()).optional().nullable(),
-  clothing_list: z.array(z.string()).optional().nullable(),
-  food_list: z.array(z.string()).optional().nullable(),
-  drink_list: z.array(z.string()).optional().nullable(),
-  alcohol_list: z.array(z.string()).optional().nullable(),
-  loves_list: z.array(z.string()).optional().nullable(),
-  hates_list: z.array(z.string()).optional().nullable(),
+  hobbies_list: z.array(z.string().trim()).optional().nullable(),
+  habits_list: z.array(z.string().trim()).optional().nullable(),
+  talents_list: z.array(z.string().trim()).optional().nullable(),
+  tics_list: z.array(z.string().trim()).optional().nullable(),
+  activities_list: z.array(z.string().trim()).optional().nullable(),
+  mysterious_list: z.array(z.string().trim()).optional().nullable(),
+  character_trait_list: z.array(z.string().trim()).optional().nullable(),
+  fears_list: z.array(z.string().trim()).optional().nullable(),
+  books_list: z.array(z.string().trim()).optional().nullable(),
+  music_list: z.array(z.string().trim()).optional().nullable(),
+  movies_list: z.array(z.string().trim()).optional().nullable(),
+  clothing_list: z.array(z.string().trim()).optional().nullable(),
+  food_list: z.array(z.string().trim()).optional().nullable(),
+  drink_list: z.array(z.string().trim()).optional().nullable(),
+  alcohol_list: z.array(z.string().trim()).optional().nullable(),
+  loves_list: z.array(z.string().trim()).optional().nullable(),
+  hates_list: z.array(z.string().trim()).optional().nullable(),
 
   medical_informations: z.string().optional().nullable(),
   biography: z.string().optional().nullable(), // Oft ein Rich-Text-Feld
 
-  education_name: z.string().optional().nullable(),
+  education_name: z.string().trim().optional().nullable(),
   education_place: z.string().optional().nullable(),
   education_state: z.boolean().optional().nullable(),
   education_from_month: z.number().min(1, 'Ungültiger Monat').max(12, 'Ungültiger Monat').optional().nullable(),
@@ -106,7 +106,7 @@ export const userProfileSchema = z.object({
   // Felder, die typischerweise nicht direkt vom Benutzer geändert werden:
   id: z.string().optional(), // ID ist für Updates wichtig, aber nicht editierbar
   // status: z.string().optional(),
-  role: z.array(z.string()).optional().nullable(), // Array of role IDs/keys
+  role: z.array(z.string().trim()).optional().nullable(), // Array of role IDs/keys
   // email_notifications: z.boolean().optional(),
 })
 

@@ -136,13 +136,17 @@ const filteredCommLinks = computed<CommLink[]>(() => {
 })
 
 const commLinkSchema = z.object({
-  name: z.string().min(1, 'Titel ist erforderlich'),
+  name: z
+    .string()
+    .min(1, 'Titel ist erforderlich')
+    .max(50, 'Titel ist zu lang')
+    .trim(),
   status: z.enum(['draft', 'published'], {
     message: 'Status ist erforderlich',
   }),
   banner: z.string().min(1, 'Banner ist erforderlich').optional(),
   channel: z.string().min(1, 'Channel ist erforderlich'),
-  content: z.string().min(50, 'Inhalt ist erforderlich'),
+  content: z.string().min(10, 'Inhalt ist erforderlich'),
 })
 
 type CommLinkForm = z.output<typeof commLinkSchema>
