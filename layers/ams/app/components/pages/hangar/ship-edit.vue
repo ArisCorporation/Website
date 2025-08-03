@@ -61,7 +61,7 @@ const { data: departments } = useLazyAsyncData(
     v-model:open="editSlideoverOpen"
     :ui="{
       header: '!p-0',
-      content: 'max-w-xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
+      content: 'max-w-2xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
     }"
   >
     <template #default>

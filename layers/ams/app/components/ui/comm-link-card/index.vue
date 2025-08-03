@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import type { CommLink } from '~~/types'
+import type { CommLink, CommLinkChannel, DirectusUser } from '~~/types'
 
 defineProps<{ data: CommLink }>()
 
-function publishingSinceDate(item: CommLink) {
-  if (!item.date_created) return 'N/A'
-  const date = new Date(item.date_created)
-  date.setFullYear(date.getFullYear())
+function sinceDate(item: CommLink) {
+  const dateString =
+    item.status === 'published' ? item.date_published : item.date_created
+  if (!dateString) return 'N/A'
+
+  const date = new Date(dateString)
   // Format to yyyy-mm-dd
   const year = date.getFullYear()
   const month = (date.getMonth() + 1).toString().padStart(2, '0')
   const day = date.getDate().toString().padStart(2, '0')
-  return `${year}-${month}-${day}`
+  return `${year + (item.status === 'draft' ? 930 : 0)}-${month}-${day}`
 }
 
 function createSnippet(
@@ -42,16 +44,31 @@ function createSnippet(
     <template #header>
       <div class="flex gap-x-2 justify-between not-prose">
         <UBadge variant="outline" class="h-fit shrink">
-          <span class="">{{ data.channel?.name }}</span>
+          <span>{{ (data.channel as CommLinkChannel)?.name }}</span>
         </UBadge>
-        <p class="text-sm ml-auto shrink-0">
-          {{ publishingSinceDate(data as CommLink) }}
+        <p class="text-sm ml-auto shrink-0 items-center flex gap-x-2">
+          <UTooltip
+            :text="data.status === 'published' ? 'Veröffentlicht' : 'Entwurf'"
+          >
+            <UIcon
+              :name="
+                data.status === 'published'
+                  ? 'i-lucide-globe'
+                  : 'i-lucide-file-pen'
+              "
+            />
+          </UTooltip>
+          {{ sinceDate(data as CommLink) }}
         </p>
       </div>
     </template>
     <template #default>
       <div class="flex flex-col h-full">
-        <UButton @click="$emit('select', data)" variant="link" class="p-0">
+        <UButton
+          @click="$emit('select', data)"
+          variant="link"
+          class="p-0 w-fit"
+        >
           <h4
             class="mt-0 prose wrap-anywhere prose-invert w-fit text-left transition-color duration-300 hover:text-(--ui-primary)"
           >
@@ -62,9 +79,11 @@ function createSnippet(
           {{ createSnippet(data.content, 80) }}
         </p>
         <div class="flex gap-x-2 mt-auto">
-          <UAvatar :src="getAssetId(data.user_created?.avatar)" />
+          <UAvatar
+            :src="getAssetId((data.user_created as DirectusUser)?.avatar)"
+          />
           <p class="not-prose my-auto wrap-break-word">
-            {{ getUserLabel(data.user_created) }}
+            {{ getUserLabel(data.user_created as DirectusUser) }}
           </p>
         </div>
       </div>
