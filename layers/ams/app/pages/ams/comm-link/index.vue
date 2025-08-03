@@ -62,6 +62,7 @@ const { data, refresh, pending } = useAsyncData<CommLink[]>(
           'banner',
           'content',
           'date_created',
+          'date_published',
           {
             user_created: [
               'id',
@@ -503,6 +504,7 @@ definePageMeta({
                           type="button"
                           label="Abbrechen"
                           class="flex-1 flex justify-center"
+                          size="xl"
                         />
                         <UButton
                           :loading="formRef?.loading"
@@ -510,6 +512,7 @@ definePageMeta({
                           type="submit"
                           label="Speichern"
                           class="flex-1 flex justify-center"
+                          size="xl"
                         />
                         <UButton
                           v-if="editId"
@@ -519,6 +522,7 @@ definePageMeta({
                           color="error"
                           icon="i-lucide-trash-2"
                           class="w-fit flex justify-center"
+                          size="xl"
                         />
                       </div>
                     </template>
