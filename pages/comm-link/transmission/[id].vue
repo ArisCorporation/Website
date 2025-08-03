@@ -73,7 +73,7 @@ useHead({
           class="relative flex max-w-full pl-2 mt-4 ml-auto w-fit sm:max-w-1/4 after:w-full after:h-2px after:bg-secondary after:absolute after:-bottom-2"
         >
           <p class="mt-auto ml-2 italic uppercase">
-            <span class="text-secondary">Gepostet: </span>{{ $dayjs(data?.date_posted).format('DD. MMMM YYYY') }}
+            <span class="text-secondary">Gepostet: </span>{{ $dayjs(data?.date_posted).add(930, 'years').format('DD. MMMM YYYY') }}
           </p>
         </div>
       </div>
