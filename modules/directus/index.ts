@@ -21,7 +21,7 @@ export default defineNuxtModule({
     name: 'agencyos-nuxt-directus',
     configKey: 'directus',
     compatibility: {
-      nuxt: '^3.0.0',
+      nuxt: '^4.0.0',
     },
 
     defaults: {

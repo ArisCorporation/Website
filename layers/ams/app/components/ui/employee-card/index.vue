@@ -16,10 +16,10 @@ const memberSinceDate = computed(() => {
 </script>
 
 <template>
-  <NuxtLink :to="`/users/${data.id}`" class="">
+  <NuxtLink :to="`/ams/employees/${data.id}`" class="">
     <UCard
       variant="ams"
-      class="overflow-clip hover:scale-[1.02] duration-300 transition-transform ease-out group"
+      class="overflow-clip hover:scale-[1.02] active:scale-95 duration-300 transition-transform ease-out group"
       :ui="{
         header: '!p-0',
         root: 'flex flex-col relative',
@@ -30,7 +30,11 @@ const memberSinceDate = computed(() => {
         <div class="flex flex-col space-y-1.5 relative p-0 not-prose">
           <div class="relative w-full aspect-[270/320] overflow-hidden">
             <NuxtImg
-              :src="getAssetId(data.avatar)"
+              :src="
+                getAssetId(
+                  data.avatar ?? 'c46969b5-8414-49cd-ab90-cb71dd2a3e57'
+                )
+              "
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 not-prose"
             />
             <!-- <div

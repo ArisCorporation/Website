@@ -61,6 +61,7 @@ export interface CommLink {
   status?: 'published' | 'draft' | 'archived';
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
+  date_published?: string | null;
   user_updated?: DirectusUser | string | null;
   date_updated?: string | null;
   slug?: string | null;

@@ -9,6 +9,8 @@ const emit = defineEmits(['selected:folder', 'selected:file'])
 
 const expanded = ref<string[]>([])
 
+const props = defineProps<{ allTypes: boolean }>()
+
 function transformFoldersToTreeItems(
   folders: DirectusFolder[] | null | undefined
 ): TreeItem[] {
@@ -114,6 +116,7 @@ const {
         sort: ['-modified_on'],
         filter: {
           ...(folderId !== 'all' ? { folder: { _eq: folderId } } : {}),
+          ...(props.allTypes ? {} : { type: { _starts_with: 'image' } }),
         },
       })
     )
@@ -130,6 +133,9 @@ const { data: fileCounts } = await useAsyncData(
       aggregate('directus_files', {
         aggregate: { count: '*' },
         groupBy: ['folder'],
+        filter: {
+          ...(props.allTypes ? {} : { type: { _starts_with: 'image' } }),
+        },
       })
     )
 )
@@ -168,7 +174,7 @@ watchEffect(() => {
 
 <template>
   <div class="flex divide-x h-full divide-(--ui-primary)/20">
-    <div class="w-1/3 py-6">
+    <div class="w-1/3 py-6 overflow-y-scroll">
       <UTree
         v-model="selectedFolder"
         v-model:expanded="expanded"
@@ -187,7 +193,10 @@ watchEffect(() => {
     </div>
     <div class="w-2/3 py-6">
       <div class="flex flex-col">
-        <div class="grid gap-2 p-2 grid-cols-5">
+        <p v-if="!displayedFiles.length" class="m-auto">
+          Keine Bilder in diesem Ordner vorhanden
+        </p>
+        <div v-if="displayedFiles.length" class="grid gap-2 p-2 grid-cols-5">
           <UButton
             v-for="file in displayedFiles"
             :key="file.id"
@@ -216,6 +225,7 @@ watchEffect(() => {
           </UButton>
         </div>
         <UPagination
+          v-if="displayedFiles.length"
           v-model:page="page"
           :total="totalFiles / itemsPerPage"
           class="mx-auto"

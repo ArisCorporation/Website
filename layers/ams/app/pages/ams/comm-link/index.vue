@@ -62,6 +62,7 @@ const { data, refresh, pending } = useAsyncData<CommLink[]>(
           'banner',
           'content',
           'date_created',
+          'date_published',
           {
             user_created: [
               'id',
@@ -135,13 +136,17 @@ const filteredCommLinks = computed<CommLink[]>(() => {
 })
 
 const commLinkSchema = z.object({
-  name: z.string().min(1, 'Titel ist erforderlich'),
+  name: z
+    .string()
+    .min(1, 'Titel ist erforderlich')
+    .max(50, 'Titel ist zu lang')
+    .trim(),
   status: z.enum(['draft', 'published'], {
     message: 'Status ist erforderlich',
   }),
   banner: z.string().min(1, 'Banner ist erforderlich').optional(),
   channel: z.string().min(1, 'Channel ist erforderlich'),
-  content: z.string().min(50, 'Inhalt ist erforderlich'),
+  content: z.string().min(10, 'Inhalt ist erforderlich'),
 })
 
 type CommLinkForm = z.output<typeof commLinkSchema>
@@ -503,6 +508,7 @@ definePageMeta({
                           type="button"
                           label="Abbrechen"
                           class="flex-1 flex justify-center"
+                          size="xl"
                         />
                         <UButton
                           :loading="formRef?.loading"
@@ -510,6 +516,7 @@ definePageMeta({
                           type="submit"
                           label="Speichern"
                           class="flex-1 flex justify-center"
+                          size="xl"
                         />
                         <UButton
                           v-if="editId"
@@ -519,6 +526,7 @@ definePageMeta({
                           color="error"
                           icon="i-lucide-trash-2"
                           class="w-fit flex justify-center"
+                          size="xl"
                         />
                       </div>
                     </template>
