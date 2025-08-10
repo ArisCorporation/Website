@@ -44,6 +44,23 @@ const memberSinceFormatted = computed(() => {
   }).format(date)
 })
 
+const getAge = computed(() => {
+  if (!employee.value?.birthdate) return 'N/A'
+
+  const birthDate = new Date(employee.value.birthdate)
+  const realBirthDate = new Date(birthDate)
+  realBirthDate.setFullYear(birthDate.getFullYear() - 930)
+
+  const today = new Date()
+  let calculatedAge = today.getFullYear() - realBirthDate.getFullYear()
+  const m = today.getMonth() - realBirthDate.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < realBirthDate.getDate())) {
+    calculatedAge--
+  }
+
+  return calculatedAge
+})
+
 const statusColor = computed(() => {
   if (!employee.value) return 'gray'
   switch (employee.value.status) {
@@ -71,6 +88,84 @@ const statusLabel = computed(() => {
       return 'Unbekannt'
   }
 })
+
+interface ITables {
+  title: string
+  icon: string
+  data: ITableData[][]
+}
+
+interface ITableData {
+  label: string
+  value: string
+}
+
+const mainTables: ITables[] = [
+  {
+    title: 'Persönliche Informationen',
+    icon: 'i-lucide-user',
+    data: [
+      [
+        {
+          label: 'Bürgerlicher Name',
+          value: getUserLabel(employee.value as DirectusUser) ?? 'N/A',
+        },
+        {
+          label: 'Geschlecht',
+          value: getSexLabel(employee.value?.sex)?.label ?? 'N/A',
+        },
+      ],
+      [
+        {
+          label: 'Geburtsdatum',
+          value: employee.value?.birthdate
+            ? new Intl.DateTimeFormat('de-DE', {
+                year: 'numeric',
+                month: 'long',
+                day: '2-digit',
+              }).format(new Date(employee.value?.birthdate))
+            : 'N/A',
+        },
+        {
+          label: 'Geschlecht',
+          value: getAge.value ? `${getAge.value} Jahre alt` : 'N/A',
+        },
+      ],
+      [
+        {
+          label: 'Geburtsort',
+          value: 'N/A',
+        },
+        {
+          label: 'Aktueller Wohnort',
+          value: 'N/A',
+        },
+      ],
+      [
+        {
+          label: 'Körpergröße',
+          value: employee.value?.height
+            ? `${employee.value?.height} cm`
+            : 'N/A',
+        },
+        {
+          label: 'Körpergewicht',
+          value: employee.value?.weight
+            ? `${employee.value?.weight} kg`
+            : 'N/A',
+        },
+        {
+          label: 'Haarfarbe',
+          value: employee.value?.hair_color ?? 'N/A',
+        },
+        {
+          label: 'Augenfarbe',
+          value: employee.value?.eye_color ?? 'N/A',
+        },
+      ],
+    ],
+  },
+]
 
 definePageMeta({
   layout: 'ams',
@@ -104,7 +199,7 @@ definePageMeta({
                   employee.avatar ?? '88adb941-f746-405d-bcc4-c2804fb48e33'
                 )
               "
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover not-prose"
               :alt="`Avatar von ${getUserLabel(employee)}`"
             />
             <div
@@ -129,7 +224,6 @@ definePageMeta({
           </div>
         </UCard>
 
-        Schnelle Fakten
         <UCard variant="ams" class="mt-6">
           <template #header>
             <div class="flex items-center gap-2 ams-card-title">
@@ -147,7 +241,7 @@ definePageMeta({
                 <span class="text-sm text-muted-foreground"
                   >Mitarbeiter-ID</span
                 >
-                <span class="font-mono text-sm">{{ employee.id }}</span>
+                <span class="font-mono text-sm">ARIS-VW-50008001</span>
               </div>
               <div
                 v-if="employee.email"
@@ -174,47 +268,39 @@ definePageMeta({
       </div>
 
       <div class="col-span-12 lg:col-span-8 space-y-6">
-        <UCard variant="ams">
+        <UCard
+          v-for="(table, tableIndex) in mainTables"
+          :key="tableIndex"
+          variant="ams"
+        >
           <template #header>
             <div class="flex items-center gap-2 ams-card-title">
-              <UIcon name="i-lucide-user" class="size-5" />
-              <h2>Persönliche Informationen</h2>
+              <UIcon :name="table.icon" class="size-5" />
+              <h2>{{ table.title }}</h2>
             </div>
           </template>
           <template #default>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label class="text-sm font-medium text-muted-foreground"
-                  >Vorname</label
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <template
+                v-for="(row, rowIndex) in table.data"
+                :key="rowIndex"
+                class=""
+              >
+                <div v-for="(cell, cellIndex) in row" :key="cellIndex">
+                  <label class="text-sm font-medium text-(--ui-text-muted)">
+                    {{ cell.label }}
+                  </label>
+                  <p class="mt-0 mb-0 font-mono">
+                    {{ cell.value }}
+                  </p>
+                </div>
+                <div
+                  v-if="rowIndex < table?.data.length - 1"
+                  class="col-span-2"
                 >
-                <p class="mt-1 font-medium">
-                  {{ employee.first_name || 'Nicht angegeben' }}
-                </p>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-muted-foreground"
-                  >Nachname</label
-                >
-                <p class="mt-1 font-medium">
-                  {{ employee.last_name || 'Nicht angegeben' }}
-                </p>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-muted-foreground"
-                  >Titel</label
-                >
-                <p class="mt-1 font-medium">
-                  {{ employee.title || 'Nicht angegeben' }}
-                </p>
-              </div>
-              <div>
-                <label class="text-sm font-medium text-muted-foreground"
-                  >Sprache</label
-                >
-                <p class="mt-1 font-medium">
-                  {{ employee.language || 'Nicht angegeben' }}
-                </p>
-              </div>
+                  <USeparator color="ams" />
+                </div>
+              </template>
             </div>
           </template>
         </UCard>
