@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DirectusUser } from '~~/types'
+import type { Department, DirectusRole, DirectusUser } from '~~/types'
 
 const route = useRoute()
 
@@ -15,7 +15,6 @@ const { data: employee } = await useAsyncData<DirectusUser>(
           '*',
           { primary_department: ['name', 'logo', 'description'] },
           { secondary_department: ['name', 'logo', 'description'] },
-          { leading_department: ['name', 'logo', 'description'] },
           { role: ['name', 'label', 'description'] },
         ],
       })
@@ -61,34 +60,6 @@ const getAge = computed(() => {
   return calculatedAge
 })
 
-const statusColor = computed(() => {
-  if (!employee.value) return 'gray'
-  switch (employee.value.status) {
-    case 'active':
-      return 'green'
-    case 'inactive':
-      return 'red'
-    case 'suspended':
-      return 'orange'
-    default:
-      return 'gray'
-  }
-})
-
-const statusLabel = computed(() => {
-  if (!employee.value) return 'Unbekannt'
-  switch (employee.value.status) {
-    case 'active':
-      return 'Aktiv'
-    case 'inactive':
-      return 'Inaktiv'
-    case 'suspended':
-      return 'Suspendiert'
-    default:
-      return 'Unbekannt'
-  }
-})
-
 interface ITables {
   title: string
   icon: string
@@ -97,7 +68,8 @@ interface ITables {
 
 interface ITableData {
   label: string
-  value: string
+  value: string | string[]
+  link?: string | null
 }
 
 const mainTables: ITables[] = [
@@ -165,6 +137,221 @@ const mainTables: ITables[] = [
       ],
     ],
   },
+  {
+    title: 'Militärischer Dienst',
+    icon: 'i-ph-medal-military',
+    data: [
+      [
+        {
+          label: 'Dienstzeit',
+          value: employee.value?.duty_from_month
+            ? `${employee.value?.duty_from_month}/${employee.value?.duty_from_year} - ${employee.value?.duty_to_month}/${employee.value?.duty_to_year}`
+            : 'N/A',
+        },
+        {
+          label: 'Division',
+          value: getDivisionLabel(employee.value?.duty_division) ?? 'N/A',
+        },
+        {
+          label: 'Entlassen',
+          value:
+            employee.value?.duty_end === 'dishonorable'
+              ? 'Unehrenhaft'
+              : employee.value?.duty_end === 'honorable'
+              ? 'Ehrenhaft'
+              : 'N/A',
+        },
+      ],
+    ],
+  },
+  {
+    title: 'Spezifische Information',
+    icon: 'i-lucide-list',
+    data: [
+      [
+        {
+          label: 'Hobbies',
+          value: employee.value?.hobbies_list?.[0]
+            ? employee.value?.hobbies_list
+            : 'N/A',
+        },
+        {
+          label: 'Angewohnheiten',
+          value: employee.value?.habits_list?.[0]
+            ? employee.value?.habits_list
+            : 'N/A',
+        },
+        {
+          label: 'Talente',
+          value: employee.value?.talents_list?.[0]
+            ? employee.value?.talents_list
+            : 'N/A',
+        },
+        {
+          label: 'Tics & Marotten',
+          value: employee.value?.tics_list?.[0]
+            ? employee.value?.tics_list
+            : 'N/A',
+        },
+        {
+          label: 'Freizeitgestaltung',
+          value: employee.value?.activities_list?.[0]
+            ? employee.value?.activities_list
+            : 'N/A',
+        },
+        {
+          label: 'Rätselhafte Züge',
+          value: employee.value?.mysterious_list?.[0]
+            ? employee.value?.mysterious_list
+            : 'N/A',
+        },
+        {
+          label: 'Hervorstechender Charakterzug',
+          value: employee.value?.character_trait_list?.[0]
+            ? employee.value?.character_trait_list
+            : 'N/A',
+        },
+        {
+          label: 'Ängste',
+          value: employee.value?.fears_list?.[0]
+            ? employee.value?.fears_list
+            : 'N/A',
+        },
+      ],
+    ],
+  },
+  {
+    title: 'Geschmäcker',
+    icon: 'i-lucide-list',
+    data: [
+      [
+        {
+          label: 'Musik',
+          value: employee.value?.music_list?.[0]
+            ? employee.value?.music_list
+            : 'N/A',
+        },
+        {
+          label: 'Filme',
+          value: employee.value?.movies_list?.[0]
+            ? employee.value?.movies_list
+            : 'N/A',
+        },
+        {
+          label: 'Bücher',
+          value: employee.value?.books_list?.[0]
+            ? employee.value?.books_list
+            : 'N/A',
+        },
+      ],
+      [
+        {
+          label: 'Lieblingsgericht',
+          value: employee.value?.food_list?.[0]
+            ? employee.value?.food_list
+            : 'N/A',
+        },
+        {
+          label: 'Lieblingsgetränk',
+          value: employee.value?.drink_list?.[0]
+            ? employee.value?.drink_list
+            : 'N/A',
+        },
+        {
+          label: 'Lieblingsalkohol',
+          value: employee.value?.alcohol_list?.[0]
+            ? employee.value?.alcohol_list
+            : 'N/A',
+        },
+        {
+          label: 'Typische Kleidung',
+          value: employee.value?.clothing_list?.[0]
+            ? employee.value?.clothing_list
+            : 'N/A',
+        },
+      ],
+      [
+        {
+          label: `${getSexLabel(employee.value?.sex)?.pronoun} liebt`,
+          value: employee.value?.loves_list?.[0]
+            ? employee.value?.loves_list
+            : 'N/A',
+        },
+        {
+          label: `${getSexLabel(employee.value?.sex)?.pronoun} hasst`,
+          value: employee.value?.hates_list?.[0]
+            ? employee.value?.hates_list
+            : 'N/A',
+        },
+      ],
+    ],
+  },
+]
+
+const sideTables: ITables[] = [
+  {
+    title: 'ArisCorp Informationen',
+    icon: 'i-octicon-organization-24',
+    data: [
+      [
+        {
+          label: 'Organisationsposition',
+          value: (employee.value?.role as DirectusRole)?.label ?? 'N/A',
+        },
+        {
+          label: 'Rolle/n',
+          value: getRolesLabel(employee.value?.roles ?? []) ?? 'N/A',
+        },
+      ],
+      [
+        // TODO: Abteilungslink
+        {
+          label: 'Primäre Abteilung',
+          value:
+            (employee.value?.primary_department as Department)?.name ?? 'N/A',
+        },
+        {
+          label: 'Abteilungsposition',
+          value: employee.value?.head_of_department
+            ? 'Abteilungsleiter'
+            : 'Mitarbeiter',
+        },
+        // TODO: Abteilungslink
+        {
+          label: 'Sekundäre Abteilung',
+          value:
+            (employee.value?.secondary_department as Department)?.name ?? 'N/A',
+        },
+      ],
+      [
+        {
+          label: 'Mitglied seit',
+          value: employee.value?.date_created
+            ? new Intl.DateTimeFormat('de-DE', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+              })
+                .format(new Date(employee.value?.date_created))
+                .replace(/\./g, '-')
+            : 'N/A',
+        },
+        {
+          label: 'Personalnummer',
+          value: 'ARIS-ADM-50008001',
+        },
+      ],
+      [
+        {
+          label: 'Handle',
+          value: employee.value?.rsi_handle ?? 'N/A',
+          link: employee.value?.rsi_handle
+            ? `https://robertsspaceindustries.com/citizens/${employee.value?.rsi_handle}`
+            : null,
+        },
+      ],
+    ],
+  },
 ]
 
 definePageMeta({
@@ -181,8 +368,8 @@ definePageMeta({
       description="Detailansicht des Mitarbeiters"
     />
 
-    <div class="grid grid-cols-12 gap-6">
-      <div class="col-span-12 lg:col-span-4">
+    <div class="grid xl:grid-cols-12 gap-6">
+      <div class="col-span-12 xl:col-span-4 space-y-6">
         <UCard
           variant="ams"
           class="overflow-clip"
@@ -224,50 +411,56 @@ definePageMeta({
           </div>
         </UCard>
 
-        <UCard variant="ams" class="mt-6">
+        <UCard
+          v-for="(table, tableIndex) in sideTables"
+          :key="tableIndex"
+          variant="ams"
+        >
           <template #header>
             <div class="flex items-center gap-2 ams-card-title">
-              <UIcon name="i-lucide-info" class="size-5" />
-              <h2>Schnelle Fakten</h2>
+              <UIcon :name="table.icon" class="size-5" />
+              <h2>{{ table.title }}</h2>
             </div>
           </template>
           <template #default>
             <div class="space-y-4">
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-muted-foreground">Mitglied seit</span>
-                <span class="font-medium">{{ memberSinceFormatted }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-muted-foreground"
-                  >Mitarbeiter-ID</span
+              <template v-for="(row, rowIndex) in table.data" :key="rowIndex">
+                <div
+                  v-for="(cell, cellIndex) in row"
+                  :key="cellIndex"
+                  class="flex justify-between items-center"
                 >
-                <span class="font-mono text-sm">ARIS-VW-50008001</span>
-              </div>
-              <div
-                v-if="employee.email"
-                class="flex justify-between items-center"
-              >
-                <span class="text-sm text-muted-foreground">E-Mail</span>
-                <a
-                  :href="`mailto:${employee.email}`"
-                  class="text-ariscorp-cyan hover:underline text-sm"
+                  <label
+                    class="text-sm font-medium text-(--ui-text-muted) text-nowrap"
+                  >
+                    {{ cell.label }}
+                  </label>
+                  <NuxtLink
+                    :to="cell.link ?? null"
+                    :class="[cell.link && 'active:scale-95 transition-all']"
+                    class="not-prose w-fit"
+                  >
+                    <p
+                      v-if="!Array.isArray(cell.value)"
+                      class="mt-0 mb-0 uppercase font-mono ml-6"
+                    >
+                      {{ cell.value }}
+                    </p>
+                  </NuxtLink>
+                </div>
+                <div
+                  v-if="rowIndex < table?.data.length - 1"
+                  class="col-span-2"
                 >
-                  {{ employee.email }}
-                </a>
-              </div>
-              <div
-                v-if="employee.location"
-                class="flex justify-between items-center"
-              >
-                <span class="text-sm text-muted-foreground">Standort</span>
-                <span class="font-medium">{{ employee.location }}</span>
-              </div>
+                  <USeparator color="ams" />
+                </div>
+              </template>
             </div>
           </template>
         </UCard>
       </div>
 
-      <div class="col-span-12 lg:col-span-8 space-y-6">
+      <div class="col-span-12 xl:col-span-8 space-y-6">
         <UCard
           v-for="(table, tableIndex) in mainTables"
           :key="tableIndex"
@@ -280,7 +473,7 @@ definePageMeta({
             </div>
           </template>
           <template #default>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4">
               <template
                 v-for="(row, rowIndex) in table.data"
                 :key="rowIndex"
@@ -290,9 +483,21 @@ definePageMeta({
                   <label class="text-sm font-medium text-(--ui-text-muted)">
                     {{ cell.label }}
                   </label>
-                  <p class="mt-0 mb-0 font-mono">
+                  <p
+                    v-if="!Array.isArray(cell.value)"
+                    class="mt-0 mb-0 uppercase font-mono"
+                  >
                     {{ cell.value }}
                   </p>
+                  <ul v-else class="mt-0 uppercase mb-0 font-mono">
+                    <li
+                      v-for="item in cell.value"
+                      :key="item"
+                      class="!my-0 marker:text-(--ui-primary) pl-0"
+                    >
+                      {{ item }}
+                    </li>
+                  </ul>
                 </div>
                 <div
                   v-if="rowIndex < table?.data.length - 1"
@@ -301,170 +506,6 @@ definePageMeta({
                   <USeparator color="ams" />
                 </div>
               </template>
-            </div>
-          </template>
-        </UCard>
-
-        <UCard variant="ams">
-          <template #header>
-            <div class="flex items-center gap-2 ams-card-title">
-              <UIcon name="i-lucide-briefcase" class="size-5" />
-              <h2>Rolle & Abteilung</h2>
-            </div>
-          </template>
-          <template #default>
-            <div class="space-y-6">
-              Aktuelle Rolle
-              <div v-if="employee.role">
-                <label class="text-sm font-medium text-muted-foreground"
-                  >Aktuelle Rolle</label
-                >
-                <div class="mt-2 p-4 bg-muted/50 rounded-lg">
-                  <h3 class="font-semibold text-lg">
-                    {{ employee.role.label }}
-                  </h3>
-                  <p class="text-sm text-muted-foreground mt-1">
-                    {{ employee.role.name }}
-                  </p>
-                  <p v-if="employee.role.description" class="text-sm mt-2">
-                    {{ employee.role.description }}
-                  </p>
-                </div>
-              </div>
-
-              Abteilungen
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                Hauptabteilung
-                <div v-if="employee.primary_department">
-                  <label class="text-sm font-medium text-muted-foreground">
-                    {{
-                      employee.head_of_department
-                        ? 'Leitende Abteilung'
-                        : 'Hauptabteilung'
-                    }}
-                  </label>
-                  <div
-                    class="mt-2 p-3 bg-muted/30 rounded-lg flex items-center gap-3"
-                  >
-                    <NuxtImg
-                      v-if="employee.primary_department.logo"
-                      :src="getAssetId(employee.primary_department.logo)"
-                      class="size-10 rounded-full"
-                      :alt="`Logo ${employee.primary_department.name}`"
-                    />
-                    <div>
-                      <h4 class="font-medium">
-                        {{ employee.primary_department.name }}
-                      </h4>
-                      <p
-                        v-if="employee.primary_department.description"
-                        class="text-xs text-muted-foreground"
-                      >
-                        {{ employee.primary_department.description }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div v-if="employee.secondary_department">
-                  <label class="text-sm font-medium text-muted-foreground"
-                    >Nebenabteilung</label
-                  >
-                  <div
-                    class="mt-2 p-3 bg-muted/30 rounded-lg flex items-center gap-3"
-                  >
-                    <NuxtImg
-                      v-if="employee.secondary_department.logo"
-                      :src="getAssetId(employee.secondary_department.logo)"
-                      class="size-10 rounded-full"
-                      :alt="`Logo ${employee.secondary_department.name}`"
-                    />
-                    <div>
-                      <h4 class="font-medium">
-                        {{ employee.secondary_department.name }}
-                      </h4>
-                      <p
-                        v-if="employee.secondary_department.description"
-                        class="text-xs text-muted-foreground"
-                      >
-                        {{ employee.secondary_department.description }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </template>
-        </UCard>
-        <UCard v-if="employee.description" variant="ams">
-          <template #header>
-            <div class="flex items-center gap-2 ams-card-title">
-              <UIcon name="i-lucide-file-text" class="size-5" />
-              <h2>Biografie</h2>
-            </div>
-          </template>
-          <template #default>
-            <div class="prose prose-sm max-w-none">
-              <p class="text-muted-foreground leading-relaxed">
-                {{ employee.description }}
-              </p>
-            </div>
-          </template>
-        </UCard>
-
-        Kontaktinformationen
-        <UCard variant="ams">
-          <template #header>
-            <div class="flex items-center gap-2 ams-card-title">
-              <UIcon name="i-lucide-contact" class="size-5" />
-              <h2>Kontakt & Erreichbarkeit</h2>
-            </div>
-          </template>
-          <template #default>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div v-if="employee.email">
-                <label
-                  class="text-sm font-medium text-muted-foreground flex items-center gap-2"
-                >
-                  <UIcon name="i-lucide-mail" class="size-4" />
-                  E-Mail
-                </label>
-                <a
-                  :href="`mailto:${employee.email}`"
-                  class="mt-1 text-ariscorp-cyan hover:underline font-medium block"
-                >
-                  {{ employee.email }}
-                </a>
-              </div>
-
-              <div v-if="employee.location">
-                <label
-                  class="text-sm font-medium text-muted-foreground flex items-center gap-2"
-                >
-                  <UIcon name="i-lucide-map-pin" class="size-4" />
-                  Standort
-                </label>
-                <p class="mt-1 font-medium">{{ employee.location }}</p>
-              </div>
-
-              <div v-if="employee.timezone">
-                <label
-                  class="text-sm font-medium text-muted-foreground flex items-center gap-2"
-                >
-                  <UIcon name="i-lucide-clock" class="size-4" />
-                  Zeitzone
-                </label>
-                <p class="mt-1 font-medium">{{ employee.timezone }}</p>
-              </div>
-
-              <div>
-                <label
-                  class="text-sm font-medium text-muted-foreground flex items-center gap-2"
-                >
-                  <UIcon name="i-lucide-calendar" class="size-4" />
-                  Mitglied seit
-                </label>
-                <p class="mt-1 font-medium">{{ memberSinceFormatted }}</p>
-              </div>
             </div>
           </template>
         </UCard>
