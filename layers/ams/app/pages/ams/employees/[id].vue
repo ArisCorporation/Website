@@ -372,43 +372,46 @@ definePageMeta({
       <div class="col-span-12 xl:col-span-4 space-y-6">
         <UCard
           variant="ams"
-          class="overflow-clip"
+          class="overflow-clip duration-300 transition-transform ease-out group"
           :ui="{
             header: '!p-0',
             root: 'flex flex-col relative',
             body: 'flex-1 !p-0',
           }"
         >
-          <div class="relative aspect-[270/320] w-full">
-            <NuxtImg
-              :src="
-                getAssetId(
-                  employee.avatar ?? '88adb941-f746-405d-bcc4-c2804fb48e33'
-                )
-              "
-              class="w-full h-full object-cover not-prose"
-              :alt="`Avatar von ${getUserLabel(employee)}`"
-            />
-            <div
-              class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
-            />
-            <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
-              <h1 class="text-xl font-bold text-white mb-1">
-                {{ getUserLabel(employee) }}
-              </h1>
-              <p class="text-sm text-ariscorp-orange font-medium">
-                {{ employee.role?.label }}
-              </p>
-              <div class="flex items-center gap-2 mt-2">
-                <UBadge variant="solid" :label="statusLabel" />
-                <UBadge
-                  v-if="employee.head_of_department"
-                  variant="outline"
-                  label="Abteilungsleiter"
+          <template #default>
+            <div class="flex flex-col space-y-1.5 relative p-0 not-prose">
+              <div class="relative w-full aspect-[270/320] overflow-hidden">
+                <NuxtImg
+                  :src="
+                    getAssetId(
+                      employee.avatar ?? '88adb941-f746-405d-bcc4-c2804fb48e33'
+                    )
+                  "
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 not-prose"
                 />
+                <!-- <div
+              class="absolute top-3 right-3 w-3 h-3 rounded-full border-2 border-white shadow-lg bg-gray-500"
+            ></div> -->
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
+                ></div>
+                <div class="absolute bottom-0 left-0 right-0 p-3 text-white">
+                  <h3
+                    class="text-lg font-bold text-white group-hover:text-ariscorp-cyan transition-colors"
+                  >
+                    {{ getUserLabel(employee) }}
+                  </h3>
+                  <!-- <p class="text-sm font-medium text-ariscorp-orange">Commander</p> -->
+                  <UBadge
+                    v-if="employee.head_of_department"
+                    variant="outline"
+                    label="Abteilungsleiter"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </template>
         </UCard>
 
         <UCard
@@ -460,55 +463,166 @@ definePageMeta({
         </UCard>
       </div>
 
-      <div class="col-span-12 xl:col-span-8 space-y-6">
-        <UCard
-          v-for="(table, tableIndex) in mainTables"
-          :key="tableIndex"
-          variant="ams"
+      <div class="col-span-12 xl:col-span-8">
+        <UTabs
+          :items="[
+            {
+              label: 'Steckbrief',
+              slot: 'profile',
+            },
+            {
+              label: 'Biografie',
+              slot: 'biography',
+            },
+          ]"
+          class="w-full"
+          :ui="{
+            list: 'border border-(--ui-primary)/10 bg-(--ui-bg-muted)/70',
+            indicator: 'bg-(--ui-primary)/10',
+            trigger: 'data-[state=active]:text-(--ui-primary)',
+          }"
         >
-          <template #header>
-            <div class="flex items-center gap-2 ams-card-title">
-              <UIcon :name="table.icon" class="size-5" />
-              <h2>{{ table.title }}</h2>
-            </div>
-          </template>
-          <template #default>
-            <div class="grid grid-cols-2 gap-4">
-              <template
-                v-for="(row, rowIndex) in table.data"
-                :key="rowIndex"
-                class=""
+          <template #profile>
+            <div class="space-y-6">
+              <UCard
+                v-for="(table, tableIndex) in mainTables"
+                :key="tableIndex"
+                variant="ams"
               >
-                <div v-for="(cell, cellIndex) in row" :key="cellIndex">
-                  <label class="text-sm font-medium text-(--ui-text-muted)">
-                    {{ cell.label }}
-                  </label>
-                  <p
-                    v-if="!Array.isArray(cell.value)"
-                    class="mt-0 mb-0 uppercase font-mono"
-                  >
-                    {{ cell.value }}
-                  </p>
-                  <ul v-else class="mt-0 uppercase mb-0 font-mono">
-                    <li
-                      v-for="item in cell.value"
-                      :key="item"
-                      class="!my-0 marker:text-(--ui-primary) pl-0"
+                <template #header>
+                  <div class="flex items-center gap-2 ams-card-title">
+                    <UIcon :name="table.icon" class="size-5" />
+                    <h2>{{ table.title }}</h2>
+                  </div>
+                </template>
+                <template #default>
+                  <div class="grid grid-cols-2 gap-4">
+                    <template
+                      v-for="(row, rowIndex) in table.data"
+                      :key="rowIndex"
+                      class=""
                     >
-                      {{ item }}
-                    </li>
-                  </ul>
-                </div>
-                <div
-                  v-if="rowIndex < table?.data.length - 1"
-                  class="col-span-2"
-                >
-                  <USeparator color="ams" />
-                </div>
-              </template>
+                      <div v-for="(cell, cellIndex) in row" :key="cellIndex">
+                        <label
+                          class="text-sm font-medium text-(--ui-text-muted)"
+                        >
+                          {{ cell.label }}
+                        </label>
+                        <p
+                          v-if="!Array.isArray(cell.value)"
+                          class="mt-0 mb-0 uppercase font-mono"
+                        >
+                          {{ cell.value }}
+                        </p>
+                        <ul v-else class="mt-0 uppercase mb-0 font-mono">
+                          <li
+                            v-for="item in cell.value"
+                            :key="item"
+                            class="!my-0 marker:text-(--ui-primary) pl-0"
+                          >
+                            {{ item }}
+                          </li>
+                        </ul>
+                      </div>
+                      <div
+                        v-if="rowIndex < table?.data.length - 1"
+                        class="col-span-2"
+                      >
+                        <USeparator color="ams" />
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </UCard>
             </div>
           </template>
-        </UCard>
+          <template #biography>
+            <div class="space-y-6">
+              <UCard variant="ams">
+                <template #header>
+                  <div class="flex items-center gap-2 ams-card-title">
+                    <UIcon name="i-lucide-letter-text" class="size-5" />
+                    <h2>Biografie</h2>
+                  </div>
+                </template>
+                <template #default>
+                  <UiEditor
+                    :readOnly="true"
+                    :model-value="employee.biography ?? ''"
+                  />
+                </template>
+              </UCard>
+            </div>
+          </template>
+          <template #citizenship>
+            <div class="space-y-6">
+              <UCard variant="ams" class="!shadow-none">
+                <template #header>
+                  <div class="prose-h4:my-0 prose-p:my-0">
+                    <h4>Bürgerstatus</h4>
+                    <p class="text-xs pt-1 text-(--ui-text-muted)">
+                      Hier kannst du dein Bürgerstatus festlegen
+                    </p>
+                  </div>
+                </template>
+                <template #default>
+                  <AMSPagesProfileBaseDataCitizenshipTab />
+                </template>
+              </UCard>
+            </div>
+          </template>
+          <template #details>
+            <div class="space-y-6">
+              <UCard variant="ams" class="!shadow-none">
+                <template #header>
+                  <div class="prose-h4:my-0 prose-p:my-0">
+                    <h4>Detail Informationen</h4>
+                    <p class="text-xs pt-1 text-(--ui-text-muted)">
+                      Details zu deiner Person und deinem Geschmack
+                    </p>
+                  </div>
+                </template>
+                <template #default>
+                  <AMSPagesProfileBaseDataDetailsTab />
+                </template>
+              </UCard>
+            </div>
+          </template>
+          <template #military>
+            <div class="space-y-6">
+              <UCard variant="ams" class="!shadow-none">
+                <template #header>
+                  <div class="prose-h4:my-0 prose-p:my-0">
+                    <h4>Militärdienst</h4>
+                    <p class="text-xs pt-1 text-(--ui-text-muted)">
+                      Informationen zu deinem Militärdienst
+                    </p>
+                  </div>
+                </template>
+                <template #default>
+                  <AMSPagesProfileBaseDataMilitaryTab />
+                </template>
+              </UCard>
+            </div>
+          </template>
+          <template #education>
+            <div class="space-y-6">
+              <UCard variant="ams" class="!shadow-none">
+                <template #header>
+                  <div class="prose-h4:my-0 prose-p:my-0">
+                    <h4>Hochschulausbildung</h4>
+                    <p class="text-xs pt-1 text-(--ui-text-muted)">
+                      Informationen zu deiner Hochschulausbildung
+                    </p>
+                  </div>
+                </template>
+                <template #default>
+                  <AMSPagesProfileBaseDataEducationTab />
+                </template>
+              </UCard>
+            </div>
+          </template>
+        </UTabs>
       </div>
     </div>
   </div>
