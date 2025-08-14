@@ -50,8 +50,8 @@ export default function (obj: any) {
     ...(obj.temporary_password && { temporary_password: obj.temporary_password }),
     ...(obj.hasOwnProperty('first_name') &&
       obj.hasOwnProperty('last_name') && {
-        full_name: `${obj.title ? obj.title + ' ' : ''}${obj.first_name}${obj.last_name ? ' ' + obj.last_name : ''}`,
-      }),
+      full_name: `${obj.title ? obj.title + ' ' : ''}${obj.first_name}${obj.last_name ? ' ' + obj.last_name : ''}`,
+    }),
     ...(obj.slug && { slug: obj.slug }),
     ...(obj.email && { login_email: obj.email }),
     ...(obj.contact_email && { contact_email: obj.contact_email }),
@@ -60,8 +60,8 @@ export default function (obj: any) {
     ...(obj.rsi_handle && { rsi_handle: obj.rsi_handle }),
     avatar: obj.avatar ? obj.avatar : 'c46969b5-8414-49cd-ab90-cb71dd2a3e57',
     avatar_url: obj.avatar
-      ? 'https://cms.ariscorp.de/assets/' + obj.avatar
-      : 'https://cms.ariscorp.de/assets/' + 'c46969b5-8414-49cd-ab90-cb71dd2a3e57',
+      ? 'https://studio.ariscorp.de/assets/' + obj.avatar
+      : 'https://studio.ariscorp.de/assets/' + 'c46969b5-8414-49cd-ab90-cb71dd2a3e57',
     ...(obj.sex && {
       sex: obj.sex === 'female' ? 'Weiblich' : 'Männlich',
       sex_value: obj.sex,
@@ -70,33 +70,33 @@ export default function (obj: any) {
     ...(obj.hasOwnProperty('roles') && { roles: roles.length > 0 ? roles : null, roles_value: obj.roles }),
     ...(obj.role?.hasOwnProperty('id')
       ? {
-          position: {
-            id: obj.role.id,
-            name: obj.role.label,
-            ...(obj.role.access_level && { access_level: obj.role.access_level }),
-          },
-          ...(obj.role.access_level && { admin: obj.role.access_level >= 5 }),
-        }
+        position: {
+          id: obj.role.id,
+          name: obj.role.label,
+          ...(obj.role.access_level && { access_level: obj.role.access_level }),
+        },
+        ...(obj.role.access_level && { admin: obj.role.access_level >= 5 }),
+      }
       : obj.role && {
-          position: {
-            id: directus_roles.find((e) => e.id === obj.role)?.id,
-            name: directus_roles.find((e) => e.id === obj.role)?.label,
-            access_level: directus_roles.find((e) => e.id === obj.role)?.access_level ?? 0,
-          },
-          admin: directus_roles.find((e) => e.id === obj.role)?.access_level ?? 0 >= 5,
-        }),
+        position: {
+          id: directus_roles.find((e) => e.id === obj.role)?.id,
+          name: directus_roles.find((e) => e.id === obj.role)?.label,
+          access_level: directus_roles.find((e) => e.id === obj.role)?.access_level ?? 0,
+        },
+        admin: directus_roles.find((e) => e.id === obj.role)?.access_level ?? 0 >= 5,
+      }),
     ...(obj.head_of_department && { head_of_department: obj.head_of_department }),
     ...(obj.department || obj.leading_department
       ? {
-          department:
-            (obj.department || obj.leading_department) && obj.head_of_department
-              ? transformDepartment(obj.leading_department)
-              : transformDepartment(obj.department),
-          department_id:
-            (obj.department || obj.leading_department) && obj.head_of_department
-              ? obj.leading_department
-              : obj.department,
-        }
+        department:
+          (obj.department || obj.leading_department) && obj.head_of_department
+            ? transformDepartment(obj.leading_department)
+            : transformDepartment(obj.department),
+        department_id:
+          (obj.department || obj.leading_department) && obj.head_of_department
+            ? obj.leading_department
+            : obj.department,
+      }
       : {}),
     ...(obj.birthplace && {
       birthplace: transformLandingZone(obj.birthplace),
@@ -113,10 +113,10 @@ export default function (obj: any) {
         obj.citizen_reason === 'military'
           ? 'Militärischer Dienst'
           : obj.citizen_reason === 'special_education'
-          ? 'Besondere Bildung'
-          : obj.citizen_reason === 'social_commitment'
-          ? 'Soziales Engagement'
-          : null,
+            ? 'Besondere Bildung'
+            : obj.citizen_reason === 'social_commitment'
+              ? 'Soziales Engagement'
+              : null,
     }),
     ...(obj.citizen_reason && { citizen_reason_value: obj.citizen_reason }),
     ...(obj.duty_state !== null && { duty_state: obj.duty_state }),
@@ -129,10 +129,10 @@ export default function (obj: any) {
           obj.duty_division === 'army'
             ? 'UEE Arme'
             : obj.duty_division === 'navy'
-            ? 'UEE Marine'
-            : obj.duty_division === 'marines'
-            ? 'UEE Luftwaffe'
-            : null,
+              ? 'UEE Marine'
+              : obj.duty_division === 'marines'
+                ? 'UEE Luftwaffe'
+                : null,
         division_value: obj.duty_division,
       },
     }),

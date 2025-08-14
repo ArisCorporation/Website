@@ -24,7 +24,7 @@ const pages = [
     label: 'VerseExkurs',
     icon: 'i-heroicons-sun-solid',
     // avatar: {
-    //   src: 'https://cms.ariscorp.de/assets/2a7389da-7ad6-46bc-ad4d-ce1b02756d3c',
+    //   src: 'https://studio.ariscorp.de/assets/2a7389da-7ad6-46bc-ad4d-ce1b02756d3c',
     // },
     to: '/verseexkurs',
     // shortcuts: [metaSymbol, 'Shift', 'V'],
@@ -34,7 +34,7 @@ const pages = [
     label: 'ShipExkurs',
     icon: 'i-heroicons-rocket-launch',
     // avatar: {
-    //   src: 'https://cms.ariscorp.de/assets/ffe7c93d-6f9e-4335-aae7-8a3db4551b95',
+    //   src: 'https://studio.ariscorp.de/assets/ffe7c93d-6f9e-4335-aae7-8a3db4551b95',
     // },
     to: '/shipexkurs/ships',
     // shortcuts: [metaSymbol, 'Shift', 'S'],
@@ -44,7 +44,7 @@ const pages = [
     label: 'ArisCorp Management System',
     icon: 'i-heroicons-user-circle',
     // avatar: {
-    //   src: 'https://cms.ariscorp.de/assets/3090187e-6348-4290-a878-af1b2b48c114',
+    //   src: 'https://studio.ariscorp.de/assets/3090187e-6348-4290-a878-af1b2b48c114',
     // },
     to: '/ams',
     // shortcuts: [metaSymbol, 'Shift', 'A'],
