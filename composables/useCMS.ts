@@ -51,7 +51,7 @@ export const useCMS = () => {
   const authStore = useAuthStore();
 
   class CookieStorage {
-    get() {
+    get () {
       return {
         expires: authStore.expires,
         refresh_token: authStore.refresh_token,
@@ -59,14 +59,14 @@ export const useCMS = () => {
         expires_at: authStore.expires_at,
       };
     }
-    set(data) {
+    set (data) {
       authStore.setData(data);
       // console.log('set_token', data);
     }
   }
   const storage = new CookieStorage();
 
-  function getToken() {
+  function getToken () {
     return {
       expires: authStore.expires,
       refresh_token: authStore.refresh_token,
@@ -78,12 +78,12 @@ export const useCMS = () => {
   //   return (useCookie('ams:auth_token').value = data);
   // }
 
-  const directus = createDirectus<CMSTypes>('https://cms.ariscorp.de')
+  const directus = createDirectus<CMSTypes>('https://studio.ariscorp.de')
     .with(rest({ credentials: 'include' }))
     .with(authentication('json', { storage }))
     .with(realtime());
 
-  async function signedIn() {
+  async function signedIn () {
     return (await directus.getToken()) ? true : false;
   }
 

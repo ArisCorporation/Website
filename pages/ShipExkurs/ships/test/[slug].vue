@@ -175,7 +175,7 @@ const data4 = await readAsyncItems('ships')
 
 const data5 = await useAsyncData('ships5', await readItems('ships'))
 
-const data6 = await useFetch('https://cms.ariscorp.de/items/ships')
+const data6 = await useFetch('https://studio.ariscorp.de/items/ships')
 
 console.log(data)
 console.log(data2)

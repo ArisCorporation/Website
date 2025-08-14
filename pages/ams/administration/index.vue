@@ -826,7 +826,7 @@ const handleArchive = async (users: any[]) => {
 const sendCredentials = async (data) => {
   console.log(data);
   const created_date = new Date();
-  await useFetch('https://cms.ariscorp.de/flows/trigger/5a39f82d-6037-4db9-a948-837219ac7cd4', {
+  await useFetch('https://studio.ariscorp.de/flows/trigger/5a39f82d-6037-4db9-a948-837219ac7cd4', {
     method: 'POST',
     body: {
       discord_id: data.discord_id,
