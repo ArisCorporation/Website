@@ -216,9 +216,8 @@ const editMode = computed<boolean>(() => {
           <h3
             v-else
             class="text-lg italic font-semibold text-(--ui-text-muted) transition-colors duration-300 !my-0"
-          >
-            N/A
-          </h3>
+            aria-hidden="true"
+          />
           <UTooltip
             v-if="mode === 'hangar-item' && fleetMode"
             :text="`Besitzer: ${getUserLabel(hangarItem?.user_id)}`"
