@@ -49,7 +49,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@compodium/nuxt',
     'nuxt-tiptap-editor',
-    'nuxt-echarts',
+    'nuxt-charts'
   ],
 
   css: ['~/assets/css/main.css'],
