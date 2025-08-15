@@ -101,6 +101,7 @@ definePageMeta({
           mode="hangar-item"
           fleet-mode
           :data="ship"
+          :force-expanded="false"
         />
       </div>
     </template>
