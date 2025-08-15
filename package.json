@@ -9,7 +9,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "generate:types": "npx directus-sdk-typegen -u https://cms.ariscorp.de -t TOKEN -o ./types/api.d.ts"
+    "generate:types": "npx directus-sdk-typegen -u https://studio.ariscorp.de -t TOKEN -o ./types/api.d.ts"
   },
   "dependencies": {
     "@compodium/nuxt": "0.1.0-beta.10",
