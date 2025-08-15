@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Department, DirectusRole, DirectusUser } from '~~/types'
+import type { Department, DirectusRole, DirectusUser, LandingZone } from '~~/types'
 
 const route = useRoute()
 
@@ -13,9 +13,24 @@ const { data: employee } = await useAsyncData<DirectusUser>(
       readUser(employeeId, {
         fields: [
           '*',
-          { primary_department: ['name', 'logo', 'description'] },
-          { secondary_department: ['name', 'logo', 'description'] },
-          { role: ['name', 'label', 'description'] },
+          'primary_department.name',
+          'primary_department.logo',
+          'secondary_department.name',
+          'secondary_department.logo',
+          'role.name',
+          'role.label',
+          'birthplace.name',
+          'birthplace.planet.name',
+          'birthplace.planet.star_system.name',
+          'birthplace.moon.name',
+          'birthplace.moon.planet.name',
+          'birthplace.moon.planet.star_system.name',
+          'current_residence.name',
+          'current_residence.planet.name',
+          'current_residence.planet.star_system.name',
+          'current_residence.moon.name',
+          'current_residence.moon.planet.name',
+          'current_residence.moon.planet.star_system.name',
         ],
       })
     )) as DirectusUser
@@ -60,6 +75,35 @@ const getAge = computed(() => {
   return calculatedAge
 })
 
+const formatLocation = (location: LandingZone | null | undefined) => {
+  if (!location || !location.name) return 'N/A'
+
+  const landingZoneName = location.name
+  let parentName = ''
+  let systemName = ''
+
+  if (location.planet && typeof location.planet !== 'string') {
+    parentName = location.planet.name ?? ''
+    if (location.planet.star_system && typeof location.planet.star_system !== 'string') {
+      systemName = location.planet.star_system.name ?? ''
+    }
+  } else if (location.moon && typeof location.moon !== 'string') {
+    parentName = location.moon.name ?? ''
+    if (location.moon.planet && typeof location.moon.planet !== 'string' && location.moon.planet.star_system && typeof location.moon.planet.star_system !== 'string') {
+      systemName = location.moon.planet.star_system.name ?? ''
+    }
+  }
+
+  if (systemName && parentName && landingZoneName) {
+    return `${systemName} / ${parentName} / ${landingZoneName}`
+  }
+
+  return landingZoneName
+}
+
+const formattedBirthplace = computed(() => formatLocation(employee.value?.birthplace as LandingZone))
+const formattedCurrentResidence = computed(() => formatLocation(employee.value?.current_residence as LandingZone))
+
 interface ITables {
   title: string
   icon: string
@@ -72,287 +116,293 @@ interface ITableData {
   link?: string | null
 }
 
-const mainTables: ITables[] = [
-  {
-    title: 'Persönliche Informationen',
-    icon: 'i-lucide-user',
-    data: [
-      [
-        {
-          label: 'Bürgerlicher Name',
-          value: getUserLabel(employee.value as DirectusUser) ?? 'N/A',
-        },
-        {
-          label: 'Geschlecht',
-          value: getSexLabel(employee.value?.sex)?.label ?? 'N/A',
-        },
-      ],
-      [
-        {
-          label: 'Geburtsdatum',
-          value: employee.value?.birthdate
-            ? new Intl.DateTimeFormat('de-DE', {
-                year: 'numeric',
-                month: 'long',
-                day: '2-digit',
-              }).format(new Date(employee.value?.birthdate))
-            : 'N/A',
-        },
-        {
-          label: 'Geschlecht',
-          value: getAge.value ? `${getAge.value} Jahre alt` : 'N/A',
-        },
-      ],
-      [
-        {
-          label: 'Geburtsort',
-          value: 'N/A',
-        },
-        {
-          label: 'Aktueller Wohnort',
-          value: 'N/A',
-        },
-      ],
-      [
-        {
-          label: 'Körpergröße',
-          value: employee.value?.height
-            ? `${employee.value?.height} cm`
-            : 'N/A',
-        },
-        {
-          label: 'Körpergewicht',
-          value: employee.value?.weight
-            ? `${employee.value?.weight} kg`
-            : 'N/A',
-        },
-        {
-          label: 'Haarfarbe',
-          value: employee.value?.hair_color ?? 'N/A',
-        },
-        {
-          label: 'Augenfarbe',
-          value: employee.value?.eye_color ?? 'N/A',
-        },
-      ],
-    ],
-  },
-  {
-    title: 'Militärischer Dienst',
-    icon: 'i-ph-medal-military',
-    data: [
-      [
-        {
-          label: 'Dienstzeit',
-          value: employee.value?.duty_from_month
-            ? `${employee.value?.duty_from_month}/${employee.value?.duty_from_year} - ${employee.value?.duty_to_month}/${employee.value?.duty_to_year}`
-            : 'N/A',
-        },
-        {
-          label: 'Division',
-          value: getDivisionLabel(employee.value?.duty_division) ?? 'N/A',
-        },
-        {
-          label: 'Entlassen',
-          value:
-            employee.value?.duty_end === 'dishonorable'
-              ? 'Unehrenhaft'
-              : employee.value?.duty_end === 'honorable'
-              ? 'Ehrenhaft'
+const mainTables = computed<ITables[]>(() => {
+  if (!employee.value) return []
+  return [
+    {
+      title: 'Persönliche Informationen',
+      icon: 'i-lucide-user',
+      data: [
+        [
+          {
+            label: 'Bürgerlicher Name',
+            value: getUserLabel(employee.value as DirectusUser) ?? 'N/A',
+          },
+          {
+            label: 'Geschlecht',
+            value: getSexLabel(employee.value?.sex)?.label ?? 'N/A',
+          },
+        ],
+        [
+          {
+            label: 'Geburtsdatum',
+            value: employee.value?.birthdate
+              ? new Intl.DateTimeFormat('de-DE', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: '2-digit',
+                }).format(new Date(employee.value?.birthdate))
               : 'N/A',
-        },
+          },
+          {
+            label: 'Alter',
+            value: getAge.value ? `${getAge.value} Jahre alt` : 'N/A',
+          },
+        ],
+        [
+          {
+            label: 'Geburtsort',
+            value: formattedBirthplace.value,
+          },
+          {
+            label: 'Aktueller Wohnort',
+            value: formattedCurrentResidence.value,
+          },
+        ],
+        [
+          {
+            label: 'Körpergröße',
+            value: employee.value?.height
+              ? `${employee.value?.height} cm`
+              : 'N/A',
+          },
+          {
+            label: 'Körpergewicht',
+            value: employee.value?.weight
+              ? `${employee.value?.weight} kg`
+              : 'N/A',
+          },
+          {
+            label: 'Haarfarbe',
+            value: employee.value?.hair_color ?? 'N/A',
+          },
+          {
+            label: 'Augenfarbe',
+            value: employee.value?.eye_color ?? 'N/A',
+          },
+        ],
       ],
-    ],
-  },
-  {
-    title: 'Spezifische Information',
-    icon: 'i-lucide-list',
-    data: [
-      [
-        {
-          label: 'Hobbies',
-          value: employee.value?.hobbies_list?.[0]
-            ? employee.value?.hobbies_list
-            : 'N/A',
-        },
-        {
-          label: 'Angewohnheiten',
-          value: employee.value?.habits_list?.[0]
-            ? employee.value?.habits_list
-            : 'N/A',
-        },
-        {
-          label: 'Talente',
-          value: employee.value?.talents_list?.[0]
-            ? employee.value?.talents_list
-            : 'N/A',
-        },
-        {
-          label: 'Tics & Marotten',
-          value: employee.value?.tics_list?.[0]
-            ? employee.value?.tics_list
-            : 'N/A',
-        },
-        {
-          label: 'Freizeitgestaltung',
-          value: employee.value?.activities_list?.[0]
-            ? employee.value?.activities_list
-            : 'N/A',
-        },
-        {
-          label: 'Rätselhafte Züge',
-          value: employee.value?.mysterious_list?.[0]
-            ? employee.value?.mysterious_list
-            : 'N/A',
-        },
-        {
-          label: 'Hervorstechender Charakterzug',
-          value: employee.value?.character_trait_list?.[0]
-            ? employee.value?.character_trait_list
-            : 'N/A',
-        },
-        {
-          label: 'Ängste',
-          value: employee.value?.fears_list?.[0]
-            ? employee.value?.fears_list
-            : 'N/A',
-        },
+    },
+    {
+      title: 'Militärischer Dienst',
+      icon: 'i-ph-medal-military',
+      data: [
+        [
+          {
+            label: 'Dienstzeit',
+            value: employee.value?.duty_from_month
+              ? `${employee.value?.duty_from_month}/${employee.value?.duty_from_year} - ${employee.value?.duty_to_month}/${employee.value?.duty_to_year}`
+              : 'N/A',
+          },
+          {
+            label: 'Division',
+            value: getDivisionLabel(employee.value?.duty_division) ?? 'N/A',
+          },
+          {
+            label: 'Entlassen',
+            value:
+              employee.value?.duty_end === 'dishonorable'
+                ? 'Unehrenhaft'
+                : employee.value?.duty_end === 'honorable'
+                ? 'Ehrenhaft'
+                : 'N/A',
+          },
+        ],
       ],
-    ],
-  },
-  {
-    title: 'Geschmäcker',
-    icon: 'i-lucide-list',
-    data: [
-      [
-        {
-          label: 'Musik',
-          value: employee.value?.music_list?.[0]
-            ? employee.value?.music_list
-            : 'N/A',
-        },
-        {
-          label: 'Filme',
-          value: employee.value?.movies_list?.[0]
-            ? employee.value?.movies_list
-            : 'N/A',
-        },
-        {
-          label: 'Bücher',
-          value: employee.value?.books_list?.[0]
-            ? employee.value?.books_list
-            : 'N/A',
-        },
+    },
+    {
+      title: 'Spezifische Information',
+      icon: 'i-lucide-list',
+      data: [
+        [
+          {
+            label: 'Hobbies',
+            value: employee.value?.hobbies_list?.[0]
+              ? employee.value?.hobbies_list
+              : 'N/A',
+          },
+          {
+            label: 'Angewohnheiten',
+            value: employee.value?.habits_list?.[0]
+              ? employee.value?.habits_list
+              : 'N/A',
+          },
+          {
+            label: 'Talente',
+            value: employee.value?.talents_list?.[0]
+              ? employee.value?.talents_list
+              : 'N/A',
+          },
+          {
+            label: 'Tics & Marotten',
+            value: employee.value?.tics_list?.[0]
+              ? employee.value?.tics_list
+              : 'N/A',
+          },
+          {
+            label: 'Freizeitgestaltung',
+            value: employee.value?.activities_list?.[0]
+              ? employee.value?.activities_list
+              : 'N/A',
+          },
+          {
+            label: 'Rätselhafte Züge',
+            value: employee.value?.mysterious_list?.[0]
+              ? employee.value?.mysterious_list
+              : 'N/A',
+          },
+          {
+            label: 'Hervorstechender Charakterzug',
+            value: employee.value?.character_trait_list?.[0]
+              ? employee.value?.character_trait_list
+              : 'N/A',
+          },
+          {
+            label: 'Ängste',
+            value: employee.value?.fears_list?.[0]
+              ? employee.value?.fears_list
+              : 'N/A',
+          },
+        ],
       ],
-      [
-        {
-          label: 'Lieblingsgericht',
-          value: employee.value?.food_list?.[0]
-            ? employee.value?.food_list
-            : 'N/A',
-        },
-        {
-          label: 'Lieblingsgetränk',
-          value: employee.value?.drink_list?.[0]
-            ? employee.value?.drink_list
-            : 'N/A',
-        },
-        {
-          label: 'Lieblingsalkohol',
-          value: employee.value?.alcohol_list?.[0]
-            ? employee.value?.alcohol_list
-            : 'N/A',
-        },
-        {
-          label: 'Typische Kleidung',
-          value: employee.value?.clothing_list?.[0]
-            ? employee.value?.clothing_list
-            : 'N/A',
-        },
+    },
+    {
+      title: 'Geschmäcker',
+      icon: 'i-lucide-list',
+      data: [
+        [
+          {
+            label: 'Musik',
+            value: employee.value?.music_list?.[0]
+              ? employee.value?.music_list
+              : 'N/A',
+          },
+          {
+            label: 'Filme',
+            value: employee.value?.movies_list?.[0]
+              ? employee.value?.movies_list
+              : 'N/A',
+          },
+          {
+            label: 'Bücher',
+            value: employee.value?.books_list?.[0]
+              ? employee.value?.books_list
+              : 'N/A',
+          },
+        ],
+        [
+          {
+            label: 'Lieblingsgericht',
+            value: employee.value?.food_list?.[0]
+              ? employee.value?.food_list
+              : 'N/A',
+          },
+          {
+            label: 'Lieblingsgetränk',
+            value: employee.value?.drink_list?.[0]
+              ? employee.value?.drink_list
+              : 'N/A',
+          },
+          {
+            label: 'Lieblingsalkohol',
+            value: employee.value?.alcohol_list?.[0]
+              ? employee.value?.alcohol_list
+              : 'N/A',
+          },
+          {
+            label: 'Typische Kleidung',
+            value: employee.value?.clothing_list?.[0]
+              ? employee.value?.clothing_list
+              : 'N/A',
+          },
+        ],
+        [
+          {
+            label: `${getSexLabel(employee.value?.sex)?.pronoun} liebt`,
+            value: employee.value?.loves_list?.[0]
+              ? employee.value?.loves_list
+              : 'N/A',
+          },
+          {
+            label: `${getSexLabel(employee.value?.sex)?.pronoun} hasst`,
+            value: employee.value?.hates_list?.[0]
+              ? employee.value?.hates_list
+              : 'N/A',
+          },
+        ],
       ],
-      [
-        {
-          label: `${getSexLabel(employee.value?.sex)?.pronoun} liebt`,
-          value: employee.value?.loves_list?.[0]
-            ? employee.value?.loves_list
-            : 'N/A',
-        },
-        {
-          label: `${getSexLabel(employee.value?.sex)?.pronoun} hasst`,
-          value: employee.value?.hates_list?.[0]
-            ? employee.value?.hates_list
-            : 'N/A',
-        },
-      ],
-    ],
-  },
-]
+    },
+  ]
+})
 
-const sideTables: ITables[] = [
-  {
-    title: 'ArisCorp Informationen',
-    icon: 'i-octicon-organization-24',
-    data: [
-      [
-        {
-          label: 'Organisationsposition',
-          value: (employee.value?.role as DirectusRole)?.label ?? 'N/A',
-        },
-        {
-          label: 'Rolle/n',
-          value: getRolesLabel(employee.value?.roles ?? []) ?? 'N/A',
-        },
+const sideTables = computed<ITables[]>(() => {
+  if (!employee.value) return []
+  return [
+    {
+      title: 'ArisCorp Informationen',
+      icon: 'i-octicon-organization-24',
+      data: [
+        [
+          {
+            label: 'Organisationsposition',
+            value: (employee.value?.role as DirectusRole)?.label ?? 'N/A',
+          },
+          {
+            label: 'Rolle/n',
+            value: getRolesLabel(employee.value?.roles ?? []) ?? 'N/A',
+          },
+        ],
+        [
+          // TODO: Abteilungslink
+          {
+            label: 'Primäre Abteilung',
+            value:
+              (employee.value?.primary_department as Department)?.name ?? 'N/A',
+          },
+          {
+            label: 'Abteilungsposition',
+            value: employee.value?.head_of_department
+              ? 'Abteilungsleiter'
+              : 'Mitarbeiter',
+          },
+          // TODO: Abteilungslink
+          {
+            label: 'Sekundäre Abteilung',
+            value:
+              (employee.value?.secondary_department as Department)?.name ?? 'N/A',
+          },
+        ],
+        [
+          {
+            label: 'Mitglied seit',
+            value: employee.value?.date_created
+              ? new Intl.DateTimeFormat('de-DE', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                })
+                  .format(new Date(employee.value?.date_created))
+                  .replace(/\./g, '-')
+              : 'N/A',
+          },
+          {
+            label: 'Personalnummer',
+            value: 'ARIS-ADM-50008001',
+          },
+        ],
+        [
+          {
+            label: 'Handle',
+            value: employee.value?.rsi_handle ?? 'N/A',
+            link: employee.value?.rsi_handle
+              ? `https://robertsspaceindustries.com/citizens/${employee.value?.rsi_handle}`
+              : null,
+          },
+        ],
       ],
-      [
-        // TODO: Abteilungslink
-        {
-          label: 'Primäre Abteilung',
-          value:
-            (employee.value?.primary_department as Department)?.name ?? 'N/A',
-        },
-        {
-          label: 'Abteilungsposition',
-          value: employee.value?.head_of_department
-            ? 'Abteilungsleiter'
-            : 'Mitarbeiter',
-        },
-        // TODO: Abteilungslink
-        {
-          label: 'Sekundäre Abteilung',
-          value:
-            (employee.value?.secondary_department as Department)?.name ?? 'N/A',
-        },
-      ],
-      [
-        {
-          label: 'Mitglied seit',
-          value: employee.value?.date_created
-            ? new Intl.DateTimeFormat('de-DE', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-              })
-                .format(new Date(employee.value?.date_created))
-                .replace(/\./g, '-')
-            : 'N/A',
-        },
-        {
-          label: 'Personalnummer',
-          value: 'ARIS-ADM-50008001',
-        },
-      ],
-      [
-        {
-          label: 'Handle',
-          value: employee.value?.rsi_handle ?? 'N/A',
-          link: employee.value?.rsi_handle
-            ? `https://robertsspaceindustries.com/citizens/${employee.value?.rsi_handle}`
-            : null,
-        },
-      ],
-    ],
-  },
-]
+    },
+  ]
+})
 
 definePageMeta({
   layout: 'ams',
