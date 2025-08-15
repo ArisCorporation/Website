@@ -134,6 +134,10 @@
   --ui-border-accented: var(--ui-color-neutral-700);
   /* Inverted border color */
   --ui-border-inverted: var(--color-white);
+
+  /* Charts Tooltips */
+  --vis-tooltip-padding: 0 !important;
+  --vis-tooltip-border-color: none !important;
 }
 
 .animate {
@@ -153,4 +157,8 @@ a {
 
 .ams-card-title {
   @apply [&>h2]:my-0 [&>h2]:leading-none [&>h2]:tracking-tight [&>h2]:transition-colors [&>h2]:duration-300 [&>h2]:text-(--ui-primary);
+}
+
+.bigDonut svg {
+  width: 400px !important;
 }

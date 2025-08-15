@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { AMSPagesFleetStats } from '#components'
 import type { UserHangar } from '~~/types'
 
 const mode = useCookie<'cards' | 'table'>('ams:fleet-view')
@@ -16,6 +17,11 @@ const viewOptions = reactive([
     key: 'table',
     label: 'Tabellen Ansicht',
     icon: 'i-lucide-list',
+  },
+  {
+    key: 'stats',
+    label: 'Statistiken',
+    icon: 'i-lucide-bar-chart-3',
   },
 ])
 
@@ -104,6 +110,11 @@ definePageMeta({
           :force-expanded="false"
         />
       </div>
+    </template>
+    <template v-else-if="data?.length && mode === 'stats'">
+      <ClientOnly>
+        <AMSPagesFleetStats :data="data" />
+      </ClientOnly>
     </template>
     <template v-else>
       <div class="size-full flex flex-wrap items-center justify-center">

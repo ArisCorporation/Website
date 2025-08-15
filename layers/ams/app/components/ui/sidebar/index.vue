@@ -80,14 +80,7 @@ const sidebarItems = computed<sidebarElement[]>(() => {
       label: 'Flotte',
       link: '/ams/fleet',
       icon: 'i-material-symbols-transportation-outline',
-      exact: true,
-      type: 'link',
-    },
-    {
-      label: 'Flottenstatistiken',
-      link: '/ams/fleet-stats',
-      icon: 'i-lucide-bar-chart-3',
-      exact: true,
+      exact: false,
       type: 'link',
     },
     {
