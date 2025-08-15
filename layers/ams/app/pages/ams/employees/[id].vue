@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { Department, DirectusRole, DirectusUser, LandingZone } from '~~/types'
+import type {
+  Department,
+  DirectusRole,
+  DirectusUser,
+  LandingZone,
+} from '~~/types'
 
 const route = useRoute()
 
@@ -13,24 +18,27 @@ const { data: employee } = await useAsyncData<DirectusUser>(
       readUser(employeeId, {
         fields: [
           '*',
-          'primary_department.name',
-          'primary_department.logo',
-          'secondary_department.name',
-          'secondary_department.logo',
-          'role.name',
-          'role.label',
-          'birthplace.name',
-          'birthplace.planet.name',
-          'birthplace.planet.star_system.name',
-          'birthplace.moon.name',
-          'birthplace.moon.planet.name',
-          'birthplace.moon.planet.star_system.name',
-          'current_residence.name',
-          'current_residence.planet.name',
-          'current_residence.planet.star_system.name',
-          'current_residence.moon.name',
-          'current_residence.moon.planet.name',
-          'current_residence.moon.planet.star_system.name',
+          { primary_department: ['name', 'logo'] },
+          { secondary_department: ['name', 'logo'] },
+          { role: ['name', 'label'] },
+          {
+            birthplace: [
+              'name',
+              { planet: ['name', { star_system: ['name'] }] },
+              {
+                moon: ['name', { planet: ['name', { star_system: ['name'] }] }],
+              },
+            ],
+          },
+          {
+            current_residence: [
+              'name',
+              { planet: ['name', { star_system: ['name'] }] },
+              {
+                moon: ['name', { planet: ['name', { star_system: ['name'] }] }],
+              },
+            ],
+          },
         ],
       })
     )) as DirectusUser
@@ -84,12 +92,20 @@ const formatLocation = (location: LandingZone | null | undefined) => {
 
   if (location.planet && typeof location.planet !== 'string') {
     parentName = location.planet.name ?? ''
-    if (location.planet.star_system && typeof location.planet.star_system !== 'string') {
+    if (
+      location.planet.star_system &&
+      typeof location.planet.star_system !== 'string'
+    ) {
       systemName = location.planet.star_system.name ?? ''
     }
   } else if (location.moon && typeof location.moon !== 'string') {
     parentName = location.moon.name ?? ''
-    if (location.moon.planet && typeof location.moon.planet !== 'string' && location.moon.planet.star_system && typeof location.moon.planet.star_system !== 'string') {
+    if (
+      location.moon.planet &&
+      typeof location.moon.planet !== 'string' &&
+      location.moon.planet.star_system &&
+      typeof location.moon.planet.star_system !== 'string'
+    ) {
       systemName = location.moon.planet.star_system.name ?? ''
     }
   }
@@ -101,8 +117,12 @@ const formatLocation = (location: LandingZone | null | undefined) => {
   return landingZoneName
 }
 
-const formattedBirthplace = computed(() => formatLocation(employee.value?.birthplace as LandingZone))
-const formattedCurrentResidence = computed(() => formatLocation(employee.value?.current_residence as LandingZone))
+const formattedBirthplace = computed(() =>
+  formatLocation(employee.value?.birthplace as LandingZone)
+)
+const formattedCurrentResidence = computed(() =>
+  formatLocation(employee.value?.current_residence as LandingZone)
+)
 
 interface ITables {
   title: string
@@ -369,7 +389,8 @@ const sideTables = computed<ITables[]>(() => {
           {
             label: 'Sekundäre Abteilung',
             value:
-              (employee.value?.secondary_department as Department)?.name ?? 'N/A',
+              (employee.value?.secondary_department as Department)?.name ??
+              'N/A',
           },
         ],
         [
@@ -392,7 +413,7 @@ const sideTables = computed<ITables[]>(() => {
         ],
         [
           {
-            label: 'Handle',
+            label: 'RSI-Handle',
             value: employee.value?.rsi_handle ?? 'N/A',
             link: employee.value?.rsi_handle
               ? `https://robertsspaceindustries.com/citizens/${employee.value?.rsi_handle}`
@@ -489,17 +510,25 @@ definePageMeta({
                     {{ cell.label }}
                   </label>
                   <NuxtLink
-                    :to="cell.link ?? null"
-                    :class="[cell.link && 'active:scale-95 transition-all']"
-                    class="not-prose w-fit"
+                    v-if="cell.link"
+                    :to="cell.link ?? ''"
+                    target="_blank"
+                    class="not-prose w-fit active:scale-95 transition-all hover:scale-105"
                   >
                     <p
                       v-if="!Array.isArray(cell.value)"
-                      class="mt-0 mb-0 uppercase font-mono ml-6"
+                      class="mt-0 mb-0 uppercase font-mono ml-6 text-(--ui-primary)/50"
                     >
                       {{ cell.value }}
                     </p>
                   </NuxtLink>
+                  <p
+                    v-else
+                    v-if="!Array.isArray(cell.value)"
+                    class="mt-0 mb-0 uppercase not-prose font-mono ml-6"
+                  >
+                    {{ cell.value }}
+                  </p>
                 </div>
                 <div
                   v-if="rowIndex < table?.data.length - 1"
