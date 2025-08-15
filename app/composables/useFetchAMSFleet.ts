@@ -27,6 +27,8 @@ const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
       'focuses',
       'crew_min',
       'crew_max',
+      'size',
+      'production_status',
       'length',
       'beam',
       'height',

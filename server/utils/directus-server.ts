@@ -11,7 +11,7 @@ import {
 } from '@directus/sdk';
 import type { Schema } from '~~/types';
 
-const directusUrl = process.env.DIRECTUS_URL as string;
+const directusUrl = process.env.NUXT_PUBLIC_API_URL as string;
 
 const directusServer = createDirectus<Schema>(directusUrl)
   .with(rest())

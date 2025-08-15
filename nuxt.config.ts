@@ -25,11 +25,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     apiKey: process.env.NUXT_API_KEY || 'default_fallback_key',
     apiSecret: process.env.NUXT_API_SECRET,
-    discordGuildId: process.env.NXUT_DISCORD_GUILD_ID,
+    discordGuildId: process.env.NUXT_DISCORD_GUILD_ID,
     discordBotToken: process.env.NUXT_DISCORD_BOT_TOKEN,
 
     public: {
-      API_URL: process.env.NUXT_PUBLIC_API_URL || 'https://cms.ariscorp.de',
+      API_URL: process.env.NUXT_PUBLIC_API_URL || 'https://studio.ariscorp.de',
       SITE_URL: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       SOURCE_COMMIT: process.env.NUXT_PUBLIC_SOURCE_COMMIT || 'DEV',
       ENVIRONMENT: process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEVELOPMENT',
@@ -49,7 +49,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@compodium/nuxt',
     'nuxt-tiptap-editor',
-    'nuxt-echarts',
+    'nuxt-charts'
   ],
 
   css: ['~/assets/css/main.css'],
@@ -88,10 +88,10 @@ export default defineNuxtConfig({
   },
 
   image: {
-    domains: ['cms.ariscorp.de', 'cdn.discordapp.com'],
+    domains: ['studio.ariscorp.de', 'cdn.discordapp.com'],
     provider: 'directus',
     directus: {
-      baseURL: 'https://cms.ariscorp.de/assets',
+      baseURL: 'https://studio.ariscorp.de/assets',
       modifiers: {
         format: 'avif',
       },

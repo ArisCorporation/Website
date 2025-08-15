@@ -15,6 +15,7 @@ const props = defineProps<{
 const editorHeight = computed(() => (props.simpleMode ? '120px' : '100%'))
 
 const editor = useEditor({
+  editable: !props.readOnly,
   content: model.value,
   extensions: [
     TiptapStarterKit.configure({
@@ -73,6 +74,7 @@ onBeforeUnmount(() => {
 
 <template>
   <UCard
+    v-if="!readOnly"
     variant="ams"
     class="min-h-full !shadow-none"
     :ui="{
@@ -299,6 +301,11 @@ onBeforeUnmount(() => {
       </div>
     </template>
   </UCard>
+  <TiptapEditorContent
+    v-else
+    :editor="editor"
+    class="size-full overflow-y-clip pr-0 prose prose-invert max-w-none"
+  />
 </template>
 
 <style>

@@ -3,7 +3,7 @@ import { proxyRequest } from 'h3';
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig();
   // This should be your actual Directus instance URL
-  const targetBaseUrl = config.public.API_URL; // https://cms.ariscorp.de
+  const targetBaseUrl = config.public.API_URL; // https://studio.ariscorp.de
 
   const path = event.context.params._ || '';
   const target = new URL(path, targetBaseUrl);

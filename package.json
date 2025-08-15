@@ -9,7 +9,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "generate:types": "npx directus-sdk-typegen -u https://cms.ariscorp.de -t TOKEN -o ./types/api.d.ts"
+    "generate:types": "npx directus-sdk-typegen -u https://studio.ariscorp.de -t TOKEN -o ./types/api.d.ts"
   },
   "dependencies": {
     "@compodium/nuxt": "0.1.0-beta.10",
@@ -28,12 +28,13 @@
     "@tiptap/extension-underline": "^2.12.0",
     "@tiptap/starter-kit": "^2.12.0",
     "@types/sortablejs": "^1.15.8",
+    "@unovis/ts": "^1.6.0",
     "@vueuse/integrations": "^13.2.0",
     "defu": "^6.1.4",
     "echarts": "^5.6.0",
     "eslint": "^9.27.0",
     "nuxt": "^4.0.1",
-    "nuxt-echarts": "0.3.2",
+    "nuxt-charts": "^0.2.3",
     "nuxt-tiptap-editor": "^2.3.1",
     "pinia": "^3.0.3",
     "sortablejs": "^1.15.6",
@@ -52,5 +53,9 @@
     "lodash": "^4.17.21",
     "vitest": "^3.1.4"
   },
-  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977",
+  "volta": {
+    "node": "22.18.0",
+    "pnpm": "10.14.0"
+  }
 }

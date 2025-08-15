@@ -80,14 +80,7 @@ const sidebarItems = computed<sidebarElement[]>(() => {
       label: 'Flotte',
       link: '/ams/fleet',
       icon: 'i-material-symbols-transportation-outline',
-      exact: true,
-      type: 'link',
-    },
-    {
-      label: 'Flottenstatistiken',
-      link: '/ams/fleet-stats',
-      icon: 'i-lucide-bar-chart-3',
-      exact: true,
+      exact: false,
       type: 'link',
     },
     {
@@ -228,7 +221,7 @@ const sidebarItems = computed<sidebarElement[]>(() => {
                       alt="Thomas Blakeney"
                       :src="
                         getAssetId(currentUser?.avatar) ??
-                        'c46969b5-8414-49cd-ab90-cb71dd2a3e57'
+                        '88adb941-f746-405d-bcc4-c2804fb48e33'
                       "
                     />
                   </div>
@@ -311,7 +304,7 @@ const sidebarItems = computed<sidebarElement[]>(() => {
                     alt="Thomas Blakeney"
                     :src="
                       getAssetId(currentUser?.avatar) ??
-                      'c46969b5-8414-49cd-ab90-cb71dd2a3e57'
+                      '88adb941-f746-405d-bcc4-c2804fb48e33'
                     "
                   />
                 </div>
