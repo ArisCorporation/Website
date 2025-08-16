@@ -3,6 +3,8 @@
 import { readItems, readUsers } from '@directus/sdk'
 import { computed } from 'vue'
 
+const store = useAuthStore()
+
 // Helper function (kann außerhalb definiert oder bei Bedarf dupliziert werden)
 const getOneMonthAgo = (): Date => {
   const date = new Date()
@@ -111,7 +113,14 @@ definePageMeta({
     <AMSPageHeader
       icon="i-lucide-layout-grid"
       title="Dashboard"
-      description="Willkommen zurück, Commander. Hier ist deine persönliche Übersicht."
+      :description="`Willkommen
+      zurück,
+      ${getUserLabel(store.currentUser)}.
+      Hier
+      ist
+      deine
+      persönliche
+      Übersicht.`"
     />
     <AMSPagesDashboardTopGrid :data="dashboardData" />
     <AMSPagesDashboardBottomGrid />
