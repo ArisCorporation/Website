@@ -53,10 +53,10 @@ definePageMeta({
 })
 </script>
 <template>
-  <div>
+  <div class="sci-fi-grid">
     <div
       v-if="!isPlaying"
-      class="flex h-screen max-h-screen w-screen max-w-screen sci-fi-grid"
+      class="flex h-screen max-h-screen w-screen max-w-screen"
     >
       <div
         class="w-lg m-auto bg-(--ui-bg-muted) rounded-xl p-6 pb-8 prose prose-invert border-(--ui-bg-accented)"
@@ -98,7 +98,7 @@ definePageMeta({
         </form>
       </div>
     </div>
-    <div v-else class="h-screen w-screen flex sci-fi-grid">
+    <div v-else class="h-screen w-screen flex">
       <video
         class="mx-auto"
         :autoplay="true"
