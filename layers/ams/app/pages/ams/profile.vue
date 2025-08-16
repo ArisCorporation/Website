@@ -101,7 +101,7 @@ definePageMeta({
     <AMSPageHeader
       icon="i-lucide-user"
       title="Profil"
-      description="Verwalte deine persönlichen Details und Biografie. | Hinweis: Hier gibst du die fiktiven Details deines Characters an. Nicht deine realen Informationen"
+      description="Verwalte deine persönlichen Details und Biografie. | Hinweis: Hier gibst du die fiktiven Details deines Characters an. <br/> Nicht deine realen Informationen"
     />
     <UForm
       :schema="userProfileSchema"

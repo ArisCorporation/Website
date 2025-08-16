@@ -20,7 +20,7 @@ defineProps<{
       <div class="prose-p:my-0">
         <h1 class="text-2xl font-bold tracking-tight mb-0">{{ title }}</h1>
         <p class="text-muted-foreground">
-          {{ description }}
+          <span v-html="description" />
         </p>
       </div>
     </div>
