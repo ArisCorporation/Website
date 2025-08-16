@@ -169,55 +169,6 @@ const shipsByDepartment = computed(() =>
     </UCard>
     <UCard variant="ams" class="w-full">
       <template #header>
-        <h2 class="text-xl font-bold">Schiffe nach Größe</h2>
-      </template>
-      <div class="flex h-full items-center">
-        <DonutChart
-          :data="shipsBySize.data"
-          :labels="shipsBySize.labels"
-          :height="300"
-          :radius="0"
-          :arcWidth="40"
-          :hideLegend="true"
-        >
-          <template #tooltip="{ values }">
-            <div
-              class="bg-(--ui-bg-muted) flex p-2 text-center divide-x space-x-1 justify-center rounded text-(--ui-text) border border-(--border-color)"
-              :style="[
-                {
-                  'border-color': shipsBySize.labels[values?.index]?.color,
-                },
-              ]"
-            >
-              <div class="w-fit pr-1 text-primary">
-                {{ values?.data }}
-              </div>
-              <div class="col-span-4">
-                {{ shipsBySize.labels[values?.index]?.name }}
-              </div>
-            </div>
-          </template>
-          <div class="absolute text-center">
-            <div class="font-semibold">Größe</div>
-          </div>
-        </DonutChart>
-        <div class="w-full">
-          <ul class="divide-y divide-(--ui-bg-accented) text-xs">
-            <li
-              v-for="(label, index) in shipsBySize.labels"
-              :key="label.name"
-              class="marker:text-(--dot-color) list-none pl-2 before:h-5 before:bg-(--dot-color) my-0 -mt-2 py-2 before:absolute w-full justify-between flex before:top-0 before:bottom-0 before:my-auto before:left-0 relative before:w-[1.5px]"
-              :style="[{ '--dot-color': label.color }]"
-            >
-              <span>{{ label.name }}</span>
-              <span>{{ shipsBySize.data[index] }}</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </UCard>
-    <UCard variant="ams" class="w-full">
-      <template #header>
         <h2 class="text-xl font-bold">Schiffe nach Klassifizierung</h2>
       </template>
       <div class="flex h-full items-center">
@@ -261,6 +212,55 @@ const shipsByDepartment = computed(() =>
             >
               <span>{{ label.name }}</span>
               <span>{{ shipsByClassification.data[index] }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </UCard>
+    <UCard variant="ams" class="w-full">
+      <template #header>
+        <h2 class="text-xl font-bold">Schiffe nach Größe</h2>
+      </template>
+      <div class="flex h-full items-center">
+        <DonutChart
+          :data="shipsBySize.data"
+          :labels="shipsBySize.labels"
+          :height="300"
+          :radius="0"
+          :arcWidth="40"
+          :hideLegend="true"
+        >
+          <template #tooltip="{ values }">
+            <div
+              class="bg-(--ui-bg-muted) flex p-2 text-center divide-x space-x-1 justify-center rounded text-(--ui-text) border border-(--border-color)"
+              :style="[
+                {
+                  'border-color': shipsBySize.labels[values?.index]?.color,
+                },
+              ]"
+            >
+              <div class="w-fit pr-1 text-primary">
+                {{ values?.data }}
+              </div>
+              <div class="col-span-4">
+                {{ shipsBySize.labels[values?.index]?.name }}
+              </div>
+            </div>
+          </template>
+          <div class="absolute text-center">
+            <div class="font-semibold">Größe</div>
+          </div>
+        </DonutChart>
+        <div class="w-full">
+          <ul class="divide-y divide-(--ui-bg-accented) text-xs">
+            <li
+              v-for="(label, index) in shipsBySize.labels"
+              :key="label.name"
+              class="marker:text-(--dot-color) list-none pl-2 before:h-5 before:bg-(--dot-color) my-0 -mt-2 py-2 before:absolute w-full justify-between flex before:top-0 before:bottom-0 before:my-auto before:left-0 relative before:w-[1.5px]"
+              :style="[{ '--dot-color': label.color }]"
+            >
+              <span>{{ label.name }}</span>
+              <span>{{ shipsBySize.data[index] }}</span>
             </li>
           </ul>
         </div>

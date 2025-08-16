@@ -16,7 +16,7 @@ const active = computed(() =>
 <template>
   <NuxtLink
     :to="link"
-    class="group relative flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ease-in-out"
+    class="group relative flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-150 ease-in-out active:scale-95"
     :class="[
       active
         ? 'bg-(--ui-primary)/10 text-(--ui-primary)'
@@ -25,7 +25,7 @@ const active = computed(() =>
   >
     <span
       v-if="active"
-      class="absolute left-0 top-0 h-full w-1 bg-(--ui-primary) animate-pulse-glow"
+      class="absolute rounded-l-md left-0 top-0 h-full w-1 bg-(--ui-primary) animate-pulse-glow"
     />
     <UIcon
       :name="icon"

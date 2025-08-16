@@ -90,13 +90,13 @@ const sidebarItems = computed<sidebarElement[]>(() => {
       exact: false,
       type: 'link',
     },
-    {
-      label: 'VerseExkurs Editor',
-      link: '/ams/verse-exkurs-editor',
-      icon: 'i-lucide-book-text',
-      exact: false,
-      type: 'link',
-    },
+    // {
+    //   label: 'VerseExkurs Editor',
+    //   link: '/ams/verse-exkurs-editor',
+    //   icon: 'i-lucide-book-text',
+    //   exact: false,
+    //   type: 'link',
+    // },
     {
       label: 'Verwaltung',
       link: '/ams/admin',

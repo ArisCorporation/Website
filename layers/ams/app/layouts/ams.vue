@@ -8,6 +8,7 @@ import '~/assets/css/ams.css'
     <AMSUiSidebar />
     <AMSPageMain>
       <slot />
+      <AMSUiElementsMicrotechOs />
     </AMSPageMain>
   </AMSPageWrapper>
 </template>
