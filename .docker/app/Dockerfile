@@ -7,6 +7,15 @@ WORKDIR /app
 # Corepack aktivieren (damit pnpm verfügbar ist)
 RUN corepack enable
 
+# Build-Argumente vom CI
+ARG NUXT_PUBLIC_SOURCE_COMMIT
+ARG NUXT_PUBLIC_ENVIRONMENT
+
+# Ins Environment übernehmen, damit Nuxt sie sieht
+ENV NUXT_PUBLIC_SOURCE_COMMIT=$NUXT_PUBLIC_SOURCE_COMMIT
+ENV NUXT_PUBLIC_ENVIRONMENT=$NUXT_PUBLIC_ENVIRONMENT
+ENV NUXT_TELEMETRY_DISABLED=1
+
 # Copy package.json und Lockfile
 COPY package.json pnpm-lock.yaml ./
 
