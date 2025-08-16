@@ -5,5 +5,7 @@ export async function removeHangarItem (id: number, fleetMode: boolean) {
   const { refresh: refreshHangar } = await useFetchAMSHangar(userId)
   const { refresh: refreshFleet } = await useFetchAMSFleet()
 
-  await useDirectus(deleteItem('user_hangars', id)).then(async () => fleetMode ? refreshFleet() : refreshHangar())
+  await useDirectus(updateItem('user_hangars', id, {
+    deleted: true
+  })).then(async () => fleetMode ? refreshFleet() : refreshHangar())
 }

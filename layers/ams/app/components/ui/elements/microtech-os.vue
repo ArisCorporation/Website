@@ -4,7 +4,7 @@ const { VERSION, SOURCE_COMMIT, ENVIRONMENT } = useRuntimeConfig().public
 
 <template>
   <div
-    class="w-auto relative h-24 -z-10 ml-auto min-[2690px]:absolute right-4 bottom-4"
+    class="w-auto relative h-24 -z-10 ml-auto min-[2690px]:absolute right-4 bottom-4 mt-4"
   >
     <AMSUiElementsMicrotechSystemLogo class="w-auto h-24" />
     <div class="absolute right-2 font-mono bottom-0">
