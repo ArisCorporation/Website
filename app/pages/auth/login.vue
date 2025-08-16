@@ -100,9 +100,13 @@ definePageMeta({
     </div>
     <div v-else class="h-screen w-screen flex">
       <video
+        @contextmenu.prevent
         class="mx-auto"
         :autoplay="true"
-        src="https://studio.ariscorp.de/assets/46febf5a-2fd4-4e9a-abc3-fccb25c6e501&"
+        :src="
+          $config.public.API_URL +
+          '/assets/46febf5a-2fd4-4e9a-abc3-fccb25c6e501'
+        "
       ></video>
     </div>
     <AMSUiElementsMicrotechOs />
