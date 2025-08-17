@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { DirectusUser } from '~~/types'
-import { DonutChart, LineChart } from 'nuxt-charts'
+import { DonutChart, LineChart, CurveType, LegendPosition } from 'nuxt-charts'
+import type { BulletLegendItemInterface } from '@unovis/ts'
 
 // Fetch employee data
 const { data: employees, pending } = await useFetchAMSEmployees()
@@ -13,11 +14,11 @@ const filteredEmployees = computed(() => {
   if (!employees.value) return []
   const now = new Date()
   if (timeRange.value === 'month') {
-    const lastMonth = new Date(now.setMonth(now.getMonth() - 1))
+    const lastMonth = new Date(new Date().setMonth(now.getMonth() - 1))
     return employees.value.filter(e => e.date_created && new Date(e.date_created) > lastMonth)
   }
   if (timeRange.value === 'year') {
-    const lastYear = new Date(now.setFullYear(now.getFullYear() - 1))
+    const lastYear = new Date(new Date().setFullYear(now.getFullYear() - 1))
     return employees.value.filter(e => e.date_created && new Date(e.date_created) > lastYear)
   }
   return employees.value
@@ -60,7 +61,7 @@ const employeesByDepartment = computed(() =>
 )
 
 const employeesOverTime = computed(() => {
-  if (!filteredEmployees.value) return { labels: [], datasets: [] }
+  if (!filteredEmployees.value) return []
 
   const counts = new Map<string, number>()
   filteredEmployees.value.forEach(e => {
@@ -73,25 +74,20 @@ const employeesOverTime = computed(() => {
 
   const sortedMonths = [...counts.keys()].sort()
   let cumulative = 0
-  const cumulativeData = sortedMonths.map(month => {
+  const chartData = sortedMonths.map(month => {
     cumulative += counts.get(month) || 0
-    return cumulative
+    return { date: month, employees: cumulative }
   })
 
-  return {
-    labels: sortedMonths,
-    datasets: [
-      {
-        label: 'Mitarbeiter',
-        data: cumulativeData,
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        tension: 0.1,
-        fill: true,
-      },
-    ],
-  }
+  return chartData
 })
+
+const lineChartCategories: Record<string, BulletLegendItemInterface> = {
+  employees: { name: 'Mitarbeiter', color: '#3b82f6' },
+}
+
+const xFormatter = (i: number): string | number => `${employeesOverTime.value[i]?.date}`
+
 </script>
 
 <template>
@@ -112,6 +108,15 @@ const employeesOverTime = computed(() => {
       <LineChart
         :data="employeesOverTime"
         :height="400"
+        y-label="Mitarbeiter"
+        :x-num-ticks="6"
+        :y-num-ticks="5"
+        :categories="lineChartCategories"
+        :x-formatter="xFormatter"
+        :y-grid-line="true"
+        :curve-type="CurveType.Linear"
+        :legend-position="LegendPosition.Top"
+        :hide-legend="false"
       />
     </UCard>
 
@@ -120,7 +125,7 @@ const employeesOverTime = computed(() => {
         <template #header>
           <h2 class="text-xl font-bold">Mitarbeiter nach Rolle</h2>
         </template>
-        <div class="flex h-full items-center bigDonut px-8 space-x-6">
+        <div class="flex h-full items-center px-8 space-x-6">
           <DonutChart
             :data="employeesByRole.data"
             :labels="employeesByRole.labels"
@@ -128,7 +133,20 @@ const employeesOverTime = computed(() => {
             :radius="0"
             :arc-width="40"
             :hide-legend="true"
-          />
+          >
+            <template #tooltip="{ values }">
+              <div
+                class="bg-[--ui-bg-muted] flex p-2 text-center divide-x space-x-1 justify-center rounded text-[--ui-text] border"
+                :style="[{ 'border-color': employeesByRole.labels[values?.index]?.color }]"
+              >
+                <div class="w-fit pr-1 text-primary">{{ values?.data }}</div>
+                <div class="col-span-4 pl-1">{{ employeesByRole.labels[values?.index]?.name }}</div>
+              </div>
+            </template>
+            <div class="absolute text-center">
+              <div class="font-semibold">Rolle</div>
+            </div>
+          </DonutChart>
           <div class="w-full">
             <ul class="divide-y divide-[--ui-bg-accented] text-sm">
               <li
@@ -149,7 +167,7 @@ const employeesOverTime = computed(() => {
         <template #header>
           <h2 class="text-xl font-bold">Mitarbeiter nach Abteilung</h2>
         </template>
-         <div class="flex h-full items-center bigDonut px-8 space-x-6">
+         <div class="flex h-full items-center px-8 space-x-6">
           <DonutChart
             :data="employeesByDepartment.data"
             :labels="employeesByDepartment.labels"
@@ -157,7 +175,20 @@ const employeesOverTime = computed(() => {
             :radius="0"
             :arc-width="40"
             :hide-legend="true"
-          />
+          >
+            <template #tooltip="{ values }">
+              <div
+                class="bg-[--ui-bg-muted] flex p-2 text-center divide-x space-x-1 justify-center rounded text-[--ui-text] border"
+                :style="[{ 'border-color': employeesByDepartment.labels[values?.index]?.color }]"
+              >
+                <div class="w-fit pr-1 text-primary">{{ values?.data }}</div>
+                <div class="col-span-4 pl-1">{{ employeesByDepartment.labels[values?.index]?.name }}</div>
+              </div>
+            </template>
+            <div class="absolute text-center">
+              <div class="font-semibold">Abteilung</div>
+            </div>
+          </DonutChart>
           <div class="w-full">
             <ul class="divide-y divide-[--ui-bg-accented] text-sm">
               <li
