@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { DirectusUser } from '~~/types'
-import { DonutChart, LineChart, CurveType, LegendPosition } from 'nuxt-charts'
 import type { BulletLegendItemInterface } from '@unovis/ts'
 
 // Fetch employee data
@@ -114,8 +113,8 @@ const xFormatter = (i: number): string | number => `${employeesOverTime.value[i]
         :categories="lineChartCategories"
         :x-formatter="xFormatter"
         :y-grid-line="true"
-        :curve-type="CurveType.Linear"
-        :legend-position="LegendPosition.Top"
+        curve-type="linear"
+        legend-position="top"
         :hide-legend="false"
       />
     </UCard>
