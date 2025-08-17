@@ -30,6 +30,7 @@ export default defineNuxtConfig({
 
     public: {
       API_URL: process.env.NUXT_PUBLIC_API_URL || 'https://studio.ariscorp.de',
+      ASSETS_URL: process.env.NUXT_PUBLIC_API_URL || 'https://assets.ariscorp.de',
       SITE_URL: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       SOURCE_COMMIT: process.env.NUXT_PUBLIC_SOURCE_COMMIT || 'DEV',
       VERSION: version || 'V',
@@ -89,10 +90,10 @@ export default defineNuxtConfig({
   },
 
   image: {
-    domains: ['studio.ariscorp.de', 'cdn.discordapp.com'],
+    domains: ['assets.ariscorp.de', 'studio.ariscorp.de', 'cdn.discordapp.com'],
     provider: 'directus',
     directus: {
-      baseURL: 'https://studio.ariscorp.de/assets',
+      baseURL: 'https://assets.ariscorp.de',
       modifiers: {
         format: 'avif',
       },

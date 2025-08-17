@@ -33,8 +33,7 @@ defineProps<{
         autoplay
         loop
         :src="
-          $config.public.API_URL +
-          '/assets/fcb6b51a-c3b4-44b0-888d-2462f4197e55'
+          $config.public.ASSETS_URL + 'fcb6b51a-c3b4-44b0-888d-2462f4197e55'
         "
         class="w-72 h-12 object-cover"
       />

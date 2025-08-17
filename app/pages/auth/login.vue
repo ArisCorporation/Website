@@ -73,8 +73,7 @@ definePageMeta({
           autoplay
           loop
           :src="
-            $config.public.API_URL +
-            '/assets/fcb6b51a-c3b4-44b0-888d-2462f4197e55'
+            $config.public.ASSETS_URL + 'fcb6b51a-c3b4-44b0-888d-2462f4197e55'
           "
           class="mx-auto w-72 h-12 object-cover"
         />
@@ -124,8 +123,7 @@ definePageMeta({
         @contextmenu.prevent
         class="mx-auto"
         :src="
-          $config.public.API_URL +
-          '/assets/46febf5a-2fd4-4e9a-abc3-fccb25c6e501'
+          $config.public.ASSETS_URL + '46febf5a-2fd4-4e9a-abc3-fccb25c6e501'
         "
       ></video>
     </div>
