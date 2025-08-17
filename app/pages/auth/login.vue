@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import '#layers/ams/app/assets/css/ams.css'
+
 import { useAuthStore } from '~/stores/auth' // Pfad ggf. anpassen
 import type { DirectusUser as User, Schema, DirectusUser } from '~~/types' // Korrigierter Pfad
 
+const loading = ref(false)
 const isPlaying = ref(false)
+const videoRef = ref<HTMLVideoElement | null>(null)
 
 const authStore = useAuthStore()
 
@@ -20,10 +24,12 @@ async function attemptLogin() {
 
   error.value = null
   try {
+    loading.value = true
     const { performSdkLogin } = useDirectusAuth<Schema>()
     const loggedInUser = await performSdkLogin(email, password)
     if (loggedInUser) {
       isPlaying.value = true
+      videoRef.value?.play()
       await setTimeout(async () => {
         // Be careful when using the login function because you have to pass the email and password as separate arguments instead of an object.
         // console.log('Calling authStore.loginAndRedirect') // Für Debugging, ggf. entfernen
@@ -33,6 +39,7 @@ async function attemptLogin() {
       }, 4000)
     }
   } catch (err: any) {
+    loading.value = false
     // Fehlerbehandlung
     console.error('Login failed:', err) // Fehler immer loggen, auch wenn er dem Benutzer angezeigt wird
     // error.value = err.message // Einfache Fehlermeldung
@@ -53,14 +60,24 @@ definePageMeta({
 })
 </script>
 <template>
-  <div class="sci-fi-grid">
+  <div class="sci-fi-grid min-h-screen">
     <div
-      v-if="!isPlaying"
-      class="flex h-screen max-h-screen w-screen max-w-screen"
+      v-show="!isPlaying"
+      class="flex h-auto min-h-[calc(100vh-6rem)] lg:h-screen w-full"
     >
       <div
         class="w-lg m-auto bg-(--ui-bg-muted) rounded-xl p-6 pb-8 prose prose-invert border-(--ui-bg-accented)"
       >
+        <video
+          @contextmenu.prevent
+          autoplay
+          loop
+          :src="
+            $config.public.API_URL +
+            '/assets/fcb6b51a-c3b4-44b0-888d-2462f4197e55'
+          "
+          class="mx-auto w-72 h-12 object-cover"
+        />
         <form @submit.prevent="attemptLogin" class="mt-0 flex flex-col gap-y-8">
           <h2 class="text-center mt-2">Log in</h2>
           <UFormField required name="username" label="Benutzername">
@@ -84,7 +101,7 @@ definePageMeta({
             />
           </UFormField>
           <UButton
-            :loading="authStore.isAuthLoading"
+            :loading="authStore.isAuthLoading || loading"
             variant="subtle"
             size="xl"
             type="submit"
@@ -98,11 +115,14 @@ definePageMeta({
         </form>
       </div>
     </div>
-    <div v-else class="h-screen w-screen flex">
+    <div
+      v-show="isPlaying"
+      class="h-auto min-h-[calc(100vh-6rem)] lg:h-screen w-full flex"
+    >
       <video
+        ref="videoRef"
         @contextmenu.prevent
         class="mx-auto"
-        :autoplay="true"
         :src="
           $config.public.API_URL +
           '/assets/46febf5a-2fd4-4e9a-abc3-fccb25c6e501'
