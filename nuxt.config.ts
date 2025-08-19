@@ -30,7 +30,7 @@ export default defineNuxtConfig({
 
     public: {
       API_URL: process.env.NUXT_PUBLIC_API_URL || 'https://studio.ariscorp.de',
-      ASSETS_URL: process.env.NUXT_PUBLIC_API_URL || 'https://assets.ariscorp.de',
+      ASSETS_URL: process.env.NUXT_PUBLIC_API_URL || 'https://assets.ariscorp.de/',
       SITE_URL: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       SOURCE_COMMIT: process.env.NUXT_PUBLIC_SOURCE_COMMIT || 'DEV',
       VERSION: version || 'V',
