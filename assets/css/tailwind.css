@@ -148,7 +148,7 @@
   }
 
   table {
-    @apply w-full text-left table-auto min-w-max h-full overflow-scroll shadow-md bg-clip-border border border-bsecondary;
+    @apply w-full text-left table-auto h-full overflow-scroll shadow-md bg-clip-border border border-bsecondary;
   }
   th {
     @apply p-4 border-b border-btertiary bg-bprimary;
