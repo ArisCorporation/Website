@@ -29,10 +29,12 @@ defineProps<{
     </div>
     <div>
       <video
+        @contextmenu.prevent
         autoplay
         loop
-        playbackspeed="0.2"
-        src="https://studio.ariscorp.de/assets/fcb6b51a-c3b4-44b0-888d-2462f4197e55"
+        :src="
+          $config.public.ASSETS_URL + 'fcb6b51a-c3b4-44b0-888d-2462f4197e55'
+        "
         class="w-72 h-12 object-cover"
       />
     </div>
