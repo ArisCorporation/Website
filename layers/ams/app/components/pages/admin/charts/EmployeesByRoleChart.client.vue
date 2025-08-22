@@ -53,19 +53,14 @@ function processDonutChartData(
 }
 
 const membersByRole = computed(() =>
-  processDonutChartData(props.users, (user) => user.role?.name)
+  processDonutChartData(props.users, (user) => user.role?.label)
 )
 </script>
 
 <template>
-  <UCard
-    variant="ams"
-    class="w-full"
-  >
+  <UCard variant="ams" class="w-full">
     <template #header>
-      <h2 class="text-xl font-bold">
-        Mitarbeiter nach Rolle
-      </h2>
+      <h2 class="text-xl font-bold">Mitarbeiter nach Rolle</h2>
     </template>
     <div class="flex h-full items-center px-8 space-x-6">
       <DonutChart
@@ -95,9 +90,7 @@ const membersByRole = computed(() =>
           </div>
         </template>
         <div class="absolute text-center">
-          <div class="font-semibold">
-            Rolle
-          </div>
+          <div class="font-semibold">Rolle</div>
         </div>
       </DonutChart>
       <div class="w-full">

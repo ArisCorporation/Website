@@ -9,7 +9,7 @@ export const useAdminDashboardStore = defineStore('admin-dashboard', {
     processedChartDataWithRevisions: [] as any[],
   }),
   actions: {
-    async fetchAllUsers() {
+    async fetchAllUsers () {
       if (this.allUsers) {
         return
       }
@@ -28,7 +28,7 @@ export const useAdminDashboardStore = defineStore('admin-dashboard', {
               'date_updated',
               { primary_department: ['name'] },
               { secondary_department: ['name'] },
-              { role: ['name'] },
+              { role: ['name', 'label'] },
             ],
             sort: ['first_name'],
           })
@@ -40,7 +40,7 @@ export const useAdminDashboardStore = defineStore('admin-dashboard', {
         this.loading = false
       }
     },
-    async processChartData() {
+    async processChartData () {
       if (!this.allUsers || this.processedChartDataWithRevisions.length > 0) {
         return
       }
@@ -112,8 +112,8 @@ export const useAdminDashboardStore = defineStore('admin-dashboard', {
             const fallbackDate = member.date_updated
               ? new Date(member.date_updated)
               : member.date_created
-              ? new Date(member.date_created)
-              : null
+                ? new Date(member.date_created)
+                : null
             if (fallbackDate) {
               const year = fallbackDate.getFullYear()
               const month = (fallbackDate.getMonth() + 1)

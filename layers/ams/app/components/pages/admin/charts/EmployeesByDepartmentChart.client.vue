@@ -62,7 +62,7 @@ const membersByDepartment = computed(() =>
       departments.push(user.secondary_department.name)
     }
     if (departments.length === 0) {
-      return 'Ohne primäre Abteilung'
+      return 'Ohne Abteilung'
     }
     return departments
   })
@@ -70,14 +70,9 @@ const membersByDepartment = computed(() =>
 </script>
 
 <template>
-  <UCard
-    variant="ams"
-    class="w-full"
-  >
+  <UCard variant="ams" class="w-full">
     <template #header>
-      <h2 class="text-xl font-bold">
-        Mitarbeiter nach Abteilung
-      </h2>
+      <h2 class="text-xl font-bold">Mitarbeiter nach Abteilung</h2>
     </template>
     <div class="flex h-full items-center px-8 space-x-6">
       <DonutChart
@@ -108,9 +103,7 @@ const membersByDepartment = computed(() =>
           </div>
         </template>
         <div class="absolute text-center">
-          <div class="font-semibold">
-            Abteilung
-          </div>
+          <div class="font-semibold">Abteilung</div>
         </div>
       </DonutChart>
       <div class="w-full">

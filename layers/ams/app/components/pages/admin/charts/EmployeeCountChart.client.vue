@@ -13,7 +13,7 @@ const props = defineProps({
   },
 })
 
-const selectedFilter = ref<'6m' | '1y' | 'all'>('6m')
+const selectedFilter = ref<'6m' | '1y' | 'all'>('all')
 
 const filteredChartData = computed(() => {
   const chartData = props.processedChartDataWithRevisions
@@ -59,33 +59,28 @@ const xFormatter = (tick: number, _i?: number, _ticks?: number[]): string => {
 </script>
 
 <template>
-  <UCard
-    variant="ams"
-    class="w-full col-span-2"
-  >
+  <UCard variant="ams" class="w-full col-span-2">
     <template #header>
-      <h2 class="text-xl font-bold">
-        Mitarbeiter Anzahl
-      </h2>
+      <h2 class="text-xl font-bold">Mitarbeiter Anzahl</h2>
     </template>
     <div class="flex gap-2 mb-4">
       <UButton
         @click="selectedFilter = '6m'"
         :variant="selectedFilter === '6m' ? 'solid' : 'outline'"
       >
-        Last 6 Months
+        Letzten 6 Monate
       </UButton>
       <UButton
         @click="selectedFilter = '1y'"
         :variant="selectedFilter === '1y' ? 'solid' : 'outline'"
       >
-        Last Year
+        Letztes Jahr
       </UButton>
       <UButton
         @click="selectedFilter = 'all'"
         :variant="selectedFilter === 'all' ? 'solid' : 'outline'"
       >
-        All Time
+        Von Anfang an
       </UButton>
     </div>
     <LineChart
@@ -96,19 +91,14 @@ const xFormatter = (tick: number, _i?: number, _ticks?: number[]): string => {
       y-label="Number of Members"
       :categories="categories"
       :y-num-ticks="4"
-      :x-num-ticks="
-        filteredChartData.length > 0 ? filteredChartData.length : 1
-      "
+      :x-num-ticks="filteredChartData.length > 0 ? filteredChartData.length : 1"
       :x-formatter="xFormatter"
       :curve-type="CurveType.Basis"
       :legend-position="LegendPosition.Top"
       :hide-legend="false"
       :y-grid-line="true"
     />
-    <div
-      v-else
-      class="w-full flex"
-    >
+    <div v-else class="w-full flex">
       <UIcon
         name="i-svg-spinners-bars-fade"
         class="size-12 mx-auto text-(--ui-primary)"
