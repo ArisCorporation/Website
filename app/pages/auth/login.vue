@@ -71,6 +71,7 @@ definePageMeta({
         <video
           @contextmenu.prevent
           autoplay
+          muted
           loop
           :src="
             $config.public.ASSETS_URL + 'fcb6b51a-c3b4-44b0-888d-2462f4197e55'
@@ -121,6 +122,8 @@ definePageMeta({
       <video
         ref="videoRef"
         @contextmenu.prevent
+        muted
+        preload="auto"
         class="mx-auto"
         :src="
           $config.public.ASSETS_URL + '46febf5a-2fd4-4e9a-abc3-fccb25c6e501'
