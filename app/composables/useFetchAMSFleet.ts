@@ -61,7 +61,8 @@ export default function useFetchAMSFleet () {
           filter: {
             group: { _eq: 'ariscorp' },
             visibility: { _neq: 'hidden' },
-            deleted: { _eq: false }
+            deleted: { _eq: false },
+            user_id: { status: { _eq: 'active' } }
           },
           fields: USER_HANGAR_FIELDS,
           sort: ['ship_id.name']
