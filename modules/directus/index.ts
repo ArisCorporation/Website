@@ -130,6 +130,10 @@ export default defineNuxtModule({
       'updateFolder',
       'updateFolders',
 
+      // Revisions
+      'readRevision',
+      'readRevisions',
+
       // Utils
     ];
 

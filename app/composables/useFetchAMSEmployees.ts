@@ -24,6 +24,7 @@ export default function useFetchAMSFleet () {
           filter: {
             status: { _eq: 'active' },
             api_account: { _eq: false },
+            hidden: { _eq: false },
           },
           // @ts-ignore
           fields: EMPLOYEE_FIELDS,

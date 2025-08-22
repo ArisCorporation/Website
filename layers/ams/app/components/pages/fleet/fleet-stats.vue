@@ -70,7 +70,7 @@ const shipsByDepartment = computed(() =>
       <template #header>
         <h2 class="text-xl font-bold">Schiffe nach Abteilung</h2>
       </template>
-      <div class="flex h-full items-center bigDonut px-8 space-x-6">
+      <div class="flex h-full items-center bigChart px-8 space-x-6">
         <DonutChart
           :data="shipsByDepartment.data"
           :labels="shipsByDepartment.labels"
