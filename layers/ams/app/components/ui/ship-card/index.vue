@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Ship, UserHangar } from '~~/types' // Pfad anpassen, falls nötig
+import type { DirectusUser, Ship, ShipModule, UserHangar } from '~~/types' // Pfad anpassen, falls nötig
 
 const authStore = useAuthStore()
 
@@ -104,15 +104,19 @@ const editMode = computed<boolean>(() => {
               {{ hangarItem.name ? hangarItem.name : 'N/A' }}
             </p>
           </div>
-          <div v-if="ship.modules?.length">
+          <div>
+            <p class="text-(--ui-text-muted)">Kaufstatus</p>
+            <p class="font-normal text-white">
+              {{ getBuyStatusLabel(hangarItem.buy_status) ?? 'N/A' }}
+            </p>
+          </div>
+          <div v-if="hangarItem.active_module">
             <p class="text-(--ui-text-muted)">Aktives Modul</p>
             <UBadge
-              v-if="hangarItem.active_module"
               :label="(hangarItem.active_module as ShipModule)?.name"
               variant="subtle"
               class="mr-2"
             />
-            <p v-else>N/A</p>
           </div>
         </div>
         <h4 class="text-(--ui-primary) font-medium mt-2">Spezifikationen</h4>
@@ -207,20 +211,28 @@ const editMode = computed<boolean>(() => {
         </div>
         <USeparator color="ams" class="my-2" />
         <div class="flex justify-between">
-          <h3
-            v-if="mode === 'hangar-item' && hangarItem?.name"
-            class="text-lg italic font-semibold text-(--ui-primary) transition-colors duration-300 group-hover:text-(--ui-primary)/60 !my-0"
-          >
-            " {{ hangarItem.name }} "
-          </h3>
-          <h3
-            v-else
-            class="text-lg italic font-semibold text-(--ui-text-muted) transition-colors duration-300 !my-0"
-            aria-hidden="true"
-          />
+          <div>
+            <h3
+              v-if="mode === 'hangar-item' && hangarItem?.name"
+              class="text-lg italic font-semibold text-(--ui-primary) transition-colors duration-300 group-hover:text-(--ui-primary)/60 !my-0"
+            >
+              " {{ hangarItem.name }} "
+            </h3>
+            <h3
+              v-else
+              class="text-lg italic font-semibold text-(--ui-text-muted) transition-colors duration-300 !my-0"
+              aria-hidden="true"
+            />
+            <h3
+              v-if="mode === 'hangar-item' && hangarItem?.buy_status"
+              class="text-sm italic font-semibold text-(--ui-text-toned) transition-colors duration-300 group-hover:text-(--ui-text-dimmed) block !my-0"
+            >
+              {{ getBuyStatusLabel(hangarItem.buy_status) }}
+            </h3>
+          </div>
           <UTooltip
             v-if="mode === 'hangar-item' && fleetMode"
-            :text="`Besitzer: ${getUserLabel(hangarItem?.user_id)}`"
+            :text="`Besitzer: ${getUserLabel(hangarItem?.user_id as DirectusUser)}`"
           >
             <NuxtImg
               :src="getAssetId(hangarItem?.user_id?.avatar)"

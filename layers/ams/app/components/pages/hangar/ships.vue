@@ -59,6 +59,21 @@ const columns: TableColumn<UserHangar>[] = [
       `${((row.original.ship_id as Ship).manufacturer as Company).name}`,
   },
   {
+    accessorKey: 'buy_status',
+    header: 'Kaufstatus',
+    cell: ({ row }) => {
+      const color = {
+        pledged: 'success' as const,
+        in_game: 'warning' as const,
+        planned: 'neutral' as const,
+      }[row.getValue('buy_status') as string]
+
+      return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () =>
+        getBuyStatusLabel(row.getValue('buy_status'))
+      )
+    },
+  },
+  {
     accessorKey: 'visibility',
     header: 'Sichtbarkeit',
     cell: ({ row }) => {
@@ -96,7 +111,7 @@ const columns: TableColumn<UserHangar>[] = [
     id: 'actions',
   },
 ]
-
+console.log(props.data)
 watch(props, () => {
   expanded.value = {}
 })

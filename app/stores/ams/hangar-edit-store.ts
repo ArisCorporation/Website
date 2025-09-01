@@ -13,7 +13,7 @@ export const hangarItemSchema = z.object({
   group: z.enum(['ariscorp', 'private']),
   visibility: z.enum(['public', 'internal', 'hidden']),
   department: z.string().optional(),
-  planned: z.boolean(),
+  buy_status: z.enum(['pledged', 'in_game', 'planned']),
   active_module: z.string().optional(),
   // NOT EDITABLE:
   id: z.string().optional(),
@@ -131,8 +131,8 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
           : 'public',
         // department: UserHangar.department ist Department | string | null, schema.department ist string().optional()
         department: resolveToStringOrUndefined(pickedSourceData.department?.id),
-        // planned: UserHangar.planned ist boolean | null, schema.planned ist z.boolean() (erforderlich)
-        planned: pickedSourceData.planned ?? false,
+        // buy_status: UserHangar.buy_status ist string | null, schema.buy_status ist z.enum() (erforderlich)
+        buy_status: pickedSourceData.buy_status ?? 'pledged',
         // active_module: UserHangar.active_module ist ShipModule | string | null, schema.active_module ist string().optional()
         active_module: resolveToStringOrUndefined(pickedSourceData.active_module),
         // date_created: UserHangar.date_created ist string | null, schema.date_created ist string().optional()

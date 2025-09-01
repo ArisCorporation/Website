@@ -197,6 +197,55 @@ const { data: departments } = useLazyAsyncData(
               </div>
             </template>
           </UCard>
+          <UCard variant="ams" class="!shadow-none" :ui="{ body: '!pt-0' }">
+            <template #header>
+              <div class="prose-h4:my-0 prose-p:my-0 text-(--ui-primary)">
+                <h4>Kaufinformationen</h4>
+              </div>
+            </template>
+            <template #default>
+              <div class="grid grid-cols-1 gap-4">
+                <UFormField size="sm" label="Kaufstatus">
+                  <URadioGroup
+                    v-model="formData.buy_status"
+                    variant="card"
+                    size="md"
+                    class="w-full"
+                    value-key="key"
+                    :items="[
+                      {
+                        key: 'pledged',
+                        label: 'Gepledged',
+                        icon: 'i-lucide-dollar-sign',
+                        description:
+                          'Schiff wurde im pledge-store mit echtgeld gekauft.',
+                      },
+                      {
+                        key: 'in_game',
+                        label: 'In-Game',
+                        icon: 'i-lucide-currency',
+                        description:
+                          'Schiff wurde im in-game mit aUEC gekauft.',
+                      },
+                      {
+                        key: 'planned',
+                        label: 'Geplant',
+                        icon: 'i-lucide-notebook-text',
+                        description: 'Schiff befindet sich vorerst in planung.',
+                      },
+                    ]"
+                  >
+                    <template #label="{ item }">
+                      <span class="flex items-center space-x-2">
+                        <UIcon :name="item.icon" class="size-4" />
+                        <span>{{ item.label }}</span>
+                      </span>
+                    </template>
+                  </URadioGroup>
+                </UFormField>
+              </div>
+            </template>
+          </UCard>
           <UCard
             variant="ams"
             class="!shadow-none group"

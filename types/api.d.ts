@@ -997,10 +997,11 @@ export interface UserHangar {
   group?: 'ariscorp' | 'private' | null;
   visibility?: 'public' | 'internal' | 'hidden' | null;
   department?: Department | string | null;
-  planned?: boolean | null;
+  buy_status?: 'pledged' | 'in_game' | 'planned' | null;
   active_module?: ShipModule | string | null;
   date_created?: string | null;
   date_updated?: string | null;
+
 }
 
 export interface UserPasswordResetToken {

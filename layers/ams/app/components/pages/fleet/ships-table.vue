@@ -62,6 +62,21 @@ const columns: TableColumn<UserHangar>[] = [
       `${((row.original.ship_id as Ship).manufacturer as Company).name}`,
   },
   {
+    accessorKey: 'buy_status',
+    header: 'Kaufstatus',
+    cell: ({ row }) => {
+      const color = {
+        pledged: 'success' as const,
+        in_game: 'warning' as const,
+        planned: 'neutral' as const,
+      }[row.getValue('buy_status') as string]
+
+      return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () =>
+        getBuyStatusLabel(row.getValue('buy_status'))
+      )
+    },
+  },
+  {
     accessorKey: 'visibility',
     header: 'Sichtbarkeit',
     cell: ({ row }) => {
@@ -151,9 +166,18 @@ watch(props, () => {
                 </p>
               </div>
               <div>
+                <p class="text-(--ui-text-muted)">Kaufstatus</p>
+                <p class="p-0 font-normal text-white">
+                  {{
+                    row.original?.buy_status
+                      ? getBuyStatusLabel(row.original?.buy_status)
+                      : 'N/A'
+                  }}
+                </p>
+              </div>
+              <div v-if="row.original.active_module">
                 <p class="text-(--ui-text-muted)">Aktives Modul</p>
                 <UBadge
-                  v-if="row.original.active_module"
                   :label="(row.original.active_module as ShipModule)?.name"
                   variant="subtle"
                   class="mr-2"
