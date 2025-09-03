@@ -52,7 +52,11 @@ export default defineAppConfig({
           ams: {
             root: 'ring ring-(--ui-primary)/10 divide-y divide-(--ui-primary)/10 bg-(--ui-bg-muted)/50 backdrop-blur-xs hover:shadow-primary-md',
             header: 'border-0 ams-card-title space-y-1.5 p-6 pb-3'
-          }
+          },
+          amsModal: {
+            root: 'ring ring-(--ui-primary)/10 divide-y divide-(--ui-primary)/10 bg-(--ui-bg-muted)/50 backdrop-blur-xs hover:shadow-primary-md',
+            header: 'ams-card-title space-y-1.5 p-6 pb-3'
+          },
         }
       }
     },
