@@ -118,7 +118,7 @@ definePageMeta({
       size="lg"
       class="w-full mb-6"
     />
-    <div class="flex justify-between flex-wrap prose-p:m-0 mb-6">
+    <div class="flex space-y-2 justify-between flex-wrap prose-p:m-0 mb-6">
       <URadioGroup
         v-model="shortFilter"
         indicator="hidden"

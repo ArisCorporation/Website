@@ -5,6 +5,8 @@ const authStore = useAuthStore()
 
 const expanded = ref(false)
 
+const loading = ref(false)
+
 type ShipProps = {
   mode: 'ship'
   data: Ship
@@ -46,6 +48,12 @@ const editMode = computed<boolean>(() => {
 
   return false
 })
+
+async function handleRemove() {
+  loading.value = true
+  await removeHangarItem(Number(hangarItem.value?.id), props.fleetMode)
+  loading.value = false
+}
 </script>
 
 <template>
@@ -260,7 +268,8 @@ const editMode = computed<boolean>(() => {
         </AMSPagesHangarShipEdit>
         <UButton
           v-if="hangarItem"
-          @click="removeHangarItem(hangarItem.id, fleetMode)"
+          @click="handleRemove()"
+          :loading="loading"
           variant="outline"
           color="error"
           icon="i-lucide-trash-2"
