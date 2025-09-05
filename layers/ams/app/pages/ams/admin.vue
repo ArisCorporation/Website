@@ -40,7 +40,9 @@ definePageMeta({
         <AMSPagesAdminDashboard />
         <!-- </ClientOnly> -->
       </template>
-      <template #employees></template>
+      <template #employees>
+        <AMSPagesAdminEmployees />
+      </template>
       <template #departments></template>
     </UTabs>
   </div>

@@ -163,6 +163,7 @@ definePageMeta({
           mode="hangar-item"
           :data="ship"
           :forceExpanded="allCardsExpanded"
+          :fleetMode="false"
         />
       </div>
     </template>
