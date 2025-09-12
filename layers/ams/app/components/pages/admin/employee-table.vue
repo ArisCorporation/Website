@@ -55,7 +55,17 @@ const columns: TableColumn<DirectusUser>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => `${getUserStatusLabel(row.original.status) ?? ''}`,
+    cell: ({ row }) => {
+      const color = {
+        active: 'success' as const,
+        archived: 'error' as const,
+        suspended: 'error' as const,
+      }[row.original.status.toLowerCase() as string]
+
+      return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () =>
+        getUserStatusLabel(row.original.status)
+      )
+    },
   },
   {
     accessorKey: 'role',
@@ -111,6 +121,16 @@ async function archive_user(id: string) {
   emit('refreshData')
 }
 
+async function unlock_user(id: string) {
+  await useDirectus(
+    updateUser(id, {
+      status: 'active',
+    })
+  )
+
+  emit('refreshData')
+}
+
 function getDropdownActions(user: DirectusUser): DropdownMenuItem[][] {
   return [
     [
@@ -160,7 +180,7 @@ function getDropdownActions(user: DirectusUser): DropdownMenuItem[][] {
         label: 'Freischalten',
         icon: 'i-lucide-trash',
         color: 'success',
-        onSelect: () => archive_user(user.id),
+        onSelect: () => unlock_user(user.id),
       },
       {
         label: 'Archivieren',

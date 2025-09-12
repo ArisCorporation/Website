@@ -3,7 +3,7 @@ import '~/assets/css/ams.css'
 
 const authStore = useAuthStore()
 
-if (authStore.currentUser?.discord_id && import.meta.client) {
+if (!authStore.currentUser?.discord_id && import.meta.client) {
   useToast().add({
     title: 'Benachrichtigungen nicht möglich!',
     description:
