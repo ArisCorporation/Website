@@ -336,7 +336,101 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
       }
     },
 
-    async submitUserProfile (validatedDataFromForm: UserProfileFormData): Promise<boolean> {
+    // Admin: init form for arbitrary user (not the current auth user)
+    initFormForUser (user: DirectusUser) {
+      this.apiValidationErrors = {};
+      this.submitError = null;
+
+      if (!user) {
+        console.warn('ProfileEditStore: initFormForUser called without a user payload.');
+        return;
+      }
+
+      const formSchemaKeys = Object.keys(userProfileSchema.shape) as Array<keyof UserProfileFormData>;
+
+      const userForPicking = { ...user };
+      const pickedSourceData = _.pick(userForPicking, formSchemaKeys);
+
+      const initialData: Partial<UserProfileFormData> = {
+        id: user.id,
+        first_name: pickedSourceData.first_name ?? '',
+        middle_name: pickedSourceData.middle_name ?? null,
+        last_name: pickedSourceData.last_name ?? null,
+        title: pickedSourceData.title ?? null,
+        // avatar: resolveToStringOrUndefined(pickedSourceData.avatar),
+        rsi_handle: pickedSourceData.rsi_handle ?? null,
+        discord_name: pickedSourceData.discord_name ?? null,
+        discord_id: pickedSourceData.discord_id ?? null,
+        contact_email: pickedSourceData.contact_email ?? null,
+        sex: pickedSourceData.sex ?? null,
+        primary_department: resolveToStringOrUndefined(pickedSourceData.primary_department),
+        secondary_department: resolveToStringOrUndefined(pickedSourceData.secondary_department),
+        head_of_department: pickedSourceData.head_of_department ?? null,
+        birthplace: resolveToStringOrUndefined(pickedSourceData.birthplace),
+        current_residence: resolveToStringOrUndefined(pickedSourceData.current_residence),
+        birthdate: pickedSourceData.birthdate ?? null,
+        birthdate_day: Number(pickedSourceData.birthdate?.split('-')[2]) ?? null,
+        birthdate_month: Number(pickedSourceData.birthdate?.split('-')[1]) ?? null,
+        birthdate_year: Number(pickedSourceData.birthdate?.split('-')[0]) ?? null,
+        citizen_state: (() => {
+          if (pickedSourceData.citizen === true) return 'true';
+          if (pickedSourceData.citizen === false) return 'false';
+          return null;
+        })(),
+        citizen: pickedSourceData.citizen,
+        citizen_reason: pickedSourceData.citizen_reason,
+        duty_state: pickedSourceData.duty_state ?? null,
+        duty_division: pickedSourceData.duty_division ?? null,
+        duty_end: pickedSourceData.duty_end ?? null,
+        duty_dismissal_reason: pickedSourceData.duty_dismissal_reason ?? null,
+        duty_from_month: pickedSourceData.duty_from_month ?? null,
+        duty_from_year: pickedSourceData.duty_from_year ?? null,
+        duty_to_month: pickedSourceData.duty_to_month ?? null,
+        duty_to_year: pickedSourceData.duty_to_year ?? null,
+        hair_color: pickedSourceData.hair_color ?? null,
+        eye_color: pickedSourceData.eye_color ?? null,
+        height: pickedSourceData.height ?? null,
+        weight: pickedSourceData.weight ?? null,
+        hobbies_list: pickedSourceData.hobbies_list ?? [],
+        habits_list: pickedSourceData.habits_list ?? [],
+        talents_list: pickedSourceData.talents_list ?? [],
+        tics_list: pickedSourceData.tics_list ?? [],
+        activities_list: pickedSourceData.activities_list ?? [],
+        mysterious_list: pickedSourceData.mysterious_list ?? [],
+        character_trait_list: pickedSourceData.character_trait_list ?? [],
+        fears_list: pickedSourceData.fears_list ?? [],
+        books_list: pickedSourceData.books_list ?? [],
+        music_list: pickedSourceData.music_list ?? [],
+        movies_list: pickedSourceData.movies_list ?? [],
+        clothing_list: pickedSourceData.clothing_list ?? [],
+        food_list: pickedSourceData.food_list ?? [],
+        drink_list: pickedSourceData.drink_list ?? [],
+        alcohol_list: pickedSourceData.alcohol_list ?? [],
+        loves_list: pickedSourceData.loves_list ?? [],
+        hates_list: pickedSourceData.hates_list ?? [],
+        medical_informations: pickedSourceData.medical_informations ?? null,
+        biography: pickedSourceData.biography ?? null,
+        education_state: pickedSourceData.education_state ?? null,
+        education_name: pickedSourceData.education_name ?? null,
+        education_place: pickedSourceData.education_place ?? null,
+        education_from_month: pickedSourceData.education_from_month ?? null,
+        education_from_year: pickedSourceData.education_from_year ?? null,
+        education_to_month: pickedSourceData.education_to_month ?? null,
+        education_to_year: pickedSourceData.education_to_year ?? null,
+        roles: pickedSourceData.roles,
+      };
+
+      const cleanedInitialData = _.omitBy(initialData, _.isUndefined);
+
+      try {
+        this.formData = userProfileSchema.parse(cleanedInitialData);
+      } catch (e) {
+        console.error('Fehler beim Parsen der initialen Formulardaten (Admin) für User Profile:', e);
+        this.formData = userProfileSchema.parse({});
+      }
+    },
+
+    async submitUserProfile (validatedDataFromForm: UserProfileFormData, targetUserId?: string): Promise<boolean> {
       this.submitError = null;
       this.apiValidationErrors = {};
       this.isSubmitting = true;
@@ -352,8 +446,8 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         // Handle password: remove if empty to avoid sending an empty string
         if (!payload.password) delete payload.password
 
-        // Auto-generate email based on name parts if they changed
-        if ((payload.first_name != authStore.currentUser?.first_name) || (payload.last_name != authStore.currentUser?.last_name) || (payload.middle_name != authStore.currentUser?.middle_name)) {
+        // Auto-generate email based on name parts if they changed (only for self edits)
+        if (!targetUserId && ((payload.first_name != authStore.currentUser?.first_name) || (payload.last_name != authStore.currentUser?.last_name) || (payload.middle_name != authStore.currentUser?.middle_name))) {
           let email = `${payload.first_name}${payload.middle_name ? '.' + payload.middle_name : ''}${payload.last_name ? '.' + payload.last_name : ''}@ariscorp.de`
             ; (payload as any).email = email.replace(/\s/g, ''); // Assign to the payload that will be sent
         }
@@ -397,7 +491,7 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         delete payload.birthdate_month
         delete payload.birthdate_year
 
-        const userId = authStore.currentUser?.id; // Oder this.formData.id, falls es zuverlässig gesetzt ist
+        const userId = targetUserId ?? authStore.currentUser?.id; // Allow override for admin edits
 
         if (!userId) {
           this.submitError = "Benutzer-ID konnte nicht ermittelt werden. Speichern nicht möglich.";

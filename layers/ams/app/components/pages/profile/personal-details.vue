@@ -9,6 +9,10 @@ const showCropperModal = ref(false)
 const imageToCropSrc = ref<string | null>(null)
 let selectedFileForUpload: File | null = null
 
+const props = withDefaults(defineProps<{ showAvatarUpload?: boolean }>(), {
+  showAvatarUpload: true,
+})
+
 interface TitleOption {
   label: string
   value: string | null
@@ -177,7 +181,7 @@ function handleCropCancel() {
           />
         </UFormField>
         <!-- TODO: Add Avatar function -->
-        <UFormField label="Avatar" name="avatar" size="xs" class="w-full">
+        <UFormField v-if="props.showAvatarUpload" label="Avatar" name="avatar" size="xs" class="w-full">
           <UInput
             ref="fileInputRef"
             highlight
@@ -195,6 +199,7 @@ function handleCropCancel() {
           />
         </UFormField>
         <AMSPagesProfileImageCropperModal
+          v-if="props.showAvatarUpload"
           :image-url="imageToCropSrc"
           :aspect-ratio="270 / 320"
           :open="showCropperModal && imageToCropSrc ? true : false"

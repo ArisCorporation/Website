@@ -10,10 +10,23 @@ import type {
   UserHangar,
 } from '~~/types'
 
+import { useToast } from '#imports'
+import type { FormSubmitEvent } from '@nuxt/ui'
+import {
+  userProfileSchema,
+  useUserProfileEditStore,
+} from '@/stores/ams/profile-edit-store'
+
 const props = defineProps<{ data: DirectusUser[]; search: string }>()
 const emit = defineEmits(['refreshData'])
 
 const expanded = ref({})
+
+// Admin edit modal state
+const showEditModal = ref(false)
+const selectedUser = ref<DirectusUser | null>(null)
+const profileEdit = useUserProfileEditStore()
+const toast = useToast()
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
@@ -131,6 +144,46 @@ async function unlock_user(id: string) {
   emit('refreshData')
 }
 
+async function openEditProfile(user: DirectusUser) {
+  // Fetch full user details for editing
+  const fullUser = (await useDirectus(
+    readUser(user.id, { fields: ['*'] })
+  )) as DirectusUser
+  selectedUser.value = fullUser
+  profileEdit.initFormForUser(fullUser)
+  showEditModal.value = true
+}
+
+function closeEditProfile() {
+  showEditModal.value = false
+  selectedUser.value = null
+  profileEdit.clearApiValidationErrors()
+  profileEdit.clearSubmitError()
+}
+
+async function handleAdminEditSubmit(event: FormSubmitEvent<any>) {
+  if (!selectedUser.value) return
+  const ok = await profileEdit.submitUserProfile(
+    event.data,
+    selectedUser.value.id
+  )
+  if (ok) {
+    toast.add({
+      title: 'Profil aktualisiert',
+      color: 'green',
+      icon: 'i-lucide-circle-check',
+    })
+    closeEditProfile()
+    emit('refreshData')
+  } else {
+    toast.add({
+      title: 'Aktualisierung fehlgeschlagen',
+      color: 'red',
+      icon: 'i-lucide-alert-triangle',
+    })
+  }
+}
+
 function getDropdownActions(user: DirectusUser): DropdownMenuItem[][] {
   return [
     [
@@ -165,7 +218,7 @@ function getDropdownActions(user: DirectusUser): DropdownMenuItem[][] {
       {
         label: 'Profil editieren',
         icon: 'i-lucide-edit',
-        onSelect: () => console.log('test'),
+        onSelect: () => openEditProfile(user),
         class: 'active:scale-95 transition',
       },
       {
@@ -231,4 +284,100 @@ function getDropdownActions(user: DirectusUser): DropdownMenuItem[][] {
       </template>
     </UTable>
   </div>
+
+  <!-- Admin: Edit user profile modal -->
+  <UModal
+    v-model:open="showEditModal"
+    @close="closeEditProfile"
+    :ui="{ content: 'max-w-full overflow-y-auto' }"
+  >
+    <template #content>
+      <UCard variant="amsModal">
+        <template #header>
+          <h2>
+            {{
+              selectedUser
+                ? `Profil bearbeiten: ${getUserLabel(selectedUser)}`
+                : 'Profil bearbeiten'
+            }}
+          </h2>
+        </template>
+        <template #default>
+          <UForm
+            :schema="userProfileSchema"
+            :state="profileEdit.formData"
+            class="space-y-6"
+            @submit="handleAdminEditSubmit"
+            @keydown.enter.prevent="() => {}"
+          >
+            <div class="space-y-6">
+              <AMSPagesProfilePersonalDetails :show-avatar-upload="false" />
+              <AMSPagesProfileOrgaData />
+              <AMSPagesProfileBaseData />
+              <AMSPagesProfileBiography />
+            </div>
+            <UAlert
+              v-if="profileEdit.getSubmitError"
+              color="red"
+              variant="subtle"
+              :description="profileEdit.getSubmitError"
+              class="mt-4"
+              icon="i-lucide-alert-triangle"
+              :close-button="{
+                icon: 'i-lucide-x',
+                color: 'red',
+                variant: 'link',
+                padded: false,
+              }"
+              @close="profileEdit.clearSubmitError()"
+            />
+            <UAlert
+              v-if="profileEdit.getApiFieldErrorMessages.length > 0"
+              color="orange"
+              variant="subtle"
+              title="Validierungsfehler vom Server"
+              class="mt-4"
+              icon="i-lucide-alert-circle"
+              :close-button="{
+                icon: 'i-lucide-x',
+                color: 'orange',
+                variant: 'link',
+                padded: false,
+              }"
+              @close="profileEdit.clearApiValidationErrors()"
+            >
+              <template #description>
+                <ul class="list-disc list-inside">
+                  <li
+                    v-for="(
+                      error, index
+                    ) in profileEdit.getApiFieldErrorMessages"
+                    :key="index"
+                  >
+                    <strong>{{ error.path }}:</strong> {{ error.message }}
+                  </li>
+                </ul>
+              </template>
+            </UAlert>
+            <div class="flex justify-end gap-2 pt-2">
+              <UButton type="submit" :loading="profileEdit.isSubmitting"
+                >Speichern</UButton
+              >
+            </div>
+          </UForm>
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <UButton
+              type="button"
+              color="gray"
+              variant="outline"
+              @click="closeEditProfile"
+              >Abbrechen</UButton
+            >
+          </div>
+        </template>
+      </UCard>
+    </template>
+  </UModal>
 </template>
