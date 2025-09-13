@@ -1,9 +1,9 @@
-name: Build and Push AMS BETA
+name: Build and Push NEXT
 
 on:
   push:
     branches:
-      - ams-beta
+      - next
 
 # WICHTIG: Berechtigungen hinzufügen, falls noch nicht vorhanden
 permissions:
@@ -36,7 +36,7 @@ jobs:
           images: ghcr.io/ariscorporation/website # Dein Image-Name
           tags: |
             type=sha
-            type=raw,value=latest-ams-beta,enable={{is_default_branch}}
+            type=raw,value=next,enable={{is_default_branch}}
 
       # Build and Push mit der spezialisierten Action
       - name: Build and push Docker image
