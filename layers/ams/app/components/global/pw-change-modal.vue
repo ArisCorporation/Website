@@ -47,6 +47,12 @@ async function onSubmit() {
   errorMessage.value = null
   if (!pwValid.value) {
     errorMessage.value = firstPwError()
+    useToast().add({
+      title: 'Passwort unzulässig',
+      description: errorMessage.value || 'Bitte Passwortregeln beachten.',
+      color: 'error',
+      icon: 'i-lucide-alert-triangle',
+    })
     return
   }
 
@@ -68,6 +74,9 @@ async function onSubmit() {
       color: 'success',
       icon: 'i-lucide-circle-check',
     })
+    // Clear field after successful change
+    formData.password = ''
+    errorMessage.value = null
     emit('success')
     emit('close')
   } catch (err: any) {
@@ -89,6 +98,17 @@ async function onSubmit() {
     saving.value = false
   }
 }
+
+// Also clear when modal closes from outside
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (!isOpen) {
+      formData.password = ''
+      errorMessage.value = null
+    }
+  }
+)
 </script>
 <template>
   <UModal v-model:open="modalOpen" :dismissible="false">
@@ -96,7 +116,12 @@ async function onSubmit() {
       <UCard variant="amsModal">
         <template #header><h2>Neues Passwort festlegen</h2></template>
         <template #default>
-          <UForm :state="formData" class="space-y-3" @submit="onSubmit">
+          <UForm
+            :state="formData"
+            class="space-y-3"
+            @submit.prevent="onSubmit"
+            @keydown.enter.prevent="onSubmit"
+          >
             <UFormField name="password" label="Passwort">
               <UInput
                 v-model="formData.password"
@@ -147,12 +172,21 @@ async function onSubmit() {
                 </div>
               </template>
             </UFormField>
+            <UAlert
+              v-if="errorMessage"
+              color="error"
+              variant="subtle"
+              :description="errorMessage"
+              class="mt-1"
+              icon="i-lucide-alert-triangle"
+            />
             <UButton
               type="submit"
               :loading="saving"
-              :disabled="!pwValid || saving"
+              :disabled="saving"
               variant="subtle"
               class="w-full justify-center"
+              @click="onSubmit"
             >
               Speichern
             </UButton>

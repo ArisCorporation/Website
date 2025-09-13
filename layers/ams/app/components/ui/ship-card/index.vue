@@ -23,7 +23,10 @@ type HangarItemProps = {
 
 type ShipCardProps = ShipProps | HangarItemProps
 
-const props = defineProps<ShipCardProps>()
+const props = defineProps<
+  ShipCardProps & { refreshOverride?: () => void | Promise<void> }
+>()
+const emit = defineEmits(['updated', 'removed'])
 
 const ship = computed<Ship>(() => {
   if (props.mode === 'ship') {
@@ -51,8 +54,13 @@ const editMode = computed<boolean>(() => {
 
 async function handleRemove() {
   loading.value = true
-  await removeHangarItem(Number(hangarItem.value?.id), props.fleetMode)
+  await removeHangarItem(
+    Number(hangarItem.value?.id),
+    props.fleetMode,
+    props.refreshOverride
+  )
   loading.value = false
+  emit('removed')
 }
 </script>
 
@@ -196,7 +204,7 @@ async function handleRemove() {
       >
         <div class="flex justify-between">
           <div>
-            <NuxtLink :to="`/ships/${ship.slug}`" class="not-prose">
+            <NuxtLink :to="`/shipexkurs/ships/${ship.slug}`" class="not-prose">
               <h3
                 class="text-lg w-fit font-semibold text-white group-hover:text-shadow-primary group-hover:text-shadow-xs transition-all duration-300 hover:text-xl group-hover:text-(--ui-primary) !my-0"
               >
@@ -256,6 +264,7 @@ async function handleRemove() {
           v-if="hangarItem"
           :item="hangarItem"
           :fleet-mode="fleetMode"
+          @updated="() => emit('updated')"
         >
           <template #default="{ open }">
             <UButton

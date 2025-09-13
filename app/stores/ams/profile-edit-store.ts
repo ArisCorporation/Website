@@ -71,8 +71,36 @@ export const userProfileSchema = z.object({
 
   hair_color: z.string().optional().nullable(),
   eye_color: z.string().optional().nullable(),
-  height: z.number().min(120, 'Du kannst nicht kleiner als 120cm sein').max(250, 'Du kannst nicht größer als 250cm sein').optional().nullable(),
-  weight: z.number().min(40, 'Du kannst nicht leichter als 40kg sein').max(300, 'Du kannst nicht schwerer als 300kg sein').optional().nullable(),
+  height: z
+    .preprocess(
+      (v) =>
+        v === '' || v === undefined || v === null
+          ? null
+          : typeof v === 'string'
+            ? (v.trim() === '' ? null : Number(v))
+            : v,
+      z
+        .number()
+        .min(120, 'Du kannst nicht kleiner als 120cm sein')
+        .max(250, 'Du kannst nicht größer als 250cm sein')
+        .optional()
+        .nullable()
+    ),
+  weight: z
+    .preprocess(
+      (v) =>
+        v === '' || v === undefined || v === null
+          ? null
+          : typeof v === 'string'
+            ? (v.trim() === '' ? null : Number(v))
+            : v,
+      z
+        .number()
+        .min(40, 'Du kannst nicht leichter als 40kg sein')
+        .max(300, 'Du kannst nicht schwerer als 300kg sein')
+        .optional()
+        .nullable()
+    ),
 
   hobbies_list: z.array(z.string().trim()).optional().nullable(),
   habits_list: z.array(z.string().trim()).optional().nullable(),
@@ -112,16 +140,22 @@ export const userProfileSchema = z.object({
 
 export type UserProfileFormData = z.infer<typeof userProfileSchema>;
 
+// Admin schema: relax required constraints to allow clearing fields like first_name
+export const adminUserProfileSchema = userProfileSchema.extend({
+  first_name: z.string().trim().optional().nullable(),
+})
+export type AdminUserProfileFormData = z.infer<typeof adminUserProfileSchema>;
+
 export const useUserProfileEditStore = defineStore('userProfileEdit', {
   state: () => ({
-    formData: {} as UserProfileFormData,
+    formData: {} as UserProfileFormData | AdminUserProfileFormData,
     apiValidationErrors: {} as Record<string, string[] | undefined>,
     isSubmitting: false,
     submitError: null as string | null,
   }),
 
   getters: {
-    currentFormData: (state): UserProfileFormData => state.formData,
+    currentFormData: (state): UserProfileFormData | AdminUserProfileFormData => state.formData,
     isLoading: (state): boolean => state.isSubmitting,
     getSubmitError: (state): string | null => state.submitError,
     getApiFieldErrorMessages: (state): FormError[] => {
@@ -240,9 +274,17 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         birthplace: resolveToStringOrUndefined(pickedSourceData.birthplace),
         current_residence: resolveToStringOrUndefined(pickedSourceData.current_residence),
         birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
-        birthdate_day: Number(pickedSourceData.birthdate?.split('-')[2]) ?? null,
-        birthdate_month: Number(pickedSourceData.birthdate?.split('-')[1]) ?? null,
-        birthdate_year: Number(pickedSourceData.birthdate?.split('-')[0]) ?? null,
+        ...(typeof pickedSourceData.birthdate === 'string' && pickedSourceData.birthdate.includes('-')
+          ? {
+              birthdate_day: Number(pickedSourceData.birthdate.split('-')[2] || '') || null,
+              birthdate_month: Number(pickedSourceData.birthdate.split('-')[1] || '') || null,
+              birthdate_year: Number(pickedSourceData.birthdate.split('-')[0] || '') || null,
+            }
+          : {
+              birthdate_day: null,
+              birthdate_month: null,
+              birthdate_year: null,
+            }),
 
         citizen_state: (() => {
           if (pickedSourceData.citizen === true) return 'true';
@@ -369,9 +411,17 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         birthplace: resolveToStringOrUndefined(pickedSourceData.birthplace),
         current_residence: resolveToStringOrUndefined(pickedSourceData.current_residence),
         birthdate: pickedSourceData.birthdate ?? null,
-        birthdate_day: Number(pickedSourceData.birthdate?.split('-')[2]) ?? null,
-        birthdate_month: Number(pickedSourceData.birthdate?.split('-')[1]) ?? null,
-        birthdate_year: Number(pickedSourceData.birthdate?.split('-')[0]) ?? null,
+        ...(typeof pickedSourceData.birthdate === 'string' && pickedSourceData.birthdate.includes('-')
+          ? {
+              birthdate_day: Number(pickedSourceData.birthdate.split('-')[2] || '') || null,
+              birthdate_month: Number(pickedSourceData.birthdate.split('-')[1] || '') || null,
+              birthdate_year: Number(pickedSourceData.birthdate.split('-')[0] || '') || null,
+            }
+          : {
+              birthdate_day: null,
+              birthdate_month: null,
+              birthdate_year: null,
+            }),
         citizen_state: (() => {
           if (pickedSourceData.citizen === true) return 'true';
           if (pickedSourceData.citizen === false) return 'false';
@@ -423,14 +473,17 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
       const cleanedInitialData = _.omitBy(initialData, _.isUndefined);
 
       try {
-        this.formData = userProfileSchema.parse(cleanedInitialData);
+        this.formData = adminUserProfileSchema.parse(cleanedInitialData);
       } catch (e) {
         console.error('Fehler beim Parsen der initialen Formulardaten (Admin) für User Profile:', e);
-        this.formData = userProfileSchema.parse({});
+        this.formData = adminUserProfileSchema.parse({});
       }
     },
 
-    async submitUserProfile (validatedDataFromForm: UserProfileFormData, targetUserId?: string): Promise<boolean> {
+    async submitUserProfile (
+      validatedDataFromForm: UserProfileFormData | AdminUserProfileFormData,
+      targetUserId?: string
+    ): Promise<boolean> {
       this.submitError = null;
       this.apiValidationErrors = {};
       this.isSubmitting = true;
@@ -441,7 +494,7 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
 
       try {
         // Clone data to avoid modifying the form data directly if pre-processing is needed
-        const payload = { ...validatedDataFromForm };
+        const payload: any = { ...validatedDataFromForm };
 
         // Handle password: remove if empty to avoid sending an empty string
         if (!payload.password) delete payload.password
@@ -468,6 +521,13 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         // } else {
         //   (payload as any).roles = null; // DirectusUser.roles is 'recruitment' | ... | null
         // }
+
+        // Normalize empty strings to null for optional string fields
+        for (const key of Object.keys(payload)) {
+          if (typeof payload[key] === 'string' && payload[key].trim() === '') {
+            payload[key] = null
+          }
+        }
 
         // Birthdate from day, month and year
         if (payload.birthdate_year && payload.birthdate_month && payload.birthdate_day) {

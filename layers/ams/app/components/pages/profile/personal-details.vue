@@ -7,11 +7,22 @@ const authStore = useAuthStore()
 const fileInputRef = useTemplateRef('fileInputRef')
 const showCropperModal = ref(false)
 const imageToCropSrc = ref<string | null>(null)
+const showPwModal = ref(false)
 let selectedFileForUpload: File | null = null
 
-const props = withDefaults(defineProps<{ showAvatarUpload?: boolean }>(), {
-  showAvatarUpload: true,
-})
+const props = withDefaults(
+  defineProps<{
+    showAvatarUpload?: boolean
+    showPasswordChange?: boolean
+    targetUserId?: string | number
+    deleteOldAvatarFileOnChange?: boolean
+  }>(),
+  {
+    showAvatarUpload: true,
+    showPasswordChange: true,
+    deleteOldAvatarFileOnChange: true,
+  }
+)
 
 interface TitleOption {
   label: string
@@ -69,15 +80,23 @@ async function handleCropComplete(croppedImageBlob: Blob) {
     // You might want to specify a folder in Directus if you have one for avatars
     // formData.append('folder', 'YOUR_AVATAR_FOLDER_UUID');
 
-    const oldAvatar = getAssetId(authStore.currentUser?.avatar)
+    const userIdToUpdate = props.targetUserId ?? authStore.currentUserId ?? ''
+    const oldAvatar = props.deleteOldAvatarFileOnChange
+      ? getAssetId(authStore.currentUser?.avatar)
+      : null
 
     const uploadedFile = await useDirectus(uploadFiles(formData))
 
     await useDirectus(
-      updateUser(authStore.currentUserId ?? '', { avatar: uploadedFile.id })
+      updateUser(String(userIdToUpdate), { avatar: uploadedFile.id })
     )
 
-    await authStore.refreshCurrentUser()
+    if (
+      !props.targetUserId ||
+      String(props.targetUserId) === String(authStore.currentUserId)
+    ) {
+      await authStore.refreshCurrentUser()
+    }
 
     if (uploadedFile && oldAvatar) await useDirectus(deleteFile(oldAvatar))
     // profileEdit.formData.avatar = uploadedFile.id // Assuming avatar stores the file ID
@@ -181,7 +200,13 @@ function handleCropCancel() {
           />
         </UFormField>
         <!-- TODO: Add Avatar function -->
-        <UFormField v-if="props.showAvatarUpload" label="Avatar" name="avatar" size="xs" class="w-full">
+        <UFormField
+          v-if="props.showAvatarUpload"
+          label="Avatar"
+          name="avatar"
+          size="xs"
+          class="w-full"
+        >
           <UInput
             ref="fileInputRef"
             highlight
@@ -225,14 +250,18 @@ function handleCropCancel() {
             class="w-full"
           />
         </UFormField>
-        <UFormField label="Passwort" name="password" size="xs" class="w-full">
-          <UInput
-            v-model="profileEdit.formData.password"
-            highlight
-            size="md"
-            placeholder="************"
-            type="password"
-            class="w-full"
+        <UFormField
+          v-if="props.showPasswordChange"
+          label="Passwort"
+          name="password"
+          size="xs"
+          class="w-full"
+        >
+          <UButton
+            icon="i-lucide-key-round"
+            label="Passwort ändern"
+            variant="outline"
+            @click="showPwModal = true"
           />
         </UFormField>
         <UFormField
@@ -252,4 +281,9 @@ function handleCropCancel() {
       </div>
     </template>
   </UCard>
+  <AMSGlobalPwChangeModal
+    :open="showPwModal"
+    @close="showPwModal = false"
+    @success="showPwModal = false"
+  />
 </template>
