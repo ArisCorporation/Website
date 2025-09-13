@@ -204,7 +204,7 @@ async function handleRemove() {
       >
         <div class="flex justify-between">
           <div>
-            <NuxtLink :to="`/shipexkurs/ships/${ship.slug}`" class="not-prose">
+            <NuxtLink :to="`https://ariscorp.de/shipexkurs/ships/${ship.slug}`" class="not-prose">
               <h3
                 class="text-lg w-fit font-semibold text-white group-hover:text-shadow-primary group-hover:text-shadow-xs transition-all duration-300 hover:text-xl group-hover:text-(--ui-primary) !my-0"
               >
