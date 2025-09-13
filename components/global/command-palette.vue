@@ -46,7 +46,7 @@ const pages = [
     // avatar: {
     //   src: 'https://studio.ariscorp.de/assets/3090187e-6348-4290-a878-af1b2b48c114',
     // },
-    to: '/ams',
+    to: 'https://ams.ariscorp.de',
     // shortcuts: [metaSymbol, 'Shift', 'A'],
   },
 ];
@@ -56,7 +56,7 @@ const ams_commands = [
     id: 'new-ship',
     label: 'Neues Schiff hinzufügen',
     icon: 'i-heroicons-document-plus',
-    to: '/ams/hangar#add',
+    to: 'https://ams.ariscorp.de/ams/hangar#add',
     // shortcuts: [metaSymbol, 'N'],
   },
 ];
@@ -66,7 +66,7 @@ const ams_pages = [
     id: 'ams-hangar',
     label: 'Hangar',
     icon: 'IconsNavigationHangar',
-    to: '/ams/hangar',
+    to: 'https://ams.ariscorp.de/ams/hangar',
   },
   {
     id: 'ams-profile',
@@ -74,19 +74,19 @@ const ams_pages = [
     avatar: {
       src: useRuntimeConfig().public.fileBase + user.value?.avatar,
     },
-    to: '/ams/profile',
+    to: 'https://ams.ariscorp.de/ams/profile',
   },
   {
     id: 'ams-fleet',
     label: 'Flotte',
     icon: 'IconsNavigationFleet',
-    to: '/ams/fleet',
+    to: 'https://ams.ariscorp.de/ams/fleet',
   },
   {
     id: 'ams-employees',
     label: 'Mitarbeiter',
     icon: 'IconsNavigationMembers',
-    to: '/ams/employees',
+    to: 'https://ams.ariscorp.de/ams/employees',
   },
 ];
 

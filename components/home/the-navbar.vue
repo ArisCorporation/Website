@@ -60,7 +60,7 @@ const bannerItems = [
   {
     name: 'ArisCorp Management System',
     icon: 'IconsLogosAmsBanner',
-    link: '/ams',
+    link: 'https://ams.ariscorp.de',
   },
 ];
 
