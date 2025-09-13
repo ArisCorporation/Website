@@ -27,5 +27,19 @@ console.log(data)
 </script>
 
 <template>
-  <AMSPagesAdminEmployeeTable :data="data" @refresh-data="refresh" />
+  <div class="space-y-4">
+    <div class="flex justify-end">
+      <AMSPagesAdminAddMemberSlideover @added="refresh">
+        <template #default="{ openSlideover }">
+          <UButton
+            @click="openSlideover"
+            label="Mitglied hinzufügen"
+            icon="i-lucide-user-plus"
+            variant="subtle"
+          />
+        </template>
+      </AMSPagesAdminAddMemberSlideover>
+    </div>
+    <AMSPagesAdminEmployeeTable :data="data" @refresh-data="refresh" />
+  </div>
 </template>
