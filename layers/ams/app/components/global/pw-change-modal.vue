@@ -2,7 +2,10 @@
 import { useToast } from '#imports'
 import { updateMe } from '@directus/sdk'
 
-const props = withDefaults(defineProps<{ open?: boolean }>(), { open: true })
+const props = withDefaults(
+  defineProps<{ open?: boolean; dismissible?: boolean }>(),
+  { open: true, dismissible: true }
+)
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'success'): void
@@ -111,7 +114,7 @@ watch(
 )
 </script>
 <template>
-  <UModal v-model:open="modalOpen" :dismissible="false">
+  <UModal v-model:open="modalOpen" :dismissible="props.dismissible">
     <template #content>
       <UCard variant="amsModal">
         <template #header><h2>Neues Passwort festlegen</h2></template>
