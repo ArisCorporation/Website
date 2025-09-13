@@ -27,7 +27,10 @@ if (!authStore.currentUser?.discord_id && import.meta.client) {
 
 <template>
   <AMSPageWrapper class="prose prose-invert max-w-none">
-    <AMSGlobalPwChangeModal v-if="authStore.currentUser?.temporary_password" />
+    <AMSGlobalPwChangeModal
+      v-if="authStore.currentUser?.temporary_password"
+      :dismissible="false"
+    />
     <AMSUiHeader />
     <AMSUiSidebar />
     <AMSPageMain>

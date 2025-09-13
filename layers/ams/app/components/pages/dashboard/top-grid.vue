@@ -49,25 +49,25 @@ defineProps<{
     <AMSUiCard>
       <AMSUiCardHeader class="flex flex-row items-center justify-between pb-2">
         <AMSUiCardTitle class="text-sm font-medium text-white">
-          TBD
+          COMMING SOON
         </AMSUiCardTitle>
         <UIcon name="i-lucide-code-xml" class="h-4 w-4 text-(--ui-primary)" />
       </AMSUiCardHeader>
       <AMSUiCardContent>
-        <div class="text-2xl font-bold text-white">TBD</div>
-        <p class="text-xs text-muted-foreground">TBD</p>
+        <div class="text-2xl font-bold text-white">COMMING SOON</div>
+        <p class="text-xs text-muted-foreground">COMMING SOON</p>
       </AMSUiCardContent>
     </AMSUiCard>
     <AMSUiCard>
       <AMSUiCardHeader class="flex flex-row items-center justify-between pb-2">
         <AMSUiCardTitle class="text-sm font-medium text-white">
-          TBD
+          COMMING SOON
         </AMSUiCardTitle>
         <UIcon name="i-lucide-code-xml" class="h-4 w-4 text-(--ui-primary)" />
       </AMSUiCardHeader>
       <AMSUiCardContent>
-        <div class="text-2xl font-bold text-white">TBD</div>
-        <p class="text-xs text-muted-foreground">TBD</p>
+        <div class="text-2xl font-bold text-white">COMMING SOON</div>
+        <p class="text-xs text-muted-foreground">COMMING SOON</p>
       </AMSUiCardContent>
     </AMSUiCard>
   </div>

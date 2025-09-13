@@ -3,7 +3,9 @@
     <AMSUiCard class="lg:col-span-4">
       <AMSUiCardHeader class="flex flex-row items-center justify-between">
         <div>
-          <AMSUiCardTitle class="text-white">Fleet Status</AMSUiCardTitle>
+          <AMSUiCardTitle class="text-white"
+            >Fleet Status (COMMING SOON)</AMSUiCardTitle
+          >
           <AMSUiCardDescription
             >Overview of your organization's fleet status and
             composition.</AMSUiCardDescription
@@ -15,7 +17,7 @@
         />
       </AMSUiCardHeader>
       <AMSUiCardContent>
-        <USkeleton class="w-full h-[300px]" />
+        <div class="w-full h-[300px]" />
       </AMSUiCardContent>
     </AMSUiCard>
     <AMSUiCard class="lg:col-span-3">
@@ -24,7 +26,7 @@
           <div>
             <AMSUiCardTitle class="text-white">Recent Activity</AMSUiCardTitle>
             <AMSUiCardDescription>
-              Latest updates from your organization.
+              Latest updates from your organization. (COMMING SOON)
             </AMSUiCardDescription>
           </div>
           <UButton
@@ -38,7 +40,7 @@
         </div>
       </AMSUiCardHeader>
       <AMSUiCardContent>
-        <AMSPagesDashboardRecentActivity />
+        <!-- <AMSPagesDashboardRecentActivity /> -->
       </AMSUiCardContent>
     </AMSUiCard>
   </div>
