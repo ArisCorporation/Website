@@ -8,6 +8,7 @@ import type {
 } from '~~/types'
 
 const props = defineProps<{ item: UserHangar; fleetMode: boolean }>()
+const emit = defineEmits(['updated'])
 
 const store = useHangarItemEditStore()
 const authStore = useAuthStore()
@@ -33,15 +34,74 @@ async function handleEditSubmit() {
   editSlideoverOpen.value = false
 
   await setTimeout(async () => {
-    await store.submitHangarItem()
+    const ok = await store.submitHangarItem()
 
     const { refresh: refreshHangar } = await useFetchAMSHangar(userId)
     const { refresh: refreshFleet } = await useFetchAMSFleet()
 
     if (props.fleetMode) refreshFleet()
     else refreshHangar()
+
+    if (ok) emit('updated')
   }, 300)
 }
+
+// Duplicate name check (orga-wide)
+type NameConflictStatus = 'none' | 'other_model' | 'same_model'
+const nameConflictStatus = ref<NameConflictStatus>('none')
+const checkingName = ref(false)
+
+async function checkNameConflict(name: string) {
+  if (!name || !name.trim()) {
+    nameConflictStatus.value = 'none'
+    return
+  }
+  try {
+    checkingName.value = true
+    const results = (await useDirectus(
+      readItems('user_hangars', {
+        filter: {
+          name: { _eq: name.trim() },
+          deleted: { _eq: false },
+          group: { _eq: 'ariscorp' },
+          id: { _neq: props.item.id as any },
+        },
+        limit: 5,
+        fields: ['id', { ship_id: ['id', 'name'] }],
+      })
+    )) as UserHangar[]
+
+    if (!results || results.length === 0) {
+      nameConflictStatus.value = 'none'
+      return
+    }
+
+    const currentShipId = (props.item.ship_id as any)?.id || props.item.ship_id
+    const sameModel = results.some((r: any) => {
+      const s = r.ship_id as any
+      const sid = typeof s === 'string' ? s : s?.id
+      return String(sid) === String(currentShipId)
+    })
+    nameConflictStatus.value = sameModel ? 'same_model' : 'other_model'
+  } catch (e) {
+    // Fail open (no block)
+    nameConflictStatus.value = 'none'
+    console.error('Fehler bei Namensprüfung:', e)
+  } finally {
+    checkingName.value = false
+  }
+}
+
+watch(
+  () => formData.value.name,
+  (val) => {
+    // Lightweight debounce
+    const n = String(val || '')
+    // Fire immediately for short inputs too, backend will return empty
+    checkNameConflict(n)
+  },
+  { immediate: true }
+)
 
 const { data: departments } = useLazyAsyncData(
   'global:simple_departments',
@@ -97,6 +157,22 @@ const { data: departments } = useLazyAsyncData(
                     class="w-full"
                   />
                 </UFormField>
+                <UAlert
+                  v-if="nameConflictStatus === 'other_model'"
+                  color="warning"
+                  variant="subtle"
+                  title="Name bereits vergeben"
+                  :description="'Dieser Name wird bereits für ein anderes Schiffsmodell in der Orga verwendet. Du kannst ihn trotzdem nutzen.'"
+                  icon="i-lucide-alert-triangle"
+                />
+                <UAlert
+                  v-if="nameConflictStatus === 'same_model'"
+                  color="error"
+                  variant="subtle"
+                  title="Konflikt: Name mit gleichem Modell vorhanden"
+                  :description="'Für dieses Schiffsmodell existiert der Name bereits in der Orga. Bitte wähle einen anderen Namen.'"
+                  icon="i-lucide-x-circle"
+                />
                 <UFormField size="sm" label="Seriennummer">
                   <UInput
                     v-model="formData.serial"
@@ -423,6 +499,7 @@ const { data: departments } = useLazyAsyncData(
           color="success"
           size="lg"
           class="w-full justify-center"
+          :disabled="nameConflictStatus === 'same_model'"
         />
       </div>
     </template>

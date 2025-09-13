@@ -9,6 +9,16 @@ const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
   { department: ['id', 'name', 'logo'] },
   { active_module: ['id', 'name'] },
   {
+    user_id: [
+      'id',
+      'title',
+      'first_name',
+      'middle_name',
+      'last_name',
+      'avatar',
+    ],
+  },
+  {
     ship_id: [
       'id',
       'name',

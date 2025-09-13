@@ -1,4 +1,4 @@
-export async function removeHangarItem (id: number, fleetMode: boolean) {
+export async function removeHangarItem (id: number, fleetMode: boolean, refreshOverride?: () => void | Promise<void>) {
   const store = useAuthStore()
   const { currentUserId: userId } = storeToRefs(store)
 
@@ -7,5 +7,11 @@ export async function removeHangarItem (id: number, fleetMode: boolean) {
 
   await useDirectus(updateItem('user_hangars', id, {
     deleted: true
-  })).then(async () => fleetMode ? refreshFleet() : refreshHangar())
+  })).then(async () => {
+    if (refreshOverride) {
+      await refreshOverride()
+      return
+    }
+    fleetMode ? refreshFleet() : refreshHangar()
+  })
 }

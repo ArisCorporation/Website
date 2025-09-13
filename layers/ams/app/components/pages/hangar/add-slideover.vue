@@ -11,7 +11,10 @@ interface addItem {
 const emit = defineEmits(['added'])
 
 const store = useAuthStore()
-const { currentUserId: userId } = storeToRefs(store)
+const { currentUserId } = storeToRefs(store)
+
+const props = withDefaults(defineProps<{ userId?: string | number }>(), {})
+const targetUserId = computed(() => props.userId ?? currentUserId.value)
 
 const isOpen = ref<boolean>(false)
 const isLoading = ref<boolean>(false)
@@ -27,6 +30,74 @@ const initialShipState = (): addItem => ({
 const ships = ref<addItem[]>([
   { ship_id: null, name: '', group: 'ariscorp', visibility: 'public' },
 ])
+
+// Name conflict checking per item
+type NameConflictStatus = 'none' | 'other_model' | 'same_model'
+const nameConflictStatuses = ref<NameConflictStatus[]>(['none'])
+
+function ensureStatusSize() {
+  while (nameConflictStatuses.value.length < ships.value.length)
+    nameConflictStatuses.value.push('none')
+  while (nameConflictStatuses.value.length > ships.value.length)
+    nameConflictStatuses.value.pop()
+}
+
+watch(
+  () => ships.value.length,
+  () => ensureStatusSize()
+)
+
+async function checkItemNameConflict(index: number) {
+  const item = ships.value[index]
+  if (!item) return
+  const n = (item.name || '').trim()
+  // Only check for orga ships
+  if (!n || item.group !== 'ariscorp') {
+    nameConflictStatuses.value[index] = 'none'
+    return
+  }
+  try {
+    const results = (await useDirectus(
+      readItems('user_hangars', {
+        filter: {
+          name: { _eq: n },
+          deleted: { _eq: false },
+          group: { _eq: 'ariscorp' },
+        },
+        fields: ['id', { ship_id: ['id'] }],
+        limit: 5,
+      })
+    )) as UserHangar[]
+    if (!results?.length) {
+      nameConflictStatuses.value[index] = 'none'
+      return
+    }
+    const sameModel = results.some((r: any) => {
+      const s = r.ship_id as any
+      const sid = typeof s === 'string' ? s : s?.id
+      return item.ship_id && String(sid) === String(item.ship_id)
+    })
+    nameConflictStatuses.value[index] = sameModel ? 'same_model' : 'other_model'
+  } catch (e) {
+    console.error('Fehler bei Namensprüfung (add):', e)
+    nameConflictStatuses.value[index] = 'none'
+  }
+}
+
+watch(
+  () => ships.value.map((s) => `${s.group}|${s.name}|${s.ship_id}`).join('||'),
+  async () => {
+    ensureStatusSize()
+    await Promise.all(ships.value.map((_, i) => checkItemNameConflict(i)))
+  },
+  { immediate: true }
+)
+
+const hasBlockingNameConflict = computed(() =>
+  nameConflictStatuses.value.some(
+    (st, i) => st === 'same_model' && ships.value[i]?.group === 'ariscorp'
+  )
+)
 
 const { data: shipList } = await useAsyncData('ams:add-modal-ships', () =>
   useDirectus(
@@ -76,6 +147,11 @@ function closeSlideover() {
   ships.value = [initialShipState()]
 }
 
+function removeShipAt(index: number) {
+  ships.value.splice(index, 1)
+  nameConflictStatuses.value.splice(index, 1)
+}
+
 async function handleSubmit() {
   // if (!canSubmit.value) {
   //   // Optionally show a notification to the user
@@ -98,7 +174,7 @@ async function handleSubmit() {
               name: ship.name,
               group: ship.group,
               visibility: ship.visibility,
-              user_id: userId.value,
+              user_id: targetUserId.value,
             }
           : null
       )
@@ -145,7 +221,7 @@ async function handleSubmit() {
             <div class="w-full flex justify-between">
               <p class="text-(--ui-primary)">Schiff {{ index + 1 }}</p>
               <UButton
-                @click="ships.splice(index, 1)"
+                @click="removeShipAt(index)"
                 icon="i-lucide-x"
                 variant="outline"
                 color="error"
@@ -171,6 +247,30 @@ async function handleSubmit() {
                 class="w-full"
               />
             </UFormField>
+            <UAlert
+              v-if="
+                nameConflictStatuses[index] === 'other_model' &&
+                item.group === 'ariscorp' &&
+                item.name
+              "
+              color="warning"
+              variant="subtle"
+              title="Name bereits vergeben"
+              :description="'Dieser Name wird bereits für ein anderes Schiffsmodell in der Orga verwendet. Du kannst ihn trotzdem nutzen.'"
+              icon="i-lucide-alert-triangle"
+            />
+            <UAlert
+              v-if="
+                nameConflictStatuses[index] === 'same_model' &&
+                item.group === 'ariscorp' &&
+                item.name
+              "
+              color="error"
+              variant="subtle"
+              title="Konflikt: Name mit gleichem Modell vorhanden"
+              :description="'Für dieses Schiffsmodell existiert der Name bereits in der Orga. Bitte wähle einen anderen Namen.'"
+              icon="i-lucide-x-circle"
+            />
             <USeparator variant="ams" />
             <UFormField label="Zuordnung" required>
               <URadioGroup
@@ -236,11 +336,12 @@ async function handleSubmit() {
           highlight
           @click="
             ships.push({
-              ship: null,
+              ship_id: null,
               name: '',
               group: 'ariscorp',
               visibility: 'public',
-            })
+            }),
+              nameConflictStatuses.push('none')
           "
           variant="outlinedashed"
           label="Weiteres Schiff hinzufügen"
@@ -255,6 +356,7 @@ async function handleSubmit() {
         <UButton @click="isOpen = false" variant="outline" label="Abbrechen" />
         <UButton
           :loading="isLoading"
+          :disabled="isLoading || hasBlockingNameConflict"
           @click="handleSubmit"
           icon="i-lucide-check"
           trailing
