@@ -65,6 +65,7 @@ export default function useFetchAMSFleet () {
             user_id: { status: { _eq: 'active' } }
           },
           fields: USER_HANGAR_FIELDS,
+          limit: -1,
           sort: ['ship_id.name']
         })
       ) as UserHangar[]
