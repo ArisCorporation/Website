@@ -25,8 +25,8 @@ export const userProfileSchema = z.object({
   discord_id: z.string().optional().nullable(),
 
   sex: z.enum(['male', 'female']).optional().nullable(),
-  primary_department: z.string().optional().nullable(), // ID des Departments
-  secondary_department: z.string().optional().nullable(), // ID des Departments
+  primary_department: z.string().nullable().optional(), // ID des Departments
+  secondary_department: z.string().nullable().optional(), // ID des Departments
   // leading_department: z.string().optional().nullable(), // ID des Departments
   head_of_department: z.boolean().optional().nullable(),
 
@@ -276,15 +276,15 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         birthdate: pickedSourceData.birthdate ?? null, // Expects "YYYY-MM-DD" or similar string
         ...(typeof pickedSourceData.birthdate === 'string' && pickedSourceData.birthdate.includes('-')
           ? {
-              birthdate_day: Number(pickedSourceData.birthdate.split('-')[2] || '') || null,
-              birthdate_month: Number(pickedSourceData.birthdate.split('-')[1] || '') || null,
-              birthdate_year: Number(pickedSourceData.birthdate.split('-')[0] || '') || null,
-            }
+            birthdate_day: Number(pickedSourceData.birthdate.split('-')[2] || '') || null,
+            birthdate_month: Number(pickedSourceData.birthdate.split('-')[1] || '') || null,
+            birthdate_year: Number(pickedSourceData.birthdate.split('-')[0] || '') || null,
+          }
           : {
-              birthdate_day: null,
-              birthdate_month: null,
-              birthdate_year: null,
-            }),
+            birthdate_day: null,
+            birthdate_month: null,
+            birthdate_year: null,
+          }),
 
         citizen_state: (() => {
           if (pickedSourceData.citizen === true) return 'true';
@@ -413,15 +413,15 @@ export const useUserProfileEditStore = defineStore('userProfileEdit', {
         birthdate: pickedSourceData.birthdate ?? null,
         ...(typeof pickedSourceData.birthdate === 'string' && pickedSourceData.birthdate.includes('-')
           ? {
-              birthdate_day: Number(pickedSourceData.birthdate.split('-')[2] || '') || null,
-              birthdate_month: Number(pickedSourceData.birthdate.split('-')[1] || '') || null,
-              birthdate_year: Number(pickedSourceData.birthdate.split('-')[0] || '') || null,
-            }
+            birthdate_day: Number(pickedSourceData.birthdate.split('-')[2] || '') || null,
+            birthdate_month: Number(pickedSourceData.birthdate.split('-')[1] || '') || null,
+            birthdate_year: Number(pickedSourceData.birthdate.split('-')[0] || '') || null,
+          }
           : {
-              birthdate_day: null,
-              birthdate_month: null,
-              birthdate_year: null,
-            }),
+            birthdate_day: null,
+            birthdate_month: null,
+            birthdate_year: null,
+          }),
         citizen_state: (() => {
           if (pickedSourceData.citizen === true) return 'true';
           if (pickedSourceData.citizen === false) return 'false';

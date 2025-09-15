@@ -18,6 +18,7 @@ const { data, refresh } = await useAsyncData<DirectusUser[]>(
           { role: ['name', 'label'] },
           { primary_department: ['id', 'name', 'logo'] },
         ],
+        limit: -1,
       })
     )) as DirectusUser[]
   }

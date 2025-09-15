@@ -12,9 +12,9 @@ export const hangarItemSchema = z.object({
   serial: z.string().trim().optional(),
   group: z.enum(['ariscorp', 'private']),
   visibility: z.enum(['public', 'internal', 'hidden']),
-  department: z.string().optional(),
+  department: z.string().nullable().optional(),
   buy_status: z.enum(['pledged', 'in_game', 'planned']),
-  active_module: z.string().optional(),
+  active_module: z.string().nullable().optional(),
   // NOT EDITABLE:
   id: z.string().optional(),
   date_created: z.string().optional(),
