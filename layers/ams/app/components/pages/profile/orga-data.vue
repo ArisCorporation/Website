@@ -53,16 +53,24 @@ const { data: discordUserList, pending: discordUserListPending } = useAsyncData(
           size="xs"
           class="w-full"
         >
-          <USelectMenu
-            v-model="store.formData.primary_department"
-            :items="departments"
-            variant="ams"
-            size="md"
-            value-key="id"
-            label-key="name"
-            placeholder="z.B. Logistik"
-            class="w-full"
-          />
+          <div class="w-full flex gap-x-2">
+            <UButton
+              v-if="store.formData.primary_department"
+              @click="store.formData.primary_department = null"
+              icon="i-lucide-x"
+              variant="subtle"
+            />
+            <USelectMenu
+              v-model="store.formData.primary_department"
+              :items="departments"
+              variant="ams"
+              size="md"
+              value-key="id"
+              label-key="name"
+              placeholder="z.B. Logistik"
+              class="flex-1"
+            />
+          </div>
         </UFormField>
         <UFormField
           label="Rollen"
@@ -93,16 +101,24 @@ const { data: discordUserList, pending: discordUserListPending } = useAsyncData(
           size="xs"
           class="w-full"
         >
-          <USelectMenu
-            v-model="store.formData.secondary_department"
-            :items="departments"
-            variant="ams"
-            size="md"
-            value-key="id"
-            label-key="name"
-            placeholder="z.B. Logistik"
-            class="w-full"
-          />
+          <div class="w-full flex gap-x-2">
+            <UButton
+              v-if="store.formData.secondary_department"
+              @click="store.formData.secondary_department = null"
+              icon="i-lucide-x"
+              variant="subtle"
+            />
+            <USelectMenu
+              v-model="store.formData.secondary_department"
+              :items="departments"
+              variant="ams"
+              size="md"
+              value-key="id"
+              label-key="name"
+              placeholder="z.B. Logistik"
+              class="w-full"
+            />
+          </div>
         </UFormField>
         <UFormField
           label="Discord Benutzer"

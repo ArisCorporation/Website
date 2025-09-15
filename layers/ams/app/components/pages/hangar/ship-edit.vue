@@ -66,7 +66,7 @@ async function checkNameConflict(name: string) {
           group: { _eq: 'ariscorp' },
           id: { _neq: props.item.id as any },
         },
-        limit: 5,
+        limit: -1,
         fields: ['id', { ship_id: ['id', 'name'] }],
       })
     )) as UserHangar[]
@@ -227,15 +227,23 @@ const { data: departments } = useLazyAsyncData(
                   size="sm"
                   label="Abteilung"
                 >
-                  <USelectMenu
-                    v-model="formData.department"
-                    :items="departments"
-                    variant="ams"
-                    value-key="id"
-                    label-key="name"
-                    class="w-full"
-                    size="lg"
-                  />
+                  <div class="w-full flex gap-x-2">
+                    <UButton
+                      v-if="formData.department"
+                      @click="formData.department = null"
+                      icon="i-lucide-x"
+                      variant="subtle"
+                    />
+                    <USelectMenu
+                      v-model="formData.department"
+                      :items="departments"
+                      variant="ams"
+                      value-key="id"
+                      label-key="name"
+                      class="flex-1"
+                      size="lg"
+                    />
+                  </div>
                 </UFormField>
                 <UFormField size="sm" label="Sichtbarkeit">
                   <URadioGroup

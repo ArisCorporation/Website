@@ -93,7 +93,7 @@ export default defineAppConfig({
     selectMenu: {
       slots: {
         content: ['bg-(--ui-bg-muted)/50 backdrop-blur-sm ring-(--ui-primary)/20'],
-        item: 'cursor-pointer data-highlighted:not-data-disabled:before:bg-(--ui-bg-accented)/10 data-highlighted:not-data-disabled:before:backdrop-blur-xs',
+        item: 'cursor-pointer data-highlighted:not-data-disabled:before:bg-(--ui-bg-inverted)/5 data-highlighted:not-data-disabled:before:backdrop-blur-xs',
         input: 'border-(--ui-primary)/20'
       },
       variants: {

@@ -70,7 +70,7 @@ const memberSinceDate = computed(() => {
             </p>
           </div>
           <UTooltip
-            v-if="!data.head_of_department && data.department"
+            v-if="!data.head_of_department && data.primary_department"
             :text="`Abteilung: ${data?.primary_department?.name}`"
           >
             <NuxtImg
@@ -79,11 +79,11 @@ const memberSinceDate = computed(() => {
             />
           </UTooltip>
           <UTooltip
-            v-else-if="data.leading_department"
-            :text="`Abteilungsleiter: ${data?.leading_department?.name}`"
+            v-else-if="data.head_of_department && data.primary_department"
+            :text="`Abteilungsleiter: ${data?.primary_department?.name}`"
           >
             <NuxtImg
-              :src="getAssetId(data.leading_department?.logo)"
+              :src="getAssetId(data.primary_department?.logo)"
               class="size-12 animate-pulse-glow rounded-full"
             />
           </UTooltip>
