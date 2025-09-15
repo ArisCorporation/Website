@@ -380,7 +380,7 @@ onMounted(() => {
                       v-if="selectedRows.length > 1"
                       :key="item.id"
                       :label="item.first_name"
-                      :src="$config.public.fileBase + (item.avatar ?? 'c46969b5-8414-49cd-ab90-cb71dd2a3e57')"
+                      :src="$config.public.fileBase + (item.avatar ?? '88adb941-f746-405d-bcc4-c2804fb48e33')"
                       :size="32"
                     />
                     <NuxtLink
@@ -394,7 +394,7 @@ onMounted(() => {
                           size="xs"
                           :label="selectedRows[0].first_name"
                           :src="
-                            $config.public.fileBase + (selectedRows[0].avatar ?? 'c46969b5-8414-49cd-ab90-cb71dd2a3e57')
+                            $config.public.fileBase + (selectedRows[0].avatar ?? '88adb941-f746-405d-bcc4-c2804fb48e33')
                           "
                           :size="32"
                         />
@@ -404,7 +404,7 @@ onMounted(() => {
                     <UAvatar
                       v-else
                       label="'None'"
-                      :src="$config.public.fileBase + 'c46969b5-8414-49cd-ab90-cb71dd2a3e57'"
+                      :src="$config.public.fileBase + '88adb941-f746-405d-bcc4-c2804fb48e33'"
                       :size="32"
                     />
                   </UAvatarGroup>

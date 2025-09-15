@@ -80,7 +80,7 @@ async function saveAvatar() {
       avatarUploadLoading.value = false;
       modalStore.closeModal();
 
-      if (old_avatar !== 'c46969b5-8414-49cd-ab90-cb71dd2a3e57') await directus.request(deleteFile(old_avatar));
+      if (old_avatar !== '88adb941-f746-405d-bcc4-c2804fb48e33') await directus.request(deleteFile(old_avatar));
     } catch (e) {
       console.error(e);
     } finally {
