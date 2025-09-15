@@ -58,10 +58,10 @@ export default function (obj: any) {
     ...(obj.discord_name && { discord_name: obj.discord_name }),
     ...(obj.discord_id && { discord_id: obj.discord_id }),
     ...(obj.rsi_handle && { rsi_handle: obj.rsi_handle }),
-    avatar: obj.avatar ? obj.avatar : 'c46969b5-8414-49cd-ab90-cb71dd2a3e57',
+    avatar: obj.avatar ? obj.avatar : '88adb941-f746-405d-bcc4-c2804fb48e33',
     avatar_url: obj.avatar
       ? 'https://studio.ariscorp.de/assets/' + obj.avatar
-      : 'https://studio.ariscorp.de/assets/' + 'c46969b5-8414-49cd-ab90-cb71dd2a3e57',
+      : 'https://studio.ariscorp.de/assets/' + '88adb941-f746-405d-bcc4-c2804fb48e33',
     ...(obj.sex && {
       sex: obj.sex === 'female' ? 'Weiblich' : 'Männlich',
       sex_value: obj.sex,

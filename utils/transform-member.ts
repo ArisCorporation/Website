@@ -42,7 +42,7 @@ export default function (obj: any) {
     title: obj.title,
     fullName: getFullName(),
     slug: obj.slug,
-    potrait: obj.member_potrait?.id || 'c46969b5-8414-49cd-ab90-cb71dd2a3e57',
+    potrait: obj.member_potrait?.id || '88adb941-f746-405d-bcc4-c2804fb48e33',
     sex: obj.sex,
     pronom: getPronom(),
     roles: getRoles(),
