@@ -227,12 +227,13 @@ const { data: departments } = useLazyAsyncData(
                   size="sm"
                   label="Abteilung"
                 >
-                  <div class="w-full flex gap-x-2">
+                  <div class="w-full h-fit flex gap-x-2">
                     <UButton
                       v-if="formData.department"
                       @click="formData.department = null"
                       icon="i-lucide-x"
                       variant="subtle"
+                      size="lg"
                     />
                     <USelectMenu
                       v-model="formData.department"
