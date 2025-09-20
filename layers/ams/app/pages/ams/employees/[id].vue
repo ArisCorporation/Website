@@ -4,6 +4,7 @@ import type {
   DirectusRole,
   DirectusUser,
   LandingZone,
+  UserHangar,
 } from '~~/types'
 
 const route = useRoute()
@@ -18,6 +19,7 @@ const { data: employee } = await useAsyncData<DirectusUser>(
       readUser(employeeId, {
         fields: [
           '*',
+          { hangar_items: USER_HANGAR_FIELDS },
           { primary_department: ['name', 'logo'] },
           { secondary_department: ['name', 'logo'] },
           { role: ['name', 'label'] },
@@ -425,6 +427,16 @@ const sideTables = computed<ITables[]>(() => {
   ]
 })
 
+const tabs = computed(() => [
+  { label: 'Steckbrief', slot: 'profile' },
+  ...(employee.value?.biography
+    ? [{ label: 'Biografie', slot: 'biography' }]
+    : []),
+  ...(employee.value?.hangar_items?.length
+    ? [{ label: 'Hangar', slot: 'hangar' }]
+    : []),
+])
+
 definePageMeta({
   layout: 'ams',
   auth: true,
@@ -544,16 +556,7 @@ definePageMeta({
 
       <div class="col-span-12 xl:col-span-8">
         <UTabs
-          :items="[
-            {
-              label: 'Steckbrief',
-              slot: 'profile',
-            },
-            {
-              label: 'Biografie',
-              slot: 'biography',
-            },
-          ]"
+          :items="tabs"
           class="w-full"
           :ui="{
             list: 'border border-(--ui-primary)/10 bg-(--ui-bg-muted)/70',
@@ -633,72 +636,17 @@ definePageMeta({
               </UCard>
             </div>
           </template>
-          <template #citizenship>
-            <div class="space-y-6">
-              <UCard variant="ams" class="!shadow-none">
-                <template #header>
-                  <div class="prose-h4:my-0 prose-p:my-0">
-                    <h4>Bürgerstatus</h4>
-                    <p class="text-xs pt-1 text-(--ui-text-muted)">
-                      Hier kannst du dein Bürgerstatus festlegen
-                    </p>
-                  </div>
-                </template>
-                <template #default>
-                  <AMSPagesProfileBaseDataCitizenshipTab />
-                </template>
-              </UCard>
-            </div>
-          </template>
-          <template #details>
-            <div class="space-y-6">
-              <UCard variant="ams" class="!shadow-none">
-                <template #header>
-                  <div class="prose-h4:my-0 prose-p:my-0">
-                    <h4>Detail Informationen</h4>
-                    <p class="text-xs pt-1 text-(--ui-text-muted)">
-                      Details zu deiner Person und deinem Geschmack
-                    </p>
-                  </div>
-                </template>
-                <template #default>
-                  <AMSPagesProfileBaseDataDetailsTab />
-                </template>
-              </UCard>
-            </div>
-          </template>
-          <template #military>
-            <div class="space-y-6">
-              <UCard variant="ams" class="!shadow-none">
-                <template #header>
-                  <div class="prose-h4:my-0 prose-p:my-0">
-                    <h4>Militärdienst</h4>
-                    <p class="text-xs pt-1 text-(--ui-text-muted)">
-                      Informationen zu deinem Militärdienst
-                    </p>
-                  </div>
-                </template>
-                <template #default>
-                  <AMSPagesProfileBaseDataMilitaryTab />
-                </template>
-              </UCard>
-            </div>
-          </template>
-          <template #education>
-            <div class="space-y-6">
-              <UCard variant="ams" class="!shadow-none">
-                <template #header>
-                  <div class="prose-h4:my-0 prose-p:my-0">
-                    <h4>Hochschulausbildung</h4>
-                    <p class="text-xs pt-1 text-(--ui-text-muted)">
-                      Informationen zu deiner Hochschulausbildung
-                    </p>
-                  </div>
-                </template>
-                <template #default>
-                  <AMSPagesProfileBaseDataEducationTab />
-                </template>
-              </UCard>
+          <template #hangar>
+            <div
+              class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3"
+            >
+              <AMSUiShipCard
+                v-for="ship in employee.hangar_items"
+                :key="ship.id"
+                mode="hangar-item"
+                :data="ship as UserHangar"
+                :fleetMode="true"
+              />
             </div>
           </template>
         </UTabs>

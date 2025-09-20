@@ -322,14 +322,25 @@ const sidebarItems = computed<sidebarElement[]>(() => {
                   </p>
                 </div>
               </div>
-              <UButton
-                @click="authStore.logoutAndRedirect()"
-                variant="outline"
-                icon="i-lucide-log-out"
-                class="h-9 px-3 text-sm text-gray-300 hover:text-(--ui-primary) flex justify-center"
-              >
-                Logout
-              </UButton>
+              <div class="flex w-full gap-x-2">
+                <UTooltip text="Zurück zur Homepage"">
+                  <UButton
+                    to="https://ariscorp.de"
+                    variant="outline"
+                    icon="i-lucide-house"
+                    size="lg"
+                    class="text-gray-300"
+                  />
+                </UTooltip>
+                <UButton
+                  @click="authStore.logoutAndRedirect()"
+                  variant="outline"
+                  icon="i-lucide-log-out"
+                  class="h-9 px-3 text-sm text-gray-300 hover:text-(--ui-primary) flex-1 flex justify-center"
+                >
+                  Logout
+                </UButton>
+              </div>
             </div>
           </div>
         </div>

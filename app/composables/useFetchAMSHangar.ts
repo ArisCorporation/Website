@@ -4,7 +4,7 @@ import { type Ref, computed } from 'vue'
 import type { Schema, UserHangar } from '~~/types'
 
 // Definiere die Felder-Struktur für bessere Lesbarkeit und Wartbarkeit
-const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
+export const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
   '*',
   { department: ['id', 'name', 'logo'] },
   { active_module: ['id', 'name'] },

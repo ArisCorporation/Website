@@ -14,6 +14,7 @@ const { data, refresh } = await useAsyncData<DirectusUser[]>(
           'middle_name',
           'title',
           'avatar',
+          'discord_id',
           'head_of_department',
           { role: ['name', 'label'] },
           { primary_department: ['id', 'name', 'logo'] },

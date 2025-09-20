@@ -28,12 +28,19 @@ const showEditModal = ref(false)
 const showBioModal = ref(false)
 const showHangarModal = ref(false)
 const showOrgaModal = ref(false)
+const showPasswordResetModal = ref(false)
 const selectedUser = ref<DirectusUser | null>(null)
 const orgaSelectedUser = ref<DirectusUser | null>(null)
 const profileEdit = useUserProfileEditStore()
 const toast = useToast()
 const authStore = useAuthStore()
 const { currentUserId } = storeToRefs(authStore)
+
+const passwordResetInfo = reactive({
+  password: '',
+  userLabel: '',
+})
+const resettingPasswordForUserId = ref<string | null>(null)
 
 // Admin avatar change helpers
 const adminAvatarFileInputRef = useTemplateRef('adminAvatarFileInputRef')
@@ -262,6 +269,55 @@ async function switchHeadOfDepartment() {
   }
 }
 
+function generateSecureTempPassword(length = 8) {
+  const minLength = Math.max(length, 4)
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz'
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const digits = '0123456789'
+  const specials = '!@#$%^&*()-_=+[]{}<>?'
+  const all = lowercase + uppercase + digits + specials
+
+  const getCryptoInstance = () =>
+    (globalThis as any)?.crypto || (globalThis as any)?.webcrypto
+
+  const randomFrom = (source: string) => {
+    if (!source.length) return ''
+    const cryptoInstance = getCryptoInstance()
+    if (cryptoInstance?.getRandomValues) {
+      const buffer = new Uint32Array(1)
+      cryptoInstance.getRandomValues(buffer)
+      return source[buffer[0] % source.length]
+    }
+    return source[Math.floor(Math.random() * source.length)]
+  }
+
+  const randomIndex = (max: number) => {
+    const cryptoInstance = getCryptoInstance()
+    if (cryptoInstance?.getRandomValues) {
+      const buffer = new Uint32Array(1)
+      cryptoInstance.getRandomValues(buffer)
+      return buffer[0] % (max + 1)
+    }
+    return Math.floor(Math.random() * (max + 1))
+  }
+
+  const chars = [
+    randomFrom(lowercase),
+    randomFrom(uppercase),
+    randomFrom(digits),
+    randomFrom(specials),
+  ]
+
+  while (chars.length < minLength) chars.push(randomFrom(all))
+
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = randomIndex(i)
+    ;[chars[i], chars[j]] = [chars[j], chars[i]]
+  }
+
+  return chars.join('').slice(0, length)
+}
+
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
 const UCheckbox = resolveComponent('UCheckbox')
@@ -376,6 +432,80 @@ async function unlock_user(id: string) {
   )
 
   emit('refreshData')
+}
+
+async function resetUserPassword(user: DirectusUser) {
+  if (resettingPasswordForUserId.value) return
+  const newPassword = generateSecureTempPassword(8)
+  resettingPasswordForUserId.value = user.id
+
+  try {
+    await useDirectus(
+      updateUser(user.id, {
+        password: newPassword,
+        temporary_password: true,
+      })
+    )
+
+    let dmSent = false
+
+    if (user.discord_id) {
+      try {
+        await $fetch('/api/ams/send-password-reset-dm', {
+          method: 'POST',
+          body: {
+            discordId: user.discord_id,
+            password: newPassword,
+            userLabel: getUserLabel(user),
+          },
+        })
+        dmSent = true
+      } catch (error) {
+        console.error(
+          'Discord password reset DM failed:',
+          error instanceof Error ? error.message : error
+        )
+      }
+    }
+
+    if (dmSent) {
+      toast.add({
+        title: 'Passwort zurückgesetzt',
+        description: 'Das neue Passwort wurde per Discord versendet.',
+        color: 'success',
+        icon: 'i-lucide-send',
+      })
+    } else {
+      passwordResetInfo.password = newPassword
+      passwordResetInfo.userLabel = getUserLabel(user)
+      showPasswordResetModal.value = true
+      toast.add({
+        title: 'Passwort zurückgesetzt',
+        description: user.discord_id
+          ? 'Discord-Nachricht konnte nicht gesendet werden. Bitte gib das Passwort manuell weiter.'
+          : 'Keine Discord-ID vorhanden. Bitte gib das Passwort manuell weiter.',
+        color: 'warning',
+        icon: 'i-lucide-alert-triangle',
+      })
+    }
+
+    emit('refreshData')
+  } catch (error) {
+    console.error('Passwort zurücksetzen fehlgeschlagen:', error)
+    toast.add({
+      title: 'Fehler beim Zurücksetzen',
+      color: 'error',
+      icon: 'i-lucide-alert-triangle',
+    })
+  } finally {
+    resettingPasswordForUserId.value = null
+  }
+}
+
+function closePasswordResetModal() {
+  showPasswordResetModal.value = false
+  passwordResetInfo.password = ''
+  passwordResetInfo.userLabel = ''
 }
 
 async function openEditProfile(user: DirectusUser) {
@@ -606,6 +736,12 @@ function getDropdownActions(user: DirectusUser): DropdownMenuItem[][] {
         label: 'Orga-Daten editieren',
         icon: 'i-lucide-briefcase',
         onSelect: () => openEditOrga(user),
+        class: 'active:scale-95 transition',
+      },
+      {
+        label: 'Passwort zurücksetzen',
+        icon: 'i-lucide-lock',
+        onSelect: () => resetUserPassword(user),
         class: 'active:scale-95 transition',
       },
     ],
@@ -1056,6 +1192,39 @@ function getDropdownActions(user: DirectusUser): DropdownMenuItem[][] {
               @click="closeEditBiography"
               >Abbrechen</UButton
             >
+          </div>
+        </template>
+      </UCard>
+    </template>
+  </UModal>
+
+  <UModal
+    v-model:open="showPasswordResetModal"
+    @close="closePasswordResetModal"
+    :ui="{ content: 'max-w-md overflow-y-auto' }"
+  >
+    <template #content>
+      <UCard variant="amsModal">
+        <template #header>
+          <h2>Temporäres Passwort</h2>
+        </template>
+        <template #default>
+          <div class="space-y-4">
+            <p class="text-(--ui-text-muted)">
+              Bitte leite das Passwort an
+              <strong>{{ passwordResetInfo.userLabel || 'den Nutzer' }}</strong>
+              weiter. Beim nächsten Login wird eine Passwortänderung verlangt.
+            </p>
+            <div
+              class="bg-(--ui-primary)/10 border border-(--ui-primary)/30 rounded px-4 py-3 font-mono text-lg tracking-wide break-all"
+            >
+              {{ passwordResetInfo.password }}
+            </div>
+          </div>
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <UButton @click="closePasswordResetModal">Schließen</UButton>
           </div>
         </template>
       </UCard>
