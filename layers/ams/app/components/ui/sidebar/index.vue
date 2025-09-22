@@ -323,7 +323,7 @@ const sidebarItems = computed<sidebarElement[]>(() => {
                 </div>
               </div>
               <div class="flex w-full gap-x-2">
-                <UTooltip text="Zurück zur Homepage"">
+                <UTooltip text="Zurück zur Homepage">
                   <UButton
                     to="https://ariscorp.de"
                     variant="outline"
