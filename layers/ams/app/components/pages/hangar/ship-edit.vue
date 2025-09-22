@@ -63,7 +63,6 @@ async function checkNameConflict(name: string) {
         filter: {
           name: { _eq: name.trim() },
           deleted: { _eq: false },
-          group: { _eq: 'ariscorp' },
           id: { _neq: props.item.id as any },
         },
         limit: -1,

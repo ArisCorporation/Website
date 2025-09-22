@@ -42,6 +42,14 @@ const { data: employee } = await useAsyncData<DirectusUser>(
             ],
           },
         ],
+        deep: {
+          hangar_items: {
+            _filter: {
+              deleted: { _eq: false },
+              visibility: { _neq: 'hidden' },
+            },
+          },
+        },
       })
     )) as DirectusUser
   }

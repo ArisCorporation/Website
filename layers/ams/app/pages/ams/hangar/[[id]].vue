@@ -53,7 +53,10 @@ useLazyAsyncData('global:simple_departments', () =>
   )
 )
 
-const { data, pending, refresh } = await useFetchAMSHangar(targetUserId)
+const { data, pending, refresh } = await useFetchAMSHangar(
+  targetUserId,
+  routeId.value
+)
 
 // Ensure fetch runs once the currentUserId is available when no id param is provided
 watch(
