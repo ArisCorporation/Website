@@ -47,7 +47,7 @@ export const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
   },
 ]
 
-export default function useFetchAMSHangar (userId: Ref<string | number | undefined>) {
+export default function useFetchAMSHangar (userId: Ref<string | number | undefined>, routeId: string | undefined) {
   // Rufe useAsyncData mit dem reaktiven Key und der fetchData-Funktion auf.
   // Das zurückgegebene Objekt enthält data, pending, error, refresh usw.
   // und ist "awaitable", d.h. `await useUserHangarData(userId)` in der Komponente funktioniert.
@@ -58,7 +58,8 @@ export default function useFetchAMSHangar (userId: Ref<string | number | undefin
         readItems('user_hangars', {
           filter: {
             user_id: { _eq: userId.value },
-            deleted: { _eq: false }
+            deleted: { _eq: false },
+            ...routeId ? { visibility: { _neq: 'hidden' } } : {}
           },
           fields: USER_HANGAR_FIELDS,
           sort: ['ship_id.name']
