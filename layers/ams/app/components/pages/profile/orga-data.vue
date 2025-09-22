@@ -139,7 +139,7 @@ const { data: discordUserList, pending: discordUserListPending } = useAsyncData(
             value-key="id"
             :loading="discordUserListPending"
           >
-            <template #leading="">
+            <template #leading>
               <img
                 v-if="store.formData.discord_id"
                 :src="

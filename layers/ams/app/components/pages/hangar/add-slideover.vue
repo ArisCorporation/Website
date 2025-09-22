@@ -315,7 +315,9 @@ async function handleSubmit() {
               />
               <USkeleton v-else class="size-12 rounded-md" />
               <div v-if="item.ship_id" class="flex-1">
-                <strong class="pb-1 block">{{ item.name ?? '' }}</strong>
+                <strong class="pb-1 block">{{
+                  getShip(item)?.name ?? ''
+                }}</strong>
                 <p class="!m-0 text-(--ui-text-muted) text-xs">
                   <span
                     >{{

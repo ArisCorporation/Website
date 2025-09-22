@@ -279,7 +279,7 @@ async function handleCreate() {
                 value-key="id"
                 :loading="discordUserListPending"
               >
-                <template #leading="">
+                <template #leading>
                   <img
                     v-if="form.discord_id"
                     :src="
