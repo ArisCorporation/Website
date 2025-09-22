@@ -113,7 +113,7 @@ async function handleCreate() {
       discord_id: form.discord_id || null,
     }
 
-    await useDirectus(createItems('directus_users', payload))
+    await useDirectus(createUser(payload))
 
     if (form.send_discord_dm && form.discord_id) {
       const created_date = new Date()
@@ -333,7 +333,9 @@ async function handleCreate() {
         <UButton @click="isOpen = false" variant="outline" label="Abbrechen" />
         <UButton
           :loading="isLoading"
-          :disabled="isLoading || !form.first_name || !form.role || !form.discord_id"
+          :disabled="
+            isLoading || !form.first_name || !form.role || !form.discord_id
+          "
           @click="handleCreate"
           icon="i-lucide-check"
           trailing
