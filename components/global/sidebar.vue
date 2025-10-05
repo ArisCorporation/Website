@@ -55,7 +55,7 @@ defineProps({
     aria-label="Sidebar"
   >
     <div class="relative h-full pb-4 overflow-y-auto bg-bsecondary">
-      <div class="flex w-full px-4">
+      <div class="flex w-full p-4">
         <Icon :name="banner" class="w-3/4 px-4 mx-auto -mt-0.5 -mb-0.5 h-auto" />
       </div>
       <ul class="p-0 font-medium list-none basis-full">
