@@ -139,7 +139,7 @@ const commLinkSchema = z.object({
   name: z
     .string()
     .min(1, 'Titel ist erforderlich')
-    .max(50, 'Titel ist zu lang')
+    .max(70, 'Titel ist zu lang')
     .trim(),
   status: z.enum(['draft', 'published'], {
     message: 'Status ist erforderlich',
