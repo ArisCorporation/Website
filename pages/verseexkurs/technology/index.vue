@@ -315,7 +315,7 @@
                     ]"
                     @mouseover="() => setSelectedTech('41db2450-c335-4bfb-bdc3-c21ca8c934e7')"
                     @mouseleave="() => setSelectedTech(undefined)"
-                    @click="() => router.push('/verseexkurs/technology/radar-und-signaturen')"
+                    @click="() => router.push('/verseexkurs/technology/radar-scanner-und-signaturen')"
                   >
                     <path
                       id="radar1"
