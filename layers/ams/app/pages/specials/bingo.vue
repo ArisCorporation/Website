@@ -23,30 +23,30 @@ useSeoMeta({
 
 const toast = useToast()
 const phrases: string[] = [
-  'Hangar im AMS aktualisiert',
-  'Neues Crewmitglied eingetragen',
-  'Frachtlieferung erfolgreich abgeschlossen',
-  'Mining-Run für ArisCorp beendet',
-  'Bounty gemeinsam erledigt',
-  'Reparaturauftrag dokumentiert',
-  'Routinen-Check im Fleet Manager',
-  'Schiffsladung versichert',
-  'Meeting mit der Flight Crew gehalten',
-  'Comm-Link Beitrag veröffentlicht',
-  'Screenshot in der Orga geteilt',
-  'Route im Verse Navigator geplant',
-  'Trainingseinheit mit der Crew abgeschlossen',
-  'Ressourcen im Depot aufgefüllt',
-  'Neuen Auftrag im AMS angenommen',
-  'Statusbericht im Log hinterlassen',
-  'Support-Ticket beantwortet',
-  'Handelsroute profitabel abgeschlossen',
-  'Multi-Crew Mission koordiniert',
-  'Ausrüstung im Hangar sortiert',
-  'Rekrutierungsgespräch geführt',
-  'Event im Kalender erstellt',
-  'Sicherheitscheck durchgeführt',
-  'Crewbriefing vorbereitet',
+  'Nyx',
+  'Castra',
+  'Dynamic Server Meshing',
+  'Hacking Gameplay',
+  'Engineering',
+  'Battlecruiser Concept',
+  'Maelstrom',
+  'Player to Player Trading',
+  'Crafting',
+  'Perseus',
+  'FPS Scanning',
+  'Kraken',
+  'Terra',
+  'Map Marker',
+  'Inventory Rework',
+  'New Quantum System',
+  'New Flight-Ready Ship',
+  'Base Building',
+  'SQ42 Release Date',
+  'Social System',
+  'Control Surfaces',
+  'Data Running',
+  'Bounty Hunting V2',
+  'Additional Hauling Gameplay',
 ]
 
 function buildBoard(): BingoCell[] {
@@ -146,19 +146,21 @@ const completedCellIndices = computed<Set<number>>(
 )
 const hasBingo = computed(() => completedLines.value.length > 0)
 
-watch(
-  hasBingo,
-  (value, previousValue) => {
-    if (value && !previousValue) {
-      showCelebration.value = true
-    } else if (!value) {
-      showCelebration.value = false
-    }
+watch(hasBingo, (value, previousValue) => {
+  if (value && !previousValue) {
+    showCelebration.value = true
+  } else if (!value) {
+    showCelebration.value = false
   }
-)
+})
 
 function closeCelebration() {
   showCelebration.value = false
+}
+
+async function handleCelebrationExport() {
+  await exportBoardAsImage()
+  closeCelebration()
 }
 
 function drawRoundedRect(
@@ -175,7 +177,12 @@ function drawRoundedRect(
   ctx.lineTo(x + width - clampedRadius, y)
   ctx.quadraticCurveTo(x + width, y, x + width, y + clampedRadius)
   ctx.lineTo(x + width, y + height - clampedRadius)
-  ctx.quadraticCurveTo(x + width, y + height, x + width - clampedRadius, y + height)
+  ctx.quadraticCurveTo(
+    x + width,
+    y + height,
+    x + width - clampedRadius,
+    y + height
+  )
   ctx.lineTo(x + clampedRadius, y + height)
   ctx.quadraticCurveTo(x, y + height, x, y + height - clampedRadius)
   ctx.lineTo(x, y + clampedRadius)
@@ -247,7 +254,14 @@ async function exportBoardAsImage() {
     ctx.fillStyle = '#0f172a'
     ctx.shadowColor = 'rgba(15,90,255,0.12)'
     ctx.shadowBlur = 60
-    drawRoundedRect(ctx, padding / 2, padding / 2, canvasWidth - padding, canvasHeight - padding, 48)
+    drawRoundedRect(
+      ctx,
+      padding / 2,
+      padding / 2,
+      canvasWidth - padding,
+      canvasHeight - padding,
+      48
+    )
     ctx.fill()
     ctx.shadowColor = 'transparent'
     ctx.shadowBlur = 0
@@ -293,7 +307,12 @@ async function exportBoardAsImage() {
       drawRoundedRect(ctx, x, y, cellWidth, cellHeight, 28)
       ctx.save()
       if (cell.active) {
-        const gradient = ctx.createLinearGradient(x, y, x + cellWidth, y + cellHeight)
+        const gradient = ctx.createLinearGradient(
+          x,
+          y,
+          x + cellWidth,
+          y + cellHeight
+        )
         gradient.addColorStop(0, 'rgba(13,91,255,0.75)')
         gradient.addColorStop(1, 'rgba(13,91,255,0.25)')
         ctx.fillStyle = gradient
@@ -310,8 +329,8 @@ async function exportBoardAsImage() {
       ctx.strokeStyle = isCompleted
         ? 'rgba(125,179,255,0.9)'
         : cell.active
-          ? 'rgba(255,255,255,0.3)'
-          : 'rgba(148,163,184,0.25)'
+        ? 'rgba(255,255,255,0.3)'
+        : 'rgba(148,163,184,0.25)'
       drawRoundedRect(ctx, x, y, cellWidth, cellHeight, 28)
       ctx.stroke()
       ctx.restore()
@@ -323,7 +342,9 @@ async function exportBoardAsImage() {
       ctx.textAlign = 'left'
       ctx.textBaseline = 'alphabetic'
       ctx.font = '600 16px "Inter", "Helvetica Neue", sans-serif'
-      ctx.fillStyle = cell.active ? 'rgba(241,245,249,0.88)' : 'rgba(147,197,253,0.8)'
+      ctx.fillStyle = cell.active
+        ? 'rgba(241,245,249,0.88)'
+        : 'rgba(147,197,253,0.8)'
       ctx.fillText(cell.isFree ? 'FREI' : 'AMS', textX, textY)
       ctx.restore()
 
@@ -421,7 +442,9 @@ async function exportBoardAsImage() {
 
 <template>
   <div class="min-h-screen bg-[color:var(--ui-page,#020617)] py-12 text-white">
-    <div class="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 sm:px-6 lg:px-8">
+    <div
+      class="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 sm:px-6 lg:px-8"
+    >
       <header
         class="flex flex-col gap-6 rounded-2xl border border-(--ui-primary)/20 bg-white/5 p-6 shadow-[0_0_45px_rgba(15,90,255,0.08)] backdrop-blur-md sm:flex-row sm:items-center sm:justify-between"
       >
@@ -429,13 +452,18 @@ async function exportBoardAsImage() {
           <span
             class="flex h-12 w-12 items-center justify-center rounded-xl border border-(--ui-primary)/40 bg-(--ui-primary)/15"
           >
-            <UIcon name="i-lucide-sparkles" class="h-6 w-6 text-(--ui-primary)" />
+            <UIcon
+              name="i-lucide-sparkles"
+              class="h-6 w-6 text-(--ui-primary)"
+            />
           </span>
           <div class="space-y-2">
-            <h1 class="text-3xl font-semibold tracking-tight text-white">AMS Bingo</h1>
+            <h1 class="text-3xl font-semibold tracking-tight text-white">
+              AMS Bingo
+            </h1>
             <p class="max-w-xl text-sm text-muted-foreground">
-              Sammle Momente aus deinem Aris Management Alltag. Fünf markierte Felder in einer
-              Reihe bescheren dir ein verdientes Bingo.
+              Sammle Momente aus deinem Aris Management Alltag. Fünf markierte
+              Felder in einer Reihe bescheren dir ein verdientes Bingo.
             </p>
           </div>
         </div>
@@ -448,7 +476,12 @@ async function exportBoardAsImage() {
           >
             Als Bild exportieren
           </UButton>
-          <UButton color="primary" variant="soft" icon="i-lucide-shuffle" @click="shuffleBoard">
+          <UButton
+            color="primary"
+            variant="soft"
+            icon="i-lucide-shuffle"
+            @click="shuffleBoard"
+          >
             Neu mischen
           </UButton>
           <UButton
@@ -489,7 +522,11 @@ async function exportBoardAsImage() {
             </span>
             <span
               class="text-[11px] font-semibold uppercase tracking-[0.4em]"
-              :class="cell.active ? 'text-white/80 drop-shadow-[0_0_12px_rgba(11,92,255,0.6)]' : 'text-(--ui-primary)/70'"
+              :class="
+                cell.active
+                  ? 'text-white/80 drop-shadow-[0_0_12px_rgba(11,92,255,0.6)]'
+                  : 'text-(--ui-primary)/70'
+              "
             >
               {{ cell.isFree ? 'FREI' : 'AMS' }}
             </span>
@@ -514,10 +551,16 @@ async function exportBoardAsImage() {
           v-if="hasBingo"
           class="flex items-center gap-3 rounded-2xl border border-(--ui-primary)/40 bg-(--ui-primary)/15 px-5 py-4 text-white shadow-[0_0_35px_rgba(15,90,255,0.22)]"
         >
-          <UIcon name="i-lucide-party-popper" class="h-6 w-6 text-(--ui-primary)" />
+          <UIcon
+            name="i-lucide-party-popper"
+            class="h-6 w-6 text-(--ui-primary)"
+          />
           <p class="text-sm font-semibold">
             Bingo! Du hast {{ completedLines.length }}
-            {{ completedLines.length === 1 ? 'Linie' : 'Linien' }} abgeschlossen.
+            {{
+              completedLines.length === 1 ? 'Linie' : 'Linien'
+            }}
+            abgeschlossen.
           </p>
         </div>
       </transition>
@@ -545,16 +588,22 @@ async function exportBoardAsImage() {
           <span
             class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-white/80"
           >
-            <UIcon name="i-lucide-sparkles" class="h-4 w-4 text-(--ui-primary)" />
+            <UIcon
+              name="i-lucide-sparkles"
+              class="h-4 w-4 text-(--ui-primary)"
+            />
             Bingo Confirmed
           </span>
-          <h2 class="text-4xl font-semibold leading-tight text-white md:text-5xl">
+          <h2
+            class="text-4xl font-semibold leading-tight text-white md:text-5xl"
+          >
             ArisCorp Crew hat Bingo!
           </h2>
           <p class="max-w-xl text-sm text-slate-200/80 md:text-base">
             {{ completedLines.length }}
-            {{ completedLines.length === 1 ? 'Linie' : 'Linien' }} abgeschlossen – starke Leistung!
-            Teile den Moment mit deiner Crew oder starte direkt in die nächste Runde.
+            {{ completedLines.length === 1 ? 'Linie' : 'Linien' }} abgeschlossen
+            – starke Leistung! Teile den Moment mit deiner Crew oder starte
+            direkt in die nächste Runde.
           </p>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-3">
@@ -570,10 +619,7 @@ async function exportBoardAsImage() {
             color="gray"
             icon="i-lucide-image-down"
             :loading="isExporting"
-            @click="
-              exportBoardAsImage();
-              closeCelebration();
-            "
+            @click="handleCelebrationExport"
           >
             Bingo speichern
           </UButton>
