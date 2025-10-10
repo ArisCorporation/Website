@@ -57,7 +57,7 @@ function buildBoard(): BingoCell[] {
     if (index === centerIndex) {
       cells.push({
         id: 'free-field',
-        label: 'Freifeld für loyale ArisCorp Crew',
+        label: 'Technische Schwierigkeiten',
         active: true,
         isFree: true,
       })
@@ -443,33 +443,190 @@ async function exportBoardAsImage() {
 <template>
   <div class="min-h-screen bg-[color:var(--ui-page,#020617)] py-12 text-white">
     <div
-      class="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 sm:px-6 lg:px-8"
+      class="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 sm:px-6 lg:px-8 lg:pr-24"
     >
-      <header
-        class="flex flex-col gap-6 rounded-2xl border border-(--ui-primary)/20 bg-white/5 p-6 shadow-[0_0_45px_rgba(15,90,255,0.08)] backdrop-blur-md sm:flex-row sm:items-center sm:justify-between"
-      >
-        <div class="flex items-start gap-4">
-          <span
-            class="flex h-12 w-12 items-center justify-center rounded-xl border border-(--ui-primary)/40 bg-(--ui-primary)/15"
+      <div class="flex flex-col gap-8">
+        <section class="relative">
+          <div
+            class="w-full rounded-[32px] border border-white/10 bg-[linear-gradient(145deg,rgba(7,14,28,0.92),rgba(2,6,23,0.88))] p-5 shadow-[0_30px_70px_-40px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:p-7"
           >
-            <UIcon
-              name="i-lucide-sparkles"
-              class="h-6 w-6 text-(--ui-primary)"
-            />
-          </span>
-          <div class="space-y-2">
-            <h1 class="text-3xl font-semibold tracking-tight text-white">
-              AMS Bingo
-            </h1>
-            <p class="max-w-xl text-sm text-muted-foreground">
-              Sammle Momente aus deinem Aris Management Alltag. Fünf markierte
-              Felder in einer Reihe bescheren dir ein verdientes Bingo.
-            </p>
+            <div
+              class="overflow-hidden rounded-[26px] border border-white/12 bg-slate-950/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+            >
+              <div
+                class="-mx-2 overflow-x-auto pb-2 sm:mx-0 sm:overflow-visible sm:pb-0"
+              >
+                <div
+                  class="grid min-w-[720px] grid-cols-5 gap-2 p-2 text-[10px] font-medium leading-tight text-slate-200 sm:min-w-0 sm:gap-3 sm:p-3 sm:text-[12px] sm:leading-snug lg:gap-4 lg:p-4 lg:text-sm"
+                >
+                  <button
+                    v-for="(cell, index) in board"
+                    :key="cell.id"
+                    type="button"
+                    class="group relative flex min-h-[120px] w-full flex-col items-start justify-between gap-3 overflow-hidden rounded-2xl border border-white/12 bg-[linear-gradient(155deg,rgba(9,15,32,0.96),rgba(4,9,22,0.82))] px-4 py-5 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-primary)/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617] sm:min-h-[150px] sm:px-5 sm:py-6"
+                    :class="[
+                      cell.active
+                        ? 'border-[rgba(0,226,207,0.4)] bg-[linear-gradient(160deg,rgba(8,16,26,0.94),rgba(0,226,207,0.18))] text-white shadow-[0_16px_38px_-24px_rgba(0,226,207,0.5)] saturate-110'
+                        : 'hover:border-(--ui-primary)/35 hover:bg-[linear-gradient(165deg,rgba(10,18,36,0.9),rgba(6,13,28,0.84))] hover:shadow-[0_18px_36px_-24px_rgba(15,90,255,0.4)]',
+                      completedCellIndices.has(index)
+                        ? 'outline outline-2 outline-offset-[-4px] outline-(--ui-primary)/70'
+                        : '',
+                    ]"
+                    @click="toggleCell(index)"
+                  >
+                    <div class="relative z-10 flex w-full flex-col gap-3">
+                      <div class="flex items-start justify-between gap-3">
+                        <span
+                          class="text-[9px] font-semibold uppercase tracking-[0.32em] text-(--ui-primary)/60 sm:text-[10px] lg:text-[11px]"
+                          :class="
+                            cell.active
+                              ? 'text-white/90 drop-shadow-[0_0_10px_rgba(0,226,207,0.45)]'
+                              : ''
+                          "
+                        >
+                          {{ cell.isFree ? 'Freifeld' : 'AMS' }}
+                        </span>
+                        <span
+                          v-if="cell.active && !cell.isFree"
+                          class="flex h-6 w-6 items-center justify-center rounded-full border border-[rgba(0,226,207,0.4)] bg-[rgba(0,226,207,0.22)] text-white shadow-[0_8px_18px_rgba(0,226,207,0.28)] transition-transform duration-200 group-hover:scale-110 sm:h-7 sm:w-7"
+                        >
+                          <UIcon
+                            name="i-lucide-check"
+                            class="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                          />
+                        </span>
+                      </div>
+                      <div class="w-full space-y-2 text-left">
+                        <p
+                          class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-[12px] font-medium leading-6 tracking-tight text-white/85 transition-all duration-200 sm:text-[15px] lg:text-[16px]"
+                          :class="
+                            cell.active
+                              ? 'border-[rgba(0,226,207,0.4)] bg-[rgba(0,226,207,0.12)] text-white shadow-[0_8px_24px_rgba(0,226,207,0.18)]'
+                              : ''
+                          "
+                        >
+                          {{ cell.label }}
+                        </p>
+                        <span
+                          v-if="cell.isFree"
+                          class="inline-flex items-center gap-2 rounded-full border border-(--ui-primary)/30 bg-(--ui-primary)/10 px-3 py-1 text-[8px] font-semibold uppercase tracking-[0.28em] text-(--ui-primary)/70 sm:text-[9px] lg:text-[10px]"
+                        >
+                          <UIcon name="i-lucide-infinity" class="h-3 w-3" />
+                          Immer aktiv
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      class="pointer-events-none absolute inset-0 rounded-2xl border border-white/10 opacity-0 transition-opacity duration-200 z-0"
+                      :class="
+                        cell.active
+                          ? 'opacity-35 border-[rgba(0,226,207,0.35)]'
+                          : 'group-hover:opacity-45'
+                      "
+                    />
+                    <span
+                      class="pointer-events-none absolute inset-x-6 top-[14px] h-px bg-gradient-to-r from-white/0 via-white/30 to-white/0 opacity-0 transition-opacity duration-200 z-0"
+                      :class="
+                        cell.active ? 'opacity-70' : 'group-hover:opacity-40'
+                      "
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div
+          class="pointer-events-none hidden lg:flex lg:fixed lg:top-1/2 lg:right-0 lg:-translate-y-1/2"
+        >
+          <div class="pointer-events-auto group relative h-[360px] w-[320px]">
+            <div
+              class="absolute inset-y-0 right-0 flex h-full w-[320px] translate-x-[calc(100%-4rem)] overflow-hidden rounded-l-[32px] border border-white/10 bg-[linear-gradient(160deg,rgba(7,14,28,0.96),rgba(9,60,90,0.32))] text-[10px] font-semibold uppercase tracking-[0.3em] text-white/80 shadow-[0_28px_60px_-34px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-transform duration-300 ease-out group-hover:translate-x-0"
+            >
+              <div
+                class="flex w-16 flex-col items-center justify-center gap-1 border-r border-white/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.06))] text-[11px] transition-colors duration-200 group-hover:bg-(--ui-primary)/25 group-hover:text-(--ui-primary)"
+              >
+                <span>O</span>
+                <span>p</span>
+                <span>t</span>
+                <span>i</span>
+                <span>o</span>
+                <span>n</span>
+                <span>e</span>
+                <span>n</span>
+                <span class="mt-1">&lt;</span>
+              </div>
+              <div
+                class="flex flex-1 flex-col justify-between gap-5 px-6 py-6 text-left"
+              >
+                <div class="space-y-2 text-white/75">
+                  <div
+                    class="flex items-center gap-2 text-[11px] font-semibold tracking-[0.32em] text-white/60"
+                  >
+                    <UIcon
+                      name="i-lucide-corner-down-right"
+                      class="h-3.5 w-3.5"
+                    />
+                    Schnellzugriff
+                  </div>
+                  <p class="text-[12px] leading-5 text-white/65">
+                    Aktionen für dein Bingo-Board – direkt griffbereit.
+                  </p>
+                </div>
+                <div class="flex flex-col gap-3">
+                  <UButton
+                    color="primary"
+                    variant="soft"
+                    icon="i-lucide-image-down"
+                    :loading="isExporting"
+                    class="justify-between"
+                    @click="exportBoardAsImage"
+                  >
+                    Als Bild exportieren
+                    <span
+                      class="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70"
+                    >
+                      PNG
+                    </span>
+                  </UButton>
+                  <UButton
+                    color="primary"
+                    variant="outline"
+                    icon="i-lucide-shuffle"
+                    class="justify-between"
+                    @click="shuffleBoard"
+                  >
+                    Neu mischen
+                    <span
+                      class="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70"
+                    >
+                      Random
+                    </span>
+                  </UButton>
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    icon="i-lucide-rotate-ccw"
+                    class="justify-between"
+                    @click="resetBoard"
+                  >
+                    Zurücksetzen
+                    <span
+                      class="text-[10px] font-medium uppercase tracking-[0.2em] text-white/60"
+                    >
+                      Reset
+                    </span>
+                  </UButton>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="flex flex-wrap items-center gap-3">
+
+        <div class="flex flex-col gap-3 lg:hidden">
           <UButton
             color="primary"
+            variant="subtle"
             icon="i-lucide-image-down"
             :loading="isExporting"
             @click="exportBoardAsImage"
@@ -478,71 +635,20 @@ async function exportBoardAsImage() {
           </UButton>
           <UButton
             color="primary"
-            variant="soft"
+            variant="outline"
             icon="i-lucide-shuffle"
             @click="shuffleBoard"
           >
             Neu mischen
           </UButton>
           <UButton
-            color="gray"
+            color="neutral"
             variant="ghost"
             icon="i-lucide-rotate-ccw"
             @click="resetBoard"
           >
             Zurücksetzen
           </UButton>
-        </div>
-      </header>
-
-      <div
-        class="rounded-3xl border border-(--ui-primary)/15 bg-white/5 p-6 shadow-[0_0_55px_rgba(15,90,255,0.08)] backdrop-blur-md"
-      >
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <button
-            v-for="(cell, index) in board"
-            :key="cell.id"
-            type="button"
-            class="group relative flex h-28 flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-primary)/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617]"
-            :class="[
-              cell.active
-                ? 'border-white/30 bg-[linear-gradient(135deg,rgba(15,90,255,0.24),rgba(15,90,255,0.05))] shadow-[0_20px_45px_-18px_rgba(11,92,255,0.55)] backdrop-blur-lg translate-y-[-1px]'
-                : 'hover:border-(--ui-primary)/40 hover:bg-(--ui-primary)/5 hover:shadow-[0_18px_36px_-22px_rgba(11,92,255,0.55)]',
-              completedCellIndices.has(index)
-                ? 'ring-2 ring-(--ui-primary)/70 ring-offset-2 ring-offset-[#020617]'
-                : '',
-            ]"
-            @click="toggleCell(index)"
-          >
-            <span
-              v-if="cell.active && !cell.isFree"
-              class="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-white/30 bg-(--ui-primary)/70 text-white shadow-[0_10px_25px_rgba(11,92,255,0.45)] transition-transform duration-200 group-hover:scale-105"
-            >
-              <UIcon name="i-lucide-check" class="h-4 w-4" />
-            </span>
-            <span
-              class="text-[11px] font-semibold uppercase tracking-[0.4em]"
-              :class="
-                cell.active
-                  ? 'text-white/80 drop-shadow-[0_0_12px_rgba(11,92,255,0.6)]'
-                  : 'text-(--ui-primary)/70'
-              "
-            >
-              {{ cell.isFree ? 'FREI' : 'AMS' }}
-            </span>
-            <span
-              class="text-sm font-medium leading-snug text-white/90 transition-colors duration-200"
-              :class="cell.active ? 'text-white' : ''"
-            >
-              {{ cell.label }}
-            </span>
-            <span
-              v-if="cell.isFree"
-              class="text-[10px] uppercase tracking-[0.35em] text-(--ui-primary)/60"
-            >
-              Immer aktiv
-            </span>
-          </button>
         </div>
       </div>
 
@@ -557,9 +663,7 @@ async function exportBoardAsImage() {
           />
           <p class="text-sm font-semibold">
             Bingo! Du hast {{ completedLines.length }}
-            {{
-              completedLines.length === 1 ? 'Linie' : 'Linien'
-            }}
+            {{ completedLines.length === 1 ? 'Linie' : 'Linien' }}
             abgeschlossen.
           </p>
         </div>
