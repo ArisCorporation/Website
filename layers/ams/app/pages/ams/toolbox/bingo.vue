@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { createItem, deleteItem, readItems, updateItem } from '@directus/sdk'
+import { createItem, readItems, updateItem } from '@directus/sdk'
 import { storeToRefs } from 'pinia'
-import { useToast } from '#imports'
+import { useToast, useNuxtApp } from '#imports'
 import type { BingoCollection as DirectusBingoCollection } from '~~/types'
 import { useAuthStore } from '~/stores/auth'
 
@@ -44,6 +44,16 @@ type DirectusBingoGameRecord = {
   date_created?: string | null
   date_updated?: string | null
   status?: string | null
+  has_bingo?: boolean | null
+  line_count?: number | null
+  user_created?:
+    | string
+    | null
+    | {
+        id?: string | null
+        first_name?: string | null
+        last_name?: string | null
+      }
 }
 
 const boardSize = 5
@@ -168,6 +178,7 @@ useSeoMeta({
 })
 
 const toast = useToast()
+const nuxtApp = useNuxtApp()
 const authStore = useAuthStore()
 const { currentUserId } = storeToRefs(authStore)
 
@@ -178,6 +189,10 @@ const isSyncingBoard = ref(false)
 const isLoadingRemoteGames = ref(false)
 const boardSyncPending = ref(false)
 const suppressBoardPersist = ref(false)
+const realtimeUnsubscribe = ref<(() => void) | null>(null)
+let realtimeAbortController: AbortController | null = null
+let currentRealtimeCollectionId: string | null = null
+const realtimeNotifiedIds = new Set<string>()
 
 const selectedCollection = computed<NormalizedBingoCollection | null>(
   () => getCollectionById(selectedCollectionId.value) ?? null
@@ -397,6 +412,11 @@ async function loadRemoteGames() {
           'date_created',
           'date_updated',
           'status',
+          'has_bingo',
+          'line_count',
+          'user_created.id',
+          'user_created.first_name',
+          'user_created.last_name',
         ],
         filter: {
           user_created: { _eq: currentUserId.value },
@@ -484,11 +504,144 @@ async function loadRemoteGames() {
       title: 'Daten konnten nicht geladen werden',
       description:
         'Die gespeicherten Bingo-Spiele konnten nicht geladen werden. Bitte versuche es später erneut.',
-      color: 'error',
+      color: 'red',
       icon: 'i-lucide-alert-triangle',
     })
   } finally {
     isLoadingRemoteGames.value = false
+  }
+}
+
+function stopRealtimeSubscription() {
+  if (realtimeUnsubscribe.value) {
+    try {
+      realtimeUnsubscribe.value()
+    } catch (error) {
+      console.error('Realtime-Abo konnte nicht beendet werden', error)
+    }
+    realtimeUnsubscribe.value = null
+  }
+  if (realtimeAbortController) {
+    realtimeAbortController.abort()
+    realtimeAbortController = null
+  }
+  currentRealtimeCollectionId = null
+  realtimeNotifiedIds.clear()
+}
+
+async function subscribeToRealtime(collectionId: string) {
+  if (!process.client) return
+  if (!collectionId) {
+    stopRealtimeSubscription()
+    return
+  }
+  if (currentRealtimeCollectionId === collectionId) return
+
+  stopRealtimeSubscription()
+
+  const directusClient = nuxtApp.$directus as any
+
+  if (typeof directusClient?.subscribe !== 'function') {
+    console.warn('Directus Realtime ist nicht verfügbar.')
+    return
+  }
+
+  try {
+    const { subscription, unsubscribe } = await directusClient.subscribe(
+      'bingo_games',
+      {
+        event: 'update',
+        query: {
+          fields: [
+            'id',
+            'has_bingo',
+            'line_count',
+            'status',
+            'collection',
+            'user_created.id',
+            'user_created.first_name',
+            'user_created.last_name',
+          ],
+          filter: {
+            collection: { _eq: collectionId },
+            status: { _eq: 'published' },
+          },
+        },
+      }
+    )
+
+    currentRealtimeCollectionId = collectionId
+    realtimeAbortController = new AbortController()
+    realtimeUnsubscribe.value = () => {
+      unsubscribe()
+      if (realtimeAbortController) {
+        realtimeAbortController.abort()
+        realtimeAbortController = null
+      }
+    }
+
+    ;(async () => {
+      try {
+        for await (const event of subscription) {
+          if (realtimeAbortController?.signal.aborted) break
+          if (!event || event.type !== 'update') continue
+
+          const record = event.data as DirectusBingoGameRecord | undefined
+          if (!record) continue
+          if (record.status === 'archived') {
+            realtimeNotifiedIds.delete(record.id)
+            continue
+          }
+
+          const recordCollectionId = extractCollectionId(record.collection)
+          if (!recordCollectionId || recordCollectionId !== collectionId) {
+            continue
+          }
+
+          if (!record.has_bingo) {
+            realtimeNotifiedIds.delete(record.id)
+            continue
+          }
+
+          if (record.id === currentGameId.value) continue
+          if (realtimeNotifiedIds.has(record.id)) continue
+          realtimeNotifiedIds.add(record.id)
+
+          const collection = getCollectionById(recordCollectionId)
+          const nameParts: string[] = []
+          if (
+            record.user_created &&
+            typeof record.user_created === 'object'
+          ) {
+            const firstName = record.user_created.first_name?.trim()
+            const lastName = record.user_created.last_name?.trim()
+            if (firstName) nameParts.push(firstName)
+            if (lastName) nameParts.push(lastName)
+          }
+
+          const playerName =
+            nameParts.join(' ') || 'Ein Crew-Mitglied'
+          const collectionName = collection?.title ?? 'AMS Bingo'
+          const lineCount = record.line_count ?? 1
+
+          toast?.add({
+            title: 'Bingo!',
+            description: `${playerName} hat gerade ein Bingo (${lineCount} ${
+              lineCount === 1 ? 'Linie' : 'Linien'
+            }) in "${collectionName}" geschafft.`,
+            color: 'primary',
+            icon: 'i-lucide-party-popper',
+          })
+        }
+      } catch (error) {
+        if (!realtimeAbortController?.signal.aborted) {
+          console.error('Realtime-Übertragung beendet', error)
+        }
+      }
+    })()
+  } catch (error) {
+    console.error('Realtime-Abo konnte nicht gestartet werden', error)
+    stopRealtimeSubscription()
   }
 }
 
@@ -497,6 +650,8 @@ watch(
   (id) => {
     if (id) {
       void loadRemoteGames()
+    } else {
+      stopRealtimeSubscription()
     }
   },
   { immediate: true }
@@ -506,6 +661,10 @@ onMounted(() => {
   if (currentUserId.value) {
     void loadRemoteGames()
   }
+})
+
+onBeforeUnmount(() => {
+  stopRealtimeSubscription()
 })
 
 function persistBoardState() {
@@ -523,6 +682,8 @@ function persistBoardState() {
   boardSyncPending.value = false
 
   const timestamp = new Date().toISOString()
+  const lineCount = calculateCompletedLines(board.value).length
+  const hasBingoNow = lineCount > 0
   const payload: BingoBoardPayload = {
     kind: 'current',
     collectionId: collection.id,
@@ -535,6 +696,8 @@ function persistBoardState() {
         collection: collection.id,
         board: serializeBoardPayload(payload),
         status: 'published',
+        has_bingo: hasBingoNow,
+        line_count: lineCount,
       })
     : createItem('bingo_games', {
         collection: collection.id,
@@ -543,6 +706,8 @@ function persistBoardState() {
           createdAt: timestamp,
         }),
         status: 'published',
+        has_bingo: hasBingoNow,
+        line_count: lineCount,
       })
 
   useDirectus(request)
@@ -560,7 +725,7 @@ function persistBoardState() {
         title: 'Speichern fehlgeschlagen',
         description:
           'Das aktuelle Bingo konnte nicht gespeichert werden. Bitte versuche es erneut.',
-        color: 'error',
+        color: 'red',
         icon: 'i-lucide-alert-triangle',
       })
     })
@@ -579,6 +744,19 @@ watch(
     persistBoardState()
   },
   { deep: true }
+)
+
+watch(
+  () => [selectedCollectionId.value, currentUserId.value] as const,
+  ([collectionId, userId]) => {
+    if (!process.client) return
+    if (!collectionId || !userId) {
+      stopRealtimeSubscription()
+      return
+    }
+    void subscribeToRealtime(collectionId)
+  },
+  { immediate: true }
 )
 
 watch(selectedCollectionId, async (newId, previousId) => {
@@ -681,7 +859,7 @@ async function saveBoard(name?: string) {
     toast?.add({
       title: 'Keine Kollektion ausgewählt',
       description: 'Bitte wähle zuerst eine Bingo-Kollektion aus.',
-      color: 'error',
+      color: 'red',
       icon: 'i-lucide-alert-triangle',
     })
     return
@@ -692,13 +870,13 @@ async function saveBoard(name?: string) {
       title: 'Bingo unvollständig',
       description:
         'Das aktuelle Bingo kann nicht gespeichert werden, da es unvollständig ist.',
-      color: 'error',
+      color: 'red',
       icon: 'i-lucide-alert-triangle',
     })
     return
   }
 
-  const finalName = buildDefaultSaveName()
+  const finalName = (name ?? '').trim() || buildDefaultSaveName()
   const timestamp = new Date().toISOString()
 
   const existing = savedBoards.value.find(
@@ -721,6 +899,8 @@ async function saveBoard(name?: string) {
           collection: collection.id,
           board: serializeBoardPayload(payload),
           status: 'published',
+          has_bingo: false,
+          line_count: 0,
         })
       )
     } else {
@@ -729,6 +909,8 @@ async function saveBoard(name?: string) {
           collection: collection.id,
           board: serializeBoardPayload(payload),
           status: 'published',
+          has_bingo: false,
+          line_count: 0,
         })
       )
     }
@@ -821,6 +1003,7 @@ async function removeSavedBoard(id: string) {
     await useDirectus(
       updateItem('bingo_games', id, {
         status: 'archived',
+        has_bingo: false,
       })
     )
     await loadRemoteGames()
@@ -856,6 +1039,7 @@ async function clearSavedBoards() {
       useDirectus(
         updateItem('bingo_games', entryId, {
           status: 'archived',
+          has_bingo: false,
         })
       )
     )

@@ -62,6 +62,8 @@ export interface BingoGame {
   name?: string | null;
   collection?: BingoCollection | string | null;
   board?: 'json' | null;
+  has_bingo?: boolean | null;
+  line_count?: number | null;
 }
 
 export interface Chat {
