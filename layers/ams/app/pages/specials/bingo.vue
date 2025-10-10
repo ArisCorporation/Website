@@ -496,53 +496,59 @@ async function exportBoardAsImage() {
       </header>
 
       <div
-        class="rounded-3xl border border-(--ui-primary)/15 bg-white/5 p-6 shadow-[0_0_55px_rgba(15,90,255,0.08)] backdrop-blur-md"
+        class="rounded-3xl border border-(--ui-primary)/15 bg-white/5 p-4 shadow-[0_0_55px_rgba(15,90,255,0.08)] backdrop-blur-md sm:p-6"
       >
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <button
-            v-for="(cell, index) in board"
-            :key="cell.id"
-            type="button"
-            class="group relative flex h-28 flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-primary)/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617]"
-            :class="[
-              cell.active
-                ? 'border-white/30 bg-[linear-gradient(135deg,rgba(15,90,255,0.24),rgba(15,90,255,0.05))] shadow-[0_20px_45px_-18px_rgba(11,92,255,0.55)] backdrop-blur-lg translate-y-[-1px]'
-                : 'hover:border-(--ui-primary)/40 hover:bg-(--ui-primary)/5 hover:shadow-[0_18px_36px_-22px_rgba(11,92,255,0.55)]',
-              completedCellIndices.has(index)
-                ? 'ring-2 ring-(--ui-primary)/70 ring-offset-2 ring-offset-[#020617]'
-                : '',
-            ]"
-            @click="toggleCell(index)"
+        <div
+          class="-mx-2 overflow-x-auto pb-2 sm:-mx-0 sm:overflow-visible sm:pb-0"
+        >
+          <div
+            class="grid min-w-[640px] grid-cols-5 gap-2 sm:min-w-0 sm:gap-3"
           >
-            <span
-              v-if="cell.active && !cell.isFree"
-              class="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-white/30 bg-(--ui-primary)/70 text-white shadow-[0_10px_25px_rgba(11,92,255,0.45)] transition-transform duration-200 group-hover:scale-105"
-            >
-              <UIcon name="i-lucide-check" class="h-4 w-4" />
-            </span>
-            <span
-              class="text-[11px] font-semibold uppercase tracking-[0.4em]"
-              :class="
+            <button
+              v-for="(cell, index) in board"
+              :key="cell.id"
+              type="button"
+              class="group relative flex min-h-[120px] flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/5 px-3 py-4 text-left text-[13px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-primary)/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#020617] sm:min-h-[150px] sm:px-4 sm:py-5 sm:text-sm lg:min-h-[170px]"
+              :class="[
                 cell.active
-                  ? 'text-white/80 drop-shadow-[0_0_12px_rgba(11,92,255,0.6)]'
-                  : 'text-(--ui-primary)/70'
-              "
+                  ? 'border-white/30 bg-[linear-gradient(135deg,rgba(15,90,255,0.24),rgba(15,90,255,0.05))] shadow-[0_20px_45px_-18px_rgba(11,92,255,0.55)] backdrop-blur-lg translate-y-[-1px]'
+                  : 'hover:border-(--ui-primary)/40 hover:bg-(--ui-primary)/5 hover:shadow-[0_18px_36px_-22px_rgba(11,92,255,0.55)]',
+                completedCellIndices.has(index)
+                  ? 'ring-2 ring-(--ui-primary)/70 ring-offset-2 ring-offset-[#020617]'
+                  : '',
+              ]"
+              @click="toggleCell(index)"
             >
-              {{ cell.isFree ? 'FREI' : 'AMS' }}
-            </span>
-            <span
-              class="text-sm font-medium leading-snug text-white/90 transition-colors duration-200"
-              :class="cell.active ? 'text-white' : ''"
-            >
-              {{ cell.label }}
-            </span>
-            <span
-              v-if="cell.isFree"
-              class="text-[10px] uppercase tracking-[0.35em] text-(--ui-primary)/60"
-            >
-              Immer aktiv
-            </span>
-          </button>
+              <span
+                v-if="cell.active && !cell.isFree"
+                class="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-white/30 bg-(--ui-primary)/70 text-white shadow-[0_10px_25px_rgba(11,92,255,0.45)] transition-transform duration-200 group-hover:scale-105"
+              >
+                <UIcon name="i-lucide-check" class="h-4 w-4" />
+              </span>
+              <span
+                class="text-[10px] font-semibold uppercase tracking-[0.32em] sm:text-[11px] sm:tracking-[0.35em]"
+                :class="
+                  cell.active
+                    ? 'text-white/80 drop-shadow-[0_0_12px_rgba(11,92,255,0.6)]'
+                    : 'text-(--ui-primary)/70'
+                "
+              >
+                {{ cell.isFree ? 'FREI' : 'AMS' }}
+              </span>
+              <span
+                class="font-medium leading-snug text-white/90 transition-colors duration-200 sm:text-base"
+                :class="cell.active ? 'text-white' : 'text-white/90'"
+              >
+                {{ cell.label }}
+              </span>
+              <span
+                v-if="cell.isFree"
+                class="text-[9px] uppercase tracking-[0.32em] text-(--ui-primary)/60 sm:text-[10px]"
+              >
+                Immer aktiv
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
