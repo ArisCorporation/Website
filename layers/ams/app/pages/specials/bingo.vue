@@ -443,12 +443,12 @@ async function exportBoardAsImage() {
 <template>
   <div class="min-h-screen bg-[color:var(--ui-page,#020617)] py-12 text-white">
     <div
-      class="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 sm:px-6 lg:px-8"
+      class="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 sm:px-6 lg:px-8 lg:pr-24"
     >
       <div class="flex flex-col gap-8">
         <section class="relative">
           <div
-            class="w-full rounded-[32px] border border-white/10 bg-[linear-gradient(145deg,rgba(7,14,28,0.92),rgba(2,6,23,0.88))] p-5 shadow-[0_30px_70px_-40px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:p-7 lg:pr-24"
+            class="w-full rounded-[32px] border border-white/10 bg-[linear-gradient(145deg,rgba(7,14,28,0.92),rgba(2,6,23,0.88))] p-5 shadow-[0_30px_70px_-40px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:p-7"
           >
             <div
               class="overflow-hidden rounded-[26px] border border-white/12 bg-slate-950/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
@@ -536,7 +536,9 @@ async function exportBoardAsImage() {
             </div>
           </div>
         </section>
-        <div class="pointer-events-none absolute inset-y-0 right-0 hidden lg:flex">
+        <div
+          class="pointer-events-none hidden lg:flex lg:fixed lg:top-1/2 lg:right-0 lg:-translate-y-1/2"
+        >
           <div class="pointer-events-auto group relative h-[360px] w-[320px]">
             <div
               class="absolute inset-y-0 right-0 flex h-full w-[320px] translate-x-[calc(100%-4rem)] overflow-hidden rounded-l-[32px] border border-white/10 bg-[linear-gradient(160deg,rgba(7,14,28,0.96),rgba(9,60,90,0.32))] text-[10px] font-semibold uppercase tracking-[0.3em] text-white/80 shadow-[0_28px_60px_-34px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-transform duration-300 ease-out group-hover:translate-x-0"
@@ -558,8 +560,13 @@ async function exportBoardAsImage() {
                 class="flex flex-1 flex-col justify-between gap-5 px-6 py-6 text-left"
               >
                 <div class="space-y-2 text-white/75">
-                  <div class="flex items-center gap-2 text-[11px] font-semibold tracking-[0.32em] text-white/60">
-                    <UIcon name="i-lucide-corner-down-right" class="h-3.5 w-3.5" />
+                  <div
+                    class="flex items-center gap-2 text-[11px] font-semibold tracking-[0.32em] text-white/60"
+                  >
+                    <UIcon
+                      name="i-lucide-corner-down-right"
+                      class="h-3.5 w-3.5"
+                    />
                     Schnellzugriff
                   </div>
                   <p class="text-[12px] leading-5 text-white/65">
@@ -576,7 +583,9 @@ async function exportBoardAsImage() {
                     @click="exportBoardAsImage"
                   >
                     Als Bild exportieren
-                    <span class="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70">
+                    <span
+                      class="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70"
+                    >
                       PNG
                     </span>
                   </UButton>
@@ -588,7 +597,9 @@ async function exportBoardAsImage() {
                     @click="shuffleBoard"
                   >
                     Neu mischen
-                    <span class="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70">
+                    <span
+                      class="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70"
+                    >
                       Random
                     </span>
                   </UButton>
@@ -600,7 +611,9 @@ async function exportBoardAsImage() {
                     @click="resetBoard"
                   >
                     Zurücksetzen
-                    <span class="text-[10px] font-medium uppercase tracking-[0.2em] text-white/60">
+                    <span
+                      class="text-[10px] font-medium uppercase tracking-[0.2em] text-white/60"
+                    >
                       Reset
                     </span>
                   </UButton>
