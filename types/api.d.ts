@@ -25,6 +25,47 @@ export interface AsteroidBelt {
   content?: string | null;
 }
 
+export interface BingoCollection {
+  /** @primaryKey */
+  id: string;
+  status?: 'published' | 'draft' | 'archived';
+  user_created?: DirectusUser | string | null;
+  date_created?: string | null;
+  user_updated?: DirectusUser | string | null;
+  date_updated?: string | null;
+  /** @description Es müssen mindestens 24 Karten sein, damit dass Bingo funktioniert!! */
+  cards?: string[] | null;
+  phrases?:
+  | string[]
+  | Array<{
+    phrase?: string | null;
+    label?: string | null;
+    value?: string | null;
+    [key: string]: unknown;
+  }>
+  | null;
+  title?: string | null;
+  description?: string | null;
+  slug?: string | null;
+  sort?: number | null;
+  free_card?: string | null;
+}
+
+export interface BingoGame {
+  /** @primaryKey */
+  id: string;
+  status?: 'published' | 'draft' | 'archived';
+  user_created?: DirectusUser | string | null;
+  date_created?: string | null;
+  user_updated?: DirectusUser | string | null;
+  date_updated?: string | null;
+  name?: string | null;
+  collection?: BingoCollection | string | null;
+  board?: 'json' | null;
+  has_bingo?: boolean | null;
+  line_count?: number | null;
+}
+
 export interface Chat {
   /** @primaryKey */
   id: string;
@@ -1577,6 +1618,8 @@ export interface DirectusSyncIdMap {
 export interface Schema {
   aliens: Alien[];
   asteroid_belts: AsteroidBelt[];
+  bingo_collections: BingoCollection[];
+  bingo_games: BingoGame[];
   chats: Chat[];
   chats_users: ChatsUser[];
   comm_link_channels: CommLinkChannel[];

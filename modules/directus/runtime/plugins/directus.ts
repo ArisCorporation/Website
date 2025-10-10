@@ -1,4 +1,4 @@
-import { authentication, createDirectus, rest } from '@directus/sdk';
+import { authentication, createDirectus, realtime, rest } from '@directus/sdk';
 import { joinURL } from 'ufo';
 import type { Schema } from '~~/types';
 import { defineNuxtPlugin, useRoute, useRuntimeConfig } from '#imports';
@@ -30,9 +30,19 @@ export default defineNuxtPlugin((nuxtApp) => {
     });
   }
 
-  const directus = createDirectus<Schema>(directusProxyUrl, { globals: { fetch: customFetch } })
+  let directus = createDirectus<Schema>(directusProxyUrl, { globals: { fetch: customFetch } })
     .with(authentication('session'))
     .with(rest());
+
+  if (process.client) {
+    directus = directus.with(
+      realtime({
+        url: config.public.API_URL,
+        heartbeat: true,
+        reconnect: { delay: 2000, retries: 10 },
+      })
+    );
+  }
 
   // ** Live Preview Bits **
   // Check if we are in preview mode
