@@ -193,6 +193,12 @@ const realtimeUnsubscribe = ref<(() => void) | null>(null)
 let realtimeAbortController: AbortController | null = null
 let currentRealtimeCollectionId: string | null = null
 const realtimeNotifiedIds = new Set<string>()
+const remoteBingoAlert = ref<{
+  playerName: string
+  collectionName: string
+  lineCount: number
+} | null>(null)
+let remoteBingoAlertTimeout: number | null = null
 
 const selectedCollection = computed<NormalizedBingoCollection | null>(
   () => getCollectionById(selectedCollectionId.value) ?? null
@@ -498,6 +504,10 @@ async function loadRemoteGames() {
       currentGameId.value = null
       board.value = []
     }
+
+    if (process.client) {
+      void subscribeToRealtime(selectedCollectionId.value)
+    }
   } catch (error) {
     console.error('Fehler beim Laden der Bingo-Spiele', error)
     toast?.add({
@@ -547,6 +557,14 @@ async function subscribeToRealtime(collectionId: string) {
   }
 
   try {
+    if (typeof directusClient?.auth?.refresh === 'function') {
+      try {
+        await directusClient.auth.refresh()
+      } catch (error) {
+        console.warn('Directus-Token konnte nicht aktualisiert werden.', error)
+      }
+    }
+
     const { subscription, unsubscribe } = await directusClient.subscribe(
       'bingo_games',
       {
@@ -582,56 +600,103 @@ async function subscribeToRealtime(collectionId: string) {
 
     ;(async () => {
       try {
-        for await (const event of subscription) {
+        for await (const message of subscription) {
           if (realtimeAbortController?.signal.aborted) break
-          if (!event || event.type !== 'update') continue
+          if (!message) continue
 
-          const record = event.data as DirectusBingoGameRecord | undefined
-          if (!record) continue
-          if (record.status === 'archived') {
-            realtimeNotifiedIds.delete(record.id)
+          if (message.type === 'init') {
             continue
           }
 
-          const recordCollectionId = extractCollectionId(record.collection)
-          if (!recordCollectionId || recordCollectionId !== collectionId) {
+          const isMutationUpdate =
+            message.type === 'mutation' && message.event === 'update'
+          const isSubscriptionUpdate =
+            message.type === 'subscription' && message.event === 'update'
+
+          if (!isMutationUpdate && !isSubscriptionUpdate) {
             continue
           }
 
-          if (!record.has_bingo) {
-            realtimeNotifiedIds.delete(record.id)
-            continue
+          const records = Array.isArray(message.data)
+            ? (message.data as DirectusBingoGameRecord[])
+            : [message.data as DirectusBingoGameRecord | null | undefined]
+
+          for (const recordLike of records) {
+            if (!recordLike) continue
+
+            const record = recordLike as DirectusBingoGameRecord
+            if (!record.id) continue
+
+            if (record.status === 'archived') {
+              realtimeNotifiedIds.delete(record.id)
+              continue
+            }
+
+            const recordCollectionId = extractCollectionId(record.collection)
+            if (!recordCollectionId || recordCollectionId !== collectionId) {
+              continue
+            }
+
+            if (!record.has_bingo) {
+              realtimeNotifiedIds.delete(record.id)
+              continue
+            }
+
+            const authorId =
+              typeof record.user_created === 'object'
+                ? record.user_created?.id ?? null
+                : typeof record.user_created === 'string'
+                ? record.user_created
+                : null
+
+            if (authorId && authorId === currentUserId.value) {
+              continue
+            }
+
+            if (realtimeNotifiedIds.has(record.id)) continue
+            realtimeNotifiedIds.add(record.id)
+
+            const collection = getCollectionById(recordCollectionId)
+            const nameParts: string[] = []
+            if (
+              record.user_created &&
+              typeof record.user_created === 'object'
+            ) {
+              const firstName = record.user_created.first_name?.trim()
+              const lastName = record.user_created.last_name?.trim()
+              if (firstName) nameParts.push(firstName)
+              if (lastName) nameParts.push(lastName)
+            }
+
+            const playerName = nameParts.join(' ') || 'Ein Crew-Mitglied'
+            const collectionName = collection?.title ?? 'AMS Bingo'
+            const lineCount = record.line_count ?? 1
+
+            toast?.add({
+              title: 'Bingo!',
+              description: `${playerName} hat gerade ein Bingo (${lineCount} ${
+                lineCount === 1 ? 'Linie' : 'Linien'
+              }) in "${collectionName}" geschafft.`,
+              color: 'primary',
+              icon: 'i-lucide-party-popper',
+              timeout: 6000,
+            })
+
+            if (process.client) {
+              remoteBingoAlert.value = {
+                playerName,
+                collectionName,
+                lineCount,
+              }
+              if (remoteBingoAlertTimeout) {
+                window.clearTimeout(remoteBingoAlertTimeout)
+              }
+              remoteBingoAlertTimeout = window.setTimeout(() => {
+                remoteBingoAlert.value = null
+                remoteBingoAlertTimeout = null
+              }, 6000)
+            }
           }
-
-          if (record.id === currentGameId.value) continue
-          if (realtimeNotifiedIds.has(record.id)) continue
-          realtimeNotifiedIds.add(record.id)
-
-          const collection = getCollectionById(recordCollectionId)
-          const nameParts: string[] = []
-          if (
-            record.user_created &&
-            typeof record.user_created === 'object'
-          ) {
-            const firstName = record.user_created.first_name?.trim()
-            const lastName = record.user_created.last_name?.trim()
-            if (firstName) nameParts.push(firstName)
-            if (lastName) nameParts.push(lastName)
-          }
-
-          const playerName =
-            nameParts.join(' ') || 'Ein Crew-Mitglied'
-          const collectionName = collection?.title ?? 'AMS Bingo'
-          const lineCount = record.line_count ?? 1
-
-          toast?.add({
-            title: 'Bingo!',
-            description: `${playerName} hat gerade ein Bingo (${lineCount} ${
-              lineCount === 1 ? 'Linie' : 'Linien'
-            }) in "${collectionName}" geschafft.`,
-            color: 'primary',
-            icon: 'i-lucide-party-popper',
-          })
         }
       } catch (error) {
         if (!realtimeAbortController?.signal.aborted) {
@@ -665,6 +730,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopRealtimeSubscription()
+  if (remoteBingoAlertTimeout) {
+    window.clearTimeout(remoteBingoAlertTimeout)
+    remoteBingoAlertTimeout = null
+  }
 })
 
 function persistBoardState() {
@@ -1402,6 +1471,38 @@ async function exportBoardAsImage() {
 
 <template>
   <div class="space-y-10 text-white">
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="opacity-0 -translate-y-4"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 -translate-y-4"
+    >
+      <div
+        v-if="remoteBingoAlert"
+        class="fixed left-1/2 top-6 z-50 w-[90vw] max-w-xl -translate-x-1/2 rounded-2xl border border-(--ui-primary)/40 bg-[rgba(12,18,37,0.96)] px-6 py-4 text-sm text-white shadow-[0_24px_60px_-30px_rgba(15,90,255,0.65)] backdrop-blur"
+      >
+        <div class="flex items-start gap-3">
+          <span
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-(--ui-primary)/90 text-white shadow-[0_10px_30px_rgba(15,90,255,0.45)]"
+          >
+            <UIcon name="i-lucide-party-popper" class="h-4 w-4" />
+          </span>
+          <div class="space-y-1 text-left">
+            <p class="text-sm font-semibold">
+              {{ remoteBingoAlert.playerName }} hat ein Bingo!
+            </p>
+            <p class="text-xs text-white/70">
+              {{ remoteBingoAlert.collectionName }} ·
+              {{ remoteBingoAlert.lineCount }}
+              {{ remoteBingoAlert.lineCount === 1 ? 'Linie' : 'Linien' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <AMSPageHeader
       icon="i-lucide-party-popper"
       title="AMS Bingo"

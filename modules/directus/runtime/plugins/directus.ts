@@ -35,9 +35,16 @@ export default defineNuxtPlugin((nuxtApp) => {
     .with(rest());
 
   if (process.client) {
+    const realtimeUrl = new URL(
+      joinURL(config.public.API_URL, 'websocket')
+    );
+    realtimeUrl.protocol =
+      realtimeUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+
     directus = directus.with(
       realtime({
-        url: config.public.API_URL,
+        url: realtimeUrl.toString(),
+        authMode: 'strict',
         heartbeat: true,
         reconnect: { delay: 2000, retries: 10 },
       })
