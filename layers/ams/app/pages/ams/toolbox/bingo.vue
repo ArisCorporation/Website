@@ -498,6 +498,10 @@ async function loadRemoteGames() {
       currentGameId.value = null
       board.value = []
     }
+
+    if (process.client) {
+      void subscribeToRealtime(selectedCollectionId.value)
+    }
   } catch (error) {
     console.error('Fehler beim Laden der Bingo-Spiele', error)
     toast?.add({
@@ -547,6 +551,14 @@ async function subscribeToRealtime(collectionId: string) {
   }
 
   try {
+    if (typeof directusClient?.auth?.refresh === 'function') {
+      try {
+        await directusClient.auth.refresh()
+      } catch (error) {
+        console.warn('Directus-Token konnte nicht aktualisiert werden.', error)
+      }
+    }
+
     const { subscription, unsubscribe } = await directusClient.subscribe(
       'bingo_games',
       {
@@ -582,56 +594,87 @@ async function subscribeToRealtime(collectionId: string) {
 
     ;(async () => {
       try {
-        for await (const event of subscription) {
+        for await (const message of subscription) {
           if (realtimeAbortController?.signal.aborted) break
-          if (!event || event.type !== 'update') continue
+          if (!message) continue
 
-          const record = event.data as DirectusBingoGameRecord | undefined
-          if (!record) continue
-          if (record.status === 'archived') {
-            realtimeNotifiedIds.delete(record.id)
+          if (message.type === 'init') {
             continue
           }
 
-          const recordCollectionId = extractCollectionId(record.collection)
-          if (!recordCollectionId || recordCollectionId !== collectionId) {
+          const isMutationUpdate =
+            message.type === 'mutation' && message.event === 'update'
+          const isSubscriptionUpdate =
+            message.type === 'subscription' && message.event === 'update'
+
+          if (!isMutationUpdate && !isSubscriptionUpdate) {
             continue
           }
 
-          if (!record.has_bingo) {
-            realtimeNotifiedIds.delete(record.id)
-            continue
+          const records = Array.isArray(message.data)
+            ? (message.data as DirectusBingoGameRecord[])
+            : [message.data as DirectusBingoGameRecord | null | undefined]
+
+          for (const recordLike of records) {
+            if (!recordLike) continue
+
+            const record = recordLike as DirectusBingoGameRecord
+            if (!record.id) continue
+
+            if (record.status === 'archived') {
+              realtimeNotifiedIds.delete(record.id)
+              continue
+            }
+
+            const recordCollectionId = extractCollectionId(record.collection)
+            if (!recordCollectionId || recordCollectionId !== collectionId) {
+              continue
+            }
+
+            if (!record.has_bingo) {
+              realtimeNotifiedIds.delete(record.id)
+              continue
+            }
+
+            const authorId =
+              typeof record.user_created === 'object'
+                ? record.user_created?.id ?? null
+                : typeof record.user_created === 'string'
+                ? record.user_created
+                : null
+
+            if (authorId && authorId === currentUserId.value) {
+              continue
+            }
+
+            if (realtimeNotifiedIds.has(record.id)) continue
+            realtimeNotifiedIds.add(record.id)
+
+            const collection = getCollectionById(recordCollectionId)
+            const nameParts: string[] = []
+            if (
+              record.user_created &&
+              typeof record.user_created === 'object'
+            ) {
+              const firstName = record.user_created.first_name?.trim()
+              const lastName = record.user_created.last_name?.trim()
+              if (firstName) nameParts.push(firstName)
+              if (lastName) nameParts.push(lastName)
+            }
+
+            const playerName = nameParts.join(' ') || 'Ein Crew-Mitglied'
+            const collectionName = collection?.title ?? 'AMS Bingo'
+            const lineCount = record.line_count ?? 1
+
+            toast?.add({
+              title: 'Bingo!',
+              description: `${playerName} hat gerade ein Bingo (${lineCount} ${
+                lineCount === 1 ? 'Linie' : 'Linien'
+              }) in "${collectionName}" geschafft.`,
+              color: 'primary',
+              icon: 'i-lucide-party-popper',
+            })
           }
-
-          if (record.id === currentGameId.value) continue
-          if (realtimeNotifiedIds.has(record.id)) continue
-          realtimeNotifiedIds.add(record.id)
-
-          const collection = getCollectionById(recordCollectionId)
-          const nameParts: string[] = []
-          if (
-            record.user_created &&
-            typeof record.user_created === 'object'
-          ) {
-            const firstName = record.user_created.first_name?.trim()
-            const lastName = record.user_created.last_name?.trim()
-            if (firstName) nameParts.push(firstName)
-            if (lastName) nameParts.push(lastName)
-          }
-
-          const playerName =
-            nameParts.join(' ') || 'Ein Crew-Mitglied'
-          const collectionName = collection?.title ?? 'AMS Bingo'
-          const lineCount = record.line_count ?? 1
-
-          toast?.add({
-            title: 'Bingo!',
-            description: `${playerName} hat gerade ein Bingo (${lineCount} ${
-              lineCount === 1 ? 'Linie' : 'Linien'
-            }) in "${collectionName}" geschafft.`,
-            color: 'primary',
-            icon: 'i-lucide-party-popper',
-          })
         }
       } catch (error) {
         if (!realtimeAbortController?.signal.aborted) {
