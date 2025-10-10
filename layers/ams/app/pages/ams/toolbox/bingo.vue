@@ -193,6 +193,12 @@ const realtimeUnsubscribe = ref<(() => void) | null>(null)
 let realtimeAbortController: AbortController | null = null
 let currentRealtimeCollectionId: string | null = null
 const realtimeNotifiedIds = new Set<string>()
+const remoteBingoAlert = ref<{
+  playerName: string
+  collectionName: string
+  lineCount: number
+} | null>(null)
+let remoteBingoAlertTimeout: number | null = null
 
 const selectedCollection = computed<NormalizedBingoCollection | null>(
   () => getCollectionById(selectedCollectionId.value) ?? null
@@ -673,7 +679,23 @@ async function subscribeToRealtime(collectionId: string) {
               }) in "${collectionName}" geschafft.`,
               color: 'primary',
               icon: 'i-lucide-party-popper',
+              timeout: 6000,
             })
+
+            if (process.client) {
+              remoteBingoAlert.value = {
+                playerName,
+                collectionName,
+                lineCount,
+              }
+              if (remoteBingoAlertTimeout) {
+                window.clearTimeout(remoteBingoAlertTimeout)
+              }
+              remoteBingoAlertTimeout = window.setTimeout(() => {
+                remoteBingoAlert.value = null
+                remoteBingoAlertTimeout = null
+              }, 6000)
+            }
           }
         }
       } catch (error) {
@@ -708,6 +730,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopRealtimeSubscription()
+  if (remoteBingoAlertTimeout) {
+    window.clearTimeout(remoteBingoAlertTimeout)
+    remoteBingoAlertTimeout = null
+  }
 })
 
 function persistBoardState() {
@@ -1445,6 +1471,38 @@ async function exportBoardAsImage() {
 
 <template>
   <div class="space-y-10 text-white">
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="opacity-0 -translate-y-4"
+      enter-to-class="opacity-100 translate-y-0"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="opacity-100 translate-y-0"
+      leave-to-class="opacity-0 -translate-y-4"
+    >
+      <div
+        v-if="remoteBingoAlert"
+        class="fixed left-1/2 top-6 z-50 w-[90vw] max-w-xl -translate-x-1/2 rounded-2xl border border-(--ui-primary)/40 bg-[rgba(12,18,37,0.96)] px-6 py-4 text-sm text-white shadow-[0_24px_60px_-30px_rgba(15,90,255,0.65)] backdrop-blur"
+      >
+        <div class="flex items-start gap-3">
+          <span
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-(--ui-primary)/90 text-white shadow-[0_10px_30px_rgba(15,90,255,0.45)]"
+          >
+            <UIcon name="i-lucide-party-popper" class="h-4 w-4" />
+          </span>
+          <div class="space-y-1 text-left">
+            <p class="text-sm font-semibold">
+              {{ remoteBingoAlert.playerName }} hat ein Bingo!
+            </p>
+            <p class="text-xs text-white/70">
+              {{ remoteBingoAlert.collectionName }} ·
+              {{ remoteBingoAlert.lineCount }}
+              {{ remoteBingoAlert.lineCount === 1 ? 'Linie' : 'Linien' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <AMSPageHeader
       icon="i-lucide-party-popper"
       title="AMS Bingo"
