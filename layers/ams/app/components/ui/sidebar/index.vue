@@ -104,6 +104,17 @@ const sidebarItems = computed<sidebarElement[]>(() => {
       exact: false,
       type: 'link',
     },
+    {
+      label: 'Anderes',
+      type: 'separator',
+    },
+    {
+      label: 'Toolbox',
+      link: '/ams/toolbox',
+      icon: 'i-lucide-tool-case',
+      exact: false,
+      type: 'link',
+    },
   ]
 
   return items.filter((item: sidebarElement): boolean => {
