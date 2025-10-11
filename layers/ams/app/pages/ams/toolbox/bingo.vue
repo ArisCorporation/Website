@@ -1544,21 +1544,25 @@ async function exportBoardAsImage() {
         </div>
       </div>
       <div
-        class="overflow-hidden rounded-[26px] border border-white/12 bg-slate-950/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+        class="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6"
       >
-        <AMSPagesToolboxBingoBoard
-          :board="board"
-          :completed-cell-indices="completedCellIndices"
-          @toggle="toggleCell"
+        <div
+          class="overflow-hidden rounded-[26px] border border-white/12 bg-slate-950/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+        >
+          <AMSPagesToolboxBingoBoard
+            :board="board"
+            :completed-cell-indices="completedCellIndices"
+            @toggle="toggleCell"
+          />
+        </div>
+        <AMSPagesToolboxBingoSidePanel
+          :is-exporting="isExporting"
+          @save="quickSaveBoard"
+          @export="exportBoardAsImage"
+          @shuffle="shuffleBoard"
+          @reset="resetBoard"
         />
       </div>
-      <AMSPagesToolboxBingoSidePanel
-        :is-exporting="isExporting"
-        @save="quickSaveBoard"
-        @export="exportBoardAsImage"
-        @shuffle="shuffleBoard"
-        @reset="resetBoard"
-      />
     </section>
     <section
       v-else
