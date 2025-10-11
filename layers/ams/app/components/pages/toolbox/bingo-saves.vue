@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * Overview of stored bingo rounds with quick actions.
+ *
+ * Lists existing saves, provides load/delete controls and allows new entries.
+ */
+/** Metadata exposed to the saves table rows. */
 type BingoBoardSaveSummary = {
   id: string
   name: string
@@ -9,10 +15,12 @@ type BingoBoardSaveSummary = {
   playableCells: number
 }
 
+/** Saves to display inside the table. */
 const props = defineProps<{
   saves: BingoBoardSaveSummary[]
 }>()
 
+/** Emits higher-level actions to the page (save, load, delete, clear). */
 const emit = defineEmits<{
   (e: 'save', name?: string): void
   (e: 'load', id: string): void
@@ -20,15 +28,19 @@ const emit = defineEmits<{
   (e: 'clear'): void
 }>()
 
+/** Holds the optional name entered for a new save. */
 const nameInput = ref('')
 
+/** Submit handler that forwards the chosen name to the parent. */
 function submitSave() {
   emit('save', nameInput.value)
   nameInput.value = ''
 }
 
+/** Quick helper used to toggle the table state. */
 const hasSaves = computed(() => props.saves.length > 0)
 
+/** Format the stored timestamp for the table view. */
 function formatDate(value: string) {
   return new Date(value).toLocaleString('de-DE', {
     dateStyle: 'medium',

@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/**
+ * Interactive bingo board grid.
+ *
+ * Renders 5x5 cells, highlights completed lines and emits toggle events.
+ */
 type BingoCell = {
   id: string
   label: string
@@ -6,6 +11,7 @@ type BingoCell = {
   isFree?: boolean
 }
 
+/** Cells to render plus indices for completed line styling. */
 const props = defineProps<{
   board: BingoCell[]
   completedCellIndices: Set<number>
@@ -15,6 +21,7 @@ const emit = defineEmits<{
   (e: 'toggle', index: number): void
 }>()
 
+/** Bubble up board toggle requests to the parent page. */
 const handleToggle = (index: number) => {
   emit('toggle', index)
 }

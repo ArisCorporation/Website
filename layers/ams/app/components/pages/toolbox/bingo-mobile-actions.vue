@@ -1,8 +1,14 @@
 <script setup lang="ts">
+/**
+ * Mobile-friendly action stack mirroring the desktop side panel.
+ *
+ * Shows contextual buttons below the board on small breakpoints.
+ */
 defineProps<{
   isExporting: boolean
 }>()
 
+/** Emits user actions so the page can handle logic centrally. */
 const emit = defineEmits<{
   (e: 'save'): void
   (e: 'export'): void

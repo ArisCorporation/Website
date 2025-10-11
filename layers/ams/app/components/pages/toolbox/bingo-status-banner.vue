@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * Compact status banner indicating a bingo has been achieved.
+ */
+/** Controls banner visibility and displays the number of completed lines. */
 defineProps<{
   show: boolean
   lineCount: number

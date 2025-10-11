@@ -1,10 +1,17 @@
 <script setup lang="ts">
+/**
+ * Celebration overlay shown once a bingo is completed.
+ *
+ * Displays animated visuals and exposes close/export actions.
+ */
+/** Visibility, line count and export state driven by the page. */
 defineProps<{
   show: boolean
   lineCount: number
   isExporting: boolean
 }>()
 
+/** Notify the page when the user closes the overlay or exports the board. */
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'export'): void

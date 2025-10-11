@@ -1,10 +1,17 @@
 <script lang="ts" setup>
+/**
+ * AMS Toolbox Bingo page
+ *
+ * Handles loading Directus bingo collections, board generation, realtime sync,
+ * persistence and UI state for the toolbox view.
+ */
 import { createItem, readItems, updateItem } from '@directus/sdk'
 import { storeToRefs } from 'pinia'
 import { useToast, useNuxtApp } from '#imports'
 import type { BingoCollection as DirectusBingoCollection } from '~~/types'
 import { useAuthStore } from '~/stores/auth'
 
+/** Bingo cell state for individual board entries. */
 type BingoCell = {
   id: string
   label: string
@@ -12,6 +19,7 @@ type BingoCell = {
   isFree?: boolean
 }
 
+/** Normalized Directus bingo collection data used throughout the page. */
 type NormalizedBingoCollection = {
   id: string
   title: string
@@ -20,6 +28,7 @@ type NormalizedBingoCollection = {
   phrases: string[]
 }
 
+/** Local representation of a saved bingo board entry. */
 type BingoBoardSave = {
   id: string
   name: string
@@ -28,6 +37,7 @@ type BingoBoardSave = {
   collectionId: string
 }
 
+/** Payload structure persisted to Directus for current/save board states. */
 type BingoBoardPayload = {
   kind: 'current' | 'save'
   collectionId: string
@@ -37,6 +47,7 @@ type BingoBoardPayload = {
   updatedAt?: string
 }
 
+/** Raw Directus record describing a bingo game entry. */
 type DirectusBingoGameRecord = {
   id: string
   collection?: { id?: string | null } | string | null
@@ -56,11 +67,13 @@ type DirectusBingoGameRecord = {
       }
 }
 
+/** Dimensions and derived indices for the square bingo board. */
 const boardSize = 5
 const centerIndex = Math.floor((boardSize * boardSize) / 2)
 const totalCells = boardSize * boardSize
 const playableCells = totalCells - 1
 
+/** Resolve a valid collection id from the varying Directus response formats. */
 function extractCollectionId(
   collection: DirectusBingoGameRecord['collection']
 ): string | null {
@@ -72,6 +85,7 @@ function extractCollectionId(
     : null
 }
 
+/** Normalize a single phrase entry (string or object) into text. */
 function normalizePhrase(entry: unknown): string | null {
   if (typeof entry === 'string') {
     const trimmed = entry.trim()
@@ -90,6 +104,7 @@ function normalizePhrase(entry: unknown): string | null {
   return null
 }
 
+/** Convert any phrase source value into a cleaned phrase list. */
 function extractPhrases(source: unknown): string[] {
   if (Array.isArray(source)) {
     return source
@@ -105,6 +120,7 @@ function extractPhrases(source: unknown): string[] {
   return []
 }
 
+/** Map a Directus bingo collection into the normalized internal shape. */
 function mapDirectusCollection(
   item: DirectusBingoCollection
 ): NormalizedBingoCollection | null {
@@ -140,6 +156,7 @@ function mapDirectusCollection(
   }
 }
 
+/** Fetch published Directus bingo collections on initial render. */
 const { data: directusCollections } = await useAsyncData<
   NormalizedBingoCollection[]
 >('bingoCollections', async () => {
@@ -161,6 +178,7 @@ const { data: directusCollections } = await useAsyncData<
     )
 })
 
+/** Reactive list of available bingo collections. */
 const bingoCollections = computed<NormalizedBingoCollection[]>(
   () => directusCollections.value ?? []
 )
@@ -182,6 +200,7 @@ const nuxtApp = useNuxtApp()
 const authStore = useAuthStore()
 const { currentUserId } = storeToRefs(authStore)
 
+/** Core reactive state for the currently selected collection and board. */
 const selectedCollectionId = ref<string>('')
 const savedBoards = ref<BingoBoardSave[]>([])
 const currentGameId = ref<string | null>(null)
@@ -192,7 +211,9 @@ const suppressBoardPersist = ref(false)
 const realtimeUnsubscribe = ref<(() => void) | null>(null)
 let realtimeAbortController: AbortController | null = null
 let currentRealtimeCollectionId: string | null = null
+/** Tracks remote bingo notifications to prevent duplicate toasts. */
 const realtimeNotifiedIds = new Set<string>()
+/** Holds the latest remote bingo alert details for the floating banner. */
 const remoteBingoAlert = ref<{
   playerName: string
   collectionName: string
@@ -200,10 +221,12 @@ const remoteBingoAlert = ref<{
 } | null>(null)
 let remoteBingoAlertTimeout: number | null = null
 
+/** Currently selected collection derived from the chosen id. */
 const selectedCollection = computed<NormalizedBingoCollection | null>(
   () => getCollectionById(selectedCollectionId.value) ?? null
 )
 
+/** Dropdown options for the collection selector including counts. */
 const collectionOptions = computed(() =>
   bingoCollections.value.map(({ id, title, description, phrases }) => ({
     id,
@@ -213,6 +236,7 @@ const collectionOptions = computed(() =>
   }))
 )
 
+/** Find a normalized collection by its identifier. */
 function getCollectionById(
   id: string | undefined
 ): NormalizedBingoCollection | null {
@@ -221,11 +245,13 @@ function getCollectionById(
   )
 }
 
+/** Guard against legacy ids by verifying the collection is still available. */
 function resolveCollectionId(id: string | undefined | null): string {
   const collection = id ? getCollectionById(id) : null
   return collection ? collection.id : ''
 }
 
+/** Build a randomized board with a free center cell for the collection. */
 function buildBoard(collection: NormalizedBingoCollection): BingoCell[] {
   const pool = [...collection.phrases]
   if (pool.length < playableCells) {
@@ -260,10 +286,12 @@ function buildBoard(collection: NormalizedBingoCollection): BingoCell[] {
   return cells
 }
 
+/** Clone a board to avoid mutating shared references. */
 function cloneBoard(cells: BingoCell[]): BingoCell[] {
   return cells.map((cell) => ({ ...cell }))
 }
 
+/** Validate and normalize persisted board payloads coming from Directus. */
 function parseBoardPayload(raw: unknown): BingoBoardPayload | null {
   if (!raw || typeof raw !== 'object') return null
 
@@ -307,6 +335,7 @@ function parseBoardPayload(raw: unknown): BingoBoardPayload | null {
   }
 }
 
+/** Serialize a board payload before storing it in Directus. */
 function serializeBoardPayload(payload: BingoBoardPayload) {
   const base: Record<string, unknown> = {
     kind: payload.kind,
@@ -321,6 +350,7 @@ function serializeBoardPayload(payload: BingoBoardPayload) {
   return base
 }
 
+/** Check whether a set of cells represents a fully-formed board. */
 function isValidBoard(
   cells: BingoCell[] | null | undefined
 ): cells is BingoCell[] {
@@ -337,6 +367,7 @@ function isValidBoard(
   )
 }
 
+/** Remove any outdated saves once the collection list changes. */
 function sanitizeSavedBoards() {
   if (!savedBoards.value?.length) return
   if (!bingoCollections.value.length) return
@@ -358,6 +389,7 @@ function sanitizeSavedBoards() {
   }
 }
 
+/** Calculate every completed line (rows, columns, diagonals) on the board. */
 function calculateCompletedLines(cells: BingoCell[]): number[][] {
   const lines: number[][] = []
 
@@ -395,15 +427,18 @@ function calculateCompletedLines(cells: BingoCell[]): number[][] {
   return lines
 }
 
+/** Create a quick lookup set for all cells that belong to a completed line. */
 function calculateCompletedCellIndices(cells: BingoCell[]): Set<number> {
   return new Set(calculateCompletedLines(cells).flat())
 }
 
+/** UI state toggles for board rendering and derived behaviour. */
 const board = ref<BingoCell[]>([])
 const isExporting = ref(false)
 const showCelebration = ref(false)
 const suppressCollectionWatcher = ref(false)
 
+/** Load current and saved bingo games for the authenticated user. */
 async function loadRemoteGames() {
   if (!currentUserId.value) return
   isLoadingRemoteGames.value = true
@@ -522,6 +557,7 @@ async function loadRemoteGames() {
   }
 }
 
+/** Remove the active Directus realtime subscription and reset guards. */
 function stopRealtimeSubscription() {
   if (realtimeUnsubscribe.value) {
     try {
@@ -539,6 +575,7 @@ function stopRealtimeSubscription() {
   realtimeNotifiedIds.clear()
 }
 
+/** Subscribe to Directus updates for the active collection to surface bingo wins. */
 async function subscribeToRealtime(collectionId: string) {
   if (!process.client) return
   if (!collectionId) {
@@ -710,6 +747,8 @@ async function subscribeToRealtime(collectionId: string) {
   }
 }
 
+// Keep local state aligned with authentication changes.
+// Push every board adjustment to Directus.
 watch(
   () => currentUserId.value,
   (id) => {
@@ -722,12 +761,15 @@ watch(
   { immediate: true }
 )
 
+// Load games as soon as the component mounts when a user is present.
+// Clean up stale saves and push the initial board snapshot after hydration.
 onMounted(() => {
   if (currentUserId.value) {
     void loadRemoteGames()
   }
 })
 
+// Ensure subscriptions and timeouts are cleared when leaving the page.
 onBeforeUnmount(() => {
   stopRealtimeSubscription()
   if (remoteBingoAlertTimeout) {
@@ -736,6 +778,7 @@ onBeforeUnmount(() => {
   }
 })
 
+/** Persist the current board to Directus while debouncing rapid updates. */
 function persistBoardState() {
   if (!process.client) return
   if (suppressBoardPersist.value) return
@@ -807,6 +850,7 @@ function persistBoardState() {
     })
 }
 
+// Maintain realtime subscription whenever the active combination changes.
 watch(
   board,
   () => {
@@ -828,6 +872,7 @@ watch(
   { immediate: true }
 )
 
+// Rebuild the board when a different collection is selected.
 watch(selectedCollectionId, async (newId, previousId) => {
   if (!process.client) return
 
@@ -854,6 +899,7 @@ watch(selectedCollectionId, async (newId, previousId) => {
   }
 })
 
+// Ensure saves remain valid once the collection catalogue updates.
 watch(
   () => bingoCollections.value,
   async () => {
@@ -876,6 +922,7 @@ watch(
   }
 )
 
+/** Saved boards ordered by newest first and filtered to valid payloads. */
 const sortedSavedBoards = computed(() =>
   [...savedBoards.value]
     .filter((entry) => isValidBoard(entry.board))
@@ -885,6 +932,7 @@ const sortedSavedBoards = computed(() =>
     )
 )
 
+/** Lightweight save metadata exposed to the UI components. */
 const saveSummaries = computed(() =>
   sortedSavedBoards.value.map((entry) => {
     const collection = getCollectionById(entry.collectionId)
@@ -906,6 +954,7 @@ const saveSummaries = computed(() =>
   })
 )
 
+/** Create a deterministic default name when the user skips manual naming. */
 function buildDefaultSaveName(): string {
   const now = new Date()
   const date = now.toLocaleDateString('de-DE', {
@@ -920,6 +969,7 @@ function buildDefaultSaveName(): string {
   return `Bingo vom ${date} um ${time} Uhr`
 }
 
+/** Persist the current board as a save entry (create or update). */
 async function saveBoard(name?: string) {
   if (!process.client) return
 
@@ -1005,10 +1055,12 @@ async function saveBoard(name?: string) {
   }
 }
 
+/** Shortcut action that saves the board using a generated name. */
 function quickSaveBoard() {
   void saveBoard()
 }
 
+/** Load an archived board entry back into the active state. */
 async function loadSavedBoard(id: string) {
   const entry = savedBoards.value.find((save) => save.id === id)
   if (!entry) {
@@ -1063,6 +1115,7 @@ async function loadSavedBoard(id: string) {
   })
 }
 
+/** Archive a single saved entry and refresh the local list. */
 async function removeSavedBoard(id: string) {
   if (!process.client) return
   const entry = savedBoards.value.find((save) => save.id === id)
@@ -1093,6 +1146,7 @@ async function removeSavedBoard(id: string) {
   }
 }
 
+/** Archive all saved entries after receiving confirmation from the user. */
 async function clearSavedBoards() {
   if (!process.client || !savedBoards.value.length) return
 
@@ -1143,6 +1197,7 @@ onMounted(() => {
   persistBoardState()
 })
 
+/** Toggle a cell's active state unless it is the permanent free field. */
 function toggleCell(index: number) {
   const cell = board.value[index]
   if (!cell || cell.isFree) return
@@ -1150,6 +1205,7 @@ function toggleCell(index: number) {
   cell.active = !cell.active
 }
 
+/** Generate a fresh randomized board for the current collection. */
 function shuffleBoard() {
   const collection = selectedCollection.value
   if (!collection) return
@@ -1157,6 +1213,7 @@ function shuffleBoard() {
   board.value = buildBoard(collection)
 }
 
+/** Reset the current board while keeping the free field active. */
 function resetBoard() {
   showCelebration.value = false
   board.value = board.value.map((cell) => ({
@@ -1165,15 +1222,19 @@ function resetBoard() {
   }))
 }
 
+/** Track all currently completed lines for styling and celebration logic. */
 const completedLines = computed<number[][]>(() =>
   calculateCompletedLines(board.value)
 )
 
+/** Flattened cell index lookup for completed lines. */
 const completedCellIndices = computed<Set<number>>(() =>
   calculateCompletedCellIndices(board.value)
 )
+/** True whenever at least one line is completed. */
 const hasBingo = computed(() => completedLines.value.length > 0)
 
+// Trigger the celebration overlay when the board transitions into a bingo.
 watch(hasBingo, (value, previousValue) => {
   if (value && !previousValue) {
     showCelebration.value = true
@@ -1182,15 +1243,18 @@ watch(hasBingo, (value, previousValue) => {
   }
 })
 
+/** Hide the celebration overlay without changing board state. */
 function closeCelebration() {
   showCelebration.value = false
 }
 
+/** Export the board from the celebration view and close it afterwards. */
 async function handleCelebrationExport() {
   await exportBoardAsImage()
   closeCelebration()
 }
 
+/** Draw a rounded rectangle path on the provided canvas context. */
 function drawRoundedRect(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -1218,6 +1282,7 @@ function drawRoundedRect(
   ctx.closePath()
 }
 
+/** Render multi-line text within a fixed width, returning the final y offset. */
 function drawWrappedText(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -1249,6 +1314,7 @@ function drawWrappedText(
   return currentY
 }
 
+/** Render the current board into a styled PNG and trigger a download. */
 async function exportBoardAsImage() {
   if (typeof window === 'undefined' || isExporting.value) return
   if (!selectedCollection.value) return

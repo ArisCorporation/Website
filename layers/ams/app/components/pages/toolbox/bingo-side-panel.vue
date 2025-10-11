@@ -1,8 +1,14 @@
 <script setup lang="ts">
+/**
+ * Desktop side panel for bingo controls.
+ *
+ * Sticks alongside the board and exposes save, export, shuffle and reset actions.
+ */
 defineProps<{
   isExporting: boolean
 }>()
 
+/** Emitters for panel actions delegated to the page. */
 const emit = defineEmits<{
   (e: 'save'): void
   (e: 'export'): void

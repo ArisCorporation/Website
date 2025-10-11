@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * Collection picker for the bingo toolbox page.
+ *
+ * Surfaces available Directus collections and forwards selection changes.
+ */
+/** Option entry rendered inside the selection grid. */
 type CollectionOption = {
   id: string
   title: string
@@ -6,6 +12,7 @@ type CollectionOption = {
   phraseCount: number
 }
 
+/** Available collections plus current selection binding. */
 const props = defineProps<{
   collections: CollectionOption[]
   modelValue: string
@@ -15,11 +22,13 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
 
+/** Computed wrapper enabling v-model support for the button grid. */
 const selectedId = computed({
   get: () => props.modelValue,
   set: (value: string) => emit('update:modelValue', value),
 })
 
+/** Convenience helper to highlight the active collection. */
 function isActive(id: string) {
   return id === selectedId.value
 }
