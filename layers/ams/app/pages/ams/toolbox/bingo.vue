@@ -67,6 +67,16 @@ type DirectusBingoGameRecord = {
       }
 }
 
+/** Entry representing a single bingo event within the current session. */
+type SessionBingoLogEntry = {
+  id: string
+  playerName: string
+  collectionName: string
+  lineCount: number
+  occurredAt: string
+  origin: 'local' | 'remote'
+}
+
 /** Dimensions and derived indices for the square bingo board. */
 const boardSize = 5
 const centerIndex = Math.floor((boardSize * boardSize) / 2)
@@ -156,6 +166,24 @@ function mapDirectusCollection(
   }
 }
 
+/** Resolve user-facing name from provided name fragments. */
+function resolveDisplayName(
+  firstName?: string | null,
+  lastName?: string | null,
+  fallback = 'Ein Crew-Mitglied'
+): string {
+  const parts: string[] = []
+  if (typeof firstName === 'string') {
+    const trimmed = firstName.trim()
+    if (trimmed.length) parts.push(trimmed)
+  }
+  if (typeof lastName === 'string') {
+    const trimmed = lastName.trim()
+    if (trimmed.length) parts.push(trimmed)
+  }
+  return parts.join(' ') || fallback
+}
+
 /** Fetch published Directus bingo collections on initial render. */
 const { data: directusCollections } = await useAsyncData<
   NormalizedBingoCollection[]
@@ -198,7 +226,7 @@ useSeoMeta({
 const toast = useToast()
 const nuxtApp = useNuxtApp()
 const authStore = useAuthStore()
-const { currentUserId } = storeToRefs(authStore)
+const { currentUserId, currentUser } = storeToRefs(authStore)
 
 /** Core reactive state for the currently selected collection and board. */
 const selectedCollectionId = ref<string>('')
@@ -220,6 +248,17 @@ const remoteBingoAlert = ref<{
   lineCount: number
 } | null>(null)
 let remoteBingoAlertTimeout: number | null = null
+/** Captures session-only bingo events for the control panel log. */
+const sessionBingoLog = ref<SessionBingoLogEntry[]>([])
+const maxSessionLogEntries = 12
+
+/** Record a bingo event in the in-memory session log. */
+function recordSessionBingo(entry: SessionBingoLogEntry) {
+  sessionBingoLog.value = [entry, ...sessionBingoLog.value].slice(
+    0,
+    maxSessionLogEntries
+  )
+}
 
 /** Currently selected collection derived from the chosen id. */
 const selectedCollection = computed<NormalizedBingoCollection | null>(
@@ -694,29 +733,35 @@ async function subscribeToRealtime(collectionId: string) {
             realtimeNotifiedIds.add(record.id)
 
             const collection = getCollectionById(recordCollectionId)
-            const nameParts: string[] = []
-            if (
-              record.user_created &&
-              typeof record.user_created === 'object'
-            ) {
-              const firstName = record.user_created.first_name?.trim()
-              const lastName = record.user_created.last_name?.trim()
-              if (firstName) nameParts.push(firstName)
-              if (lastName) nameParts.push(lastName)
-            }
-
-            const playerName = nameParts.join(' ') || 'Ein Crew-Mitglied'
+            const playerName =
+              record.user_created && typeof record.user_created === 'object'
+                ? resolveDisplayName(
+                    record.user_created.first_name,
+                    record.user_created.last_name
+                  )
+                : 'Ein Crew-Mitglied'
             const collectionName = collection?.title ?? 'AMS Bingo'
             const lineCount = record.line_count ?? 1
+            const occurredAt =
+              record.date_updated ??
+              record.date_created ??
+              new Date().toISOString()
 
             toast?.add({
               title: 'Bingo!',
-              description: `${playerName} hat gerade ein Bingo (${lineCount} ${
-                lineCount === 1 ? 'Linie' : 'Linien'
-              }) in "${collectionName}" geschafft.`,
+              description: `${playerName} hat gerade ein Bingo in "${collectionName}" geschafft.`,
               color: 'primary',
               icon: 'i-lucide-party-popper',
               timeout: 6000,
+            })
+
+            recordSessionBingo({
+              id: `remote-${record.id}-${occurredAt}`,
+              playerName,
+              collectionName,
+              lineCount,
+              occurredAt,
+              origin: 'remote',
             })
 
             if (process.client) {
@@ -1238,6 +1283,21 @@ const hasBingo = computed(() => completedLines.value.length > 0)
 watch(hasBingo, (value, previousValue) => {
   if (value && !previousValue) {
     showCelebration.value = true
+    const collectionName = selectedCollection.value?.title ?? 'AMS Bingo'
+    const user = currentUser.value as
+      | { first_name?: string | null; last_name?: string | null }
+      | null
+    const playerName = user
+      ? resolveDisplayName(user.first_name, user.last_name, 'Du')
+      : 'Du'
+    recordSessionBingo({
+      id: `local-${Date.now()}`,
+      playerName,
+      collectionName,
+      lineCount: completedLines.value.length,
+      occurredAt: new Date().toISOString(),
+      origin: 'local',
+    })
   } else if (!value) {
     showCelebration.value = false
   }
@@ -1560,9 +1620,7 @@ async function exportBoardAsImage() {
               {{ remoteBingoAlert.playerName }} hat ein Bingo!
             </p>
             <p class="text-xs text-white/70">
-              {{ remoteBingoAlert.collectionName }} ·
-              {{ remoteBingoAlert.lineCount }}
-              {{ remoteBingoAlert.lineCount === 1 ? 'Linie' : 'Linien' }}
+              {{ remoteBingoAlert.collectionName }}
             </p>
           </div>
         </div>
@@ -1623,6 +1681,7 @@ async function exportBoardAsImage() {
         </div>
         <AMSPagesToolboxBingoSidePanel
           :is-exporting="isExporting"
+          :session-log="sessionBingoLog"
           @save="quickSaveBoard"
           @export="exportBoardAsImage"
           @shuffle="shuffleBoard"

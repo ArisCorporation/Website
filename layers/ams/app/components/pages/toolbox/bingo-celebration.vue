@@ -40,17 +40,20 @@ const emit = defineEmits<{
           <span
             class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-white/80"
           >
-            <UIcon name="i-lucide-sparkles" class="h-4 w-4 text-(--ui-primary)" />
+            <UIcon
+              name="i-lucide-sparkles"
+              class="h-4 w-4 text-(--ui-primary)"
+            />
             Bingo Confirmed
           </span>
-          <h2 class="text-4xl font-semibold leading-tight text-white md:text-5xl">
-            ArisCorp Crew hat Bingo!
+          <h2
+            class="text-4xl font-semibold leading-tight text-white md:text-5xl"
+          >
+            Du hast Bingo!
           </h2>
           <p class="max-w-xl text-sm text-slate-200/80 md:text-base">
-            {{ lineCount }}
-            {{ lineCount === 1 ? 'Linie' : 'Linien' }} abgeschlossen – starke
-            Leistung! Teile den Moment mit deiner Crew oder starte direkt in die
-            nächste Runde.
+            Starke Leistung! Teile den Moment mit deiner Crew oder starte direkt
+            in die nächste Runde.
           </p>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-3">

@@ -16,10 +16,7 @@ defineProps<{
       class="flex items-center gap-3 rounded-2xl border border-(--ui-primary)/40 bg-(--ui-primary)/15 px-5 py-4 text-white shadow-[0_0_35px_rgba(15,90,255,0.22)]"
     >
       <UIcon name="i-lucide-party-popper" class="h-6 w-6 text-(--ui-primary)" />
-      <p class="text-sm font-semibold">
-        Bingo! Du hast {{ lineCount }}
-        {{ lineCount === 1 ? 'Linie' : 'Linien' }} abgeschlossen.
-      </p>
+      <p class="text-sm font-semibold">Bingo!</p>
     </div>
   </Transition>
 </template>
