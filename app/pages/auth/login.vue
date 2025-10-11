@@ -54,6 +54,24 @@ async function attemptLogin() {
   }
 }
 
+async function clearBrowserCache() {
+  // Alle im JS sichtbaren Cookies holen
+  const list = document
+    ? (document.cookie.split(';') ?? [])
+        .map((c) => c.split('=')[0]?.trim())
+        .filter(Boolean)
+    : []
+
+  // Versuche mit Root-Domain .ariscorp.de zu löschen (SameSite=None; Secure)
+  for (const name of list) {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.ariscorp.de; Secure; SameSite=None`
+    // Fallback: ohne Domain (für evtl. abweichende Setups)
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; Secure; SameSite=None`
+  }
+
+  await authStore.logoutAndRedirect()
+}
+
 definePageMeta({
   layout: false,
   guest: true,
@@ -66,8 +84,17 @@ definePageMeta({
       class="flex h-auto min-h-[calc(100vh-6rem)] lg:h-screen w-full"
     >
       <div
-        class="w-lg m-auto bg-(--ui-bg-muted) rounded-xl p-6 pb-8 prose prose-invert border-(--ui-bg-accented)"
+        class="w-lg m-auto bg-(--ui-bg-muted) relative rounded-xl p-6 pb-8 prose prose-invert border-(--ui-bg-accented)"
       >
+        <UButton
+          @click="clearBrowserCache"
+          variant="ghost"
+          size="xs"
+          color="neutral"
+          type="button"
+          label="Cache leeren"
+          class="w-fit !p-1 !m-0 absolute right-3"
+        />
         <video
           @contextmenu.prevent
           autoplay
