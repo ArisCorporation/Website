@@ -4,8 +4,18 @@
  *
  * Sticks alongside the board and exposes save, export, shuffle and reset actions.
  */
-defineProps<{
+type SessionLogEntry = {
+  id: string
+  playerName: string
+  collectionName: string
+  lineCount: number
+  occurredAt: string
+  origin: 'local' | 'remote'
+}
+
+const props = defineProps<{
   isExporting: boolean
+  sessionLog: SessionLogEntry[]
 }>()
 
 /** Emitters for panel actions delegated to the page. */
@@ -15,15 +25,23 @@ const emit = defineEmits<{
   (e: 'shuffle'): void
   (e: 'reset'): void
 }>()
+
+/** Format timestamps for the session log display. */
+const formatTimestamp = (value: string) =>
+  new Date(value).toLocaleTimeString('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
 </script>
 
 <template>
   <aside class="hidden lg:block">
     <div class="lg:sticky lg:top-28">
-      <div
+      <section
         class="rounded-[28px] border border-white/12 bg-[linear-gradient(158deg,rgba(9,15,32,0.92),rgba(4,9,22,0.86))] p-6 text-sm text-white/75 shadow-[0_26px_60px_-42px_rgba(0,0,0,0.65)] backdrop-blur-xl"
       >
-        <div class="space-y-2 text-left">
+        <header class="space-y-2 text-left">
           <p
             class="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/45"
           >
@@ -34,7 +52,7 @@ const emit = defineEmits<{
             Passe dein Board an, sichere deinen Fortschritt und teile besondere
             Runden mit deinem Team.
           </p>
-        </div>
+        </header>
 
         <div class="mt-6 flex flex-col gap-3">
           <UButton
@@ -54,7 +72,7 @@ const emit = defineEmits<{
             color="primary"
             variant="soft"
             icon="i-lucide-image-down"
-            :loading="isExporting"
+            :loading="props.isExporting"
             class="w-full justify-between"
             @click="emit('export')"
           >
@@ -104,11 +122,62 @@ const emit = defineEmits<{
             Tipp
           </p>
           <p>
-            Speichere das Board kurz bevor du neu mischst, damit besondere Runden
-            später in deinen Spielen auftauchen.
+            Speichere das Board kurz bevor du neu mischst, damit besondere
+            Runden später in deinen Spielen auftauchen.
           </p>
         </div>
-      </div>
+      </section>
+
+      <section
+        class="mt-6 rounded-[28px] border border-white/12 bg-[linear-gradient(160deg,rgba(9,15,32,0.9),rgba(4,9,22,0.78))] p-6 text-sm text-white/75 shadow-[0_24px_54px_-40px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+      >
+        <header class="space-y-2 text-left">
+          <p
+            class="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/45"
+          >
+            Session Log
+          </p>
+          <p class="text-[13px] text-white/60">
+            Live-Mitschnitt aktueller Bingo-Meldungen in dieser Session.
+          </p>
+        </header>
+
+        <div
+          v-if="props.sessionLog.length"
+          class="mt-4 max-h-64 space-y-2 overflow-y-auto pr-1"
+        >
+          <div
+            v-for="entry in props.sessionLog"
+            :key="entry.id"
+            class="flex items-start justify-between gap-3 rounded-2xl border border-white/12 bg-white/5 px-4 py-3 text-[12px]"
+          >
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-semibold text-white">
+                  {{ entry.playerName }}
+                </span>
+                <span
+                  v-if="entry.origin === 'local'"
+                  class="rounded-full border border-(--ui-primary)/40 bg-(--ui-primary)/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-(--ui-primary)"
+                >
+                  Du
+                </span>
+              </div>
+            </div>
+            <span
+              class="text-[10px] font-medium uppercase tracking-[0.28em] text-white/45"
+            >
+              {{ formatTimestamp(entry.occurredAt) }}
+            </span>
+          </div>
+        </div>
+        <div
+          v-else
+          class="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/55"
+        >
+          Noch keine Bingo-Meldungen in dieser Session.
+        </div>
+      </section>
     </div>
   </aside>
 </template>
