@@ -51,7 +51,8 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@compodium/nuxt',
     'nuxt-tiptap-editor',
-    'nuxt-charts'
+    'nuxt-charts',
+    '@nuxtjs/mdc'
   ],
 
   css: ['~/assets/css/main.css'],
@@ -108,25 +109,24 @@ export default defineNuxtConfig({
     prefix: 'Tiptap'
   },
 
-  echarts: {
-    ssr: false,
-    renderer: 'svg',
-    charts: ['BarChart', 'MapChart', 'PieChart'],
-    components: [
-      'DatasetComponent',
-      'GridComponent',
-      'TooltipComponent',
-      'ToolboxComponent',
-      'GeoComponent',
-      'VisualMapComponent',
-      'LegendComponent'
-    ],
-  },
+  // echarts: {
+  //   ssr: false,
+  //   renderer: 'svg',
+  //   charts: ['BarChart', 'MapChart', 'PieChart'],
+  //   components: [
+  //     'DatasetComponent',
+  //     'GridComponent',
+  //     'TooltipComponent',
+  //     'ToolboxComponent',
+  //     'GeoComponent',
+  //     'VisualMapComponent',
+  //     'LegendComponent'
+  //   ],
+  // },
 
   future: {
     compatibilityVersion: 4
   },
 
   compatibilityDate: '2024-11-01',
-
 })
