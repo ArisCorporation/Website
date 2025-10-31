@@ -124,8 +124,10 @@ export default defineNuxtConfig({
   //   ],
   // },
 
-  future: {
-    compatibilityVersion: 4
+  devServer: {
+    host: 'localdev.ariscorp.de',
+    port: 80,
+    https: true
   },
 
   compatibilityDate: '2024-11-01',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DateValue } from '@internationalized/date'
-import { getLocalTimeZone, today } from '@internationalized/date'
+import { getLocalTimeZone, today, parseDate } from '@internationalized/date'
 
 interface CalendarEvent {
   id: string
@@ -12,6 +12,18 @@ interface CalendarEvent {
   end: string
   status: 'planned' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled'
   tags: string[]
+}
+
+interface CreateCalendarEventInput {
+  id?: string
+  title: string
+  summary: string
+  location: string
+  department: string
+  start: string | Date
+  end: string | Date
+  status?: CalendarEvent['status']
+  tags?: string[]
 }
 
 const mockEvents: CalendarEvent[] = [
@@ -111,7 +123,177 @@ const { data: eventsData } = await useAsyncData<CalendarEvent[]>(
 
 const events = computed<CalendarEvent[]>(() => eventsData.value ?? [])
 
+function resolveDateInput(value: string | Date, field: 'start' | 'end') {
+  if (value instanceof Date) {
+    const timestamp = value.getTime()
+    if (Number.isNaN(timestamp)) {
+      throw new Error(`Ungültiges Datum für ${field}`)
+    }
+    return new Date(timestamp)
+  }
+
+  let isoString = value.trim()
+
+  if (!isoString.length) {
+    throw new Error(`Ungültiges Datum für ${field}`)
+  }
+
+  const hasTimezone = /([+-]\d{2}:\d{2}|z)$/i.test(isoString)
+  if (!hasTimezone) {
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(isoString)) {
+      isoString = `${isoString}:00`
+    }
+    isoString = `${isoString}Z`
+  }
+
+  const date = new Date(isoString)
+
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(`Ungültiges Datum für ${field}`)
+  }
+
+  return date
+}
+
+function normalizeTags(tags: string[] = []) {
+  return Array.from(
+    new Set(
+      tags
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0)
+    )
+  )
+}
+
+function generateEventId(title: string, startDate: Date) {
+  const slug = title
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+
+  const timestampPart = startDate.getTime().toString(36)
+  const randomPart = Math.random().toString(36).slice(2, 6)
+
+  return `${slug || 'event'}-${timestampPart}-${randomPart}`
+}
+
+// Adds a new appointment to the reactive data source and returns it.
+async function createCalendarEvent(
+  input: CreateCalendarEventInput
+): Promise<CalendarEvent> {
+  const startDate = resolveDateInput(input.start, 'start')
+  const endDate = resolveDateInput(input.end, 'end')
+
+  if (endDate.getTime() <= startDate.getTime()) {
+    throw new Error('Endzeit muss nach der Startzeit liegen')
+  }
+
+  const event: CalendarEvent = {
+    id: input.id ?? generateEventId(input.title, startDate),
+    title: input.title.trim(),
+    summary: input.summary.trim(),
+    location: input.location.trim(),
+    department: input.department.trim(),
+    start: startDate.toISOString(),
+    end: endDate.toISOString(),
+    status: input.status ?? 'planned',
+    tags: normalizeTags(input.tags),
+  }
+
+  const currentEvents = eventsData.value ?? []
+  eventsData.value = [...currentEvents, event]
+
+  return event
+}
+
 const selectedDate = ref<DateValue | undefined>(today(getLocalTimeZone()))
+
+type CreateEventFormState = {
+  title: string
+  summary: string
+  location: string
+  department: string
+  start: string
+  end: string
+  status: CalendarEvent['status']
+  tagsInput: string
+}
+
+const createEventModalOpen = ref(false)
+const createEventLoading = ref(false)
+const createEventError = ref<string | null>(null)
+
+const defaultCreateEventFormState = (): CreateEventFormState => ({
+  title: '',
+  summary: '',
+  location: '',
+  department: '',
+  start: '',
+  end: '',
+  status: 'planned',
+  tagsInput: '',
+})
+
+const createEventForm = reactive<CreateEventFormState>(
+  defaultCreateEventFormState()
+)
+
+function resetCreateEventForm() {
+  Object.assign(createEventForm, defaultCreateEventFormState())
+}
+
+async function handleCreateEventSubmit() {
+  if (createEventLoading.value) {
+    return
+  }
+
+  if (
+    !createEventForm.title.trim() ||
+    !createEventForm.summary.trim() ||
+    !createEventForm.location.trim() ||
+    !createEventForm.department.trim() ||
+    !createEventForm.start ||
+    !createEventForm.end
+  ) {
+    createEventError.value = 'Bitte fülle alle Pflichtfelder aus.'
+    return
+  }
+
+  createEventError.value = null
+  createEventLoading.value = true
+
+  try {
+    const tags = createEventForm.tagsInput
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
+
+    const event = await createCalendarEvent({
+      title: createEventForm.title,
+      summary: createEventForm.summary,
+      location: createEventForm.location,
+      department: createEventForm.department,
+      start: createEventForm.start,
+      end: createEventForm.end,
+      status: createEventForm.status,
+      tags,
+    })
+
+    const dateKey = event.start.slice(0, 10)
+    selectedDate.value = parseDate(dateKey)
+
+    createEventModalOpen.value = false
+  } catch (error) {
+    createEventError.value =
+      error instanceof Error
+        ? error.message
+        : 'Unbekannter Fehler beim Erstellen des Termins.'
+  } finally {
+    createEventLoading.value = false
+  }
+}
 
 const eventsByDay = computed(() => {
   const map = new Map<string, CalendarEvent[]>()
@@ -207,6 +389,13 @@ const statusMeta = {
   completed: { label: 'Abgeschlossen', color: 'green' },
   cancelled: { label: 'Abgesagt', color: 'red' },
 } as const
+
+const createEventStatusOptions = computed(() =>
+  Object.entries(statusMeta).map(([value, meta]) => ({
+    value: value as CalendarEvent['status'],
+    label: meta.label,
+  }))
+)
 
 const selectedDayLabel = computed(() => {
   if (!selectedDateKey.value) {
@@ -392,28 +581,98 @@ const selectedWeekDays = computed(() => {
       .toUpperCase()
     const dateLabel = weekDayDateFormatter.format(date)
 
-    const rawEvents = eventsByDay.value.get(key) ?? []
-    const detailedEvents = rawEvents.map((event) => {
-      const startDate = new Date(event.start)
-      const endDate = new Date(event.end)
-      const startMinutes = startDate.getHours() * 60 + startDate.getMinutes()
-      const endMinutes = endDate.getHours() * 60 + endDate.getMinutes()
-      const durationMinutes = Math.max(endMinutes - startMinutes, 30)
-      const top = (startMinutes / 60) * WEEK_HOUR_HEIGHT
-      const height = Math.max(
-        (durationMinutes / 60) * WEEK_HOUR_HEIGHT,
-        WEEK_HOUR_HEIGHT / 2
-      )
+    const dayStart = new Date(`${key}T00:00:00`)
+    const dayEnd = new Date(dayStart)
+    dayEnd.setDate(dayEnd.getDate() + 1)
 
-      return {
-        ...event,
-        timeRange: formatTimeRange(event),
-        layout: {
-          top,
-          height,
-        },
+    const detailedEvents = events.value
+      .flatMap((event) => {
+        const startDate = new Date(event.start)
+        const endDate = new Date(event.end)
+
+        if (
+          Number.isNaN(startDate.getTime()) ||
+          Number.isNaN(endDate.getTime())
+        ) {
+          return []
+        }
+
+        if (endDate.getTime() <= dayStart.getTime()) {
+          return []
+        }
+
+        if (startDate.getTime() >= dayEnd.getTime()) {
+          return []
+        }
+
+        const segmentStart =
+          startDate.getTime() > dayStart.getTime() ? startDate : dayStart
+        const segmentEnd =
+          endDate.getTime() < dayEnd.getTime() ? endDate : dayEnd
+
+        const continuesBefore = startDate.getTime() < dayStart.getTime()
+        const continuesAfter = endDate.getTime() > dayEnd.getTime()
+
+        const top =
+          ((segmentStart.getTime() - dayStart.getTime()) / 3600000) *
+          WEEK_HOUR_HEIGHT
+        const durationMinutes = Math.max(
+          (segmentEnd.getTime() - segmentStart.getTime()) / 60000,
+          30
+        )
+        const height = Math.max(
+          (durationMinutes / 60) * WEEK_HOUR_HEIGHT,
+          WEEK_HOUR_HEIGHT / 2
+        )
+
+        const isFirstSegment = !continuesBefore
+        const isLastSegment = !continuesAfter
+
+        let displayTimeRange: string
+        if (isFirstSegment && isLastSegment) {
+          displayTimeRange = formatTimeRange(event)
+        } else if (isFirstSegment) {
+          displayTimeRange = `${timeFormatter.format(segmentStart)} – 24:00 · endet ${timeFormatter.format(endDate)}`
+        } else if (isLastSegment) {
+          displayTimeRange = `00:00 – ${timeFormatter.format(segmentEnd)}`
+        } else {
+          displayTimeRange = 'Ganztägig'
+        }
+
+        return [
+          {
+            ...event,
+            segment: {
+              key: `${event.id}-${segmentStart.toISOString()}`,
+              top,
+              height,
+              continuesBefore,
+              continuesAfter,
+              isFirstSegment,
+              isLastSegment,
+              segmentStart: segmentStart.toISOString(),
+              segmentEnd: segmentEnd.toISOString(),
+              displayTimeRange,
+            },
+          },
+        ]
+      })
+      .sort((a, b) => a.segment.top - b.segment.top)
+
+    const summaryEvents: Array<
+      typeof detailedEvents[number] & { timeRange: string }
+    > = []
+    const summarySeenIds = new Set<string>()
+
+    for (const event of detailedEvents) {
+      if (!summarySeenIds.has(event.id)) {
+        summarySeenIds.add(event.id)
+        summaryEvents.push({
+          ...event,
+          timeRange: event.segment.displayTimeRange,
+        })
       }
-    })
+    }
 
     days.push({
       key,
@@ -422,8 +681,9 @@ const selectedWeekDays = computed(() => {
       weekday,
       date,
       isToday: todayKey.value === key,
-      events: detailedEvents,
-      eventCount: rawEvents.length,
+      segments: detailedEvents,
+      summaries: summaryEvents,
+      eventCount: summaryEvents.length,
     })
   }
 
@@ -493,6 +753,25 @@ function isDateInSelectedWeek(date: DateValue) {
 }
 
 const todayKey = computed(() => today(getLocalTimeZone()).toString())
+
+watch(createEventModalOpen, (isOpen) => {
+  if (isOpen) {
+    const baseDate = selectedDateKey.value ?? todayKey.value
+    if (baseDate) {
+      if (!createEventForm.start) {
+        createEventForm.start = `${baseDate}T19:00`
+      }
+      if (!createEventForm.end) {
+        createEventForm.end = `${baseDate}T20:00`
+      }
+    }
+    return
+  }
+
+  createEventLoading.value = false
+  createEventError.value = null
+  resetCreateEventForm()
+})
 
 const daySizeClasses = computed(() =>
   calendarView.value === 'year' ? 'size-8 text-xs' : 'size-9 text-sm'
@@ -621,6 +900,121 @@ definePageMeta({
       title="Kalender"
       description="Plane Einsätze, Trainings und Events der ArisCorp."
     />
+    <UModal
+      v-model:open="createEventModalOpen"
+      :ui="{
+        content:
+          'max-w-2xl bg-(--ui-bg-muted)/80 backdrop-blur-md border border-(--ui-primary)/15',
+        header: 'border-b border-(--ui-primary)/10 pb-3',
+        body: 'py-5',
+      }"
+    >
+      <template #header>
+        <div class="space-y-1">
+          <p
+            class="text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
+          >
+            Neuer Termin
+          </p>
+          <p class="text-lg font-semibold text-(--ui-text-highlighted)">
+            Einsatz planen
+          </p>
+        </div>
+      </template>
+      <template #body>
+        <form class="space-y-4" @submit.prevent="handleCreateEventSubmit">
+          <div class="grid gap-4">
+            <UFormField label="Titel" size="xs" required>
+              <UInput
+                v-model="createEventForm.title"
+                placeholder="z.B. Operation Horizon"
+                autocomplete="off"
+              />
+            </UFormField>
+            <UFormField label="Kurzbeschreibung" size="xs" required>
+              <UTextarea
+                v-model="createEventForm.summary"
+                rows="3"
+                spellcheck="false"
+                placeholder="Kurzer Überblick über Ziel und Ablauf."
+              />
+            </UFormField>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <UFormField label="Start" size="xs" required>
+                <UInput
+                  v-model="createEventForm.start"
+                  type="datetime-local"
+                  autocomplete="off"
+                />
+              </UFormField>
+              <UFormField label="Ende" size="xs" required>
+                <UInput
+                  v-model="createEventForm.end"
+                  type="datetime-local"
+                  autocomplete="off"
+                />
+              </UFormField>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <UFormField label="Ort" size="xs" required>
+                <UInput
+                  v-model="createEventForm.location"
+                  placeholder="z.B. Everus Harbor – Hangar 02"
+                  autocomplete="off"
+                />
+              </UFormField>
+              <UFormField label="Abteilung" size="xs" required>
+                <UInput
+                  v-model="createEventForm.department"
+                  placeholder="z.B. Sicherheit"
+                  autocomplete="off"
+                />
+              </UFormField>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <UFormField label="Status" size="xs" required>
+                <USelectMenu
+                  v-model="createEventForm.status"
+                  :items="createEventStatusOptions"
+                  value-key="value"
+                  label-key="label"
+                  variant="ams"
+                  size="md"
+                  placeholder="Status wählen"
+                />
+              </UFormField>
+              <UFormField label="Tags" size="xs">
+                <UInput
+                  v-model="createEventForm.tagsInput"
+                  placeholder="z.B. Einsatz, Flug"
+                  autocomplete="off"
+                />
+              </UFormField>
+            </div>
+          </div>
+          <UAlert
+            v-if="createEventError"
+            color="red"
+            variant="subtle"
+            icon="i-lucide-alert-triangle"
+            :description="createEventError"
+          />
+          <div class="flex justify-end gap-2 pt-2">
+            <UButton
+              type="button"
+              color="neutral"
+              variant="subtle"
+              @click="createEventModalOpen = false"
+            >
+              Abbrechen
+            </UButton>
+            <UButton type="submit" :loading="createEventLoading">
+              Termin speichern
+            </UButton>
+          </div>
+        </form>
+      </template>
+    </UModal>
 
     <div
       class="grid gap-6 xl:grid-cols-[360px,1fr] 2xl:grid-cols-[400px,1fr] items-start"
@@ -628,30 +1022,43 @@ definePageMeta({
       <UCard variant="ams" class="animated-border relative overflow-hidden">
         <template #header>
           <div class="space-y-3">
-            <div class="flex items-center justify-between gap-2">
-              <span
-                class="text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
-              >
-                Übersicht
-              </span>
-              <UBadge
-                v-if="events.length"
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-2">
+                <span
+                  class="text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
+                >
+                  Übersicht
+                </span>
+                <UBadge
+                  v-if="events.length"
+                  color="primary"
+                  variant="subtle"
+                  size="xs"
+                  class="uppercase tracking-wide bg-(--ui-primary)/15 text-(--ui-primary)"
+                >
+                  {{ events.length }} Termine
+                </UBadge>
+                <UBadge
+                  v-if="currentISOWeek !== null"
+                  color="neutral"
+                  variant="soft"
+                  size="xs"
+                  class="uppercase tracking-wide"
+                >
+                  KW {{ currentISOWeek }}
+                </UBadge>
+              </div>
+              <UButton
                 color="primary"
-                variant="subtle"
-                size="xs"
-                class="uppercase tracking-wide bg-(--ui-primary)/15 text-(--ui-primary)"
-              >
-                {{ events.length }} Termine
-              </UBadge>
-              <UBadge
-                v-if="currentISOWeek !== null"
-                color="neutral"
                 variant="soft"
                 size="xs"
+                icon="i-lucide-plus"
                 class="uppercase tracking-wide"
+                :disabled="createEventLoading"
+                @click="createEventModalOpen = true"
               >
-                KW {{ currentISOWeek }}
-              </UBadge>
+                Termin anlegen
+              </UButton>
             </div>
 
             <URadioGroup
@@ -733,57 +1140,99 @@ definePageMeta({
                 />
 
                 <div
-                  v-if="!day.events.length"
+                  v-if="!day.segments.length"
                   class="absolute left-3 right-3 top-1/2 -translate-y-1/2 rounded-lg border border-dashed border-(--ui-primary)/25 bg-(--ui-bg-muted)/50 px-3 py-2 text-center text-xs uppercase tracking-wide text-(--ui-text-muted)"
                 >
                   Keine Events
                 </div>
 
                 <div
-                  v-for="event in day.events"
-                  :key="event.id"
-                  class="absolute left-3 right-3 rounded-lg border border-(--ui-primary)/25 bg-(--ui-primary)/10/50 p-3 text-left shadow-[0_0_12px_rgba(0,255,232,0.15)]"
+                  v-for="event in day.segments"
+                  :key="event.segment.key"
+                  class="absolute left-3 right-3 border border-(--ui-primary)/25 bg-(--ui-primary)/10/50 text-left shadow-[0_0_12px_rgba(0,255,232,0.15)] transition-colors duration-200"
+                  :class="[
+                    event.segment.continuesBefore ? 'rounded-t-none border-t-transparent pt-2' : 'rounded-t-lg pt-3',
+                    event.segment.continuesAfter ? 'rounded-b-none border-b-transparent pb-2' : 'rounded-b-lg pb-3',
+                    'px-3',
+                  ]"
                   :style="{
-                    top: `${event.layout.top}px`,
-                    height: `${event.layout.height}px`,
+                    top: `${event.segment.top}px`,
+                    height: `${event.segment.height}px`,
                   }"
                 >
-                  <p class="text-[0.65rem] uppercase tracking-wide text-(--ui-primary)">
-                    {{ event.timeRange }}
-                  </p>
-                  <p class="mt-1 text-sm font-semibold text-(--ui-text-highlighted)">
-                    {{ event.title }}
-                  </p>
                   <div
-                    class="mt-2 flex flex-wrap items-center gap-2 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)"
+                    class="flex items-center justify-between text-[0.65rem] uppercase tracking-wide"
                   >
-                    <span class="inline-flex items-center gap-1.5">
-                      <UIcon
-                        name="i-lucide-map-pin"
-                        class="size-3 text-(--ui-primary)"
-                      />
-                      {{ event.location }}
+                    <span class="text-(--ui-primary)">
+                      {{ event.segment.displayTimeRange }}
                     </span>
-                    <span class="inline-flex items-center gap-1.5">
-                      <UIcon
-                        name="i-lucide-briefcase"
-                        class="size-3 text-(--ui-primary)"
-                      />
-                      {{ event.department }}
-                    </span>
-                  </div>
-                  <div class="mt-2 flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-wide">
-                    <UBadge
-                      v-for="tag in event.tags"
-                      :key="`${event.id}-${tag}`"
-                      color="primary"
-                      variant="subtle"
-                      size="xs"
-                      class="uppercase tracking-wide text-(--ui-text-muted)"
+                    <span
+                      v-if="event.segment.continuesBefore || event.segment.continuesAfter"
+                      class="flex items-center gap-1 text-[0.6rem] text-(--ui-text-muted)"
                     >
-                      {{ tag }}
-                    </UBadge>
+                      <UIcon
+                        v-if="event.segment.continuesBefore"
+                        name="i-lucide-arrow-up"
+                        class="size-3"
+                      />
+                      <UIcon
+                        v-if="event.segment.continuesAfter"
+                        name="i-lucide-arrow-down"
+                        class="size-3"
+                      />
+                    </span>
                   </div>
+                  <template v-if="event.segment.isFirstSegment">
+                    <p
+                      class="mt-1 text-sm font-semibold text-(--ui-text-highlighted)"
+                    >
+                      {{ event.title }}
+                    </p>
+                    <div
+                      class="mt-2 flex flex-wrap items-center gap-2 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)"
+                    >
+                      <span class="inline-flex items-center gap-1.5">
+                        <UIcon
+                          name="i-lucide-map-pin"
+                          class="size-3 text-(--ui-primary)"
+                        />
+                        {{ event.location }}
+                      </span>
+                      <span class="inline-flex items-center gap-1.5">
+                        <UIcon
+                          name="i-lucide-briefcase"
+                          class="size-3 text-(--ui-primary)"
+                        />
+                        {{ event.department }}
+                      </span>
+                    </div>
+                    <div
+                      class="mt-2 flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-wide"
+                    >
+                      <UBadge
+                        v-for="tag in event.tags"
+                        :key="`${event.id}-${tag}`"
+                        color="primary"
+                        variant="subtle"
+                        size="xs"
+                        class="uppercase tracking-wide text-(--ui-text-muted)"
+                      >
+                        {{ tag }}
+                      </UBadge>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <p
+                      class="mt-2 text-xs font-medium uppercase tracking-wide text-(--ui-text-muted)"
+                    >
+                      {{ event.title }}
+                    </p>
+                    <p
+                      class="mt-2 text-[0.7rem] uppercase tracking-wide text-(--ui-text-muted)"
+                    >
+                      Fortsetzung
+                    </p>
+                  </template>
                 </div>
               </div>
             </div>
@@ -992,9 +1441,9 @@ definePageMeta({
                   </UBadge>
                 </div>
 
-                <ul v-if="day.events.length" class="mt-3 space-y-3">
+                <ul v-if="day.summaries.length" class="mt-3 space-y-3">
                   <li
-                    v-for="event in day.events"
+                    v-for="event in day.summaries"
                     :key="event.id"
                     class="rounded-lg border border-(--ui-primary)/20 bg-(--ui-bg-muted)/50 p-3 transition duration-200 hover:border-(--ui-primary)/35"
                   >

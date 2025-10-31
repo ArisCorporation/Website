@@ -90,6 +90,13 @@ const sidebarItems = computed<sidebarElement[]>(() => {
       exact: false,
       type: 'link',
     },
+    {
+      label: 'Kalender',
+      link: '/ams/calendar',
+      icon: 'i-lucide-calendar-range',
+      exact: false,
+      type: 'link',
+    },
     // {
     //   label: 'VerseExkurs Editor',
     //   link: '/ams/verse-exkurs-editor',
