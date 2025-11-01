@@ -157,11 +157,7 @@ function resolveDateInput(value: string | Date, field: 'start' | 'end') {
 
 function normalizeTags(tags: string[] = []) {
   return Array.from(
-    new Set(
-      tags
-        .map((tag) => tag.trim())
-        .filter((tag) => tag.length > 0)
-    )
+    new Set(tags.map((tag) => tag.trim()).filter((tag) => tag.length > 0))
   )
 }
 
@@ -206,6 +202,46 @@ async function createCalendarEvent(
   eventsData.value = [...currentEvents, event]
 
   return event
+}
+
+async function updateCalendarEventTime(
+  eventId: string,
+  updates: { start?: Date; end?: Date }
+): Promise<CalendarEvent | null> {
+  const list = eventsData.value ?? []
+  const index = list.findIndex((event) => event.id === eventId)
+
+  if (index === -1) {
+    return null
+  }
+
+  const existing = list[index]
+  const startDate =
+    updates.start instanceof Date
+      ? new Date(updates.start)
+      : new Date(existing.start)
+  const endDate =
+    updates.end instanceof Date ? new Date(updates.end) : new Date(existing.end)
+
+  if (
+    Number.isNaN(startDate.getTime()) ||
+    Number.isNaN(endDate.getTime()) ||
+    endDate.getTime() <= startDate.getTime()
+  ) {
+    return null
+  }
+
+  const updated: CalendarEvent = {
+    ...existing,
+    start: startDate.toISOString(),
+    end: endDate.toISOString(),
+  }
+
+  const next = [...list]
+  next.splice(index, 1, updated)
+  eventsData.value = next
+
+  return updated
 }
 
 const selectedDate = ref<DateValue | undefined>(today(getLocalTimeZone()))
@@ -632,7 +668,11 @@ const selectedWeekDays = computed(() => {
         if (isFirstSegment && isLastSegment) {
           displayTimeRange = formatTimeRange(event)
         } else if (isFirstSegment) {
-          displayTimeRange = `${timeFormatter.format(segmentStart)} – 24:00 · endet ${timeFormatter.format(endDate)}`
+          displayTimeRange = `${timeFormatter.format(
+            segmentStart
+          )} – ${weekDayShortFormatter.format(endDate)} ${timeFormatter.format(
+            endDate
+          )}`
         } else if (isLastSegment) {
           displayTimeRange = `00:00 – ${timeFormatter.format(segmentEnd)}`
         } else {
@@ -660,7 +700,7 @@ const selectedWeekDays = computed(() => {
       .sort((a, b) => a.segment.top - b.segment.top)
 
     const summaryEvents: Array<
-      typeof detailedEvents[number] & { timeRange: string }
+      (typeof detailedEvents)[number] & { timeRange: string }
     > = []
     const summarySeenIds = new Set<string>()
 
@@ -785,9 +825,712 @@ const WEEK_HOUR_HEIGHT = 64
 const WEEK_HEADER_HEIGHT = 68
 const WEEK_GRID_HEIGHT = WEEK_HOUR_HEIGHT * 24
 const weekHourLabels = computed(() =>
-  Array.from({ length: 24 }, (_, hour) => `${hour.toString().padStart(2, '0')}:00`)
+  Array.from(
+    { length: 24 },
+    (_, hour) => `${hour.toString().padStart(2, '0')}:00`
+  )
 )
 const weekHourGuides = Array.from({ length: 25 }, (_, index) => index)
+
+const WEEK_TIME_STEP_MINUTES = 15
+const WEEK_MIN_DURATION_MINUTES = 30
+const WEEK_MIN_HEIGHT =
+  (WEEK_MIN_DURATION_MINUTES / 60) * WEEK_HOUR_HEIGHT
+
+type WeekInteractionType = 'move' | 'resize-start' | 'resize-end'
+type WeekInteractionSource = 'pointer' | 'mouse' | 'touch'
+
+type WeekSegmentMeta = {
+  key: string
+  top: number
+  height: number
+  continuesBefore: boolean
+  continuesAfter: boolean
+  isFirstSegment: boolean
+  isLastSegment: boolean
+}
+
+type WeekSegmentEvent = {
+  id: string
+  start: string
+  end: string
+  segment: WeekSegmentMeta
+}
+
+interface WeekEventInteractionState {
+  source: WeekInteractionSource
+  type: WeekInteractionType
+  eventId: string
+  segmentKey: string
+  dayKey: string
+  pointerId?: number
+  touchId?: number
+  startClientY: number
+  initialStart: Date
+  initialEnd: Date
+  initialTop: number
+  initialHeight: number
+  startMinutes: number
+  durationMinutes: number
+}
+
+const activeWeekInteraction = ref<WeekEventInteractionState | null>(null)
+const weekEventPreview = ref<{
+  eventId: string
+  segmentKey: string
+  dayKey: string
+  top: number
+  height: number
+  startMinutes: number
+  durationMinutes: number
+} | null>(null)
+let weekPointerListenersActive = false
+let weekMouseListenersActive = false
+let weekTouchListenersActive = false
+
+function snapMinutesToStep(minutes: number) {
+  return Math.round(minutes / WEEK_TIME_STEP_MINUTES) * WEEK_TIME_STEP_MINUTES
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
+}
+
+function canEditWeekEvent(segment: WeekSegmentMeta) {
+  return !segment.continuesBefore && !segment.continuesAfter
+}
+
+function getWeekEventStyle(eventId: string, segment: WeekSegmentMeta) {
+  const preview = weekEventPreview.value
+
+  if (
+    preview &&
+    preview.eventId === eventId &&
+    preview.segmentKey === segment.key
+  ) {
+    return {
+      top: `${preview.top}px`,
+      height: `${preview.height}px`,
+    }
+  }
+
+  return {
+    top: `${segment.top}px`,
+    height: `${segment.height}px`,
+  }
+}
+
+function isWeekEventActive(eventId: string, segmentKey: string) {
+  const interaction = activeWeekInteraction.value
+  return (
+    !!interaction &&
+    interaction.eventId === eventId &&
+    interaction.segmentKey === segmentKey
+  )
+}
+
+function addWeekInteractionListeners(source: WeekInteractionSource) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  switch (source) {
+    case 'pointer':
+      if (weekPointerListenersActive) {
+        return
+      }
+      window.addEventListener('pointermove', handleWeekPointerMove)
+      window.addEventListener('pointerup', handleWeekPointerUp)
+      window.addEventListener('pointercancel', handleWeekPointerCancel)
+      weekPointerListenersActive = true
+      break
+    case 'mouse':
+      if (weekMouseListenersActive) {
+        return
+      }
+      window.addEventListener('mousemove', handleWeekMouseMove)
+      window.addEventListener('mouseup', handleWeekMouseUp)
+      weekMouseListenersActive = true
+      break
+    case 'touch':
+      if (weekTouchListenersActive) {
+        return
+      }
+      window.addEventListener('touchmove', handleWeekTouchMove, {
+        passive: false,
+      })
+      window.addEventListener('touchend', handleWeekTouchEnd)
+      window.addEventListener('touchcancel', handleWeekTouchCancel)
+      weekTouchListenersActive = true
+      break
+    default:
+      break
+  }
+}
+
+function removeWeekInteractionListeners(source: WeekInteractionSource) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  switch (source) {
+    case 'pointer':
+      if (!weekPointerListenersActive) {
+        return
+      }
+      window.removeEventListener('pointermove', handleWeekPointerMove)
+      window.removeEventListener('pointerup', handleWeekPointerUp)
+      window.removeEventListener('pointercancel', handleWeekPointerCancel)
+      weekPointerListenersActive = false
+      break
+    case 'mouse':
+      if (!weekMouseListenersActive) {
+        return
+      }
+      window.removeEventListener('mousemove', handleWeekMouseMove)
+      window.removeEventListener('mouseup', handleWeekMouseUp)
+      weekMouseListenersActive = false
+      break
+    case 'touch':
+      if (!weekTouchListenersActive) {
+        return
+      }
+      window.removeEventListener('touchmove', handleWeekTouchMove)
+      window.removeEventListener('touchend', handleWeekTouchEnd)
+      window.removeEventListener('touchcancel', handleWeekTouchCancel)
+      weekTouchListenersActive = false
+      break
+    default:
+      break
+  }
+}
+
+function findTouchById(list: TouchList, id: number | undefined) {
+  if (id === undefined) {
+    return null
+  }
+
+  for (let index = 0; index < list.length; index += 1) {
+    const touch = list.item(index)
+    if (touch && touch.identifier === id) {
+      return touch
+    }
+  }
+
+  return null
+}
+
+function updateWeekInteractionPreview(clientY: number) {
+  const interaction = activeWeekInteraction.value
+  if (!interaction) {
+    return
+  }
+
+  const deltaY = clientY - interaction.startClientY
+  applyWeekInteractionDelta(interaction, deltaY)
+}
+
+function applyWeekInteractionDelta(
+  interaction: WeekEventInteractionState,
+  deltaY: number
+) {
+  if (interaction.type === 'move') {
+    let newTopPx = interaction.initialTop + deltaY
+    const maxTop = WEEK_GRID_HEIGHT - interaction.initialHeight
+    newTopPx = clamp(newTopPx, 0, Math.max(0, maxTop))
+
+    const minutes = (newTopPx / WEEK_HOUR_HEIGHT) * 60
+    const snappedMinutes = clamp(
+      snapMinutesToStep(minutes),
+      0,
+      Math.max(0, 24 * 60 - interaction.durationMinutes)
+    )
+    const snappedTop = (snappedMinutes / 60) * WEEK_HOUR_HEIGHT
+
+    weekEventPreview.value = {
+      eventId: interaction.eventId,
+      segmentKey: interaction.segmentKey,
+      dayKey: interaction.dayKey,
+      top: snappedTop,
+      height: interaction.initialHeight,
+      startMinutes: snappedMinutes,
+      durationMinutes: interaction.durationMinutes,
+    }
+    return
+  }
+
+  if (interaction.type === 'resize-start') {
+    let newTopPx = interaction.initialTop + deltaY
+    const maxTopMinutes =
+      interaction.startMinutes +
+      interaction.durationMinutes -
+      WEEK_MIN_DURATION_MINUTES
+    const maxTopPx = (maxTopMinutes / 60) * WEEK_HOUR_HEIGHT
+    newTopPx = clamp(newTopPx, 0, Math.max(0, maxTopPx))
+
+    const minutes = (newTopPx / WEEK_HOUR_HEIGHT) * 60
+    const snappedMinutes = clamp(
+      snapMinutesToStep(minutes),
+      0,
+      Math.max(0, maxTopMinutes)
+    )
+    const newDurationMinutes =
+      interaction.durationMinutes - (snappedMinutes - interaction.startMinutes)
+    const constrainedDuration = Math.max(
+      newDurationMinutes,
+      WEEK_MIN_DURATION_MINUTES
+    )
+    const snappedHeight =
+      (constrainedDuration / 60) * WEEK_HOUR_HEIGHT
+
+    weekEventPreview.value = {
+      eventId: interaction.eventId,
+      segmentKey: interaction.segmentKey,
+      dayKey: interaction.dayKey,
+      top: (snappedMinutes / 60) * WEEK_HOUR_HEIGHT,
+      height: Math.max(snappedHeight, WEEK_MIN_HEIGHT),
+      startMinutes: snappedMinutes,
+      durationMinutes: constrainedDuration,
+    }
+    return
+  }
+
+  let newHeightPx = interaction.initialHeight + deltaY
+  const maxHeight = WEEK_GRID_HEIGHT - interaction.initialTop
+  newHeightPx = clamp(
+    newHeightPx,
+    WEEK_MIN_HEIGHT,
+    Math.max(WEEK_MIN_HEIGHT, maxHeight)
+  )
+
+  const minutes = (newHeightPx / WEEK_HOUR_HEIGHT) * 60
+  const snappedDuration = clamp(
+    snapMinutesToStep(minutes),
+    WEEK_MIN_DURATION_MINUTES,
+    Math.max(WEEK_MIN_DURATION_MINUTES, 24 * 60 - interaction.startMinutes)
+  )
+  const snappedHeight = (snappedDuration / 60) * WEEK_HOUR_HEIGHT
+
+  weekEventPreview.value = {
+    eventId: interaction.eventId,
+    segmentKey: interaction.segmentKey,
+    dayKey: interaction.dayKey,
+    top: interaction.initialTop,
+    height: snappedHeight,
+    startMinutes: interaction.startMinutes,
+    durationMinutes: snappedDuration,
+  }
+}
+
+function startWeekEventInteraction(
+  interactionType: WeekInteractionType,
+  dayKey: string,
+  segmentEvent: WeekSegmentEvent,
+  source: WeekInteractionSource,
+  origin: { clientY: number; pointerId?: number; touchId?: number }
+) {
+  if (!canEditWeekEvent(segmentEvent.segment)) {
+    return
+  }
+
+  if (
+    (interactionType === 'resize-start' && !segmentEvent.segment.isFirstSegment) ||
+    (interactionType === 'resize-end' && !segmentEvent.segment.isLastSegment)
+  ) {
+    return
+  }
+
+  if (activeWeekInteraction.value) {
+    return
+  }
+
+  const eventStart = new Date(segmentEvent.start)
+  const eventEnd = new Date(segmentEvent.end)
+
+  if (
+    Number.isNaN(eventStart.getTime()) ||
+    Number.isNaN(eventEnd.getTime())
+  ) {
+    return
+  }
+
+  const startMinutes = (segmentEvent.segment.top / WEEK_HOUR_HEIGHT) * 60
+  const durationMinutes =
+    (eventEnd.getTime() - eventStart.getTime()) / 60000
+
+  activeWeekInteraction.value = {
+    source,
+    type: interactionType,
+    eventId: segmentEvent.id,
+    segmentKey: segmentEvent.segment.key,
+    dayKey,
+    pointerId: origin.pointerId,
+    touchId: origin.touchId,
+    startClientY: origin.clientY,
+    initialStart: eventStart,
+    initialEnd: eventEnd,
+    initialTop: segmentEvent.segment.top,
+    initialHeight: segmentEvent.segment.height,
+    startMinutes,
+    durationMinutes,
+  }
+
+  weekEventPreview.value = {
+    eventId: segmentEvent.id,
+    segmentKey: segmentEvent.segment.key,
+    dayKey,
+    top: segmentEvent.segment.top,
+    height: segmentEvent.segment.height,
+    startMinutes,
+    durationMinutes,
+  }
+
+  addWeekInteractionListeners(source)
+}
+
+function startWeekEventInteractionFromPointer(
+  pointerEvent: PointerEvent,
+  dayKey: string,
+  segmentEvent: WeekSegmentEvent,
+  interactionType: WeekInteractionType
+) {
+  if (calendarView.value !== 'week') {
+    return
+  }
+
+  if (
+    pointerEvent.pointerType === 'mouse' &&
+    pointerEvent.button !== 0
+  ) {
+    return
+  }
+
+  pointerEvent.preventDefault()
+
+  startWeekEventInteraction(interactionType, dayKey, segmentEvent, 'pointer', {
+    pointerId: pointerEvent.pointerId,
+    clientY: pointerEvent.clientY,
+  })
+}
+
+function startWeekEventInteractionFromMouse(
+  mouseEvent: MouseEvent,
+  dayKey: string,
+  segmentEvent: WeekSegmentEvent,
+  interactionType: WeekInteractionType
+) {
+  if (calendarView.value !== 'week') {
+    return
+  }
+
+  if (mouseEvent.button !== 0) {
+    return
+  }
+
+  mouseEvent.preventDefault()
+
+  startWeekEventInteraction(interactionType, dayKey, segmentEvent, 'mouse', {
+    clientY: mouseEvent.clientY,
+  })
+}
+
+function startWeekEventInteractionFromTouch(
+  touchEvent: TouchEvent,
+  dayKey: string,
+  segmentEvent: WeekSegmentEvent,
+  interactionType: WeekInteractionType
+) {
+  if (calendarView.value !== 'week') {
+    return
+  }
+
+  const touch = touchEvent.changedTouches[0]
+  if (!touch) {
+    return
+  }
+
+  touchEvent.preventDefault()
+
+  startWeekEventInteraction(interactionType, dayKey, segmentEvent, 'touch', {
+    touchId: touch.identifier,
+    clientY: touch.clientY,
+  })
+}
+
+function onWeekEventDragPointerDown(
+  pointerEvent: PointerEvent,
+  dayKey: string,
+  segmentEvent: WeekSegmentEvent
+) {
+  startWeekEventInteractionFromPointer(
+    pointerEvent,
+    dayKey,
+    segmentEvent,
+    'move'
+  )
+}
+
+function onWeekEventDragMouseDown(
+  mouseEvent: MouseEvent,
+  dayKey: string,
+  segmentEvent: WeekSegmentEvent
+) {
+  startWeekEventInteractionFromMouse(mouseEvent, dayKey, segmentEvent, 'move')
+}
+
+function onWeekEventDragTouchStart(
+  touchEvent: TouchEvent,
+  dayKey: string,
+  segmentEvent: WeekSegmentEvent
+) {
+  startWeekEventInteractionFromTouch(touchEvent, dayKey, segmentEvent, 'move')
+}
+
+function onWeekEventResizePointerDown(
+  pointerEvent: PointerEvent,
+  dayKey: string,
+  segmentEvent: WeekSegmentEvent,
+  type: Extract<WeekInteractionType, 'resize-start' | 'resize-end'>
+) {
+  startWeekEventInteractionFromPointer(
+    pointerEvent,
+    dayKey,
+    segmentEvent,
+    type
+  )
+}
+
+function onWeekEventResizeMouseDown(
+  mouseEvent: MouseEvent,
+  dayKey: string,
+  segmentEvent: WeekSegmentEvent,
+  type: Extract<WeekInteractionType, 'resize-start' | 'resize-end'>
+) {
+  startWeekEventInteractionFromMouse(mouseEvent, dayKey, segmentEvent, type)
+}
+
+function onWeekEventResizeTouchStart(
+  touchEvent: TouchEvent,
+  dayKey: string,
+  segmentEvent: WeekSegmentEvent,
+  type: Extract<WeekInteractionType, 'resize-start' | 'resize-end'>
+) {
+  startWeekEventInteractionFromTouch(touchEvent, dayKey, segmentEvent, type)
+}
+
+function resetWeekEventPreview() {
+  weekEventPreview.value = null
+}
+
+function cancelWeekInteraction() {
+  void finalizeWeekInteraction(false)
+}
+
+function handleWeekPointerMove(event: PointerEvent) {
+  const interaction = activeWeekInteraction.value
+
+  if (
+    !interaction ||
+    interaction.source !== 'pointer' ||
+    interaction.pointerId !== event.pointerId
+  ) {
+    return
+  }
+
+  event.preventDefault()
+  updateWeekInteractionPreview(event.clientY)
+}
+
+function handleWeekPointerCancel(event: PointerEvent) {
+  const interaction = activeWeekInteraction.value
+
+  if (
+    !interaction ||
+    interaction.source !== 'pointer' ||
+    interaction.pointerId !== event.pointerId
+  ) {
+    return
+  }
+
+  void finalizeWeekInteraction(false)
+}
+
+async function handleWeekPointerUp(event: PointerEvent) {
+  const interaction = activeWeekInteraction.value
+
+  if (
+    !interaction ||
+    interaction.source !== 'pointer' ||
+    interaction.pointerId !== event.pointerId
+  ) {
+    return
+  }
+
+  event.preventDefault()
+  await finalizeWeekInteraction(true)
+}
+
+function handleWeekMouseMove(event: MouseEvent) {
+  const interaction = activeWeekInteraction.value
+
+  if (!interaction || interaction.source !== 'mouse') {
+    return
+  }
+
+  if (event.buttons !== undefined && (event.buttons & 1) === 0) {
+    void finalizeWeekInteraction(false)
+    return
+  }
+
+  event.preventDefault()
+  updateWeekInteractionPreview(event.clientY)
+}
+
+async function handleWeekMouseUp(event: MouseEvent) {
+  const interaction = activeWeekInteraction.value
+
+  if (!interaction || interaction.source !== 'mouse') {
+    return
+  }
+
+  event.preventDefault()
+  await finalizeWeekInteraction(true)
+}
+
+function handleWeekTouchMove(event: TouchEvent) {
+  const interaction = activeWeekInteraction.value
+
+  if (!interaction || interaction.source !== 'touch') {
+    return
+  }
+
+  const touch = findTouchById(event.touches, interaction.touchId)
+  if (!touch) {
+    return
+  }
+
+  event.preventDefault()
+  updateWeekInteractionPreview(touch.clientY)
+}
+
+function handleWeekTouchEnd(event: TouchEvent) {
+  const interaction = activeWeekInteraction.value
+
+  if (!interaction || interaction.source !== 'touch') {
+    return
+  }
+
+  const touch = findTouchById(event.changedTouches, interaction.touchId)
+  if (!touch) {
+    return
+  }
+
+  event.preventDefault()
+  void finalizeWeekInteraction(true)
+}
+
+function handleWeekTouchCancel(event: TouchEvent) {
+  const interaction = activeWeekInteraction.value
+
+  if (!interaction || interaction.source !== 'touch') {
+    return
+  }
+
+  const touch = findTouchById(event.changedTouches, interaction.touchId)
+  if (!touch) {
+    return
+  }
+
+  void finalizeWeekInteraction(false)
+}
+
+async function finalizeWeekInteraction(commit: boolean) {
+  const interaction = activeWeekInteraction.value
+  const preview = weekEventPreview.value
+
+  if (interaction) {
+    removeWeekInteractionListeners(interaction.source)
+  }
+
+  activeWeekInteraction.value = null
+
+  if (!interaction) {
+    resetWeekEventPreview()
+    return
+  }
+
+  if (!commit || !preview) {
+    resetWeekEventPreview()
+    return
+  }
+
+  try {
+    if (interaction.type === 'move') {
+      const deltaMinutes = preview.startMinutes - interaction.startMinutes
+
+      if (Math.abs(deltaMinutes) < 0.1) {
+        return
+      }
+
+      const newStart = new Date(
+        interaction.initialStart.getTime() + deltaMinutes * 60000
+      )
+      const newEnd = new Date(
+        interaction.initialEnd.getTime() + deltaMinutes * 60000
+      )
+      await updateCalendarEventTime(interaction.eventId, {
+        start: newStart,
+        end: newEnd,
+      })
+      return
+    }
+
+    if (interaction.type === 'resize-start') {
+      const deltaMinutes = preview.startMinutes - interaction.startMinutes
+
+      if (Math.abs(deltaMinutes) < 0.1) {
+        return
+      }
+
+      const newStart = new Date(
+        interaction.initialStart.getTime() + deltaMinutes * 60000
+      )
+
+      await updateCalendarEventTime(interaction.eventId, {
+        start: newStart,
+        end: interaction.initialEnd,
+      })
+      return
+    }
+
+    const newDuration = preview.durationMinutes
+
+    if (Math.abs(newDuration - interaction.durationMinutes) < 0.1) {
+      return
+    }
+
+    const newEnd = new Date(
+      interaction.initialStart.getTime() + newDuration * 60000
+    )
+
+    await updateCalendarEventTime(interaction.eventId, {
+      start: interaction.initialStart,
+      end: newEnd,
+    })
+  } finally {
+    resetWeekEventPreview()
+  }
+}
+
+watch(calendarView, (view) => {
+  if (view !== 'week') {
+    cancelWeekInteraction()
+  }
+})
+
+onBeforeUnmount(() => {
+  cancelWeekInteraction()
+})
 
 function isSelectedDate(date: DateValue) {
   return selectedDateKey.value === date.toString()
@@ -1091,7 +1834,10 @@ definePageMeta({
           >
             <div>
               <div :style="{ height: `${WEEK_HEADER_HEIGHT}px` }" />
-              <div class="relative" :style="{ height: `${WEEK_GRID_HEIGHT}px` }">
+              <div
+                class="relative"
+                :style="{ height: `${WEEK_GRID_HEIGHT}px` }"
+              >
                 <div
                   v-for="(label, index) in weekHourLabels"
                   :key="`hour-label-${label}`"
@@ -1106,15 +1852,25 @@ definePageMeta({
             <div
               v-for="day in selectedWeekDays"
               :key="day.key"
-              class="rounded-2xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 backdrop-blur-sm transition duration-300 hover:border-(--ui-primary)/35"
-              :class="[day.isToday ? 'border-(--ui-primary)/35 shadow-[0_0_18px_rgba(0,255,232,0.15)]' : '']"
+              class="rounded-2xl overflow-clip border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 backdrop-blur-sm transition duration-300 hover:border-(--ui-primary)/35"
+              :class="[
+                day.isToday
+                  ? 'border-(--ui-primary)/35 shadow-[0_0_18px_rgba(0,255,232,0.15)]'
+                  : '',
+              ]"
             >
               <div
                 class="flex items-center justify-between gap-2 border-b border-(--ui-primary)/10 px-4 py-3"
-                :class="[day.isToday ? 'bg-(--ui-primary)/10 text-(--ui-text-highlighted)' : '']"
+                :class="[
+                  day.isToday
+                    ? 'bg-(--ui-primary)/10 text-(--ui-text-highlighted)'
+                    : '',
+                ]"
               >
                 <div class="space-y-1">
-                  <p class="text-xs uppercase tracking-wide text-(--ui-text-muted)">
+                  <p
+                    class="text-xs uppercase tracking-wide text-(--ui-text-muted)"
+                  >
                     {{ day.weekday }}
                   </p>
                   <p class="text-lg font-semibold text-(--ui-text-highlighted)">
@@ -1131,7 +1887,10 @@ definePageMeta({
                 </UBadge>
               </div>
 
-              <div class="relative" :style="{ height: `${WEEK_GRID_HEIGHT}px` }">
+              <div
+                class="relative"
+                :style="{ height: `${WEEK_GRID_HEIGHT}px` }"
+              >
                 <div
                   v-for="guide in weekHourGuides"
                   :key="`overview-guide-${guide}`"
@@ -1149,25 +1908,54 @@ definePageMeta({
                 <div
                   v-for="event in day.segments"
                   :key="event.segment.key"
-                  class="absolute left-3 right-3 border border-(--ui-primary)/25 bg-(--ui-primary)/10/50 text-left shadow-[0_0_12px_rgba(0,255,232,0.15)] transition-colors duration-200"
+                  class="absolute overflow-clip left-3 right-3 border border-(--ui-primary)/25 bg-(--ui-primary)/10 text-left shadow-[0_0_12px_rgba(0,255,232,0.15)] transition-colors duration-200 select-none touch-none"
                   :class="[
-                    event.segment.continuesBefore ? 'rounded-t-none border-t-transparent pt-2' : 'rounded-t-lg pt-3',
-                    event.segment.continuesAfter ? 'rounded-b-none border-b-transparent pb-2' : 'rounded-b-lg pb-3',
+                    event.segment.continuesBefore
+                      ? 'rounded-t-none border-t-transparent pt-2'
+                      : 'rounded-t-lg pt-3',
+                    event.segment.continuesAfter
+                      ? 'rounded-b-none border-b-transparent pb-2'
+                      : 'rounded-b-lg pb-3',
+                    canEditWeekEvent(event.segment)
+                      ? isWeekEventActive(event.id, event.segment.key)
+                        ? 'cursor-grabbing'
+                        : 'cursor-grab active:cursor-grabbing'
+                      : 'cursor-default',
                     'px-3',
                   ]"
-                  :style="{
-                    top: `${event.segment.top}px`,
-                    height: `${event.segment.height}px`,
-                  }"
+                  :style="getWeekEventStyle(event.id, event.segment)"
+                  @pointerdown.stop.prevent="onWeekEventDragPointerDown($event, day.key, event)"
+                  @mousedown.stop.prevent="onWeekEventDragMouseDown($event, day.key, event)"
+                  @touchstart.stop.prevent="onWeekEventDragTouchStart($event, day.key, event)"
                 >
+                  <div
+                    v-if="canEditWeekEvent(event.segment) && event.segment.isFirstSegment"
+                    class="absolute inset-x-2 top-1 h-1.5 rounded-full bg-(--ui-primary)/40 transition hover:bg-(--ui-primary)/70 cursor-ns-resize touch-none"
+                    @pointerdown.stop.prevent="onWeekEventResizePointerDown($event, day.key, event, 'resize-start')"
+                    @mousedown.stop.prevent="onWeekEventResizeMouseDown($event, day.key, event, 'resize-start')"
+                    @touchstart.stop.prevent="onWeekEventResizeTouchStart($event, day.key, event, 'resize-start')"
+                  />
+                  <div
+                    v-if="canEditWeekEvent(event.segment) && event.segment.isLastSegment"
+                    class="absolute inset-x-2 bottom-1 h-1.5 rounded-full bg-(--ui-primary)/40 transition hover:bg-(--ui-primary)/70 cursor-ns-resize touch-none"
+                    @pointerdown.stop.prevent="onWeekEventResizePointerDown($event, day.key, event, 'resize-end')"
+                    @mousedown.stop.prevent="onWeekEventResizeMouseDown($event, day.key, event, 'resize-end')"
+                    @touchstart.stop.prevent="onWeekEventResizeTouchStart($event, day.key, event, 'resize-end')"
+                  />
                   <div
                     class="flex items-center justify-between text-[0.65rem] uppercase tracking-wide"
                   >
-                    <span class="text-(--ui-primary)">
+                    <span
+                      v-if="event.segment.isFirstSegment"
+                      class="text-(--ui-primary)"
+                    >
                       {{ event.segment.displayTimeRange }}
                     </span>
                     <span
-                      v-if="event.segment.continuesBefore || event.segment.continuesAfter"
+                      v-if="
+                        event.segment.continuesBefore ||
+                        event.segment.continuesAfter
+                      "
                       class="flex items-center gap-1 text-[0.6rem] text-(--ui-text-muted)"
                     >
                       <UIcon
@@ -1182,30 +1970,12 @@ definePageMeta({
                       />
                     </span>
                   </div>
-                  <template v-if="event.segment.isFirstSegment">
+                  <!-- <template v-if="event.segment.isFirstSegment">
                     <p
-                      class="mt-1 text-sm font-semibold text-(--ui-text-highlighted)"
+                      class="mt-1 text-xs text-ellipsis overflow-clip text-(--ui-text-highlighted)"
                     >
                       {{ event.title }}
                     </p>
-                    <div
-                      class="mt-2 flex flex-wrap items-center gap-2 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)"
-                    >
-                      <span class="inline-flex items-center gap-1.5">
-                        <UIcon
-                          name="i-lucide-map-pin"
-                          class="size-3 text-(--ui-primary)"
-                        />
-                        {{ event.location }}
-                      </span>
-                      <span class="inline-flex items-center gap-1.5">
-                        <UIcon
-                          name="i-lucide-briefcase"
-                          class="size-3 text-(--ui-primary)"
-                        />
-                        {{ event.department }}
-                      </span>
-                    </div>
                     <div
                       class="mt-2 flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-wide"
                     >
@@ -1220,10 +1990,10 @@ definePageMeta({
                         {{ tag }}
                       </UBadge>
                     </div>
-                  </template>
-                  <template v-else>
+                  </template> -->
+                  <!-- <template v-else>
                     <p
-                      class="mt-2 text-xs font-medium uppercase tracking-wide text-(--ui-text-muted)"
+                      class="mt-2 text-xs text-ellipsis overflow-clip font-medium uppercase tracking-wide text-(--ui-text-muted)"
                     >
                       {{ event.title }}
                     </p>
@@ -1232,7 +2002,7 @@ definePageMeta({
                     >
                       Fortsetzung
                     </p>
-                  </template>
+                  </template> -->
                 </div>
               </div>
             </div>
@@ -1359,7 +2129,9 @@ definePageMeta({
                     >
                       {{ event.title }}
                     </p>
-                    <span class="inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-(--ui-primary)">
+                    <span
+                      class="inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-(--ui-primary)"
+                    >
                       <UIcon name="i-lucide-clock" class="size-3" />
                       {{ formatTimeRange(event) }}
                     </span>
@@ -1373,7 +2145,9 @@ definePageMeta({
                     {{ statusMeta[event.status].label }}
                   </UBadge>
                 </div>
-                <div class="mt-3 flex flex-wrap gap-2 text-[0.7rem] uppercase tracking-wide text-(--ui-text-muted)">
+                <div
+                  class="mt-3 flex flex-wrap gap-2 text-[0.7rem] uppercase tracking-wide text-(--ui-text-muted)"
+                >
                   <UBadge
                     v-for="tag in event.tags"
                     :key="tag"
@@ -1425,18 +2199,33 @@ definePageMeta({
                 v-for="day in selectedWeekDays"
                 :key="day.key"
                 class="rounded-xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-4 backdrop-blur-sm transition duration-300 hover:border-(--ui-primary)/30"
-                :class="[day.isToday ? 'border-(--ui-primary)/35 shadow-[0_0_12px_rgba(0,255,232,0.2)]' : '']"
+                :class="[
+                  day.isToday
+                    ? 'border-(--ui-primary)/35 shadow-[0_0_12px_rgba(0,255,232,0.2)]'
+                    : '',
+                ]"
               >
-                <div class="flex items-center justify-between gap-2 border-b border-(--ui-primary)/10 pb-3">
+                <div
+                  class="flex items-center justify-between gap-2 border-b border-(--ui-primary)/10 pb-3"
+                >
                   <div>
-                    <p class="text-xs uppercase tracking-wide text-(--ui-text-muted)">
+                    <p
+                      class="text-xs uppercase tracking-wide text-(--ui-text-muted)"
+                    >
                       {{ day.weekday }}
                     </p>
-                    <p class="text-sm font-semibold text-(--ui-text-highlighted)">
+                    <p
+                      class="text-sm font-semibold text-(--ui-text-highlighted)"
+                    >
                       {{ day.label }}
                     </p>
                   </div>
-                  <UBadge color="primary" variant="soft" size="xs" class="uppercase tracking-wide">
+                  <UBadge
+                    color="primary"
+                    variant="soft"
+                    size="xs"
+                    class="uppercase tracking-wide"
+                  >
                     {{ day.eventCount }}
                   </UBadge>
                 </div>
@@ -1447,8 +2236,12 @@ definePageMeta({
                     :key="event.id"
                     class="rounded-lg border border-(--ui-primary)/20 bg-(--ui-bg-muted)/50 p-3 transition duration-200 hover:border-(--ui-primary)/35"
                   >
-                    <div class="flex flex-wrap items-start justify-between gap-2 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)">
-                      <span class="inline-flex items-center gap-1 text-(--ui-primary)">
+                    <div
+                      class="flex flex-wrap items-start justify-between gap-2 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)"
+                    >
+                      <span
+                        class="inline-flex items-center gap-1 text-(--ui-primary)"
+                      >
                         <UIcon name="i-lucide-clock" class="size-3" />
                         {{ event.timeRange }}
                       </span>
@@ -1461,20 +2254,32 @@ definePageMeta({
                         {{ statusMeta[event.status].label }}
                       </UBadge>
                     </div>
-                    <p class="mt-2 text-sm font-semibold text-(--ui-text-highlighted)">
+                    <p
+                      class="mt-2 text-sm font-semibold text-(--ui-text-highlighted)"
+                    >
                       {{ event.title }}
                     </p>
-                    <div class="mt-3 flex flex-wrap items-center gap-2 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)">
+                    <div
+                      class="mt-3 flex flex-wrap items-center gap-2 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)"
+                    >
                       <span class="inline-flex items-center gap-1.5">
-                        <UIcon name="i-lucide-map-pin" class="size-3 text-(--ui-primary)" />
+                        <UIcon
+                          name="i-lucide-map-pin"
+                          class="size-3 text-(--ui-primary)"
+                        />
                         {{ event.location }}
                       </span>
                       <span class="inline-flex items-center gap-1.5">
-                        <UIcon name="i-lucide-briefcase" class="size-3 text-(--ui-primary)" />
+                        <UIcon
+                          name="i-lucide-briefcase"
+                          class="size-3 text-(--ui-primary)"
+                        />
                         {{ event.department }}
                       </span>
                     </div>
-                    <div class="mt-2 flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-wide">
+                    <div
+                      class="mt-2 flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-wide"
+                    >
                       <UBadge
                         v-for="tag in event.tags"
                         :key="`${event.id}-${tag}`"
@@ -1488,7 +2293,10 @@ definePageMeta({
                     </div>
                   </li>
                 </ul>
-                <p v-else class="mt-3 text-xs uppercase tracking-wide text-(--ui-text-muted)">
+                <p
+                  v-else
+                  class="mt-3 text-xs uppercase tracking-wide text-(--ui-text-muted)"
+                >
                   Keine Events geplant.
                 </p>
               </div>
