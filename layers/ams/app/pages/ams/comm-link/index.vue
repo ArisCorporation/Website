@@ -414,7 +414,7 @@ definePageMeta({
                                 :ui="{
                                   header: '!p-0',
                                   content:
-                                    'max-w-3xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
+                                    'max-w-5xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
                                 }"
                               >
                                 <UButton

@@ -326,9 +326,7 @@ const getFolderCount = (id?: string | null): number | null => {
   return folderCountSummary.value.counts.get(id) ?? 0
 }
 
-const activeFolderId = computed(() =>
-  selectedFolderId.value === 'root' ? 'all' : selectedFolderId.value || 'all'
-)
+const activeFolderId = computed(() => selectedFolderId.value || 'all')
 
 const activeFolderLabel = computed(
   () => selectedFolder.value?.label ?? 'Alle Dateien'
@@ -337,14 +335,32 @@ const activeFolderLabel = computed(
 const hasChildFolders = (item?: TreeItem | null) =>
   Boolean(item?.children?.some((child) => child.meta?.type === 'folder'))
 
+const parsedItemsPerPage = computed(() => {
+  const numeric = Number(itemsPerPage.value)
+  return Number.isFinite(numeric) && numeric > 0 ? Math.floor(numeric) : 40
+})
+
 const fileQueryKey = computed(() => ({
   folderId: activeFolderId.value,
   page: page.value,
-  limit: itemsPerPage.value,
+  limit: parsedItemsPerPage.value,
   search: searchTerm.value.trim(),
   sort: sortOption.value,
   allTypes: props.allTypes,
 }))
+
+const itemsPerPageLabel = computed(() => {
+  const match = perPageOptions.find(
+    (option) => option.value === parsedItemsPerPage.value
+  )
+  return match ? match.label : `${parsedItemsPerPage.value} pro Seite`
+})
+
+const sortOptionLabel = computed(
+  () =>
+    sortOptions.find((option) => option.value === sortOption.value)?.label ??
+    'Sortierung'
+)
 
 type FilesResult = { items: DirectusFile[]; total: number }
 
@@ -357,6 +373,10 @@ const extractAggregateCount = (input: unknown): number | null => {
     }
     if (typeof value === 'number' && Number.isFinite(value)) {
       return value
+    }
+    if (typeof value === 'string') {
+      const numeric = Number(value)
+      return Number.isFinite(numeric) ? numeric : null
     }
     if (Array.isArray(value)) {
       for (const entry of value) {
@@ -427,7 +447,11 @@ watch(
     }
 
     if (query.folderId && query.folderId !== 'all') {
-      filters.folder = { _eq: query.folderId }
+      if (query.folderId === 'root') {
+        filters.folder = { _null: true }
+      } else {
+        filters.folder = { _eq: query.folderId }
+      }
     }
 
     if (query.search) {
@@ -512,13 +536,36 @@ watch(
         }
       }
 
-      const resolvedTotal =
-        typeof total === 'number' && Number.isFinite(total)
+      const fallbackTotal = Math.max(
+        (query.page - 1) * query.limit + items.length,
+        items.length
+      )
+
+      let resolvedTotal =
+        typeof total === 'number' && Number.isFinite(total) && total > 0
           ? total
-          : Math.max(
-              (query.page - 1) * query.limit + items.length,
-              items.length
-            )
+          : fallbackTotal
+
+      const folderTotal = (() => {
+        if (query.folderId === 'all') {
+          return folderCountSummary.value.total
+        }
+        if (query.folderId === 'root') {
+          return folderCountSummary.value.counts.get(null) ?? null
+        }
+        if (typeof query.folderId === 'string') {
+          return folderCountSummary.value.counts.get(query.folderId) ?? null
+        }
+        return null
+      })()
+
+      if (
+        typeof folderTotal === 'number' &&
+        Number.isFinite(folderTotal) &&
+        folderTotal > 0
+      ) {
+        resolvedTotal = Math.min(resolvedTotal, folderTotal)
+      }
 
       if (!abort.cancelled) {
         filesResult.value = {
@@ -546,7 +593,7 @@ const displayedFiles = computed<DirectusFile[]>(
 const totalFiles = computed(() => filesResult.value?.total ?? 0)
 
 const pageCount = computed(() =>
-  Math.max(1, Math.ceil(totalFiles.value / itemsPerPage.value))
+  Math.max(1, Math.ceil(totalFiles.value / parsedItemsPerPage.value))
 )
 
 const currentRange = computed(() => {
@@ -554,9 +601,9 @@ const currentRange = computed(() => {
     return { start: 0, end: 0 }
   }
 
-  const start = (page.value - 1) * itemsPerPage.value + 1
+  const start = (page.value - 1) * parsedItemsPerPage.value + 1
   const end = Math.min(
-    start + itemsPerPage.value - 1,
+    start + parsedItemsPerPage.value - 1,
     totalFiles.value ?? start
   )
 
@@ -668,9 +715,14 @@ watch(
 )
 
 watch(itemsPerPage, (value) => {
-  if (typeof value === 'string') {
-    const parsed = Number.parseInt(value, 10)
-    itemsPerPage.value = Number.isFinite(parsed) ? parsed : 40
+  if (typeof value !== 'number') {
+    itemsPerPage.value = parsedItemsPerPage.value
+  }
+})
+
+watch(sortOption, (value) => {
+  if (!['recent', 'name', 'size'].includes(value)) {
+    sortOption.value = 'recent'
   }
 })
 
@@ -817,7 +869,7 @@ function handleFileSelection(file: DirectusFile) {
             {{ numberFormatter.format(totalFiles) }} Dateien
           </p>
         </div>
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 ml-auto">
           <UButton
             icon="i-lucide-grid-2x2"
             :variant="viewMode === 'grid' ? 'solid' : 'ghost'"
@@ -838,48 +890,55 @@ function handleFileSelection(file: DirectusFile) {
       </header>
 
       <div
-        class="px-6 py-4 border-b border-(--ui-primary)/15 flex flex-wrap items-center gap-3"
+        class="px-6 py-4 border-b border-(--ui-primary)/15 flex flex-wrap items-center justify-between gap-4"
       >
-        <UInput
-          v-model="searchTerm"
-          icon="i-lucide-search"
-          placeholder="Dateien durchsuchen…"
-          class="w-full sm:w-72"
-          color="primary"
+        <div class="flex flex-wrap items-center gap-3">
+          <UInput
+            v-model="searchTerm"
+            icon="i-lucide-search"
+            placeholder="Dateien durchsuchen…"
+            class="w-full sm:w-72"
+            color="primary"
+          />
+          <USelectMenu
+            v-model="sortOption"
+            :items="sortOptions"
+            label-key="label"
+            value-key="value"
+            :ui="{
+              trigger: 'min-w-[12rem]',
+              content: 'min-w-[12rem]',
+            }"
+          >
+            <template #trigger>
+              <span class="text-sm truncate">{{ sortOptionLabel }}</span>
+            </template>
+          </USelectMenu>
+          <USelectMenu
+            v-model="itemsPerPage"
+            :items="perPageOptions"
+            label-key="label"
+            value-key="value"
+            :ui="{
+              trigger: 'min-w-[12rem]',
+              content: 'min-w-[12rem]',
+            }"
+          >
+            <template #trigger>
+              <span class="text-sm truncate">{{ itemsPerPageLabel }}</span>
+            </template>
+          </USelectMenu>
+        </div>
+        <UPagination
+          v-model:page="page"
+          :total="totalFiles"
+          :items-per-page="parsedItemsPerPage"
+          size="sm"
+          :ui="{
+            trigger:
+              'rounded-lg px-3 py-1.5 text-sm hover:bg-(--ui-primary)/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-primary)',
+          }"
         />
-        <USelectMenu
-          v-model="sortOption"
-          :options="sortOptions"
-          option-attribute="label"
-          value-attribute="value"
-          :ui="{
-            trigger: 'min-w-[12rem]',
-            content: 'min-w-[12rem]',
-          }"
-        >
-          <template #trigger>
-            <span class="text-sm truncate">
-              Sortierung:
-              {{
-                sortOptions.find((option) => option.value === sortOption)?.label
-              }}
-            </span>
-          </template>
-        </USelectMenu>
-        <USelectMenu
-          v-model="itemsPerPage"
-          :options="perPageOptions"
-          option-attribute="label"
-          value-attribute="value"
-          :ui="{
-            trigger: 'min-w-[10rem]',
-            content: 'min-w-[10rem]',
-          }"
-        >
-          <template #trigger>
-            <span class="text-sm truncate"> {{ itemsPerPage }} pro Seite </span>
-          </template>
-        </USelectMenu>
       </div>
 
       <div class="flex-1 overflow-hidden flex">
@@ -905,8 +964,8 @@ function handleFileSelection(file: DirectusFile) {
             >
               <USkeleton
                 v-for="n in viewMode === 'grid'
-                  ? itemsPerPage
-                  : Math.min(itemsPerPage, 6)"
+                  ? parsedItemsPerPage
+                  : Math.min(parsedItemsPerPage, 6)"
                 :key="n"
                 class="h-40 rounded-xl bg-(--ui-bg-muted)/60"
               />
@@ -972,7 +1031,7 @@ function handleFileSelection(file: DirectusFile) {
                       </p>
                       <p class="text-xs text-(--ui-text-muted)">
                         {{ formatBytes(file.filesize) }} ·
-                        {{ formatDate(file.modified_on) }}
+                        <!-- {{ formatDate(file.modified_on) }} -->
                       </p>
                     </div>
                     <span
@@ -1147,9 +1206,9 @@ function handleFileSelection(file: DirectusFile) {
           }}
         </span>
         <UPagination
-          v-if="pageCount > 1"
           v-model:page="page"
-          :total="pageCount"
+          :total="totalFiles"
+          :items-per-page="parsedItemsPerPage"
           class="ml-auto"
           :ui="{
             trigger:
