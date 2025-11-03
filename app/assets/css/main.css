@@ -166,3 +166,107 @@ a {
 .smallChart svg {
   width: 200px !important;
 }
+
+:where(.tiptap, .prose) table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.25rem 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ui-border);
+  border-color: color-mix(in srgb, var(--ui-primary) 18%, transparent);
+  background-color: var(--ui-bg-muted);
+  background-color: color-mix(in srgb, var(--ui-bg-muted) 75%, transparent);
+  overflow: hidden;
+}
+
+:where(.tiptap, .prose) .tableWrapper {
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+:where(.tiptap, .prose) thead {
+  background-color: var(--ui-bg-muted);
+  background-color: color-mix(in srgb, var(--ui-primary) 14%, transparent);
+  color: var(--ui-text-highlighted);
+}
+
+:where(.tiptap, .prose) thead th {
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  text-align: left;
+  line-height: 1.25;
+  border-bottom: 1px solid var(--ui-border-muted);
+  border-bottom-color: color-mix(in srgb, var(--ui-primary) 26%, transparent);
+  border-right: 1px solid var(--ui-border-muted);
+  border-right-color: color-mix(in srgb, var(--ui-primary) 16%, transparent);
+}
+
+:where(.tiptap, .prose) thead th:first-child {
+  border-top-left-radius: 0.5rem;
+}
+
+:where(.tiptap, .prose) thead th:last-child {
+  border-top-right-radius: 0.5rem;
+}
+
+:where(.tiptap, .prose) tbody td {
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+  border-bottom: 1px solid var(--ui-border-muted);
+  border-bottom-color: color-mix(in srgb, var(--ui-primary) 16%, transparent);
+  border-right: 1px solid var(--ui-border-muted);
+  border-right-color: color-mix(in srgb, var(--ui-primary) 12%, transparent);
+}
+
+:where(.tiptap, .prose) tbody tr:last-child td {
+  border-bottom: none;
+}
+
+:where(.tiptap, .prose) th:last-child,
+:where(.tiptap, .prose) td:last-child {
+  border-right: none;
+}
+
+:where(.tiptap, .prose) tbody tr:nth-child(even) {
+  background-color: var(--ui-bg);
+  background-color: color-mix(in srgb, var(--ui-bg) 85%, transparent);
+}
+
+:where(.tiptap, .prose) tbody tr:hover {
+  background-color: var(--ui-bg-muted);
+  background-color: color-mix(in srgb, var(--ui-primary) 12%, transparent);
+}
+
+:where(.tiptap, .prose) caption {
+  caption-side: bottom;
+  padding-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--ui-text-muted);
+}
+
+:where(.tiptap) table th,
+:where(.tiptap) table td {
+  position: relative;
+}
+
+:where(.tiptap) .column-resize-handle {
+  position: absolute;
+  top: -1px;
+  right: -2px;
+  bottom: -1px;
+  width: 4px;
+  cursor: col-resize;
+  opacity: 0;
+  background-color: transparent;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+:where(.tiptap) table th:hover .column-resize-handle,
+:where(.tiptap) table td:hover .column-resize-handle {
+  opacity: 1;
+  background-color: color-mix(in srgb, var(--ui-primary) 45%, transparent);
+}

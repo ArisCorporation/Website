@@ -21,7 +21,7 @@ definePageMeta({
     >
       <UButton>Öffnen</UButton>
       <template #body>
-        <UiFileLibrary />
+        <UiFileLibrary :all-types="true" />
       </template>
     </USlideover>
   </div>

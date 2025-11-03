@@ -94,7 +94,7 @@ export default defineNuxtConfig({
     domains: ['assets.ariscorp.de', 'studio.ariscorp.de', 'cdn.discordapp.com'],
     provider: 'directus',
     directus: {
-      baseURL: 'https://assets.ariscorp.de',
+      baseURL: 'https://studio.ariscorp.de',
       modifiers: {
         format: 'avif',
       },
@@ -124,8 +124,10 @@ export default defineNuxtConfig({
   //   ],
   // },
 
-  future: {
-    compatibilityVersion: 4
+  devServer: {
+    host: 'localdev.ariscorp.de',
+    port: 80,
+    https: true
   },
 
   compatibilityDate: '2024-11-01',
