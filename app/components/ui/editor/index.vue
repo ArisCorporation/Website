@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import type { Editor } from '@tiptap/core'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import TextAlign from '@tiptap/extension-text-align'
 import CharacterCount from '@tiptap/extension-character-count'
 import Image from '@tiptap/extension-image'
+import Table from '@tiptap/extension-table'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import TableRow from '@tiptap/extension-table-row'
 
 const model = defineModel<string>()
 
@@ -30,6 +35,13 @@ const editor = useEditor({
     TextAlign,
     CharacterCount,
     Image,
+    Table.configure({
+      resizable: true,
+      allowTableNodeSelection: true,
+    }),
+    TableRow,
+    TableHeader,
+    TableCell,
   ],
   onUpdate: ({ editor }) => {
     model.value = editor.getHTML()
@@ -38,6 +50,109 @@ const editor = useEditor({
 
 onBeforeUnmount(() => {
   unref(editor)?.destroy()
+})
+
+const runEditorCommand = (command: (editor: Editor) => void) => {
+  const instance = unref(editor)
+  if (!instance) {
+    return
+  }
+
+  command(instance)
+}
+
+const tableMenuItems = computed(() => {
+  const instance = unref(editor)
+  const canModifyTable = instance?.isActive('table') ?? false
+
+  return [
+    [
+      {
+        label: 'Tabelle (3×3) einfügen',
+        icon: 'i-lucide-table',
+        disabled: !instance,
+        onSelect: () =>
+          runEditorCommand((ctx) =>
+            ctx
+              .chain()
+              .focus()
+              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+              .run()
+          ),
+      },
+    ],
+    [
+      {
+        label: 'Zeile oben einfügen',
+        icon: 'i-lucide-plus',
+        disabled: !canModifyTable,
+        onSelect: () =>
+          runEditorCommand((ctx) => ctx.chain().focus().addRowBefore().run()),
+      },
+      {
+        label: 'Zeile unten einfügen',
+        icon: 'i-lucide-plus',
+        disabled: !canModifyTable,
+        onSelect: () =>
+          runEditorCommand((ctx) => ctx.chain().focus().addRowAfter().run()),
+      },
+      {
+        label: 'Spalte links einfügen',
+        icon: 'i-lucide-plus',
+        disabled: !canModifyTable,
+        onSelect: () =>
+          runEditorCommand((ctx) =>
+            ctx.chain().focus().addColumnBefore().run()
+          ),
+      },
+      {
+        label: 'Spalte rechts einfügen',
+        icon: 'i-lucide-plus',
+        disabled: !canModifyTable,
+        onSelect: () =>
+          runEditorCommand((ctx) =>
+            ctx.chain().focus().addColumnAfter().run()
+          ),
+      },
+    ],
+    [
+      {
+        label: 'Zeile entfernen',
+        icon: 'i-lucide-trash',
+        color: 'error',
+        disabled: !canModifyTable,
+        onSelect: () =>
+          runEditorCommand((ctx) => ctx.chain().focus().deleteRow().run()),
+      },
+      {
+        label: 'Spalte entfernen',
+        icon: 'i-lucide-trash',
+        color: 'error',
+        disabled: !canModifyTable,
+        onSelect: () =>
+          runEditorCommand((ctx) => ctx.chain().focus().deleteColumn().run()),
+      },
+      {
+        label: 'Tabelle entfernen',
+        icon: 'i-lucide-trash',
+        color: 'error',
+        disabled: !canModifyTable,
+        onSelect: () =>
+          runEditorCommand((ctx) => ctx.chain().focus().deleteTable().run()),
+      },
+    ],
+    [
+      {
+        label: 'Kopfzeile umschalten',
+        icon: 'i-lucide-pilcrow',
+        disabled: !canModifyTable,
+        onSelect: () =>
+          runEditorCommand((ctx) =>
+            ctx.chain().focus().toggleHeaderRow().run()
+          ),
+      },
+    ],
+  ]
 })
 
 // TiptapUnderline,
@@ -167,6 +282,29 @@ onBeforeUnmount(() => {
           :color="editor?.isActive('orderedList') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         />
+        <UDropdownMenu
+          :items="tableMenuItems"
+          :content="{
+            align: 'start',
+            side: 'bottom',
+            sideOffset: 8,
+          }"
+          :ui="{
+            content:
+              'min-w-[15rem] bg-(--ui-bg-muted) ring-(--ui-primary)/20',
+          }"
+        >
+          <UButton
+            icon="i-lucide-table"
+            variant="subtle"
+            class="size-8"
+            :color="editor?.isActive('table') ? 'primary' : 'neutral'"
+            :ui="{ leadingIcon: 'size-4 m-auto' }"
+          />
+          <template #mode-label>
+            Tabelle
+          </template>
+        </UDropdownMenu>
         <div
           data-orientation="vertical"
           role="none"
