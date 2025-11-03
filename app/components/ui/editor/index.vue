@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Editor } from '@tiptap/core'
+import type { DirectusFile } from '~~/types'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import TextAlign from '@tiptap/extension-text-align'
@@ -16,6 +17,68 @@ const props = defineProps<{
   readOnly?: boolean
   simpleMode?: boolean
 }>()
+
+const MEDIA_ASSET_FOLDER_ID = 'c558dbe9-3f85-4c86-bdac-7b4988cde5c5'
+
+const runtimeConfig = useRuntimeConfig()
+
+const assetsBaseUrl = computed(() => {
+  const raw = runtimeConfig.public?.ASSETS_URL ?? ''
+  if (!raw) {
+    return ''
+  }
+  return raw.endsWith('/') ? raw : `${raw}/`
+})
+
+const apiAssetsBaseUrl = computed(() => {
+  const raw = runtimeConfig.public?.API_URL ?? ''
+  if (!raw) {
+    return ''
+  }
+  const normalized = raw.endsWith('/') ? raw.slice(0, -1) : raw
+  return `${normalized}/assets/`
+})
+
+const normalizeAssetIdentifier = (value: unknown): string => {
+  if (typeof value !== 'string') {
+    return ''
+  }
+  return value.startsWith('assets/') ? value.slice(7) : value
+}
+
+const buildAssetSrc = (value: string): string => {
+  if (!value) {
+    return ''
+  }
+  if (/^https?:\/\//i.test(value)) {
+    return value
+  }
+  const assetId = normalizeAssetIdentifier(value)
+  if (assetsBaseUrl.value) {
+    return `${assetsBaseUrl.value}${assetId}`
+  }
+  if (apiAssetsBaseUrl.value) {
+    return `${apiAssetsBaseUrl.value}${assetId}`
+  }
+  return `assets/${assetId}`
+}
+
+const editorMediaModalOpen = ref(false)
+const editorMediaLibraryOpen = ref(false)
+const editorMediaUploading = ref(false)
+const editorMediaAssetId = ref('')
+const editorMediaName = ref('')
+const editorFileInput = useTemplateRef('editorFileInput')
+
+const editorMediaPreview = computed(() =>
+  editorMediaAssetId.value ? getAssetId(editorMediaAssetId.value) : ''
+)
+
+const editorMediaSrc = computed(() => buildAssetSrc(editorMediaAssetId.value))
+
+const canInsertMedia = computed(
+  () => Boolean(editorMediaSrc.value) && !editorMediaUploading.value
+)
 
 const editorHeight = computed(() => (props.simpleMode ? '120px' : '100%'))
 
@@ -153,6 +216,104 @@ const tableMenuItems = computed(() => {
       },
     ],
   ]
+})
+
+function resetEditorMediaState() {
+  editorMediaLibraryOpen.value = false
+  editorMediaUploading.value = false
+  editorMediaAssetId.value = ''
+  editorMediaName.value = ''
+
+  const inputEl = editorFileInput.value?.inputRef as
+    | HTMLInputElement
+    | undefined
+  if (inputEl) {
+    inputEl.value = ''
+  }
+}
+
+function handleEditorMediaModalUpdate(value: boolean) {
+  if (!value) {
+    resetEditorMediaState()
+  }
+}
+
+async function handleEditorFileUpload(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+
+  if (!file) {
+    return
+  }
+
+  try {
+    editorMediaUploading.value = true
+
+    const form = new FormData()
+    form.append('file', file)
+    form.append('folder', MEDIA_ASSET_FOLDER_ID)
+
+    const response = await useDirectus(uploadFiles(form))
+
+    let id = ''
+
+    if (Array.isArray(response) && response.length) {
+      const first = response[0] as DirectusFile | { id?: string }
+      id = normalizeAssetIdentifier(first?.id)
+    } else if (typeof response === 'string') {
+      id = normalizeAssetIdentifier(response)
+    } else if (
+      response &&
+      typeof response === 'object' &&
+      'id' in response &&
+      typeof (response as { id?: unknown }).id === 'string'
+    ) {
+      id = normalizeAssetIdentifier((response as { id: string }).id)
+    }
+
+    if (id) {
+      editorMediaAssetId.value = id
+      editorMediaName.value = file.name
+    }
+  } catch (error) {
+    console.error('Error uploading editor media:', error)
+  } finally {
+    editorMediaUploading.value = false
+  }
+}
+
+function handleEditorLibrarySelect(file: DirectusFile) {
+  editorMediaAssetId.value = normalizeAssetIdentifier(file?.id)
+  editorMediaName.value =
+    file?.filename_download ??
+    file?.title ??
+    file?.filename_disk ??
+    ''
+  editorMediaLibraryOpen.value = false
+}
+
+function insertEditorMedia() {
+  const instance = unref(editor)
+  const src = editorMediaSrc.value
+
+  if (!instance || !src) {
+    return
+  }
+
+  instance
+    .chain()
+    .focus()
+    .setImage({
+      src,
+      ...(editorMediaName.value ? { alt: editorMediaName.value } : {}),
+    })
+    .run()
+
+  editorMediaModalOpen.value = false
+}
+
+defineExpose({
+  editor,
 })
 
 // TiptapUnderline,
@@ -373,14 +534,18 @@ const tableMenuItems = computed(() => {
           :color="editor?.isActive('link') ? 'primary' : 'neutral'"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
         /> -->
-        <!-- TODO: ADD IMAGES AND VIDEOS -->
-        <!-- <UButton
-          icon="i-lucide-image"
+        <div
+          data-orientation="vertical"
+          role="none"
+          class="shrink-0 bg-border w-[1px] mx-1 h-6"
+        />
+        <UButton
+          icon="i-lucide-image-plus"
           variant="subtle"
           class="size-8"
-          :color="editor?.isActive('bold') ? 'primary' : 'neutral'"
+          @click="editorMediaModalOpen = true"
           :ui="{ leadingIcon: 'size-4 m-auto' }"
-        /> -->
+        />
         <!-- TODO: ADD COLOR -->
         <!-- <UButton
           icon="i-lucide-palette"
@@ -439,6 +604,104 @@ const tableMenuItems = computed(() => {
       </div>
     </template>
   </UCard>
+  <UModal
+    v-if="!readOnly"
+    v-model:open="editorMediaModalOpen"
+    title="Datei einfügen"
+    @update:open="handleEditorMediaModalUpdate"
+    :ui="{
+      content:
+        'bg-(--ui-bg-muted)/50 backdrop-blur-xs divide-(--ui-primary)/20',
+    }"
+  >
+    <template #body>
+      <div class="space-y-4 p-4">
+        <div
+          class="aspect-[24/9] relative overflow-clip rounded-lg w-full group h-auto border border-dashed hover:border-(--ui-primary)/60 transition-all border-(--ui-bg-accented) items-center flex justify-center"
+        >
+          <div
+            class="space-x-2 opacity-75 group-hover:opacity-100 transition-opacity z-10 absolute left-0 right-0 bottom-0 top-0 m-auto size-fit flex flex-wrap justify-center"
+          >
+            <UInput
+              ref="editorFileInput"
+              type="file"
+              accept="image/*"
+              class="hidden"
+              @change="handleEditorFileUpload"
+            />
+            <USlideover
+              v-model:open="editorMediaLibraryOpen"
+              :ui="{
+                header: '!p-0',
+                content:
+                  'max-w-5xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
+              }"
+            >
+              <UButton
+                icon="i-lucide-folder-open"
+                label="Datei Bibliothek"
+                variant="subtle"
+              />
+              <template #body>
+                <UiFileLibrary
+                  :all-types="false"
+                  @selected:file="handleEditorLibrarySelect"
+                />
+              </template>
+            </USlideover>
+            <UButton
+              @click="editorFileInput?.inputRef?.click()"
+              icon="i-lucide-upload"
+              label="Datei hochladen"
+              variant="subtle"
+              :loading="editorMediaUploading"
+            />
+          </div>
+          <div
+            class="absolute size-full bg-black/50 opacity-0 group-hover:opacity-100"
+          />
+          <template v-if="editorMediaPreview">
+            <NuxtImg
+              :src="editorMediaPreview"
+              alt="Editor Datei Vorschau"
+              class="size-full object-cover"
+            />
+          </template>
+          <p
+            v-else
+            class="text-sm text-(--ui-text-muted) text-center px-6 leading-relaxed"
+          >
+            Wähle eine Datei aus oder öffne die Bibliothek, um ein Bild in den
+            Inhalt einzufügen.
+          </p>
+        </div>
+        <div
+          v-if="editorMediaName"
+          class="text-sm text-(--ui-text-muted) text-center"
+        >
+          {{ editorMediaName }}
+        </div>
+      </div>
+    </template>
+    <template #footer>
+      <div class="flex justify-end gap-2 px-4 pb-4">
+        <UButton
+          variant="subtle"
+          color="neutral"
+          type="button"
+          label="Abbrechen"
+          @click="editorMediaModalOpen = false"
+        />
+        <UButton
+          variant="subtle"
+          type="button"
+          label="Inhalt einfügen"
+          :disabled="!canInsertMedia || editorMediaUploading"
+          @click="insertEditorMedia"
+        />
+      </div>
+    </template>
+  </UModal>
   <TiptapEditorContent
     v-else
     :editor="editor"
