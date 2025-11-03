@@ -43,7 +43,8 @@ const perPageOptions = [
 ]
 
 function transformFoldersToTreeItems(
-  folders: DirectusFolder[] | null | undefined
+  folders: DirectusFolder[] | null | undefined,
+  visibleIds: Set<string> | null
 ): TreeItem[] {
   if (!folders) {
     return []
@@ -62,7 +63,13 @@ function transformFoldersToTreeItems(
     const children = childrenMap.get(parentId) || []
     children.sort((a, b) => a.name.localeCompare(b.name, 'de-DE'))
 
-    return children.map((folder) => {
+    const nodes: TreeItem[] = []
+
+    for (const folder of children) {
+      if (visibleIds && !visibleIds.has(folder.id)) {
+        continue
+      }
+
       const node: TreeItem = {
         label: folder.name,
         value: folder.id,
@@ -78,8 +85,10 @@ function transformFoldersToTreeItems(
         node.children = grandChildren
       }
 
-      return node
-    })
+      nodes.push(node)
+    }
+
+    return nodes
   }
 
   return buildTree(null)
@@ -96,34 +105,13 @@ const { data: folders } = useAsyncData<DirectusFolder[]>(
     )
 )
 
-const folderTree = computed<TreeItem[]>(() => [
-  {
-    id: 'root',
-    value: 'root',
-    label: 'Dateibibliothek',
-    meta: {
-      type: 'root',
-    },
-    ui: {
-      item: 'px-2 py-1.5 rounded-lg transition-colors duration-200 data-[selected]:bg-transparent data-[selected]:text-(--ui-text-highlighted)',
-      itemWithChildren:
-        'px-2 py-1.5 rounded-lg transition-colors duration-200 data-[selected]:bg-transparent data-[selected]:text-(--ui-text-highlighted)',
-      link:
-        'flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-(--ui-text-muted) transition-colors duration-200 hover:bg-transparent data-[selected]:bg-transparent data-[selected]:text-(--ui-text-highlighted)',
-    },
-    children: [
-      {
-        id: 'all',
-        value: 'all',
-        label: 'Alle Dateien',
-        meta: {
-          type: 'virtual',
-        },
-      },
-      ...transformFoldersToTreeItems(folders.value),
-    ],
-  },
-])
+const folderParentMap = computed(() => {
+  const map = new Map<string, string | null>()
+  for (const folder of folders.value ?? []) {
+    map.set(folder.id, folder.parent ?? null)
+  }
+  return map
+})
 
 const selectedFolder = ref<TreeItem | null>(null)
 
@@ -170,27 +158,23 @@ const findTreeItemByKey = (
 }
 
 watch(
-  [() => folderTree.value, selectedFolderId],
-  () => {
-    const targetKey = selectedFolderId.value || 'all'
-    const match =
-      findTreeItemByKey(folderTree.value, targetKey) ??
-      findTreeItemByKey(folderTree.value, 'all') ??
-      folderTree.value?.[0] ??
-      null
+  () => selectedFolder.value,
+  (item, previousItem) => {
+    const key = getTreeItemKey(item) || 'all'
+    const previousKey = getTreeItemKey(previousItem) || 'all'
+    const changed = key !== previousKey
 
-    if (match && match !== selectedFolder.value) {
-      selectedFolder.value = match
-      return
+    if (selectedFolderId.value !== key) {
+      selectedFolderId.value = key
     }
 
-    if (!match && selectedFolderId.value !== 'all') {
-      selectedFolderId.value = 'all'
-    } else if (!selectedFolder.value) {
-      selectedFolder.value =
-        findTreeItemByKey(folderTree.value, 'all') ??
-        folderTree.value?.[0] ??
-        null
+    if (changed || !previousItem) {
+      emit('selected:folder', item ?? null)
+    }
+
+    if (changed) {
+      page.value = 1
+      selectedFile.value = null
     }
   },
   { immediate: true }
@@ -227,6 +211,109 @@ const folderCountSummary = computed(() => {
   return { counts, total }
 })
 
+const visibleFolderIds = computed<Set<string> | null>(() => {
+  if (props.allTypes !== false) {
+    return null
+  }
+
+  const result = new Set<string>()
+  const parents = folderParentMap.value
+  const counts = folderCountSummary.value.counts
+
+  const addAncestors = (folderId: string | null) => {
+    let current = folderId
+    while (current) {
+      if (!result.has(current)) {
+        result.add(current)
+      }
+      current = parents.get(current) ?? null
+    }
+  }
+
+  for (const [id, count] of counts.entries()) {
+    if ((count ?? 0) <= 0) {
+      continue
+    }
+
+    if (id) {
+      addAncestors(id)
+    } else {
+      result.add('root')
+    }
+  }
+
+  if (folderCountSummary.value.total > 0) {
+    result.add('all')
+    result.add('root')
+  }
+
+  return result
+})
+
+const folderTree = computed<TreeItem[]>(() => {
+  const visibleIds = visibleFolderIds.value
+
+  const children: TreeItem[] = []
+
+  if (!visibleIds || visibleIds.has('all')) {
+    children.push({
+      id: 'all',
+      value: 'all',
+      label: 'Alle Dateien',
+      meta: {
+        type: 'virtual',
+      },
+    })
+  }
+
+  children.push(...transformFoldersToTreeItems(folders.value, visibleIds))
+
+  return [
+    {
+      id: 'root',
+      value: 'root',
+      label: 'Dateibibliothek',
+      meta: {
+        type: 'root',
+      },
+      ui: {
+        item: 'px-2 py-1.5 rounded-lg transition-colors duration-200 data-[selected]:bg-transparent data-[selected]:text-(--ui-text-highlighted)',
+        itemWithChildren:
+          'px-2 py-1.5 rounded-lg transition-colors duration-200 data-[selected]:bg-transparent data-[selected]:text-(--ui-text-highlighted)',
+        link: 'flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-(--ui-text-muted) transition-colors duration-200 hover:bg-transparent data-[selected]:bg-transparent data-[selected]:text-(--ui-text-highlighted)',
+      },
+      children,
+    },
+  ]
+})
+
+watch(
+  [() => folderTree.value, selectedFolderId],
+  () => {
+    const targetKey = selectedFolderId.value || 'all'
+    const match =
+      findTreeItemByKey(folderTree.value, targetKey) ??
+      findTreeItemByKey(folderTree.value, 'all') ??
+      folderTree.value?.[0] ??
+      null
+
+    if (match && match !== selectedFolder.value) {
+      selectedFolder.value = match
+      return
+    }
+
+    if (!match && selectedFolderId.value !== 'all') {
+      selectedFolderId.value = 'all'
+    } else if (!selectedFolder.value) {
+      selectedFolder.value =
+        findTreeItemByKey(folderTree.value, 'all') ??
+        folderTree.value?.[0] ??
+        null
+    }
+  },
+  { immediate: true }
+)
+
 const getFolderCount = (id?: string | null): number | null => {
   if (!fileCounts.value) {
     return null
@@ -261,14 +348,79 @@ const fileQueryKey = computed(() => ({
 
 type FilesResult = { items: DirectusFile[]; total: number }
 
-const {
-  data: filesResult,
-  pending: filesPending,
-  error: filesError,
-} = await useAsyncData<FilesResult>(
-  'ams:filebrowser-files',
-  async () => {
-    const query = fileQueryKey.value
+const extractAggregateCount = (input: unknown): number | null => {
+  const visited = new WeakSet<object>()
+
+  const dig = (value: unknown): number | null => {
+    if (value == null) {
+      return null
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value
+    }
+    if (Array.isArray(value)) {
+      for (const entry of value) {
+        const result = dig(entry)
+        if (result != null) {
+          return result
+        }
+      }
+      return null
+    }
+    if (typeof value === 'object') {
+      if (visited.has(value as object)) {
+        return null
+      }
+      visited.add(value as object)
+
+      const record = value as Record<string, unknown>
+
+      if (typeof record.count === 'number' && Number.isFinite(record.count)) {
+        return record.count
+      }
+
+      if (record.count != null) {
+        const nested = dig(record.count)
+        if (nested != null) {
+          return nested
+        }
+      }
+
+      if ('data' in record) {
+        const nested = dig(record.data)
+        if (nested != null) {
+          return nested
+        }
+      }
+
+      for (const entry of Object.values(record)) {
+        const nested = dig(entry)
+        if (nested != null) {
+          return nested
+        }
+      }
+    }
+
+    return null
+  }
+
+  return dig(input)
+}
+
+const filesPending = ref(false)
+const filesError = shallowRef<unknown | null>(null)
+const filesResult = shallowRef<FilesResult>({ items: [], total: 0 })
+
+watch(
+  () => ({ ...fileQueryKey.value }),
+  async (query, _prev, onCleanup) => {
+    const abort = { cancelled: false }
+    onCleanup(() => {
+      abort.cancelled = true
+    })
+
+    filesPending.value = true
+    filesError.value = null
 
     const filters: Record<string, any> = {
       ...(query.allTypes ? {} : { type: { _starts_with: 'image' } }),
@@ -286,46 +438,106 @@ const {
       ]
     }
 
-    const response = await useDirectus(
-      readFiles({
-        fields: [
-          'id',
-          'filename_disk',
-          'filename_download',
-          'type',
-          'title',
-          'description',
-          'width',
-          'height',
-          'filesize',
-          'modified_on',
-        ],
-        limit: query.limit,
-        offset: (query.page - 1) * query.limit,
-        sort: sortMapping[query.sort],
-        filter: filters,
-        meta: ['filter_count'],
-      })
-    )
+    try {
+      const [filesResponse, aggregateResponse] = await Promise.allSettled([
+        useDirectus(
+          readFiles({
+            fields: [
+              'id',
+              'filename_disk',
+              'filename_download',
+              'type',
+              'title',
+              'description',
+              'width',
+              'height',
+              'filesize',
+              'modified_on',
+            ],
+            limit: query.limit,
+            offset: (query.page - 1) * query.limit,
+            sort: sortMapping[query.sort],
+            filter: filters,
+          })
+        ),
+        useDirectus(
+          aggregate('directus_files', {
+            aggregate: { count: '*' },
+            filter: filters,
+          })
+        ),
+      ])
 
-    if (Array.isArray(response)) {
-      return { items: response, total: response.length }
-    }
+      if (abort.cancelled) {
+        return
+      }
 
-    return {
-      items: response.data,
-      total: Number(
-        response.meta?.filter_count ??
-          response.meta?.total_count ??
-          response.data?.length ??
-          0
-      ),
+      if (filesResponse.status !== 'fulfilled') {
+        throw filesResponse.reason ?? new Error('Files request failed')
+      }
+
+      const rawFiles = filesResponse.value
+      const items = (
+        Array.isArray(rawFiles)
+          ? rawFiles
+          : (rawFiles?.data as DirectusFile[] | undefined) ?? []
+      ) as DirectusFile[]
+
+      let total =
+        aggregateResponse.status === 'fulfilled'
+          ? extractAggregateCount(aggregateResponse.value)
+          : null
+
+      if (total == null) {
+        const metaRecord =
+          !Array.isArray(rawFiles) && rawFiles && typeof rawFiles === 'object'
+            ? ((rawFiles as Record<string, unknown>).meta as
+                | Record<string, unknown>
+                | undefined)
+            : undefined
+
+        if (metaRecord && typeof metaRecord === 'object') {
+          const candidateKeys = [
+            'filter_count',
+            'total_count',
+            'count',
+          ] as const
+          for (const key of candidateKeys) {
+            const candidate = metaRecord[key]
+            if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+              total = candidate
+              break
+            }
+          }
+        }
+      }
+
+      const resolvedTotal =
+        typeof total === 'number' && Number.isFinite(total)
+          ? total
+          : Math.max(
+              (query.page - 1) * query.limit + items.length,
+              items.length
+            )
+
+      if (!abort.cancelled) {
+        filesResult.value = {
+          items,
+          total: resolvedTotal,
+        }
+      }
+    } catch (error) {
+      if (!abort.cancelled) {
+        filesError.value = error
+        filesResult.value = { items: [], total: 0 }
+      }
+    } finally {
+      if (!abort.cancelled) {
+        filesPending.value = false
+      }
     }
   },
-  {
-    watch: [fileQueryKey],
-    immediate: true,
-  }
+  { immediate: true, deep: true }
 )
 
 const displayedFiles = computed<DirectusFile[]>(
@@ -359,13 +571,19 @@ const isEmpty = computed(
 
 const hasError = computed(() => Boolean(filesError.value))
 
-function formatBytes(bytes?: number | null): string {
-  if (!bytes) {
+function formatBytes(bytes?: number | string | null): string {
+  const numericBytes = Number(bytes)
+
+  if (!Number.isFinite(numericBytes) || numericBytes < 0) {
     return '—'
   }
 
+  if (numericBytes === 0) {
+    return '0 B'
+  }
+
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let value = bytes
+  let value = numericBytes
   let unitIndex = 0
 
   while (value >= 1024 && unitIndex < units.length - 1) {
@@ -411,7 +629,9 @@ function getFileExtension(file: DirectusFile): string {
   return file.type.split('/').pop()?.toUpperCase() ?? 'FILE'
 }
 
-const selectedFilePreview = computed(() => selectedFile.value?.id ?? null)
+const selectedFilePreview = computed(() =>
+  selectedFile.value?.id ? getAssetId(selectedFile.value.id) : null
+)
 const selectedFileIsImage = computed(() =>
   Boolean(selectedFile.value?.type?.startsWith('image'))
 )
@@ -490,7 +710,9 @@ function handleFileSelection(file: DirectusFile) {
       <div
         class="px-5 py-4 border-b border-(--ui-primary)/15 flex items-center justify-between"
       >
-        <h3 class="text-sm font-semibold tracking-wide uppercase text-(--ui-text-muted)">
+        <h3
+          class="text-sm font-semibold tracking-wide uppercase text-(--ui-text-muted)"
+        >
           Ordner
         </h3>
         <span class="text-xs text-(--ui-text-muted)">
@@ -507,39 +729,75 @@ function handleFileSelection(file: DirectusFile) {
             root: 'space-y-2',
             list: 'space-y-1',
             listWithChildren: 'space-y-1',
-            item: 'px-2 py-1.5 rounded-lg hover:bg-(--ui-primary)/10 transition-colors duration-200 data-[selected]:bg-(--ui-primary)/15 data-[selected]:text-(--ui-text-highlighted)',
+            item: 'rounded-lg',
           }"
         >
-          <template #item-leading="{ item, expanded, selected, handleToggle }">
-            <span class="flex items-center gap-1.5">
-              <button
-                v-if="hasChildFolders(item)"
-                type="button"
-                class="inline-flex size-4 items-center justify-center rounded transition-colors duration-200 hover:bg-(--ui-primary)/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-primary)"
-                @click.stop="handleToggle()"
-                :aria-label="expanded ? 'Unterordner einklappen' : 'Unterordner ausklappen'"
-                :aria-expanded="expanded"
-              >
-                <UIcon
-                  :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-                  class="size-3 text-(--ui-text-muted)"
-                />
-              </button>
-              <UIcon
-                :name="
-                  expanded || selected ? 'i-lucide-folder-open' : 'i-lucide-folder'
-                "
-                class="size-5 shrink-0 text-(--ui-primary)"
-              />
-            </span>
-          </template>
-          <template #item-trailing="{ item }">
-            <span
-              v-if="getFolderCount(item.id) !== null"
-              class="ml-auto text-xs tabular-nums text-(--ui-text-muted)"
+          <template
+            #item="{
+              item,
+              expanded: isExpanded,
+              selected,
+              handleSelect,
+              handleToggle,
+            }"
+          >
+            <div
+              role="button"
+              tabindex="0"
+              class="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-primary)"
+              :class="
+                item.meta?.type === 'root'
+                  ? 'text-(--ui-text-muted) hover:bg-transparent aria-selected:text-(--ui-text-highlighted)'
+                  : 'text-(--ui-text) hover:bg-(--ui-primary)/10 aria-selected:bg-(--ui-primary)/15 aria-selected:text-(--ui-text-highlighted)'
+              "
+              :aria-selected="selected"
+              @pointerdown.stop
+              @click.stop="handleSelect()"
+              @keydown.enter.prevent="handleSelect()"
+              @keydown.space.prevent="handleSelect()"
             >
-              {{ numberFormatter.format(getFolderCount(item.id) ?? 0) }}
-            </span>
+              <span class="flex items-center gap-1.5">
+                <button
+                  v-if="hasChildFolders(item)"
+                  type="button"
+                  class="inline-flex size-4 items-center justify-center rounded transition-colors duration-200 hover:bg-(--ui-primary)/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-primary)"
+                  @pointerdown.stop
+                  @click.stop="handleToggle?.()"
+                  :aria-label="
+                    isExpanded
+                      ? 'Unterordner einklappen'
+                      : 'Unterordner ausklappen'
+                  "
+                  :aria-expanded="isExpanded"
+                >
+                  <UIcon
+                    :name="
+                      isExpanded
+                        ? 'i-lucide-chevron-down'
+                        : 'i-lucide-chevron-right'
+                    "
+                    class="size-3 text-(--ui-text-muted)"
+                  />
+                </button>
+                <UIcon
+                  :name="
+                    isExpanded || selected
+                      ? 'i-lucide-folder-open'
+                      : 'i-lucide-folder'
+                  "
+                  class="size-5 shrink-0 text-(--ui-primary)"
+                />
+              </span>
+              <span class="flex-1 truncate">
+                {{ item.label }}
+              </span>
+              <span
+                v-if="getFolderCount(item.id) !== null"
+                class="ml-auto text-xs tabular-nums text-(--ui-text-muted)"
+              >
+                {{ numberFormatter.format(getFolderCount(item.id) ?? 0) }}
+              </span>
+            </div>
           </template>
         </UTree>
       </div>
@@ -550,7 +808,9 @@ function handleFileSelection(file: DirectusFile) {
         class="px-6 py-4 border-b border-(--ui-primary)/15 flex flex-wrap items-center justify-between gap-4"
       >
         <div class="min-w-0">
-          <h2 class="text-lg font-semibold text-(--ui-text-highlighted) truncate">
+          <h2
+            class="text-lg font-semibold text-(--ui-text-highlighted) truncate"
+          >
             {{ activeFolderLabel }}
           </h2>
           <p class="text-xs text-(--ui-text-muted)">
@@ -599,7 +859,8 @@ function handleFileSelection(file: DirectusFile) {
         >
           <template #trigger>
             <span class="text-sm truncate">
-              Sortierung: {{
+              Sortierung:
+              {{
                 sortOptions.find((option) => option.value === sortOption)?.label
               }}
             </span>
@@ -616,9 +877,7 @@ function handleFileSelection(file: DirectusFile) {
           }"
         >
           <template #trigger>
-            <span class="text-sm truncate">
-              {{ itemsPerPage }} pro Seite
-            </span>
+            <span class="text-sm truncate"> {{ itemsPerPage }} pro Seite </span>
           </template>
         </USelectMenu>
       </div>
@@ -638,10 +897,16 @@ function handleFileSelection(file: DirectusFile) {
             <div
               v-if="filesPending"
               class="grid gap-4"
-              :class="viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'"
+              :class="
+                viewMode === 'grid'
+                  ? 'grid-cols-2 md:grid-cols-3 xl:grid-cols-4'
+                  : 'grid-cols-1'
+              "
             >
               <USkeleton
-                v-for="n in (viewMode === 'grid' ? itemsPerPage : Math.min(itemsPerPage, 6))"
+                v-for="n in viewMode === 'grid'
+                  ? itemsPerPage
+                  : Math.min(itemsPerPage, 6)"
                 :key="n"
                 class="h-40 rounded-xl bg-(--ui-bg-muted)/60"
               />
@@ -656,7 +921,7 @@ function handleFileSelection(file: DirectusFile) {
             />
 
             <div v-else>
-              <TransitionGroup
+              <div
                 v-if="viewMode === 'grid'"
                 name="list"
                 tag="div"
@@ -677,7 +942,7 @@ function handleFileSelection(file: DirectusFile) {
                   <div class="relative aspect-square overflow-hidden">
                     <NuxtImg
                       v-if="file.type?.startsWith('image')"
-                      :src="file.id"
+                      :src="getAssetId(file.id)"
                       width="600"
                       height="600"
                       fit="cover"
@@ -687,19 +952,27 @@ function handleFileSelection(file: DirectusFile) {
                       v-else
                       class="size-full flex flex-col items-center justify-center gap-2 bg-(--ui-bg)/80"
                     >
-                      <UIcon name="i-lucide-file" class="size-8 text-(--ui-primary)" />
-                      <span class="text-xs font-semibold uppercase tracking-wide">
+                      <UIcon
+                        name="i-lucide-file"
+                        class="size-8 text-(--ui-primary)"
+                      />
+                      <span
+                        class="text-xs font-semibold uppercase tracking-wide"
+                      >
                         {{ getFileExtension(file) }}
                       </span>
                     </div>
                     <div
                       class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-(--ui-bg)/95 via-(--ui-bg)/40 to-transparent p-3 text-left"
                     >
-                      <p class="text-sm font-medium truncate text-(--ui-text-highlighted)">
+                      <p
+                        class="text-sm font-medium truncate text-(--ui-text-highlighted)"
+                      >
                         {{ getFileDisplayName(file) }}
                       </p>
                       <p class="text-xs text-(--ui-text-muted)">
-                        {{ formatBytes(file.filesize) }} · {{ formatDate(file.modified_on) }}
+                        {{ formatBytes(file.filesize) }} ·
+                        {{ formatDate(file.modified_on) }}
                       </p>
                     </div>
                     <span
@@ -709,7 +982,7 @@ function handleFileSelection(file: DirectusFile) {
                     </span>
                   </div>
                 </button>
-              </TransitionGroup>
+              </div>
 
               <div v-else class="space-y-2">
                 <button
@@ -729,28 +1002,37 @@ function handleFileSelection(file: DirectusFile) {
                   >
                     <NuxtImg
                       v-if="file.type?.startsWith('image')"
-                      :src="file.id"
+                      :src="getAssetId(file.id)"
                       width="150"
                       height="150"
                       fit="cover"
                       class="size-full object-cover"
                     />
                     <div v-else class="flex flex-col items-center gap-1">
-                      <UIcon name="i-lucide-file" class="size-5 text-(--ui-primary)" />
-                      <span class="text-[10px] font-semibold uppercase tracking-wide">
+                      <UIcon
+                        name="i-lucide-file"
+                        class="size-5 text-(--ui-primary)"
+                      />
+                      <span
+                        class="text-[10px] font-semibold uppercase tracking-wide"
+                      >
                         {{ getFileExtension(file) }}
                       </span>
                     </div>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-(--ui-text-highlighted) truncate">
+                    <p
+                      class="text-sm font-medium text-(--ui-text-highlighted) truncate"
+                    >
                       {{ getFileDisplayName(file) }}
                     </p>
                     <p class="text-xs text-(--ui-text-muted) truncate">
                       {{ file.type || 'Unbekannter Typ' }}
                     </p>
                   </div>
-                  <div class="text-right text-xs text-(--ui-text-muted) leading-snug">
+                  <div
+                    class="text-right text-xs text-(--ui-text-muted) leading-snug"
+                  >
                     <p>{{ formatBytes(file.filesize) }}</p>
                     <p>{{ formatDate(file.modified_on) }}</p>
                   </div>
@@ -765,7 +1047,9 @@ function handleFileSelection(file: DirectusFile) {
           class="hidden xl:flex w-80 border-l border-(--ui-primary)/15 bg-(--ui-bg-muted)/40 flex-col"
         >
           <div class="px-5 py-4 border-b border-(--ui-primary)/15">
-            <h3 class="text-sm font-semibold uppercase tracking-wide text-(--ui-text-muted)">
+            <h3
+              class="text-sm font-semibold uppercase tracking-wide text-(--ui-text-muted)"
+            >
               Details
             </h3>
           </div>
@@ -785,7 +1069,9 @@ function handleFileSelection(file: DirectusFile) {
 
             <div class="space-y-4 text-sm">
               <div>
-                <h4 class="text-xs uppercase tracking-wider text-(--ui-text-muted)">
+                <h4
+                  class="text-xs uppercase tracking-wider text-(--ui-text-muted)"
+                >
                   Name
                 </h4>
                 <p class="font-medium text-(--ui-text-highlighted) break-all">
@@ -810,7 +1096,10 @@ function handleFileSelection(file: DirectusFile) {
                     {{ formatBytes(selectedFile.filesize) }}
                   </p>
                 </div>
-                <div v-if="selectedFile.width && selectedFile.height" class="space-y-1">
+                <div
+                  v-if="selectedFile.width && selectedFile.height"
+                  class="space-y-1"
+                >
                   <h4 class="uppercase tracking-wider text-(--ui-text-muted)">
                     Abmessungen
                   </h4>
@@ -829,7 +1118,9 @@ function handleFileSelection(file: DirectusFile) {
               </div>
 
               <div v-if="selectedFile.description" class="space-y-1">
-                <h4 class="text-xs uppercase tracking-wider text-(--ui-text-muted)">
+                <h4
+                  class="text-xs uppercase tracking-wider text-(--ui-text-muted)"
+                >
                   Beschreibung
                 </h4>
                 <p class="text-sm text-(--ui-text)">
@@ -847,7 +1138,11 @@ function handleFileSelection(file: DirectusFile) {
         <span>
           {{
             totalFiles
-              ? `Zeige ${numberFormatter.format(currentRange.start)} – ${numberFormatter.format(currentRange.end)} von ${numberFormatter.format(totalFiles)} Dateien`
+              ? `Zeige ${numberFormatter.format(
+                  currentRange.start
+                )} – ${numberFormatter.format(
+                  currentRange.end
+                )} von ${numberFormatter.format(totalFiles)} Dateien`
               : 'Keine Ergebnisse'
           }}
         </span>
@@ -857,7 +1152,8 @@ function handleFileSelection(file: DirectusFile) {
           :total="pageCount"
           class="ml-auto"
           :ui="{
-            trigger: 'rounded-lg hover:bg-(--ui-primary)/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-primary)',
+            trigger:
+              'rounded-lg hover:bg-(--ui-primary)/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-primary)',
           }"
         />
       </footer>

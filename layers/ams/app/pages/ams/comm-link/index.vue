@@ -424,6 +424,7 @@ definePageMeta({
                                 />
                                 <template #body>
                                   <UiFileLibrary
+                                    :all-types="false"
                                     @selected:file="handleFileSelect"
                                   />
                                 </template>
