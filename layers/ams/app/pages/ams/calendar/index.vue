@@ -1,6 +1,19 @@
 <script setup lang="ts">
-import type { DateValue } from '@internationalized/date'
-import { getLocalTimeZone, today, parseDate } from '@internationalized/date'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
+import FullCalendar from '@fullcalendar/vue3'
+import type {
+  DateSelectArg,
+  DatesSetArg,
+  EventClickArg,
+  EventDropArg,
+  EventResizeDoneArg,
+  EventContentArg,
+} from '@fullcalendar/core'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import multiMonthPlugin from '@fullcalendar/multimonth'
+import type { DateClickArg } from '@fullcalendar/interaction'
 
 interface CalendarEvent {
   id: string
@@ -29,9 +42,9 @@ interface CreateCalendarEventInput {
 const mockEvents: CalendarEvent[] = [
   {
     id: 'mission-atlas',
-    title: 'Operation Atlas – Aufklärungsflug',
+    title: 'Operation Atlas – Aufklärungsflug',
     summary:
-      'Abendliches Aufklärungsmanöver rund um MicroTech, Fokus auf Kopfgeldziele und Signalaufklärung.',
+      'Abendliches Aufklärungsmanöver rund um MicroTech, Fokus auf Kopfgeldziele und Signalaufklärung.',
     location: 'Everus Harbor – Briefing Room 02',
     department: 'Sicherheit',
     start: '2025-10-02T19:30:00Z',
@@ -67,7 +80,7 @@ const mockEvents: CalendarEvent[] = [
     id: 'mission-safeguard',
     title: 'Einsatz Safeguard – Handelskonvoi',
     summary:
-      'Sicherheitseskorte für einen gemischten Konvoi zwischen Crusader und Hurston.',
+      'Sicherheitseskorte für einen gemischten Konvoi zwischen Crusader und Hurston.',
     location: 'Port Olisar – Hangar 04',
     department: 'Sicherheit',
     start: '2025-10-18T20:15:00Z',
@@ -79,7 +92,7 @@ const mockEvents: CalendarEvent[] = [
     id: 'training-medical',
     title: 'Medic Response Workshop',
     summary:
-      'Medizinisches Einsatztraining inkl. Evakuierungssimulationen und Triagen-Übungen.',
+      'Medizinisches Einsatztraining inkl. Evakuierungssimulationen und Triagen-Übungen.',
     location: 'New Babbage – Clinic Deck',
     department: 'Medizin',
     start: '2025-10-20T18:30:00Z',
@@ -175,7 +188,6 @@ function generateEventId(title: string, startDate: Date) {
   return `${slug || 'event'}-${timestampPart}-${randomPart}`
 }
 
-// Adds a new appointment to the reactive data source and returns it.
 async function createCalendarEvent(
   input: CreateCalendarEventInput
 ): Promise<CalendarEvent> {
@@ -244,8 +256,6 @@ async function updateCalendarEventTime(
   return updated
 }
 
-const selectedDate = ref<DateValue | undefined>(today(getLocalTimeZone()))
-
 type CreateEventFormState = {
   title: string
   summary: string
@@ -278,6 +288,578 @@ const createEventForm = reactive<CreateEventFormState>(
 
 function resetCreateEventForm() {
   Object.assign(createEventForm, defaultCreateEventFormState())
+}
+
+function pad(value: number) {
+  return value.toString().padStart(2, '0')
+}
+
+function formatDateKey(date: Date) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )}`
+}
+
+function parseDateKey(key: string) {
+  return new Date(`${key}T00:00:00`)
+}
+
+function formatDateTimeLocal(date: Date) {
+  const target = new Date(date)
+  return `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(
+    target.getDate()
+  )}T${pad(target.getHours())}:${pad(target.getMinutes())}`
+}
+
+function startOfDay(date: Date) {
+  const result = new Date(date)
+  result.setHours(0, 0, 0, 0)
+  return result
+}
+
+function endOfDay(date: Date) {
+  const result = new Date(date)
+  result.setHours(23, 59, 59, 999)
+  return result
+}
+
+function startOfWeek(date: Date) {
+  const result = startOfDay(date)
+  const day = result.getDay()
+  const diff = (day === 0 ? -6 : 1) - day
+  result.setDate(result.getDate() + diff)
+  return result
+}
+
+function endOfWeek(date: Date) {
+  const result = startOfWeek(date)
+  result.setDate(result.getDate() + 6)
+  return endOfDay(result)
+}
+
+function getISOWeek(date: Date) {
+  const tmp = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  )
+  const dayNum = tmp.getUTCDay() || 7
+  tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1))
+  return Math.ceil(((tmp.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+}
+
+const calendarRef = ref<InstanceType<typeof FullCalendar> | null>(null)
+const calendarView = ref<'month' | 'week' | 'year'>('month')
+const calendarDate = ref(new Date())
+const selectedDateKey = ref(formatDateKey(new Date()))
+const jumpToDate = ref(selectedDateKey.value)
+
+const calendarPlugins = [
+  dayGridPlugin,
+  timeGridPlugin,
+  interactionPlugin,
+  multiMonthPlugin,
+] as const
+
+const calendarViewMap = {
+  month: 'dayGridMonth',
+  week: 'timeGridWeek',
+  year: 'multiMonthYear',
+} as const
+
+const weekRangeFormatter = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: 'long',
+})
+
+const dateFormatter = new Intl.DateTimeFormat('de-DE', {
+  weekday: 'long',
+  day: '2-digit',
+  month: 'long',
+})
+
+const timeFormatter = new Intl.DateTimeFormat('de-DE', {
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+const monthLabelFormatter = new Intl.DateTimeFormat('de-DE', {
+  month: 'long',
+  year: 'numeric',
+})
+
+const weekdayLabelFormatter = new Intl.DateTimeFormat('de-DE', {
+  weekday: 'long',
+})
+
+const monthYearLabelFormatter = new Intl.DateTimeFormat('de-DE', {
+  month: 'long',
+  year: 'numeric',
+})
+
+const statusMeta = {
+  planned: { label: 'Geplant', color: 'amber' },
+  confirmed: { label: 'Bestätigt', color: 'primary' },
+  'in-progress': { label: 'Live', color: 'sky' },
+  completed: { label: 'Abgeschlossen', color: 'green' },
+  cancelled: { label: 'Abgesagt', color: 'red' },
+} as const
+
+const calendarViewOptions = [
+  { label: 'Monat', value: 'month', icon: 'i-lucide-calendar-days' },
+  { label: 'Woche', value: 'week', icon: 'i-lucide-calendar-clock' },
+  { label: 'Jahr', value: 'year', icon: 'i-lucide-calendar' },
+] as const
+
+const statusFilterOptions = Object.entries(statusMeta).map(
+  ([value, meta]) => ({
+    value: value as CalendarEvent['status'],
+    label: meta.label,
+    color: meta.color,
+  })
+)
+
+const searchTerm = ref('')
+const activeStatusFilters = ref<CalendarEvent['status'][]>([])
+const activeDepartmentFilters = ref<string[]>([])
+const filtersOpen = ref(false)
+
+const normalizedSearchTerm = computed(() => searchTerm.value.trim().toLowerCase())
+
+const filtersActive = computed(
+  () =>
+    normalizedSearchTerm.value.length > 0 ||
+    activeStatusFilters.value.length > 0 ||
+    activeDepartmentFilters.value.length > 0
+)
+
+const departmentOptions = computed(() => {
+  const departments = new Set<string>()
+  for (const event of events.value) {
+    const department = event.department.trim()
+    if (department.length) {
+      departments.add(department)
+    }
+  }
+  return Array.from(departments).sort((a, b) => a.localeCompare(b, 'de'))
+})
+
+const departmentFilterItems = computed(() =>
+  departmentOptions.value.map((department) => ({
+    label: department,
+    value: department,
+  }))
+)
+
+const visibleEvents = computed(() => {
+  const term = normalizedSearchTerm.value
+  const statusFilters = activeStatusFilters.value
+  const departmentFilters = activeDepartmentFilters.value
+
+  return events.value.filter((event) => {
+    if (statusFilters.length && !statusFilters.includes(event.status)) {
+      return false
+    }
+
+    if (departmentFilters.length && !departmentFilters.includes(event.department)) {
+      return false
+    }
+
+    if (term) {
+      const haystack = [
+        event.title,
+        event.summary,
+        event.location,
+        event.department,
+        statusMeta[event.status]?.label,
+        event.tags.join(' '),
+      ]
+        .join(' ')
+        .toLowerCase()
+
+      if (!haystack.includes(term)) {
+        return false
+      }
+    }
+
+    return true
+  })
+})
+
+const visibleEventCount = computed(() => visibleEvents.value.length)
+const activeFiltersCount = computed(
+  () =>
+    (normalizedSearchTerm.value.length ? 1 : 0) +
+    activeStatusFilters.value.length +
+    activeDepartmentFilters.value.length
+)
+
+const highlightedDates = computed(() => {
+  const days = new Set<string>()
+
+  for (const event of visibleEvents.value) {
+    const startDate = new Date(event.start)
+    const endDate = new Date(event.end)
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      continue
+    }
+
+    const endMarker = new Date(endDate.getTime() - 1)
+    const cursor = startOfDay(startDate)
+
+    while (cursor.getTime() <= endMarker.getTime()) {
+      days.add(formatDateKey(cursor))
+      cursor.setDate(cursor.getDate() + 1)
+    }
+  }
+
+  return days
+})
+
+const eventsByDay = computed(() => {
+  const map = new Map<string, CalendarEvent[]>()
+
+  for (const event of visibleEvents.value) {
+    const startDate = new Date(event.start)
+    const endDate = new Date(event.end)
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      continue
+    }
+
+    const dayCursor = startOfDay(startDate)
+    const endMarker = new Date(endDate.getTime() - 1)
+
+    while (dayCursor.getTime() <= endMarker.getTime()) {
+      const key = formatDateKey(dayCursor)
+      if (!map.has(key)) {
+        map.set(key, [])
+      }
+      map.get(key)!.push(event)
+      dayCursor.setDate(dayCursor.getDate() + 1)
+    }
+  }
+
+  for (const [, list] of map) {
+    list.sort(
+      (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+    )
+  }
+
+  return map
+})
+
+const selectedDayEvents = computed(() => {
+  return eventsByDay.value.get(selectedDateKey.value) ?? []
+})
+
+const selectedDayDate = computed(() => parseDateKey(selectedDateKey.value))
+
+const selectedDayWeekday = computed(() =>
+  weekdayLabelFormatter.format(selectedDayDate.value)
+)
+
+const selectedDayMonthLabel = computed(() =>
+  monthYearLabelFormatter.format(selectedDayDate.value)
+)
+
+const selectedDayDayNumber = computed(() =>
+  selectedDayDate.value.getDate().toString().padStart(2, '0')
+)
+
+const selectedDayIsoWeek = computed(() => getISOWeek(selectedDayDate.value))
+
+const selectedDayPrimaryEvent = computed(() => selectedDayEvents.value[0] ?? null)
+const selectedDayAdditionalEvents = computed(() =>
+  selectedDayEvents.value.slice(1)
+)
+
+const upcomingEvents = computed(() => {
+  const now = new Date()
+  return visibleEvents.value
+    .filter((event) => new Date(event.start).getTime() >= now.getTime())
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+    .slice(0, 5)
+})
+
+const totalEvents = computed(() => events.value.length)
+const currentISOWeek = computed(() => getISOWeek(calendarDate.value))
+
+const selectedDayLabel = computed(() => {
+  if (!selectedDateKey.value) {
+    return 'Kein Datum ausgewählt'
+  }
+
+  const date = parseDateKey(selectedDateKey.value)
+  return dateFormatter.format(date)
+})
+
+const calendarHeadingLabel = computed(() => {
+  if (calendarView.value === 'month') {
+    return monthLabelFormatter.format(calendarDate.value)
+  }
+
+  if (calendarView.value === 'week') {
+    const start = startOfWeek(calendarDate.value)
+    const end = endOfWeek(calendarDate.value)
+    return `${weekRangeFormatter.format(start)} – ${weekRangeFormatter.format(
+      end
+    )}`
+  }
+
+  return calendarDate.value.getFullYear().toString()
+})
+
+const fullCalendarEvents = computed(() =>
+  visibleEvents.value.map((event) => ({
+    id: event.id,
+    title: event.title,
+    start: event.start,
+    end: event.end,
+    extendedProps: {
+      status: event.status,
+      location: event.location,
+      department: event.department,
+      summary: event.summary,
+      tags: event.tags,
+    },
+  }))
+)
+
+function toggleStatusFilter(status: CalendarEvent['status']) {
+  const index = activeStatusFilters.value.indexOf(status)
+  if (index === -1) {
+    activeStatusFilters.value = [...activeStatusFilters.value, status]
+    return
+  }
+
+  activeStatusFilters.value = [
+    ...activeStatusFilters.value.slice(0, index),
+    ...activeStatusFilters.value.slice(index + 1),
+  ]
+}
+
+function toggleDepartmentFilter(department: string) {
+  const index = activeDepartmentFilters.value.indexOf(department)
+  if (index === -1) {
+    activeDepartmentFilters.value = [...activeDepartmentFilters.value, department]
+    return
+  }
+
+  activeDepartmentFilters.value = [
+    ...activeDepartmentFilters.value.slice(0, index),
+    ...activeDepartmentFilters.value.slice(index + 1),
+  ]
+}
+
+function resetFilters() {
+  searchTerm.value = ''
+  activeStatusFilters.value = []
+  activeDepartmentFilters.value = []
+  filtersOpen.value = false
+}
+
+function selectEvent(event: CalendarEvent) {
+  const eventStart = new Date(event.start)
+  if (Number.isNaN(eventStart.getTime())) {
+    return
+  }
+
+  const dateKey = formatDateKey(eventStart)
+  if (dateKey !== selectedDateKey.value) {
+    selectedDateKey.value = dateKey
+  }
+}
+
+watch(jumpToDate, (value) => {
+  if (!value || value === selectedDateKey.value) {
+    return
+  }
+
+  const date = parseDateKey(value)
+  if (!Number.isNaN(date.getTime())) {
+    selectedDateKey.value = formatDateKey(date)
+  }
+})
+
+watch(selectedDateKey, (key) => {
+  jumpToDate.value = key
+})
+
+const statusClassMap: Record<CalendarEvent['status'], string> = {
+  planned: 'is-status-planned',
+  confirmed: 'is-status-confirmed',
+  'in-progress': 'is-status-in-progress',
+  completed: 'is-status-completed',
+  cancelled: 'is-status-cancelled',
+}
+
+function getCalendarApi() {
+  return calendarRef.value?.getApi() ?? null
+}
+
+function handleDatesSet(payload: DatesSetArg) {
+  calendarDate.value = payload.view.currentStart
+}
+
+function handleDateSelect(payload: DateSelectArg) {
+  selectedDateKey.value = formatDateKey(payload.start)
+
+  createEventForm.start = formatDateTimeLocal(payload.start)
+  const end = payload.end ?? new Date(payload.start.getTime() + 60 * 60 * 1000)
+  createEventForm.end = formatDateTimeLocal(end)
+  createEventModalOpen.value = true
+
+  payload.view.calendar.unselect()
+}
+
+function handleEventClick(payload: EventClickArg) {
+  if (payload.event.start) {
+    selectedDateKey.value = formatDateKey(payload.event.start)
+  }
+}
+
+async function handleEventDrop(payload: EventDropArg) {
+  const { event } = payload
+  const start = event.start
+  const end = event.end ?? event.start
+
+  if (!start || !end) {
+    payload.revert()
+    return
+  }
+
+  const updated = await updateCalendarEventTime(event.id, {
+    start,
+    end,
+  })
+
+  if (!updated) {
+    payload.revert()
+    return
+  }
+
+  selectedDateKey.value = formatDateKey(start)
+}
+
+async function handleEventResize(payload: EventResizeDoneArg) {
+  const { event } = payload
+  const start = event.start
+  const end = event.end
+
+  if (!start || !end) {
+    payload.revert()
+    return
+  }
+
+  const updated = await updateCalendarEventTime(event.id, {
+    start,
+    end,
+  })
+
+  if (!updated) {
+    payload.revert()
+  }
+}
+
+function renderEventContent(arg: EventContentArg) {
+  const timeText = arg.timeText
+  const title = arg.event.title
+
+  return {
+    html: `
+      <div class="ams-fc-event">
+        <span class="ams-fc-event-time">${timeText}</span>
+        <span class="ams-fc-event-title">${title}</span>
+      </div>
+    `,
+  }
+}
+
+function handleDateClick(payload: DateClickArg) {
+  selectedDateKey.value = formatDateKey(payload.date)
+}
+
+const calendarOptions = computed(() => ({
+  plugins: calendarPlugins,
+  initialView: calendarViewMap[calendarView.value],
+  initialDate: parseDateKey(selectedDateKey.value),
+  headerToolbar: false,
+  height: 'auto',
+  expandRows: true,
+  dayMaxEventRows: 4,
+  selectable: true,
+  selectMirror: true,
+  editable: true,
+  droppable: false,
+  eventDurationEditable: true,
+  slotMinTime: '00:00:00',
+  slotMaxTime: '24:00:00',
+  allDaySlot: false,
+  firstDay: 1,
+  locale: 'de',
+  events: fullCalendarEvents.value,
+  eventContent: renderEventContent,
+  eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+  slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+  dayHeaderFormat: { weekday: 'short', day: '2-digit', month: 'short' },
+  multiMonthMaxColumns: 3,
+  multiMonthMinWidth: 220,
+  dayCellClassNames: (arg: { date: Date }) => {
+    const classes = ['ams-calendar-day-cell']
+    const dayKey = formatDateKey(arg.date)
+
+    if (highlightedDates.value.has(dayKey)) {
+      classes.push('has-events')
+    }
+
+    if (dayKey === selectedDateKey.value) {
+      classes.push('is-selected')
+    }
+
+    return classes
+  },
+  eventClassNames: (arg: { event: { extendedProps: { status?: string } } }) => {
+    const status = arg.event.extendedProps.status as
+      | CalendarEvent['status']
+      | undefined
+    const classes = ['ams-calendar-event']
+    if (status && statusClassMap[status]) {
+      classes.push(statusClassMap[status])
+    }
+    return classes
+  },
+  select: handleDateSelect,
+  eventClick: handleEventClick,
+  eventDrop: handleEventDrop,
+  eventResize: handleEventResize,
+  dateClick: handleDateClick,
+  datesSet: handleDatesSet,
+}))
+
+function goToToday() {
+  const api = getCalendarApi()
+  if (!api) {
+    return
+  }
+  api.today()
+  selectedDateKey.value = formatDateKey(new Date())
+}
+
+function goToPrev() {
+  const api = getCalendarApi()
+  if (!api) {
+    return
+  }
+  api.prev()
+}
+
+function goToNext() {
+  const api = getCalendarApi()
+  if (!api) {
+    return
+  }
+  api.next()
 }
 
 async function handleCreateEventSubmit() {
@@ -318,8 +900,7 @@ async function handleCreateEventSubmit() {
     })
 
     const dateKey = event.start.slice(0, 10)
-    selectedDate.value = parseDate(dateKey)
-
+    selectedDateKey.value = dateKey
     createEventModalOpen.value = false
   } catch (error) {
     createEventError.value =
@@ -331,480 +912,23 @@ async function handleCreateEventSubmit() {
   }
 }
 
-const eventsByDay = computed(() => {
-  const map = new Map<string, CalendarEvent[]>()
-
-  for (const event of events.value) {
-    const dayKey = event.start.slice(0, 10)
-    if (!map.has(dayKey)) {
-      map.set(dayKey, [])
-    }
-    map.get(dayKey)!.push(event)
-  }
-
-  for (const [, list] of map) {
-    list.sort(
-      (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
-    )
-  }
-
-  return map
-})
-
-const highlightedDates = computed(
-  () => new Set(Array.from(eventsByDay.value.keys()))
-)
-
-const selectedDateKey = computed(() => selectedDate.value?.toString())
-
-const selectedDayEvents = computed(() => {
-  if (!selectedDateKey.value) {
-    return []
-  }
-  return eventsByDay.value.get(selectedDateKey.value) ?? []
-})
-
-const upcomingEvents = computed(() => {
-  const now = new Date()
-  return events.value
-    .filter((event) => new Date(event.start) >= now)
-    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-    .slice(0, 5)
-})
-
-const calendarView = ref<'month' | 'week' | 'year'>('month')
-
-const calendarViewOptions = [
-  { label: 'Monat', value: 'month', icon: 'i-lucide-calendar-days' },
-  { label: 'Woche', value: 'week', icon: 'i-lucide-calendar-clock' },
-  { label: 'Jahr', value: 'year', icon: 'i-lucide-calendar' },
-] as const
-
-const dateFormatter = new Intl.DateTimeFormat('de-DE', {
-  weekday: 'long',
-  day: '2-digit',
-  month: 'long',
-})
-
-const timeFormatter = new Intl.DateTimeFormat('de-DE', {
-  hour: '2-digit',
-  minute: '2-digit',
-})
-
-const dayMonthFormatter = new Intl.DateTimeFormat('de-DE', {
-  day: '2-digit',
-  month: 'long',
-})
-
-const weekRangeFormatter = new Intl.DateTimeFormat('de-DE', {
-  day: '2-digit',
-  month: 'long',
-})
-
-const weekDayShortFormatter = new Intl.DateTimeFormat('de-DE', {
-  weekday: 'short',
-})
-
-const weekDayFullFormatter = new Intl.DateTimeFormat('de-DE', {
-  weekday: 'long',
-})
-
-const weekDayDateFormatter = new Intl.DateTimeFormat('de-DE', {
-  day: '2-digit',
-  month: 'long',
-})
-
-const monthLabelFormatter = new Intl.DateTimeFormat('de-DE', {
-  month: 'long',
-})
-
-const statusMeta = {
-  planned: { label: 'Geplant', color: 'amber' },
-  confirmed: { label: 'Bestätigt', color: 'primary' },
-  'in-progress': { label: 'Live', color: 'sky' },
-  completed: { label: 'Abgeschlossen', color: 'green' },
-  cancelled: { label: 'Abgesagt', color: 'red' },
-} as const
-
-const createEventStatusOptions = computed(() =>
-  Object.entries(statusMeta).map(([value, meta]) => ({
-    value: value as CalendarEvent['status'],
-    label: meta.label,
-  }))
-)
-
-const selectedDayLabel = computed(() => {
-  if (!selectedDateKey.value) {
-    return 'Kein Datum ausgewählt'
-  }
-
-  const date = new Date(`${selectedDateKey.value}T00:00:00`)
-  return dateFormatter.format(date)
-})
-
-function formatTimeRange(event: CalendarEvent) {
-  const start = new Date(event.start)
-  const end = new Date(event.end)
-  return `${timeFormatter.format(start)} – ${timeFormatter.format(end)}`
-}
-
-function formatDayMonth(date: string | Date) {
-  const value = typeof date === 'string' ? new Date(date) : date
-  return dayMonthFormatter.format(value)
-}
-
-const isDateHighlightable = (date: DateValue) =>
-  highlightedDates.value.has(date.toString())
-
-function getEventsForDay(date: DateValue) {
-  return eventsByDay.value.get(date.toString()) ?? []
-}
-
-function formatEventsTooltip(events: CalendarEvent[]) {
-  return events
-    .map((event) => `${event.title} (${formatTimeRange(event)})`)
-    .join('\n')
-}
-
-function parseDateKey(key: string) {
-  return new Date(`${key}T00:00:00Z`)
-}
-
-function formatDateKey(date: Date) {
-  return date.toISOString().slice(0, 10)
-}
-
-function getISOWeek(date: Date) {
-  const tmp = new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-  )
-  const dayNum = tmp.getUTCDay() || 7
-  tmp.setUTCDate(tmp.getUTCDate() + 4 - dayNum)
-  const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1))
-  return Math.ceil(((tmp - yearStart) / 86400000 + 1) / 7)
-}
-
-const calendarVariant = computed(() =>
-  calendarView.value === 'year' ? 'subtle' : 'outline'
-)
-
-const calendarSize = computed(() =>
-  calendarView.value === 'year' ? 'sm' : 'lg'
-)
-
-const calendarMonthCount = computed(() =>
-  calendarView.value === 'year' ? 12 : 1
-)
-
-const calendarWeekStartsOn = computed(() => 1)
-
-const currentISOWeek = computed(() => {
-  if (!selectedDateKey.value) {
-    return null
-  }
-  const date = parseDateKey(selectedDateKey.value)
-  return getISOWeek(date)
-})
-
-const calendarHeadingLabel = computed(() => {
-  if (calendarView.value === 'year') {
-    return 'Monatsübersicht'
-  }
-  if (currentISOWeek.value !== null) {
-    return `KW ${currentISOWeek.value}`
-  }
-  return undefined
-})
-
-const calendarUi = computed(() => {
-  if (calendarView.value === 'year') {
-    return {
-      root: 'space-y-3',
-      header:
-        'rounded-xl border border-(--ui-primary)/10 bg-(--ui-bg-muted)/60 px-3 py-3 text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)',
-      heading:
-        'text-sm font-semibold tracking-tight text-(--ui-text-highlighted)',
-      body: 'grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3',
-      grid: 'space-y-2 w-full rounded-xl border border-(--ui-primary)/10 bg-(--ui-bg-muted)/40 p-3',
-      gridRow: 'grid grid-cols-7 gap-1 place-items-center items-stretch w-full',
-      headCell:
-        'text-[0.55rem] font-semibold uppercase tracking-[0.35em] text-(--ui-text-muted)/70',
-      cell: 'text-xs flex',
-      cellTrigger:
-        'w-full h-full flex rounded-md bg-transparent border-0 p-0 focus-visible:outline-none focus-visible:ring-0',
-    }
-  }
-
-  if (calendarView.value === 'month') {
-    return {
-      root: 'space-y-3',
-      header:
-        'rounded-xl border border-(--ui-primary)/10 bg-(--ui-bg-muted)/60 px-3 py-3 text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)',
-      heading:
-        'text-base font-semibold tracking-tight text-(--ui-text-highlighted)',
-      grid: 'space-y-3 w-full',
-      gridRow: 'grid grid-cols-7 gap-3 w-full items-stretch',
-      headCell:
-        'text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-(--ui-text-muted)/70 text-center',
-      cell: 'text-sm flex w-full h-full',
-      cellTrigger:
-        'w-full h-full flex rounded-lg bg-transparent border-0 p-0 focus-visible:outline-none focus-visible:ring-0',
-    }
-  }
-
-  return {
-    root: 'space-y-3',
-    header:
-      'rounded-xl border border-(--ui-primary)/10 bg-(--ui-bg-muted)/60 px-3 py-3 text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)',
-    heading:
-      'text-base font-semibold tracking-tight text-(--ui-text-highlighted)',
-    grid: 'space-y-2 w-full',
-    gridRow: 'grid grid-cols-7 gap-2 items-stretch w-full',
-    headCell:
-      'text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-(--ui-text-muted)/70',
-    cell: 'text-sm flex w-full',
-    cellTrigger:
-      'w-full h-full flex rounded-md bg-transparent border-0 p-0 focus-visible:outline-none focus-visible:ring-0',
-  }
-})
-
-const selectedWeekRange = computed(() => {
-  if (!selectedDateKey.value) {
-    return null
-  }
-
-  const reference = parseDateKey(selectedDateKey.value)
-  const day = reference.getUTCDay()
-  const offset = (day + 6) % 7
-  const start = new Date(reference)
-  start.setUTCDate(reference.getUTCDate() - offset)
-  const end = new Date(start)
-  end.setUTCDate(start.getUTCDate() + 6)
-
-  return { start, end }
-})
-
-const selectedWeekLabel = computed(() => {
-  if (!selectedWeekRange.value) {
-    return 'Keine Woche ausgewählt'
-  }
-
-  const { start, end } = selectedWeekRange.value
-  const startLabel = weekDayDateFormatter.format(start)
-  const endLabel = weekDayDateFormatter.format(end)
-  const isoWeek = getISOWeek(start)
-
-  return `KW ${isoWeek} · ${startLabel} – ${endLabel}`
-})
-
-const selectedWeekDays = computed(() => {
-  if (!selectedWeekRange.value) {
-    return []
-  }
-
-  const days = []
-  const { start } = selectedWeekRange.value
-
-  for (let i = 0; i < 7; i += 1) {
-    const date = new Date(start)
-    date.setUTCDate(start.getUTCDate() + i)
-    const key = formatDateKey(date)
-    const weekday = weekDayFullFormatter.format(date)
-    const shortLabel = weekDayShortFormatter
-      .format(date)
-      .replace('.', '')
-      .slice(0, 2)
-      .toUpperCase()
-    const dateLabel = weekDayDateFormatter.format(date)
-
-    const dayStart = new Date(`${key}T00:00:00`)
-    const dayEnd = new Date(dayStart)
-    dayEnd.setDate(dayEnd.getDate() + 1)
-
-    const detailedEvents = events.value
-      .flatMap((event) => {
-        const startDate = new Date(event.start)
-        const endDate = new Date(event.end)
-
-        if (
-          Number.isNaN(startDate.getTime()) ||
-          Number.isNaN(endDate.getTime())
-        ) {
-          return []
-        }
-
-        if (endDate.getTime() <= dayStart.getTime()) {
-          return []
-        }
-
-        if (startDate.getTime() >= dayEnd.getTime()) {
-          return []
-        }
-
-        const segmentStart =
-          startDate.getTime() > dayStart.getTime() ? startDate : dayStart
-        const segmentEnd =
-          endDate.getTime() < dayEnd.getTime() ? endDate : dayEnd
-
-        const continuesBefore = startDate.getTime() < dayStart.getTime()
-        const continuesAfter = endDate.getTime() > dayEnd.getTime()
-
-        const top =
-          ((segmentStart.getTime() - dayStart.getTime()) / 3600000) *
-          WEEK_HOUR_HEIGHT
-        const durationMinutes = Math.max(
-          (segmentEnd.getTime() - segmentStart.getTime()) / 60000,
-          30
-        )
-        const height = Math.max(
-          (durationMinutes / 60) * WEEK_HOUR_HEIGHT,
-          WEEK_HOUR_HEIGHT / 2
-        )
-
-        const isFirstSegment = !continuesBefore
-        const isLastSegment = !continuesAfter
-
-        let displayTimeRange: string
-        if (isFirstSegment && isLastSegment) {
-          displayTimeRange = formatTimeRange(event)
-        } else if (isFirstSegment) {
-          displayTimeRange = `${timeFormatter.format(
-            segmentStart
-          )} – ${weekDayShortFormatter.format(endDate)} ${timeFormatter.format(
-            endDate
-          )}`
-        } else if (isLastSegment) {
-          displayTimeRange = `00:00 – ${timeFormatter.format(segmentEnd)}`
-        } else {
-          displayTimeRange = 'Ganztägig'
-        }
-
-        return [
-          {
-            ...event,
-            segment: {
-              key: `${event.id}-${segmentStart.toISOString()}`,
-              top,
-              height,
-              continuesBefore,
-              continuesAfter,
-              isFirstSegment,
-              isLastSegment,
-              segmentStart: segmentStart.toISOString(),
-              segmentEnd: segmentEnd.toISOString(),
-              displayTimeRange,
-            },
-          },
-        ]
-      })
-      .sort((a, b) => a.segment.top - b.segment.top)
-
-    const summaryEvents: Array<
-      (typeof detailedEvents)[number] & { timeRange: string }
-    > = []
-    const summarySeenIds = new Set<string>()
-
-    for (const event of detailedEvents) {
-      if (!summarySeenIds.has(event.id)) {
-        summarySeenIds.add(event.id)
-        summaryEvents.push({
-          ...event,
-          timeRange: event.segment.displayTimeRange,
-        })
-      }
-    }
-
-    days.push({
-      key,
-      label: dateLabel,
-      shortLabel,
-      weekday,
-      date,
-      isToday: todayKey.value === key,
-      segments: detailedEvents,
-      summaries: summaryEvents,
-      eventCount: summaryEvents.length,
-    })
-  }
-
-  return days.sort((a, b) => a.date.getTime() - b.date.getTime())
-})
-
-const totalWeekEvents = computed(() =>
-  selectedWeekDays.value.reduce((total, day) => total + day.eventCount, 0)
-)
-
-const selectedYear = computed(() => {
-  if (selectedDateKey.value) {
-    return Number.parseInt(selectedDateKey.value.slice(0, 4), 10)
-  }
-
-  return new Date().getUTCFullYear()
-})
-
-const yearOverview = computed(() => {
-  const year = selectedYear.value
-
-  const months = Array.from({ length: 12 }, (_, monthIndex) => {
-    const monthDate = new Date(Date.UTC(year, monthIndex, 1))
-    const monthEvents = events.value
-      .filter((event) => {
-        const eventDate = new Date(event.start)
-        return (
-          eventDate.getUTCFullYear() === year &&
-          eventDate.getUTCMonth() === monthIndex
-        )
-      })
-      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-
-    const now = new Date()
-    const nextEvent = monthEvents.find(
-      (event) => new Date(event.start).getTime() >= now.getTime()
-    )
-
-    return {
-      monthIndex,
-      label: monthLabelFormatter.format(monthDate),
-      events: monthEvents,
-      count: monthEvents.length,
-      nextEvent,
-    }
-  })
-
-  return months
-})
-
-const totalYearEvents = computed(() =>
-  yearOverview.value.reduce((total, month) => total + month.count, 0)
-)
-
-const hasYearEvents = computed(() =>
-  yearOverview.value.some((month) => month.count > 0)
-)
-
-function isDateInSelectedWeek(date: DateValue) {
-  if (calendarView.value !== 'week' || !selectedWeekRange.value) {
-    return false
-  }
-
-  const value = parseDateKey(date.toString())
-  const { start, end } = selectedWeekRange.value
-  return value.getTime() >= start.getTime() && value.getTime() <= end.getTime()
-}
-
-const todayKey = computed(() => today(getLocalTimeZone()).toString())
-
 watch(createEventModalOpen, (isOpen) => {
   if (isOpen) {
-    const baseDate = selectedDateKey.value ?? todayKey.value
-    if (baseDate) {
-      if (!createEventForm.start) {
-        createEventForm.start = `${baseDate}T19:00`
-      }
-      if (!createEventForm.end) {
-        createEventForm.end = `${baseDate}T20:00`
-      }
+    const baseKey = selectedDateKey.value || formatDateKey(new Date())
+    const baseDate = parseDateKey(baseKey)
+
+    if (!createEventForm.start) {
+      const start = new Date(baseDate)
+      start.setHours(19, 0, 0, 0)
+      createEventForm.start = formatDateTimeLocal(start)
     }
+
+    if (!createEventForm.end) {
+      const end = new Date(baseDate)
+      end.setHours(20, 0, 0, 0)
+      createEventForm.end = formatDateTimeLocal(end)
+    }
+
     return
   }
 
@@ -813,826 +937,42 @@ watch(createEventModalOpen, (isOpen) => {
   resetCreateEventForm()
 })
 
-const daySizeClasses = computed(() =>
-  calendarView.value === 'year' ? 'size-8 text-xs' : 'size-9 text-sm'
-)
-
-const dayDotSizeClasses = computed(() =>
-  calendarView.value === 'year' ? 'mt-1 h-1 w-1' : 'mt-1 h-1.5 w-1.5'
-)
-
-const WEEK_HOUR_HEIGHT = 64
-const WEEK_HEADER_HEIGHT = 68
-const WEEK_GRID_HEIGHT = WEEK_HOUR_HEIGHT * 24
-const weekHourLabels = computed(() =>
-  Array.from(
-    { length: 24 },
-    (_, hour) => `${hour.toString().padStart(2, '0')}:00`
-  )
-)
-const weekHourGuides = Array.from({ length: 25 }, (_, index) => index)
-
-const WEEK_TIME_STEP_MINUTES = 15
-const WEEK_MIN_DURATION_MINUTES = 30
-const WEEK_MIN_HEIGHT =
-  (WEEK_MIN_DURATION_MINUTES / 60) * WEEK_HOUR_HEIGHT
-
-type WeekInteractionType = 'move' | 'resize-start' | 'resize-end'
-type WeekInteractionSource = 'pointer' | 'mouse' | 'touch'
-
-type WeekSegmentMeta = {
-  key: string
-  top: number
-  height: number
-  continuesBefore: boolean
-  continuesAfter: boolean
-  isFirstSegment: boolean
-  isLastSegment: boolean
-}
-
-type WeekSegmentEvent = {
-  id: string
-  start: string
-  end: string
-  segment: WeekSegmentMeta
-}
-
-interface WeekEventInteractionState {
-  source: WeekInteractionSource
-  type: WeekInteractionType
-  eventId: string
-  segmentKey: string
-  dayKey: string
-  pointerId?: number
-  touchId?: number
-  startClientY: number
-  initialStart: Date
-  initialEnd: Date
-  initialTop: number
-  initialHeight: number
-  startMinutes: number
-  durationMinutes: number
-}
-
-const activeWeekInteraction = ref<WeekEventInteractionState | null>(null)
-const weekEventPreview = ref<{
-  eventId: string
-  segmentKey: string
-  dayKey: string
-  top: number
-  height: number
-  startMinutes: number
-  durationMinutes: number
-} | null>(null)
-let weekPointerListenersActive = false
-let weekMouseListenersActive = false
-let weekTouchListenersActive = false
-
-function snapMinutesToStep(minutes: number) {
-  return Math.round(minutes / WEEK_TIME_STEP_MINUTES) * WEEK_TIME_STEP_MINUTES
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max)
-}
-
-function canEditWeekEvent(segment: WeekSegmentMeta) {
-  return !segment.continuesBefore && !segment.continuesAfter
-}
-
-function getWeekEventStyle(eventId: string, segment: WeekSegmentMeta) {
-  const preview = weekEventPreview.value
-
-  if (
-    preview &&
-    preview.eventId === eventId &&
-    preview.segmentKey === segment.key
-  ) {
-    return {
-      top: `${preview.top}px`,
-      height: `${preview.height}px`,
-    }
-  }
-
-  return {
-    top: `${segment.top}px`,
-    height: `${segment.height}px`,
-  }
-}
-
-function isWeekEventActive(eventId: string, segmentKey: string) {
-  const interaction = activeWeekInteraction.value
-  return (
-    !!interaction &&
-    interaction.eventId === eventId &&
-    interaction.segmentKey === segmentKey
-  )
-}
-
-function addWeekInteractionListeners(source: WeekInteractionSource) {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  switch (source) {
-    case 'pointer':
-      if (weekPointerListenersActive) {
-        return
-      }
-      window.addEventListener('pointermove', handleWeekPointerMove)
-      window.addEventListener('pointerup', handleWeekPointerUp)
-      window.addEventListener('pointercancel', handleWeekPointerCancel)
-      weekPointerListenersActive = true
-      break
-    case 'mouse':
-      if (weekMouseListenersActive) {
-        return
-      }
-      window.addEventListener('mousemove', handleWeekMouseMove)
-      window.addEventListener('mouseup', handleWeekMouseUp)
-      weekMouseListenersActive = true
-      break
-    case 'touch':
-      if (weekTouchListenersActive) {
-        return
-      }
-      window.addEventListener('touchmove', handleWeekTouchMove, {
-        passive: false,
-      })
-      window.addEventListener('touchend', handleWeekTouchEnd)
-      window.addEventListener('touchcancel', handleWeekTouchCancel)
-      weekTouchListenersActive = true
-      break
-    default:
-      break
-  }
-}
-
-function removeWeekInteractionListeners(source: WeekInteractionSource) {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  switch (source) {
-    case 'pointer':
-      if (!weekPointerListenersActive) {
-        return
-      }
-      window.removeEventListener('pointermove', handleWeekPointerMove)
-      window.removeEventListener('pointerup', handleWeekPointerUp)
-      window.removeEventListener('pointercancel', handleWeekPointerCancel)
-      weekPointerListenersActive = false
-      break
-    case 'mouse':
-      if (!weekMouseListenersActive) {
-        return
-      }
-      window.removeEventListener('mousemove', handleWeekMouseMove)
-      window.removeEventListener('mouseup', handleWeekMouseUp)
-      weekMouseListenersActive = false
-      break
-    case 'touch':
-      if (!weekTouchListenersActive) {
-        return
-      }
-      window.removeEventListener('touchmove', handleWeekTouchMove)
-      window.removeEventListener('touchend', handleWeekTouchEnd)
-      window.removeEventListener('touchcancel', handleWeekTouchCancel)
-      weekTouchListenersActive = false
-      break
-    default:
-      break
-  }
-}
-
-function findTouchById(list: TouchList, id: number | undefined) {
-  if (id === undefined) {
-    return null
-  }
-
-  for (let index = 0; index < list.length; index += 1) {
-    const touch = list.item(index)
-    if (touch && touch.identifier === id) {
-      return touch
-    }
-  }
-
-  return null
-}
-
-function updateWeekInteractionPreview(clientY: number) {
-  const interaction = activeWeekInteraction.value
-  if (!interaction) {
-    return
-  }
-
-  const deltaY = clientY - interaction.startClientY
-  applyWeekInteractionDelta(interaction, deltaY)
-}
-
-function applyWeekInteractionDelta(
-  interaction: WeekEventInteractionState,
-  deltaY: number
-) {
-  if (interaction.type === 'move') {
-    let newTopPx = interaction.initialTop + deltaY
-    const maxTop = WEEK_GRID_HEIGHT - interaction.initialHeight
-    newTopPx = clamp(newTopPx, 0, Math.max(0, maxTop))
-
-    const minutes = (newTopPx / WEEK_HOUR_HEIGHT) * 60
-    const snappedMinutes = clamp(
-      snapMinutesToStep(minutes),
-      0,
-      Math.max(0, 24 * 60 - interaction.durationMinutes)
-    )
-    const snappedTop = (snappedMinutes / 60) * WEEK_HOUR_HEIGHT
-
-    weekEventPreview.value = {
-      eventId: interaction.eventId,
-      segmentKey: interaction.segmentKey,
-      dayKey: interaction.dayKey,
-      top: snappedTop,
-      height: interaction.initialHeight,
-      startMinutes: snappedMinutes,
-      durationMinutes: interaction.durationMinutes,
-    }
-    return
-  }
-
-  if (interaction.type === 'resize-start') {
-    let newTopPx = interaction.initialTop + deltaY
-    const maxTopMinutes =
-      interaction.startMinutes +
-      interaction.durationMinutes -
-      WEEK_MIN_DURATION_MINUTES
-    const maxTopPx = (maxTopMinutes / 60) * WEEK_HOUR_HEIGHT
-    newTopPx = clamp(newTopPx, 0, Math.max(0, maxTopPx))
-
-    const minutes = (newTopPx / WEEK_HOUR_HEIGHT) * 60
-    const snappedMinutes = clamp(
-      snapMinutesToStep(minutes),
-      0,
-      Math.max(0, maxTopMinutes)
-    )
-    const newDurationMinutes =
-      interaction.durationMinutes - (snappedMinutes - interaction.startMinutes)
-    const constrainedDuration = Math.max(
-      newDurationMinutes,
-      WEEK_MIN_DURATION_MINUTES
-    )
-    const snappedHeight =
-      (constrainedDuration / 60) * WEEK_HOUR_HEIGHT
-
-    weekEventPreview.value = {
-      eventId: interaction.eventId,
-      segmentKey: interaction.segmentKey,
-      dayKey: interaction.dayKey,
-      top: (snappedMinutes / 60) * WEEK_HOUR_HEIGHT,
-      height: Math.max(snappedHeight, WEEK_MIN_HEIGHT),
-      startMinutes: snappedMinutes,
-      durationMinutes: constrainedDuration,
-    }
-    return
-  }
-
-  let newHeightPx = interaction.initialHeight + deltaY
-  const maxHeight = WEEK_GRID_HEIGHT - interaction.initialTop
-  newHeightPx = clamp(
-    newHeightPx,
-    WEEK_MIN_HEIGHT,
-    Math.max(WEEK_MIN_HEIGHT, maxHeight)
-  )
-
-  const minutes = (newHeightPx / WEEK_HOUR_HEIGHT) * 60
-  const snappedDuration = clamp(
-    snapMinutesToStep(minutes),
-    WEEK_MIN_DURATION_MINUTES,
-    Math.max(WEEK_MIN_DURATION_MINUTES, 24 * 60 - interaction.startMinutes)
-  )
-  const snappedHeight = (snappedDuration / 60) * WEEK_HOUR_HEIGHT
-
-  weekEventPreview.value = {
-    eventId: interaction.eventId,
-    segmentKey: interaction.segmentKey,
-    dayKey: interaction.dayKey,
-    top: interaction.initialTop,
-    height: snappedHeight,
-    startMinutes: interaction.startMinutes,
-    durationMinutes: snappedDuration,
-  }
-}
-
-function startWeekEventInteraction(
-  interactionType: WeekInteractionType,
-  dayKey: string,
-  segmentEvent: WeekSegmentEvent,
-  source: WeekInteractionSource,
-  origin: { clientY: number; pointerId?: number; touchId?: number }
-) {
-  if (!canEditWeekEvent(segmentEvent.segment)) {
-    return
-  }
-
-  if (
-    (interactionType === 'resize-start' && !segmentEvent.segment.isFirstSegment) ||
-    (interactionType === 'resize-end' && !segmentEvent.segment.isLastSegment)
-  ) {
-    return
-  }
-
-  if (activeWeekInteraction.value) {
-    return
-  }
-
-  const eventStart = new Date(segmentEvent.start)
-  const eventEnd = new Date(segmentEvent.end)
-
-  if (
-    Number.isNaN(eventStart.getTime()) ||
-    Number.isNaN(eventEnd.getTime())
-  ) {
-    return
-  }
-
-  const startMinutes = (segmentEvent.segment.top / WEEK_HOUR_HEIGHT) * 60
-  const durationMinutes =
-    (eventEnd.getTime() - eventStart.getTime()) / 60000
-
-  activeWeekInteraction.value = {
-    source,
-    type: interactionType,
-    eventId: segmentEvent.id,
-    segmentKey: segmentEvent.segment.key,
-    dayKey,
-    pointerId: origin.pointerId,
-    touchId: origin.touchId,
-    startClientY: origin.clientY,
-    initialStart: eventStart,
-    initialEnd: eventEnd,
-    initialTop: segmentEvent.segment.top,
-    initialHeight: segmentEvent.segment.height,
-    startMinutes,
-    durationMinutes,
-  }
-
-  weekEventPreview.value = {
-    eventId: segmentEvent.id,
-    segmentKey: segmentEvent.segment.key,
-    dayKey,
-    top: segmentEvent.segment.top,
-    height: segmentEvent.segment.height,
-    startMinutes,
-    durationMinutes,
-  }
-
-  addWeekInteractionListeners(source)
-}
-
-function startWeekEventInteractionFromPointer(
-  pointerEvent: PointerEvent,
-  dayKey: string,
-  segmentEvent: WeekSegmentEvent,
-  interactionType: WeekInteractionType
-) {
-  if (calendarView.value !== 'week') {
-    return
-  }
-
-  if (
-    pointerEvent.pointerType === 'mouse' &&
-    pointerEvent.button !== 0
-  ) {
-    return
-  }
-
-  pointerEvent.preventDefault()
-
-  startWeekEventInteraction(interactionType, dayKey, segmentEvent, 'pointer', {
-    pointerId: pointerEvent.pointerId,
-    clientY: pointerEvent.clientY,
-  })
-}
-
-function startWeekEventInteractionFromMouse(
-  mouseEvent: MouseEvent,
-  dayKey: string,
-  segmentEvent: WeekSegmentEvent,
-  interactionType: WeekInteractionType
-) {
-  if (calendarView.value !== 'week') {
-    return
-  }
-
-  if (mouseEvent.button !== 0) {
-    return
-  }
-
-  mouseEvent.preventDefault()
-
-  startWeekEventInteraction(interactionType, dayKey, segmentEvent, 'mouse', {
-    clientY: mouseEvent.clientY,
-  })
-}
-
-function startWeekEventInteractionFromTouch(
-  touchEvent: TouchEvent,
-  dayKey: string,
-  segmentEvent: WeekSegmentEvent,
-  interactionType: WeekInteractionType
-) {
-  if (calendarView.value !== 'week') {
-    return
-  }
-
-  const touch = touchEvent.changedTouches[0]
-  if (!touch) {
-    return
-  }
-
-  touchEvent.preventDefault()
-
-  startWeekEventInteraction(interactionType, dayKey, segmentEvent, 'touch', {
-    touchId: touch.identifier,
-    clientY: touch.clientY,
-  })
-}
-
-function onWeekEventDragPointerDown(
-  pointerEvent: PointerEvent,
-  dayKey: string,
-  segmentEvent: WeekSegmentEvent
-) {
-  startWeekEventInteractionFromPointer(
-    pointerEvent,
-    dayKey,
-    segmentEvent,
-    'move'
-  )
-}
-
-function onWeekEventDragMouseDown(
-  mouseEvent: MouseEvent,
-  dayKey: string,
-  segmentEvent: WeekSegmentEvent
-) {
-  startWeekEventInteractionFromMouse(mouseEvent, dayKey, segmentEvent, 'move')
-}
-
-function onWeekEventDragTouchStart(
-  touchEvent: TouchEvent,
-  dayKey: string,
-  segmentEvent: WeekSegmentEvent
-) {
-  startWeekEventInteractionFromTouch(touchEvent, dayKey, segmentEvent, 'move')
-}
-
-function onWeekEventResizePointerDown(
-  pointerEvent: PointerEvent,
-  dayKey: string,
-  segmentEvent: WeekSegmentEvent,
-  type: Extract<WeekInteractionType, 'resize-start' | 'resize-end'>
-) {
-  startWeekEventInteractionFromPointer(
-    pointerEvent,
-    dayKey,
-    segmentEvent,
-    type
-  )
-}
-
-function onWeekEventResizeMouseDown(
-  mouseEvent: MouseEvent,
-  dayKey: string,
-  segmentEvent: WeekSegmentEvent,
-  type: Extract<WeekInteractionType, 'resize-start' | 'resize-end'>
-) {
-  startWeekEventInteractionFromMouse(mouseEvent, dayKey, segmentEvent, type)
-}
-
-function onWeekEventResizeTouchStart(
-  touchEvent: TouchEvent,
-  dayKey: string,
-  segmentEvent: WeekSegmentEvent,
-  type: Extract<WeekInteractionType, 'resize-start' | 'resize-end'>
-) {
-  startWeekEventInteractionFromTouch(touchEvent, dayKey, segmentEvent, type)
-}
-
-function resetWeekEventPreview() {
-  weekEventPreview.value = null
-}
-
-function cancelWeekInteraction() {
-  void finalizeWeekInteraction(false)
-}
-
-function handleWeekPointerMove(event: PointerEvent) {
-  const interaction = activeWeekInteraction.value
-
-  if (
-    !interaction ||
-    interaction.source !== 'pointer' ||
-    interaction.pointerId !== event.pointerId
-  ) {
-    return
-  }
-
-  event.preventDefault()
-  updateWeekInteractionPreview(event.clientY)
-}
-
-function handleWeekPointerCancel(event: PointerEvent) {
-  const interaction = activeWeekInteraction.value
-
-  if (
-    !interaction ||
-    interaction.source !== 'pointer' ||
-    interaction.pointerId !== event.pointerId
-  ) {
-    return
-  }
-
-  void finalizeWeekInteraction(false)
-}
-
-async function handleWeekPointerUp(event: PointerEvent) {
-  const interaction = activeWeekInteraction.value
-
-  if (
-    !interaction ||
-    interaction.source !== 'pointer' ||
-    interaction.pointerId !== event.pointerId
-  ) {
-    return
-  }
-
-  event.preventDefault()
-  await finalizeWeekInteraction(true)
-}
-
-function handleWeekMouseMove(event: MouseEvent) {
-  const interaction = activeWeekInteraction.value
-
-  if (!interaction || interaction.source !== 'mouse') {
-    return
-  }
-
-  if (event.buttons !== undefined && (event.buttons & 1) === 0) {
-    void finalizeWeekInteraction(false)
-    return
-  }
-
-  event.preventDefault()
-  updateWeekInteractionPreview(event.clientY)
-}
-
-async function handleWeekMouseUp(event: MouseEvent) {
-  const interaction = activeWeekInteraction.value
-
-  if (!interaction || interaction.source !== 'mouse') {
-    return
-  }
-
-  event.preventDefault()
-  await finalizeWeekInteraction(true)
-}
-
-function handleWeekTouchMove(event: TouchEvent) {
-  const interaction = activeWeekInteraction.value
-
-  if (!interaction || interaction.source !== 'touch') {
-    return
-  }
-
-  const touch = findTouchById(event.touches, interaction.touchId)
-  if (!touch) {
-    return
-  }
-
-  event.preventDefault()
-  updateWeekInteractionPreview(touch.clientY)
-}
-
-function handleWeekTouchEnd(event: TouchEvent) {
-  const interaction = activeWeekInteraction.value
-
-  if (!interaction || interaction.source !== 'touch') {
-    return
-  }
-
-  const touch = findTouchById(event.changedTouches, interaction.touchId)
-  if (!touch) {
-    return
-  }
-
-  event.preventDefault()
-  void finalizeWeekInteraction(true)
-}
-
-function handleWeekTouchCancel(event: TouchEvent) {
-  const interaction = activeWeekInteraction.value
-
-  if (!interaction || interaction.source !== 'touch') {
-    return
-  }
-
-  const touch = findTouchById(event.changedTouches, interaction.touchId)
-  if (!touch) {
-    return
-  }
-
-  void finalizeWeekInteraction(false)
-}
-
-async function finalizeWeekInteraction(commit: boolean) {
-  const interaction = activeWeekInteraction.value
-  const preview = weekEventPreview.value
-
-  if (interaction) {
-    removeWeekInteractionListeners(interaction.source)
-  }
-
-  activeWeekInteraction.value = null
-
-  if (!interaction) {
-    resetWeekEventPreview()
-    return
-  }
-
-  if (!commit || !preview) {
-    resetWeekEventPreview()
-    return
-  }
-
-  try {
-    if (interaction.type === 'move') {
-      const deltaMinutes = preview.startMinutes - interaction.startMinutes
-
-      if (Math.abs(deltaMinutes) < 0.1) {
-        return
-      }
-
-      const newStart = new Date(
-        interaction.initialStart.getTime() + deltaMinutes * 60000
-      )
-      const newEnd = new Date(
-        interaction.initialEnd.getTime() + deltaMinutes * 60000
-      )
-      await updateCalendarEventTime(interaction.eventId, {
-        start: newStart,
-        end: newEnd,
-      })
-      return
-    }
-
-    if (interaction.type === 'resize-start') {
-      const deltaMinutes = preview.startMinutes - interaction.startMinutes
-
-      if (Math.abs(deltaMinutes) < 0.1) {
-        return
-      }
-
-      const newStart = new Date(
-        interaction.initialStart.getTime() + deltaMinutes * 60000
-      )
-
-      await updateCalendarEventTime(interaction.eventId, {
-        start: newStart,
-        end: interaction.initialEnd,
-      })
-      return
-    }
-
-    const newDuration = preview.durationMinutes
-
-    if (Math.abs(newDuration - interaction.durationMinutes) < 0.1) {
-      return
-    }
-
-    const newEnd = new Date(
-      interaction.initialStart.getTime() + newDuration * 60000
-    )
-
-    await updateCalendarEventTime(interaction.eventId, {
-      start: interaction.initialStart,
-      end: newEnd,
-    })
-  } finally {
-    resetWeekEventPreview()
-  }
-}
-
 watch(calendarView, (view) => {
-  if (view !== 'week') {
-    cancelWeekInteraction()
+  const api = getCalendarApi()
+  if (!api) {
+    return
+  }
+
+  const target = calendarViewMap[view]
+  if (api.view.type !== target) {
+    api.changeView(target, parseDateKey(selectedDateKey.value))
   }
 })
 
-onBeforeUnmount(() => {
-  cancelWeekInteraction()
+watch(selectedDateKey, (key) => {
+  const api = getCalendarApi()
+  if (!api) {
+    return
+  }
+
+  const date = parseDateKey(key)
+  if (!Number.isNaN(date.getTime())) {
+    api.gotoDate(date)
+  }
 })
 
-function isSelectedDate(date: DateValue) {
-  return selectedDateKey.value === date.toString()
-}
-
-function isTodayDate(date: DateValue) {
-  return todayKey.value === date.toString()
-}
-
-function hasEventsForDay(date: DateValue) {
-  return highlightedDates.value.has(date.toString())
-}
-
-function getDayClasses(date: DateValue, hasEvents: boolean) {
-  if (calendarView.value === 'month') {
-    const classes = [
-      'flex h-24 w-full flex-col justify-between rounded-lg border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-3 text-left text-(--ui-text-muted) transition-colors duration-200',
-      'hover:border-(--ui-primary)/30 hover:bg-(--ui-primary)/8',
-    ]
-
-    if (isSelectedDate(date)) {
-      classes.push(
-        'border-(--ui-primary) bg-(--ui-primary)/15 text-(--ui-text-highlighted) shadow-[0_0_18px_rgba(0,255,232,0.25)]'
-      )
-    } else if (isTodayDate(date)) {
-      classes.push('border-(--ui-primary)/35 text-(--ui-text-highlighted)')
-    } else if (hasEvents) {
-      classes.push('border-(--ui-primary)/25 text-(--ui-text-highlighted)')
-    }
-
-    return classes
-  }
-
-  const classes = [
-    'relative flex flex-col items-center justify-center rounded-lg font-semibold transition-colors duration-200 border border-transparent',
-    daySizeClasses.value,
-    calendarView.value === 'year' ? 'gap-0.5' : 'gap-1',
-    'text-(--ui-text-muted)',
-  ]
-
-  let hoverClass = 'hover:bg-(--ui-primary)/12'
-
-  if (isSelectedDate(date)) {
-    classes.push(
-      'bg-(--ui-primary) text-black border-(--ui-primary) shadow-[0_0_18px_rgba(0,255,232,0.25)] hover:bg-(--ui-primary)'
-    )
-    hoverClass = ''
-  } else if (calendarView.value === 'week' && isDateInSelectedWeek(date)) {
-    classes.push(
-      'bg-(--ui-primary)/15 text-(--ui-text-highlighted) border-(--ui-primary)/30'
-    )
-  } else if (isTodayDate(date)) {
-    classes.push('border-(--ui-primary)/45 text-(--ui-text-highlighted)')
-  } else if (hasEvents) {
-    classes.push(
-      'bg-(--ui-primary)/8 text-(--ui-primary) border-(--ui-primary)/25'
+onMounted(() => {
+  const api = getCalendarApi()
+  if (api) {
+    api.changeView(
+      calendarViewMap[calendarView.value],
+      parseDateKey(selectedDateKey.value)
     )
   }
-
-  if (hoverClass) {
-    classes.push(hoverClass)
-  }
-
-  return classes
-}
-
-function getDayDotClasses(date: DateValue, hasEvents: boolean) {
-  if (calendarView.value === 'month') {
-    const classes = [
-      'mt-2 h-1 w-6 rounded-full bg-(--ui-primary) transition-opacity duration-200',
-    ]
-
-    if (hasEvents) {
-      classes.push(isSelectedDate(date) ? 'opacity-100 bg-black' : 'opacity-80')
-    } else {
-      classes.push('opacity-0')
-    }
-
-    return classes
-  }
-
-  const classes = [
-    'block rounded-full transition-opacity duration-200 bg-(--ui-primary)',
-    dayDotSizeClasses.value,
-  ]
-
-  if (hasEvents) {
-    if (isSelectedDate(date)) {
-      classes.push('opacity-100 bg-black')
-    } else {
-      classes.push('opacity-100')
-    }
-  } else {
-    classes.push('opacity-0')
-  }
-
-  return classes
-}
+})
 
 definePageMeta({
   layout: 'ams',
-  auth: true,
 })
 </script>
 
@@ -1641,8 +981,9 @@ definePageMeta({
     <AMSPageHeader
       icon="i-lucide-calendar-range"
       title="Kalender"
-      description="Plane Einsätze, Trainings und Events der ArisCorp."
+      description="Plane Einsätze, Trainings und Events der ArisCorp."
     />
+
     <UModal
       v-model:open="createEventModalOpen"
       :ui="{
@@ -1670,7 +1011,7 @@ definePageMeta({
             <UFormField label="Titel" size="xs" required>
               <UInput
                 v-model="createEventForm.title"
-                placeholder="z.B. Operation Horizon"
+                placeholder="z. B. Operation Horizon"
                 autocomplete="off"
               />
             </UFormField>
@@ -1702,14 +1043,14 @@ definePageMeta({
               <UFormField label="Ort" size="xs" required>
                 <UInput
                   v-model="createEventForm.location"
-                  placeholder="z.B. Everus Harbor – Hangar 02"
+                  placeholder="z. B. Everus Harbor – Hangar 02"
                   autocomplete="off"
                 />
               </UFormField>
               <UFormField label="Abteilung" size="xs" required>
                 <UInput
                   v-model="createEventForm.department"
-                  placeholder="z.B. Sicherheit"
+                  placeholder="z. B. Sicherheit"
                   autocomplete="off"
                 />
               </UFormField>
@@ -1718,7 +1059,10 @@ definePageMeta({
               <UFormField label="Status" size="xs" required>
                 <USelectMenu
                   v-model="createEventForm.status"
-                  :items="createEventStatusOptions"
+                  :items="Object.entries(statusMeta).map(([value, meta]) => ({
+                    value: value as CalendarEvent['status'],
+                    label: meta.label,
+                  }))"
                   value-key="value"
                   label-key="label"
                   variant="ams"
@@ -1729,7 +1073,7 @@ definePageMeta({
               <UFormField label="Tags" size="xs">
                 <UInput
                   v-model="createEventForm.tagsInput"
-                  placeholder="z.B. Einsatz, Flug"
+                  placeholder="z. B. Einsatz, Flug"
                   autocomplete="off"
                 />
               </UFormField>
@@ -1773,16 +1117,19 @@ definePageMeta({
                   Übersicht
                 </span>
                 <UBadge
-                  v-if="events.length"
+                  v-if="totalEvents"
                   color="primary"
                   variant="subtle"
                   size="xs"
                   class="uppercase tracking-wide bg-(--ui-primary)/15 text-(--ui-primary)"
                 >
-                  {{ events.length }} Termine
+                  {{
+                    filtersActive
+                      ? visibleEventCount + ' von ' + totalEvents + ' Terminen'
+                      : totalEvents + ' Termine'
+                  }}
                 </UBadge>
                 <UBadge
-                  v-if="currentISOWeek !== null"
                   color="neutral"
                   variant="soft"
                   size="xs"
@@ -1791,17 +1138,17 @@ definePageMeta({
                   KW {{ currentISOWeek }}
                 </UBadge>
               </div>
-              <UButton
-                color="primary"
-                variant="soft"
-                size="xs"
-                icon="i-lucide-plus"
-                class="uppercase tracking-wide"
-                :disabled="createEventLoading"
-                @click="createEventModalOpen = true"
+              <p
+                class="text-[0.65rem] uppercase tracking-[0.3em] text-(--ui-text-muted)"
               >
-                Termin anlegen
-              </UButton>
+                {{
+                  filtersActive
+                    ? activeFiltersCount === 1
+                      ? '1 Filter aktiv'
+                      : activeFiltersCount + ' Filter aktiv'
+                    : 'Keine Filter aktiv'
+                }}
+              </p>
             </div>
 
             <URadioGroup
@@ -1828,304 +1175,196 @@ definePageMeta({
           </div>
         </template>
 
-        <div v-if="calendarView === 'week'" class="overflow-x-auto">
+        <div class="space-y-5">
           <div
-            class="grid min-w-[1200px] grid-cols-[72px_repeat(7,minmax(0,1fr))] gap-4"
+            class="rounded-2xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-5 backdrop-blur-sm"
           >
-            <div>
-              <div :style="{ height: `${WEEK_HEADER_HEIGHT}px` }" />
-              <div
-                class="relative"
-                :style="{ height: `${WEEK_GRID_HEIGHT}px` }"
-              >
-                <div
-                  v-for="(label, index) in weekHourLabels"
-                  :key="`hour-label-${label}`"
-                  class="absolute right-3 translate-y-[-50%] text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)"
-                  :style="{ top: `${index * WEEK_HOUR_HEIGHT}px` }"
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div class="space-y-1">
+                <p
+                  class="text-[0.6rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
                 >
-                  {{ label }}
-                </div>
+                  Ausgewählter Tag
+                </p>
+                <p class="text-xl font-semibold text-(--ui-text-highlighted)">
+                  {{ selectedDayWeekday }}
+                </p>
+                <p class="text-xs uppercase tracking-wide text-(--ui-text-muted)">
+                  {{ selectedDayMonthLabel }}
+                </p>
+              </div>
+              <div
+                class="flex flex-col items-center justify-center rounded-xl border border-(--ui-primary)/35 bg-(--ui-primary)/10 px-4 py-3 text-(--ui-text-highlighted)"
+              >
+                <span class="text-4xl font-semibold leading-none">
+                  {{ selectedDayDayNumber }}
+                </span>
+                <span
+                  class="mt-2 text-[0.6rem] uppercase tracking-[0.35em] text-(--ui-primary)"
+                >
+                  KW {{ selectedDayIsoWeek }}
+                </span>
+              </div>
+            </div>
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <span class="text-xs uppercase tracking-wide text-(--ui-text-muted)">
+                {{ selectedDayEvents.length }}
+                {{ selectedDayEvents.length === 1 ? 'Termin' : 'Termine' }}
+              </span>
+              <div class="flex flex-wrap items-center gap-2">
+                <UButton
+                  size="xs"
+                  color="primary"
+                  variant="soft"
+                  icon="i-lucide-plus"
+                  class="uppercase tracking-wide"
+                  :disabled="createEventLoading"
+                  @click="createEventModalOpen = true"
+                >
+                  Termin anlegen
+                </UButton>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="subtle"
+                  class="uppercase tracking-wide"
+                  @click="goToToday"
+                >
+                  Heute
+                </UButton>
               </div>
             </div>
 
             <div
-              v-for="day in selectedWeekDays"
-              :key="day.key"
-              class="rounded-2xl overflow-clip border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 backdrop-blur-sm transition duration-300 hover:border-(--ui-primary)/35"
-              :class="[
-                day.isToday
-                  ? 'border-(--ui-primary)/35 shadow-[0_0_18px_rgba(0,255,232,0.15)]'
-                  : '',
-              ]"
+              v-if="selectedDayPrimaryEvent as primaryEvent"
+              class="mt-5 space-y-3 rounded-xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/70 p-4"
             >
-              <div
-                class="flex items-center justify-between gap-2 border-b border-(--ui-primary)/10 px-4 py-3"
-                :class="[
-                  day.isToday
-                    ? 'bg-(--ui-primary)/10 text-(--ui-text-highlighted)'
-                    : '',
-                ]"
+              <p
+                class="text-[0.6rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
               >
-                <div class="space-y-1">
-                  <p
-                    class="text-xs uppercase tracking-wide text-(--ui-text-muted)"
-                  >
-                    {{ day.weekday }}
+                Nächster Termin
+              </p>
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="space-y-2 text-left">
+                  <p class="text-sm font-semibold text-(--ui-text-highlighted)">
+                    {{ primaryEvent.title }}
                   </p>
-                  <p class="text-lg font-semibold text-(--ui-text-highlighted)">
-                    {{ day.label }}
-                  </p>
+                  <div class="space-y-1 text-xs uppercase tracking-wide">
+                    <span
+                      class="inline-flex items-center gap-1.5 text-(--ui-primary)"
+                    >
+                      <UIcon name="i-lucide-clock" class="size-3" />
+                      {{ timeFormatter.format(new Date(primaryEvent.start)) }}
+                      –
+                      {{ timeFormatter.format(new Date(primaryEvent.end)) }}
+                    </span>
+                    <span
+                      class="inline-flex items-center gap-1.5 text-(--ui-text-muted)"
+                    >
+                      <UIcon name="i-lucide-map-pin" class="size-3" />
+                      {{ primaryEvent.location }}
+                    </span>
+                  </div>
                 </div>
                 <UBadge
-                  color="primary"
+                  :color="statusMeta[primaryEvent.status].color"
                   variant="soft"
                   size="xs"
                   class="uppercase tracking-wide"
                 >
-                  {{ day.eventCount }}
+                  {{ statusMeta[primaryEvent.status].label }}
                 </UBadge>
               </div>
-
+              <p class="text-xs text-(--ui-text-muted)">
+                {{ primaryEvent.summary }}
+              </p>
               <div
-                class="relative"
-                :style="{ height: `${WEEK_GRID_HEIGHT}px` }"
+                v-if="primaryEvent.tags.length"
+                class="flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-[0.3em] text-(--ui-text-muted)"
               >
-                <div
-                  v-for="guide in weekHourGuides"
-                  :key="`overview-guide-${guide}`"
-                  class="absolute left-0 right-0 border-t border-(--ui-primary)/12"
-                  :style="{ top: `${guide * WEEK_HOUR_HEIGHT}px` }"
-                />
-
-                <div
-                  v-if="!day.segments.length"
-                  class="absolute left-3 right-3 top-1/2 -translate-y-1/2 rounded-lg border border-dashed border-(--ui-primary)/25 bg-(--ui-bg-muted)/50 px-3 py-2 text-center text-xs uppercase tracking-wide text-(--ui-text-muted)"
+                <UBadge
+                  v-for="tag in primaryEvent.tags"
+                  :key="tag"
+                  color="primary"
+                  variant="subtle"
+                  size="xs"
+                  class="uppercase tracking-wide text-(--ui-text-muted)"
                 >
-                  Keine Events
-                </div>
-
-                <div
-                  v-for="event in day.segments"
-                  :key="event.segment.key"
-                  class="absolute overflow-clip left-3 right-3 border border-(--ui-primary)/25 bg-(--ui-primary)/10 text-left shadow-[0_0_12px_rgba(0,255,232,0.15)] transition-colors duration-200 select-none touch-none"
-                  :class="[
-                    event.segment.continuesBefore
-                      ? 'rounded-t-none border-t-transparent pt-2'
-                      : 'rounded-t-lg pt-3',
-                    event.segment.continuesAfter
-                      ? 'rounded-b-none border-b-transparent pb-2'
-                      : 'rounded-b-lg pb-3',
-                    canEditWeekEvent(event.segment)
-                      ? isWeekEventActive(event.id, event.segment.key)
-                        ? 'cursor-grabbing'
-                        : 'cursor-grab active:cursor-grabbing'
-                      : 'cursor-default',
-                    'px-3',
-                  ]"
-                  :style="getWeekEventStyle(event.id, event.segment)"
-                  @pointerdown.stop.prevent="onWeekEventDragPointerDown($event, day.key, event)"
-                  @mousedown.stop.prevent="onWeekEventDragMouseDown($event, day.key, event)"
-                  @touchstart.stop.prevent="onWeekEventDragTouchStart($event, day.key, event)"
-                >
-                  <div
-                    v-if="canEditWeekEvent(event.segment) && event.segment.isFirstSegment"
-                    class="absolute inset-x-2 top-1 h-1.5 rounded-full bg-(--ui-primary)/40 transition hover:bg-(--ui-primary)/70 cursor-ns-resize touch-none"
-                    @pointerdown.stop.prevent="onWeekEventResizePointerDown($event, day.key, event, 'resize-start')"
-                    @mousedown.stop.prevent="onWeekEventResizeMouseDown($event, day.key, event, 'resize-start')"
-                    @touchstart.stop.prevent="onWeekEventResizeTouchStart($event, day.key, event, 'resize-start')"
-                  />
-                  <div
-                    v-if="canEditWeekEvent(event.segment) && event.segment.isLastSegment"
-                    class="absolute inset-x-2 bottom-1 h-1.5 rounded-full bg-(--ui-primary)/40 transition hover:bg-(--ui-primary)/70 cursor-ns-resize touch-none"
-                    @pointerdown.stop.prevent="onWeekEventResizePointerDown($event, day.key, event, 'resize-end')"
-                    @mousedown.stop.prevent="onWeekEventResizeMouseDown($event, day.key, event, 'resize-end')"
-                    @touchstart.stop.prevent="onWeekEventResizeTouchStart($event, day.key, event, 'resize-end')"
-                  />
-                  <div
-                    class="flex items-center justify-between text-[0.65rem] uppercase tracking-wide"
-                  >
-                    <span
-                      v-if="event.segment.isFirstSegment"
-                      class="text-(--ui-primary)"
-                    >
-                      {{ event.segment.displayTimeRange }}
-                    </span>
-                    <span
-                      v-if="
-                        event.segment.continuesBefore ||
-                        event.segment.continuesAfter
-                      "
-                      class="flex items-center gap-1 text-[0.6rem] text-(--ui-text-muted)"
-                    >
-                      <UIcon
-                        v-if="event.segment.continuesBefore"
-                        name="i-lucide-arrow-up"
-                        class="size-3"
-                      />
-                      <UIcon
-                        v-if="event.segment.continuesAfter"
-                        name="i-lucide-arrow-down"
-                        class="size-3"
-                      />
-                    </span>
-                  </div>
-                  <!-- <template v-if="event.segment.isFirstSegment">
-                    <p
-                      class="mt-1 text-xs text-ellipsis overflow-clip text-(--ui-text-highlighted)"
-                    >
-                      {{ event.title }}
-                    </p>
-                    <div
-                      class="mt-2 flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-wide"
-                    >
-                      <UBadge
-                        v-for="tag in event.tags"
-                        :key="`${event.id}-${tag}`"
-                        color="primary"
-                        variant="subtle"
-                        size="xs"
-                        class="uppercase tracking-wide text-(--ui-text-muted)"
-                      >
-                        {{ tag }}
-                      </UBadge>
-                    </div>
-                  </template> -->
-                  <!-- <template v-else>
-                    <p
-                      class="mt-2 text-xs text-ellipsis overflow-clip font-medium uppercase tracking-wide text-(--ui-text-muted)"
-                    >
-                      {{ event.title }}
-                    </p>
-                    <p
-                      class="mt-2 text-[0.7rem] uppercase tracking-wide text-(--ui-text-muted)"
-                    >
-                      Fortsetzung
-                    </p>
-                  </template> -->
-                </div>
+                  {{ tag }}
+                </UBadge>
               </div>
             </div>
-          </div>
-        </div>
-        <div v-else class="relative space-y-5">
-          <div
-            aria-hidden="true"
-            class="pointer-events-none absolute -top-24 right-[-5rem] h-60 w-60 rounded-full bg-(--ui-primary)/25 blur-3xl opacity-60"
-          />
-          <div
-            class="relative rounded-2xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-3 sm:p-4 backdrop-blur-sm ring-1 ring-inset ring-(--ui-primary)/15"
-          >
-            <UCalendar
-              v-model="selectedDate"
-              :is-date-highlightable="isDateHighlightable"
-              :number-of-months="calendarMonthCount"
-              :variant="calendarVariant"
-              :size="calendarSize"
-              :week-starts-on="calendarWeekStartsOn"
-              :calendar-label="calendarHeadingLabel"
-              class="w-full"
-              :ui="calendarUi"
-            >
-              <template #heading="{ value }">
-                <span
-                  v-if="calendarView === 'year'"
-                  class="text-xs font-semibold uppercase tracking-wide text-(--ui-text-highlighted)"
+
+            <div v-if="selectedDayAdditionalEvents.length" class="mt-5 space-y-2">
+              <p
+                class="text-[0.6rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
+              >
+                Weitere Termine
+              </p>
+              <ul class="space-y-2">
+                <li
+                  v-for="event in selectedDayAdditionalEvents"
+                  :key="event.id"
+                  class="group cursor-pointer rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/60 px-4 py-3 transition duration-200 hover:border-(--ui-primary)/35 hover:bg-(--ui-primary)/8"
+                  @click="selectEvent(event)"
                 >
-                  {{ value }}
-                </span>
-                <span v-else>{{ value }}</span>
-              </template>
-              <template #day="{ day }">
-                <UTooltip
-                  v-if="hasEventsForDay(day)"
-                  :text="formatEventsTooltip(getEventsForDay(day))"
-                  :content="{ side: 'top' }"
-                >
-                  <span :class="getDayClasses(day, true)">
-                    <span
-                      :class="[
-                        calendarView === 'month'
-                          ? 'text-sm font-semibold tracking-tight'
-                          : 'text-sm font-semibold',
-                      ]"
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="space-y-1 text-left">
+                      <p
+                        class="text-xs font-semibold uppercase tracking-wide text-(--ui-text-highlighted)"
+                      >
+                        {{ event.title }}
+                      </p>
+                      <span
+                        class="inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-wide text-(--ui-primary)"
+                      >
+                        <UIcon name="i-lucide-clock" class="size-3" />
+                        {{ timeFormatter.format(new Date(event.start)) }} –
+                        {{ timeFormatter.format(new Date(event.end)) }}
+                      </span>
+                    </div>
+                    <UBadge
+                      :color="statusMeta[event.status].color"
+                      variant="subtle"
+                      size="xs"
+                      class="uppercase tracking-wide"
                     >
-                      {{ day.day }}
-                    </span>
-                    <span :class="getDayDotClasses(day, true)" />
-                  </span>
-                </UTooltip>
-                <span v-else :class="getDayClasses(day, false)">
-                  <span
-                    :class="[
-                      calendarView === 'month'
-                        ? 'text-sm font-semibold tracking-tight'
-                        : 'text-sm font-semibold',
-                    ]"
-                  >
-                    {{ day.day }}
-                  </span>
-                  <span :class="getDayDotClasses(day, false)" />
-                </span>
-              </template>
-            </UCalendar>
+                      {{ statusMeta[event.status].label }}
+                    </UBadge>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <p
+              v-else-if="!selectedDayPrimaryEvent"
+              class="mt-6 text-xs text-(--ui-text-muted)"
+            >
+              {{
+                filtersActive
+                  ? 'Keine Termine unter den aktuellen Filtern. Passe die Filter an oder lege einen neuen Termin an.'
+                  : 'Für diesen Tag sind noch keine Termine geplant. Nutze „Termin anlegen“ oder wähle ein anderes Datum.'
+              }}
+            </p>
           </div>
-          <p class="text-xs text-(--ui-text-muted)">
-            Hervorgehobene Tage enthalten mindestens ein geplantes Event.
-          </p>
-        </div>
-      </UCard>
 
-      <div class="space-y-6">
-        <template v-if="calendarView === 'month'">
-          <UCard variant="ams" class="animated-border relative overflow-hidden">
-            <template #header>
-              <div
-                class="flex flex-wrap items-center justify-between gap-3 sm:flex-nowrap"
-              >
-                <div class="space-y-1">
-                  <p
-                    class="text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
-                  >
-                    Ausgewählter Tag
-                  </p>
-                  <p class="text-lg font-semibold text-(--ui-text-highlighted)">
-                    {{ selectedDayLabel }}
-                  </p>
-                </div>
-                <div class="flex items-center gap-2">
-                  <UBadge
-                    v-if="currentISOWeek !== null"
-                    color="neutral"
-                    variant="soft"
-                    size="xs"
-                    class="uppercase tracking-wide"
-                  >
-                    KW {{ currentISOWeek }}
-                  </UBadge>
-                  <UBadge
-                    color="neutral"
-                    variant="soft"
-                    size="sm"
-                    class="shrink-0 uppercase tracking-wide"
-                  >
-                    {{ selectedDayEvents.length }}
-                    {{ selectedDayEvents.length === 1 ? 'Event' : 'Events' }}
-                  </UBadge>
-                </div>
-              </div>
-            </template>
-
-            <ul v-if="selectedDayEvents.length" class="space-y-4">
+          <div class="space-y-3">
+            <p
+              class="text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
+            >
+              Bevorstehende Events
+            </p>
+            <ul v-if="upcomingEvents.length" class="space-y-3">
               <li
-                v-for="event in selectedDayEvents"
+                v-for="event in upcomingEvents"
                 :key="event.id"
-                class="group rounded-xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-5 backdrop-blur-sm transition duration-300 hover:border-(--ui-primary)/35 hover:shadow-[0_0_24px_rgba(0,255,232,0.18)]"
+                class="group cursor-pointer rounded-xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-4 backdrop-blur-sm transition duration-300 hover:border-(--ui-primary)/35 hover:shadow-[0_0_18px_rgba(0,255,232,0.18)]"
+                @click="selectEvent(event)"
               >
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                  <div class="space-y-2 text-left">
+                <div class="flex flex-wrap items-start justify-between gap-2">
+                  <div class="space-y-1">
                     <p
-                      class="text-sm font-semibold leading-tight text-(--ui-text-highlighted) tracking-tight"
+                      class="text-sm font-semibold text-(--ui-text-highlighted)"
                     >
                       {{ event.title }}
                     </p>
@@ -2133,12 +1372,13 @@ definePageMeta({
                       class="inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-(--ui-primary)"
                     >
                       <UIcon name="i-lucide-clock" class="size-3" />
-                      {{ formatTimeRange(event) }}
+                      {{ timeFormatter.format(new Date(event.start)) }} –
+                      {{ timeFormatter.format(new Date(event.end)) }}
                     </span>
                   </div>
                   <UBadge
                     :color="statusMeta[event.status].color"
-                    variant="subtle"
+                    variant="soft"
                     size="xs"
                     class="uppercase tracking-wide"
                   >
@@ -2146,314 +1386,233 @@ definePageMeta({
                   </UBadge>
                 </div>
                 <div
-                  class="mt-3 flex flex-wrap gap-2 text-[0.7rem] uppercase tracking-wide text-(--ui-text-muted)"
+                  class="mt-2 flex flex-wrap items-center gap-3 text-[0.65rem] uppercase tracking-[0.3em] text-(--ui-text-muted)"
                 >
-                  <UBadge
-                    v-for="tag in event.tags"
-                    :key="tag"
-                    color="primary"
-                    variant="subtle"
-                    size="xs"
-                    class="uppercase tracking-wide text-(--ui-text-muted)"
-                  >
-                    {{ tag }}
-                  </UBadge>
+                  <span class="inline-flex items-center gap-1.5">
+                    <UIcon name="i-lucide-map-pin" class="size-3" />
+                    {{ event.location }}
+                  </span>
+                  <span class="inline-flex items-center gap-1.5">
+                    <UIcon name="i-lucide-building" class="size-3" />
+                    {{ event.department }}
+                  </span>
                 </div>
+                <p class="mt-2 text-xs text-(--ui-text-muted)">
+                  {{ event.summary }}
+                </p>
               </li>
             </ul>
-            <p v-else class="text-sm text-(--ui-text-muted)">
-              Keine Events für diesen Tag geplant. Wähle einen hervorgehobenen
-              Tag, um Details zu sehen.
+            <p v-else class="text-xs text-(--ui-text-muted)">
+              {{
+                filtersActive
+                  ? 'Keine zukünftigen Events entsprechen den aktiven Filtern.'
+                  : 'Keine zukünftigen Events geplant.'
+              }}
             </p>
-          </UCard>
-        </template>
+          </div>
+        </div>
+      </UCard>
 
-        <template v-else-if="calendarView === 'week'">
-          <UCard variant="ams" class="animated-border relative overflow-hidden">
-            <template #header>
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="space-y-1">
-                  <p
-                    class="text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
-                  >
-                    Ausgewählte Woche
-                  </p>
-                  <p class="text-lg font-semibold text-(--ui-text-highlighted)">
-                    {{ selectedWeekLabel }}
-                  </p>
-                </div>
-                <UBadge
-                  color="neutral"
-                  variant="soft"
-                  size="sm"
-                  class="uppercase tracking-wide"
-                >
-                  {{ totalWeekEvents }}
-                  {{ totalWeekEvents === 1 ? 'Event' : 'Events' }}
-                </UBadge>
-              </div>
-            </template>
-
-            <div v-if="selectedWeekDays.length" class="space-y-4">
-              <div
-                v-for="day in selectedWeekDays"
-                :key="day.key"
-                class="rounded-xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-4 backdrop-blur-sm transition duration-300 hover:border-(--ui-primary)/30"
-                :class="[
-                  day.isToday
-                    ? 'border-(--ui-primary)/35 shadow-[0_0_12px_rgba(0,255,232,0.2)]'
-                    : '',
-                ]"
-              >
-                <div
-                  class="flex items-center justify-between gap-2 border-b border-(--ui-primary)/10 pb-3"
-                >
-                  <div>
-                    <p
-                      class="text-xs uppercase tracking-wide text-(--ui-text-muted)"
-                    >
-                      {{ day.weekday }}
-                    </p>
-                    <p
-                      class="text-sm font-semibold text-(--ui-text-highlighted)"
-                    >
-                      {{ day.label }}
-                    </p>
-                  </div>
-                  <UBadge
-                    color="primary"
-                    variant="soft"
-                    size="xs"
-                    class="uppercase tracking-wide"
-                  >
-                    {{ day.eventCount }}
-                  </UBadge>
-                </div>
-
-                <ul v-if="day.summaries.length" class="mt-3 space-y-3">
-                  <li
-                    v-for="event in day.summaries"
-                    :key="event.id"
-                    class="rounded-lg border border-(--ui-primary)/20 bg-(--ui-bg-muted)/50 p-3 transition duration-200 hover:border-(--ui-primary)/35"
-                  >
-                    <div
-                      class="flex flex-wrap items-start justify-between gap-2 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)"
-                    >
-                      <span
-                        class="inline-flex items-center gap-1 text-(--ui-primary)"
-                      >
-                        <UIcon name="i-lucide-clock" class="size-3" />
-                        {{ event.timeRange }}
-                      </span>
-                      <UBadge
-                        :color="statusMeta[event.status].color"
-                        variant="soft"
-                        size="xs"
-                        class="uppercase tracking-wide"
-                      >
-                        {{ statusMeta[event.status].label }}
-                      </UBadge>
-                    </div>
-                    <p
-                      class="mt-2 text-sm font-semibold text-(--ui-text-highlighted)"
-                    >
-                      {{ event.title }}
-                    </p>
-                    <div
-                      class="mt-3 flex flex-wrap items-center gap-2 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)"
-                    >
-                      <span class="inline-flex items-center gap-1.5">
-                        <UIcon
-                          name="i-lucide-map-pin"
-                          class="size-3 text-(--ui-primary)"
-                        />
-                        {{ event.location }}
-                      </span>
-                      <span class="inline-flex items-center gap-1.5">
-                        <UIcon
-                          name="i-lucide-briefcase"
-                          class="size-3 text-(--ui-primary)"
-                        />
-                        {{ event.department }}
-                      </span>
-                    </div>
-                    <div
-                      class="mt-2 flex flex-wrap gap-2 text-[0.65rem] uppercase tracking-wide"
-                    >
-                      <UBadge
-                        v-for="tag in event.tags"
-                        :key="`${event.id}-${tag}`"
-                        color="primary"
-                        variant="subtle"
-                        size="xs"
-                        class="uppercase tracking-wide text-(--ui-text-muted)"
-                      >
-                        {{ tag }}
-                      </UBadge>
-                    </div>
-                  </li>
-                </ul>
-                <p
-                  v-else
-                  class="mt-3 text-xs uppercase tracking-wide text-(--ui-text-muted)"
-                >
-                  Keine Events geplant.
-                </p>
-              </div>
-            </div>
-            <p v-else class="text-sm text-(--ui-text-muted)">
-              Keine Woche ausgewählt.
-            </p>
-          </UCard>
-        </template>
-
-        <template v-else>
-          <UCard variant="ams" class="animated-border relative overflow-hidden">
-            <template #header>
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="space-y-1">
-                  <p
-                    class="text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
-                  >
-                    Jahresübersicht
-                  </p>
-                  <p class="text-lg font-semibold text-(--ui-text-highlighted)">
-                    {{ selectedYear }}
-                  </p>
-                </div>
-                <UBadge
-                  color="neutral"
-                  variant="soft"
-                  size="sm"
-                  class="uppercase tracking-wide"
-                >
-                  {{ totalYearEvents }}
-                  {{ totalYearEvents === 1 ? 'Event' : 'Events' }}
-                </UBadge>
-                <UBadge
-                  v-if="currentISOWeek !== null"
-                  color="neutral"
-                  variant="soft"
-                  size="xs"
-                  class="uppercase tracking-wide"
-                >
-                  KW {{ currentISOWeek }}
-                </UBadge>
-              </div>
-            </template>
-
-            <div
-              v-if="hasYearEvents"
-              class="space-y-3 max-h-[32rem] overflow-y-auto pr-1"
-            >
-              <template v-for="month in yearOverview" :key="month.monthIndex">
-                <div
-                  v-if="month.count"
-                  class="rounded-xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-5 backdrop-blur-sm transition duration-300 hover:border-(--ui-primary)/30"
-                >
-                  <div
-                    class="flex flex-wrap items-center justify-between gap-2"
-                  >
-                    <div class="flex items-center gap-2">
-                      <UIcon
-                        name="i-lucide-calendar-days"
-                        class="size-4 text-(--ui-primary)"
-                      />
-                      <span
-                        class="text-sm font-semibold text-(--ui-text-highlighted)"
-                      >
-                        {{ month.label }}
-                      </span>
-                    </div>
-                    <UBadge
-                      color="neutral"
-                      variant="soft"
-                      size="xs"
-                      class="uppercase tracking-wide"
-                    >
-                      {{ month.count }}
-                      {{ month.count === 1 ? 'Event' : 'Events' }}
-                    </UBadge>
-                  </div>
-
-                  <div
-                    v-if="month.nextEvent"
-                    class="mt-3 space-y-2 text-xs text-(--ui-text-muted)"
-                  >
-                    <div
-                      class="flex items-center gap-2 text-sm font-semibold text-(--ui-text-highlighted)"
-                    >
-                      <UIcon
-                        name="i-lucide-star"
-                        class="size-4 text-(--ui-primary)"
-                      />
-                      {{ month.nextEvent.title }}
-                    </div>
-                    <div
-                      class="flex flex-wrap items-center gap-3 text-[0.7rem] uppercase tracking-wide"
-                    >
-                      <span class="inline-flex items-center gap-1.5">
-                        <UIcon
-                          name="i-lucide-calendar-clock"
-                          class="size-3 text-(--ui-primary)"
-                        />
-                        {{ formatDayMonth(month.nextEvent.start) }}
-                      </span>
-                      <span class="inline-flex items-center gap-1.5">
-                        <UIcon
-                          name="i-lucide-clock"
-                          class="size-3 text-(--ui-primary)"
-                        />
-                        {{ formatTimeRange(month.nextEvent) }}
-                      </span>
-                      <span class="inline-flex items-center gap-1.5">
-                        <UIcon
-                          name="i-lucide-map-pin"
-                          class="size-3 text-(--ui-primary)"
-                        />
-                        {{ month.nextEvent.location }}
-                      </span>
-                    </div>
-                  </div>
-                  <p v-else class="mt-3 text-xs text-(--ui-text-muted)">
-                    Keine Events geplant.
-                  </p>
-                </div>
-              </template>
-            </div>
-            <p v-else class="text-sm text-(--ui-text-muted)">
-              Für {{ selectedYear }} sind noch keine Events erfasst.
-            </p>
-          </UCard>
-        </template>
-
+      <div class="space-y-6">
         <UCard variant="ams" class="animated-border relative overflow-hidden">
           <template #header>
-            <div class="flex items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p
                   class="text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
                 >
-                  Ausblick
+                  Kalenderansicht
                 </p>
                 <p class="text-lg font-semibold text-(--ui-text-highlighted)">
-                  Demnächst anstehend
+                  {{ calendarHeadingLabel }}
                 </p>
               </div>
-              <UBadge
-                color="primary"
-                variant="soft"
-                size="xs"
-                class="uppercase tracking-wide"
-              >
-                Top 5
-              </UBadge>
+              <div class="flex items-center gap-2">
+                <UButton
+                  variant="subtle"
+                  color="neutral"
+                  size="xs"
+                  icon="i-lucide-chevron-left"
+                  @click="goToPrev"
+                />
+                <UButton
+                  variant="subtle"
+                  color="neutral"
+                  size="xs"
+                  icon="i-lucide-chevron-right"
+                  @click="goToNext"
+                />
+              </div>
             </div>
           </template>
 
-          <ul v-if="upcomingEvents.length" class="space-y-4">
+          <div class="space-y-4">
+            <div
+              class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <UInput
+                v-model="searchTerm"
+                highlight
+                variant="outline"
+                icon="i-lucide-search"
+                placeholder="Titel, Ort oder Tags durchsuchen..."
+                autocomplete="off"
+                size="lg"
+                class="w-full lg:max-w-md"
+              />
+              <div class="flex flex-wrap items-center gap-2">
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  :variant="filtersOpen ? 'soft' : 'subtle'"
+                  icon="i-lucide-sliders-horizontal"
+                  class="uppercase tracking-wide"
+                  @click="filtersOpen = !filtersOpen"
+                >
+                  Filter
+                  <span
+                    v-if="activeFiltersCount"
+                    class="ml-1 text-[0.6rem] tracking-[0.35em]"
+                  >
+                    {{ activeFiltersCount }}
+                  </span>
+                </UButton>
+                <UInput
+                  v-model="jumpToDate"
+                  type="date"
+                  variant="outline"
+                  size="xs"
+                  class="w-full min-w-[160px] lg:w-auto"
+                />
+              </div>
+            </div>
+
+            <div
+              v-if="filtersOpen"
+              class="space-y-4 rounded-2xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-4 backdrop-blur-sm"
+            >
+              <div
+                class="flex flex-wrap items-center justify-between gap-3 text-[0.65rem] uppercase tracking-[0.3em]"
+              >
+                <span class="text-(--ui-text-muted)">
+                  {{
+                    filtersActive
+                      ? visibleEventCount === 1
+                        ? '1 Termin entspricht den Filtern'
+                        : visibleEventCount + ' Termine entsprechen den Filtern'
+                      : 'Keine Filter aktiv'
+                  }}
+                </span>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="subtle"
+                  class="uppercase tracking-wide"
+                  @click="resetFilters"
+                >
+                  Filter zurücksetzen
+                </UButton>
+              </div>
+
+              <div class="space-y-2">
+                <p class="text-xs uppercase tracking-wide text-(--ui-text-muted)">
+                  Status
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <UButton
+                    v-for="option in statusFilterOptions"
+                    :key="option.value"
+                    size="xs"
+                    :color="
+                      activeStatusFilters.includes(option.value)
+                        ? option.color
+                        : 'neutral'
+                    "
+                    :variant="
+                      activeStatusFilters.includes(option.value)
+                        ? 'soft'
+                        : 'subtle'
+                    "
+                    class="uppercase tracking-wide"
+                    @click="toggleStatusFilter(option.value)"
+                  >
+                    {{ option.label }}
+                  </UButton>
+                </div>
+              </div>
+
+              <div
+                v-if="departmentOptions.length"
+                class="space-y-2"
+              >
+                <p class="text-xs uppercase tracking-wide text-(--ui-text-muted)">
+                  Abteilungen
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <UButton
+                    v-for="department in departmentOptions"
+                    :key="department"
+                    size="xs"
+                    color="primary"
+                    :variant="
+                      activeDepartmentFilters.includes(department)
+                        ? 'soft'
+                        : 'subtle'
+                    "
+                    class="uppercase tracking-wide"
+                    @click="toggleDepartmentFilter(department)"
+                  >
+                    {{ department }}
+                  </UButton>
+                </div>
+              </div>
+            </div>
+
+            <UAlert
+              v-if="!visibleEventCount && filtersActive"
+              color="neutral"
+              variant="subtle"
+              icon="i-lucide-filter-x"
+              description="Keine Termine entsprechen den aktiven Filtern. Passen Sie die Filter an oder setzen Sie sie zurück."
+            />
+
+            <div
+              class="relative rounded-2xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-3 sm:p-4 backdrop-blur-sm ring-1 ring-inset ring-(--ui-primary)/15"
+            >
+              <ClientOnly>
+                <FullCalendar
+                  ref="calendarRef"
+                  :options="calendarOptions"
+                  class="ams-full-calendar"
+                />
+                <template #fallback>
+                  <div class="h-[640px] animate-pulse rounded-xl bg-black/10" />
+                </template>
+              </ClientOnly>
+            </div>
+          </div>
+        </UCard>
+
+        <UCard variant="ams" class="animated-border relative overflow-hidden">
+          <template #header>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p
+                  class="text-[0.65rem] uppercase tracking-[0.35em] text-(--ui-text-muted)"
+                >
+                  Events am {{ selectedDayLabel }}
+                </p>
+                <p class="text-lg font-semibold text-(--ui-text-highlighted)">
+                  {{ selectedDayEvents.length }}
+                  {{ selectedDayEvents.length === 1 ? 'Termin' : 'Termine' }}
+                </p>
+              </div>
+            </div>
+          </template>
+
+          <ul v-if="selectedDayEvents.length" class="space-y-4">
             <li
-              v-for="event in upcomingEvents"
+              v-for="event in selectedDayEvents"
               :key="event.id"
               class="group rounded-xl border border-(--ui-primary)/15 bg-(--ui-bg-muted)/60 p-5 backdrop-blur-sm transition duration-300 hover:border-(--ui-primary)/35 hover:shadow-[0_0_24px_rgba(0,255,232,0.18)]"
             >
@@ -2464,28 +1623,29 @@ definePageMeta({
                   >
                     {{ event.title }}
                   </p>
-                  <div
-                    class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-(--ui-text-muted)/90"
+                  <span
+                    class="inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-(--ui-primary)"
                   >
-                    <span class="inline-flex items-center gap-1.5">
-                      <UIcon
-                        name="i-lucide-calendar-days"
-                        class="size-3 text-(--ui-primary)"
-                      />
-                      {{ formatDayMonth(event.start) }}
-                    </span>
-                    <span class="inline-flex items-center gap-1.5">
-                      <UIcon
-                        name="i-lucide-clock"
-                        class="size-3 text-(--ui-primary)"
-                      />
-                      {{ formatTimeRange(event) }}
-                    </span>
-                  </div>
+                    <UIcon name="i-lucide-clock" class="size-3" />
+                    {{ timeFormatter.format(new Date(event.start)) }} –
+                    {{ timeFormatter.format(new Date(event.end)) }}
+                  </span>
+                  <span
+                    class="inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)"
+                  >
+                    <UIcon name="i-lucide-map-pin" class="size-3" />
+                    {{ event.location }}
+                  </span>
+                  <span
+                    class="inline-flex items-center gap-1.5 text-[0.65rem] uppercase tracking-wide text-(--ui-text-muted)"
+                  >
+                    <UIcon name="i-lucide-building" class="size-3" />
+                    {{ event.department }}
+                  </span>
                 </div>
                 <UBadge
                   :color="statusMeta[event.status].color"
-                  variant="soft"
+                  variant="subtle"
                   size="xs"
                   class="uppercase tracking-wide"
                 >
@@ -2493,8 +1653,7 @@ definePageMeta({
                 </UBadge>
               </div>
               <div
-                v-if="event.tags.length"
-                class="mt-4 flex flex-wrap gap-2 text-xs"
+                class="mt-3 flex flex-wrap gap-2 text-[0.7rem] uppercase tracking-wide text-(--ui-text-muted)"
               >
                 <UBadge
                   v-for="tag in event.tags"
@@ -2507,13 +1666,167 @@ definePageMeta({
                   {{ tag }}
                 </UBadge>
               </div>
+              <p class="mt-3 text-xs text-(--ui-text-muted)">
+                {{ event.summary }}
+              </p>
             </li>
           </ul>
           <p v-else class="text-sm text-(--ui-text-muted)">
-            Keine zukünftigen Events geplant.
+            {{
+              filtersActive
+                ? 'Keine Events für diesen Tag unter den aktiven Filtern. Passe die Filter an oder lege einen neuen Termin an.'
+                : 'Keine Events für diesen Tag geplant. Wähle ein Datum mit Markierung oder lege einen neuen Termin an.'
+            }}
           </p>
         </UCard>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.ams-full-calendar {
+  --ams-event-bg: color-mix(in srgb, var(--ui-primary) 12%, transparent);
+  --ams-event-border: color-mix(in srgb, var(--ui-primary) 25%, transparent);
+  --ams-event-text: var(--ui-text-highlighted);
+}
+
+:deep(.fc) {
+  --fc-border-color: rgba(0, 255, 232, 0.15);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  --fc-neutral-text-color: var(--ui-text-muted);
+  --fc-list-event-hover-bg-color: rgba(0, 255, 232, 0.08);
+  font-family: inherit;
+  color: var(--ui-text-muted);
+}
+
+:deep(.fc .fc-scrollgrid) {
+  border-radius: 1.25rem;
+  border: 1px solid rgba(0, 255, 232, 0.12);
+  background-color: color-mix(in srgb, var(--ui-bg-muted) 82%, transparent);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+}
+
+:deep(.fc .fc-daygrid-day-frame),
+:deep(.fc .fc-multimonth-day) {
+  border-radius: 0.9rem;
+  border: 1px solid transparent;
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+:deep(.fc .ams-calendar-day-cell .fc-daygrid-day-frame),
+:deep(.fc .ams-calendar-day-cell .fc-multimonth-day-frame) {
+  padding: 0.6rem;
+}
+
+:deep(.fc .ams-calendar-day-cell.has-events .fc-daygrid-day-top::after),
+:deep(.fc .ams-calendar-day-cell.has-events .fc-multimonth-day-top::after) {
+  content: '';
+  display: block;
+  margin-top: 0.35rem;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ui-primary) 80%, transparent);
+}
+
+:deep(.fc .ams-calendar-day-cell.is-selected .fc-daygrid-day-frame),
+:deep(.fc .ams-calendar-day-cell.is-selected .fc-multimonth-day-frame) {
+  border-color: var(--ui-primary);
+  background-color: color-mix(in srgb, var(--ui-primary) 18%, transparent);
+  box-shadow: 0 0 18px rgba(0, 255, 232, 0.25);
+}
+
+:deep(.fc .fc-daygrid-day-number),
+:deep(.fc .fc-multimonth-day-number) {
+  font-weight: 600;
+  color: var(--ui-text-highlighted);
+}
+
+:deep(.fc .fc-daygrid-day:hover .fc-daygrid-day-frame),
+:deep(.fc .fc-multimonth-day:hover .fc-multimonth-day-frame) {
+  border-color: rgba(0, 255, 232, 0.25);
+  background-color: color-mix(in srgb, var(--ui-primary) 10%, transparent);
+}
+
+:deep(.fc .fc-day-today .fc-daygrid-day-frame),
+:deep(.fc .fc-day-today .fc-multimonth-day-frame) {
+  border-color: rgba(0, 255, 232, 0.45);
+  background-color: color-mix(in srgb, var(--ui-primary) 16%, transparent);
+}
+
+:deep(.fc .fc-timegrid-slot) {
+  height: 4.5rem;
+}
+
+:deep(.fc .ams-calendar-event) {
+  background-color: var(--ams-event-bg);
+  border: 1px solid var(--ams-event-border);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.65rem;
+  box-shadow: 0 0 12px rgba(0, 255, 232, 0.15);
+  overflow: hidden;
+}
+
+:deep(.fc .ams-calendar-event.is-status-confirmed) {
+  border-color: color-mix(in srgb, var(--ui-primary) 75%, transparent);
+}
+
+:deep(.fc .ams-calendar-event.is-status-planned) {
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+:deep(.fc .ams-calendar-event.is-status-in-progress) {
+  border-color: rgba(14, 165, 233, 0.35);
+}
+
+:deep(.fc .ams-calendar-event.is-status-completed) {
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+:deep(.fc .ams-calendar-event.is-status-cancelled) {
+  border-color: rgba(239, 68, 68, 0.35);
+  opacity: 0.85;
+}
+
+:deep(.fc .ams-calendar-event:hover) {
+  border-color: var(--ui-primary);
+  background-color: color-mix(in srgb, var(--ui-primary) 22%, transparent);
+}
+
+:deep(.fc .ams-fc-event) {
+  display: grid;
+  gap: 0.2rem;
+  color: var(--ams-event-text);
+  text-transform: uppercase;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+}
+
+:deep(.fc .ams-fc-event-title) {
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ui-text-highlighted);
+}
+
+:deep(.fc .ams-fc-event-time) {
+  color: var(--ui-primary);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+}
+
+:deep(.fc .fc-multimonth) {
+  gap: 1.5rem;
+}
+
+:deep(.fc .fc-multimonth-title) {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: 0.7rem;
+  color: var(--ui-text-muted);
+}
+</style>
