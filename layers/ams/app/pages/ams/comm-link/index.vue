@@ -59,10 +59,12 @@ const { data, refresh, pending } = useAsyncData<CommLink[]>(
           'id',
           'status',
           'name',
-          'banner',
           'content',
           'date_created',
           'date_published',
+          {
+            banner: ['id', 'type'],
+          },
           {
             user_created: [
               'id',
@@ -176,6 +178,10 @@ function handleSelection(commLink: CommLink): void {
     ? (commLink.status as 'draft' | 'published')
     : 'draft'
   formData.banner = commLink.banner ? getAssetId(commLink.banner) : '' // Use getAssetId if banner is an ID, or directly if it's a URL
+  bannerInput.value =
+    typeof commLink.banner === 'string'
+      ? { id: commLink.banner }
+      : commLink.banner
   formData.channel = (commLink.channel as CommLinkChannel)?.id
   formData.content = commLink.content as string
 
