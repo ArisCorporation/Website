@@ -111,8 +111,24 @@ function handleFileSelect(file: DirectusFile) {
       </USlideover>
     </template>
   </UFileUpload>
-  <UFileUpload class="w-96 min-h-48" :ui="{ file: 'test56' }">
-    <template #file="{ file }">
+  <UFileUpload class="w-96 min-h-48" :ui="{ file: '' }">
+    <template #file-leading="{ file }">
+      <UAvatar
+        :as="{ img: 'img' }"
+        :src="createObjectUrl(file)"
+        class="size-full rounded-lg"
+      />
+    </template>
+    <template #file-trailing="{ file }">
+      <UButton
+        icon="i-lucide-x"
+        color="primary"
+        variant="outline"
+        size="sm"
+        class="absolute -translate-x-1/2 -translate-y-1/2 bg-elevated"
+      />
+    </template>
+    <!-- <template #file="{ file }">
       <div class="p-4 rounded">
         <p class="font-medium">{{ file.name }}</p>
         <img :src="createObjectUrl(file)" />
@@ -120,6 +136,6 @@ function handleFileSelect(file: DirectusFile) {
           Größe: {{ (file.size / 1024).toFixed(2) }} KB
         </p>
       </div>
-    </template>
+    </template> -->
   </UFileUpload>
 </template>
