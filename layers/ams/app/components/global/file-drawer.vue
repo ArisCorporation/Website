@@ -5,13 +5,25 @@ const emit = defineEmits<{
   'selected:file': [DirectusFile]
 }>()
 
-const props = defineProps<{
-  uploadFolderId?: string
-}>()
-
 const model = defineModel<DirectusFile | null | undefined>()
 
+<<<<<<< ours
 const uploadModel = ref<File | null>(null)
+=======
+type UploadedFilePlaceholder = {
+  __placeholder: true
+  id: string
+  name: string
+  size: number
+  type?: string | null
+  previewUrl?: string
+}
+
+type UploadEntry = File | UploadedFilePlaceholder
+type UploadModelValue = UploadEntry | UploadEntry[] | null
+
+const uploadModel = ref<UploadModelValue>(null)
+>>>>>>> theirs
 const librarySlideover = ref(false)
 const uploading = ref(false)
 const toast = useToast()
@@ -87,9 +99,6 @@ watch(
 async function uploadFile(file: File) {
   const formData = new FormData()
   formData.append('file', file)
-  if (props.uploadFolderId) {
-    formData.append('folder', props.uploadFolderId)
-  }
 
   try {
     uploading.value = true
@@ -162,6 +171,7 @@ function handleFileSelect(
           <div v-else class="flex h-full w-full items-center justify-center">
             <UIcon name="i-lucide-file" class="size-6 text-(--ui-primary)" />
           </div>
+          <p>testest</p>
         </div>
       </template>
       <template #actions="{ open }">
@@ -194,8 +204,7 @@ function handleFileSelect(
         </USlideover>
       </template>
     </UFileUpload>
-
-    <div v-if="selectedFile" class="mt-4 space-y-3">
+    <!-- <div v-if="selectedFile" class="mt-4 space-y-3">
       <div
         v-if="selectedFileIsImage && selectedFilePreview"
         class="aspect-[24/9] w-full overflow-hidden rounded-lg border border-(--ui-primary)/15 bg-(--ui-bg-muted)/40"
@@ -228,6 +237,6 @@ function handleFileSelect(
           {{ selectedFile.type }}
         </UBadge>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
