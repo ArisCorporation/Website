@@ -68,7 +68,7 @@ const editorMediaLibraryOpen = ref(false)
 const editorMediaUploading = ref(false)
 const editorMediaAssetId = ref('')
 const editorMediaName = ref('')
-const editorFileInput = useTemplateRef('editorFileInput')
+const editorFileInput = ref<DirectusFile | null | undefined>(null)
 
 const editorMediaPreview = computed(() =>
   editorMediaAssetId.value ? getAssetId(editorMediaAssetId.value) : ''
@@ -173,9 +173,7 @@ const tableMenuItems = computed(() => {
         icon: 'i-lucide-plus',
         disabled: !canModifyTable,
         onSelect: () =>
-          runEditorCommand((ctx) =>
-            ctx.chain().focus().addColumnAfter().run()
-          ),
+          runEditorCommand((ctx) => ctx.chain().focus().addColumnAfter().run()),
       },
     ],
     [
@@ -238,57 +236,10 @@ function handleEditorMediaModalUpdate(value: boolean) {
   }
 }
 
-async function handleEditorFileUpload(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-
-  if (!file) {
-    return
-  }
-
-  try {
-    editorMediaUploading.value = true
-
-    const form = new FormData()
-    form.append('file', file)
-    form.append('folder', MEDIA_ASSET_FOLDER_ID)
-
-    const response = await useDirectus(uploadFiles(form))
-
-    let id = ''
-
-    if (Array.isArray(response) && response.length) {
-      const first = response[0] as DirectusFile | { id?: string }
-      id = normalizeAssetIdentifier(first?.id)
-    } else if (typeof response === 'string') {
-      id = normalizeAssetIdentifier(response)
-    } else if (
-      response &&
-      typeof response === 'object' &&
-      'id' in response &&
-      typeof (response as { id?: unknown }).id === 'string'
-    ) {
-      id = normalizeAssetIdentifier((response as { id: string }).id)
-    }
-
-    if (id) {
-      editorMediaAssetId.value = id
-      editorMediaName.value = file.name
-    }
-  } catch (error) {
-    console.error('Error uploading editor media:', error)
-  } finally {
-    editorMediaUploading.value = false
-  }
-}
-
 function handleEditorLibrarySelect(file: DirectusFile) {
   editorMediaAssetId.value = normalizeAssetIdentifier(file?.id)
   editorMediaName.value =
-    file?.filename_download ??
-    file?.title ??
-    file?.filename_disk ??
-    ''
+    file?.filename_download ?? file?.title ?? file?.filename_disk ?? ''
   editorMediaLibraryOpen.value = false
 }
 
@@ -315,6 +266,13 @@ function insertEditorMedia() {
 defineExpose({
   editor,
 })
+
+watch(
+  () => editorFileInput.value,
+  (file) => {
+    handleEditorLibrarySelect(file as DirectusFile)
+  }
+)
 
 // TiptapUnderline,
 // TiptapLink.configure({
@@ -451,8 +409,7 @@ defineExpose({
             sideOffset: 8,
           }"
           :ui="{
-            content:
-              'min-w-[15rem] bg-(--ui-bg-muted) ring-(--ui-primary)/20',
+            content: 'min-w-[15rem] bg-(--ui-bg-muted) ring-(--ui-primary)/20',
           }"
         >
           <UButton
@@ -462,9 +419,7 @@ defineExpose({
             :color="editor?.isActive('table') ? 'primary' : 'neutral'"
             :ui="{ leadingIcon: 'size-4 m-auto' }"
           />
-          <template #mode-label>
-            Tabelle
-          </template>
+          <template #mode-label> Tabelle </template>
         </UDropdownMenu>
         <div
           data-orientation="vertical"
@@ -616,71 +571,7 @@ defineExpose({
   >
     <template #body>
       <div class="space-y-4 p-4">
-        <div
-          class="aspect-[24/9] relative overflow-clip rounded-lg w-full group h-auto border border-dashed hover:border-(--ui-primary)/60 transition-all border-(--ui-bg-accented) items-center flex justify-center"
-        >
-          <div
-            class="space-x-2 opacity-75 group-hover:opacity-100 transition-opacity z-10 absolute left-0 right-0 bottom-0 top-0 m-auto size-fit flex flex-wrap justify-center"
-          >
-            <UInput
-              ref="editorFileInput"
-              type="file"
-              accept="image/*"
-              class="hidden"
-              @change="handleEditorFileUpload"
-            />
-            <USlideover
-              v-model:open="editorMediaLibraryOpen"
-              :ui="{
-                header: '!p-0',
-                content:
-                  'max-w-5xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
-              }"
-            >
-              <UButton
-                icon="i-lucide-folder-open"
-                label="Datei Bibliothek"
-                variant="subtle"
-              />
-              <template #body>
-                <UiFileLibrary
-                  :all-types="false"
-                  @selected:file="handleEditorLibrarySelect"
-                />
-              </template>
-            </USlideover>
-            <UButton
-              @click="editorFileInput?.inputRef?.click()"
-              icon="i-lucide-upload"
-              label="Datei hochladen"
-              variant="subtle"
-              :loading="editorMediaUploading"
-            />
-          </div>
-          <div
-            class="absolute size-full bg-black/50 opacity-0 group-hover:opacity-100"
-          />
-          <template v-if="editorMediaPreview">
-            <NuxtImg
-              :src="editorMediaPreview"
-              alt="Editor Datei Vorschau"
-              class="size-full object-cover"
-            />
-          </template>
-          <p
-            v-else
-            class="text-sm text-(--ui-text-muted) text-center px-6 leading-relaxed"
-          >
-            Wähle eine Datei aus oder öffne die Bibliothek, um ein Bild in den
-            Inhalt einzufügen.
-          </p>
-        </div>
-        <div
-          v-if="editorMediaName"
-          class="text-sm text-(--ui-text-muted) text-center"
-        >
-          {{ editorMediaName }}
-        </div>
+        <AMSGlobalFileDrawer v-model="editorFileInput" />
       </div>
     </template>
     <template #footer>

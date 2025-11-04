@@ -94,7 +94,7 @@ export default defineNuxtConfig({
     domains: ['assets.ariscorp.de', 'studio.ariscorp.de', 'cdn.discordapp.com'],
     provider: 'directus',
     directus: {
-      baseURL: 'https://studio.ariscorp.de',
+      baseURL: 'https://assets.ariscorp.de',
       modifiers: {
         format: 'avif',
       },

@@ -5,11 +5,12 @@ const emit = defineEmits<{
   'selected:file': [DirectusFile]
 }>()
 
+const props = defineProps<{
+  uploadFolderId?: string
+}>()
+
 const model = defineModel<DirectusFile | null | undefined>()
 
-<<<<<<< ours
-const uploadModel = ref<File | null>(null)
-=======
 type UploadedFilePlaceholder = {
   __placeholder: true
   id: string
@@ -23,11 +24,10 @@ type UploadEntry = File | UploadedFilePlaceholder
 type UploadModelValue = UploadEntry | UploadEntry[] | null
 
 const uploadModel = ref<UploadModelValue>(null)
->>>>>>> theirs
 const librarySlideover = ref(false)
 const uploading = ref(false)
+const selectedFileLoaded = ref(false)
 const toast = useToast()
-let processedFiles = new WeakSet<File>()
 
 const selectedFile = computed(() => model.value ?? null)
 
@@ -39,48 +39,98 @@ const selectedFileIsImage = computed(() =>
   Boolean(selectedFile.value?.type?.startsWith('image'))
 )
 
-const selectedFileName = computed(() => {
-  if (!selectedFile.value) {
+function resolveDirectusFileName(
+  file: DirectusFile | null | undefined
+): string {
+  if (!file) {
     return ''
   }
 
   return (
-    selectedFile.value.filename_download ||
-    selectedFile.value.title ||
-    selectedFile.value.filename_disk ||
-    selectedFile.value.id ||
-    ''
+    file.filename_download || file.title || file.filename_disk || file.id || ''
   )
-})
+}
 
-const isBrowserFile = (value: unknown): value is File =>
-  typeof File !== 'undefined' && value instanceof File
+const selectedFileName = computed(() =>
+  resolveDirectusFileName(selectedFile.value)
+)
 
 function createObjectUrl(file: File): string {
   return URL.createObjectURL(file)
 }
 
+const isBrowserFile = (value: unknown): value is File =>
+  typeof File !== 'undefined' && value instanceof File
+
+const isUploadedPlaceholder = (
+  value: unknown
+): value is UploadedFilePlaceholder =>
+  Boolean(
+    value &&
+      typeof value === 'object' &&
+      '__placeholder' in (value as Record<string, unknown>)
+  )
+
+function createPlaceholderFromDirectus(
+  file: DirectusFile
+): UploadedFilePlaceholder {
+  const rawSize = Number(file.filesize ?? 0)
+
+  return {
+    __placeholder: true,
+    id: file.id,
+    name: resolveDirectusFileName(file) || file.id,
+    size: Number.isFinite(rawSize) ? rawSize : 0,
+    type: file.type ?? null,
+    previewUrl:
+      file.type?.startsWith('image') && file.id ? getAssetId(file) : undefined,
+  }
+}
+
+function updateUploadPreview(file: DirectusFile | null) {
+  if (!file) {
+    uploadModel.value = null
+    return
+  }
+
+  const placeholder = createPlaceholderFromDirectus(file)
+
+  if (
+    isUploadedPlaceholder(uploadModel.value) &&
+    uploadModel.value.id === placeholder.id &&
+    uploadModel.value.previewUrl === placeholder.previewUrl
+  ) {
+    return
+  }
+
+  uploadModel.value = placeholder
+}
+
 watch(
   () => uploadModel.value,
   async (value) => {
-    if (Array.isArray(value) && value.length === 0) {
-      processedFiles = new WeakSet<File>()
-      model.value = null
-      return
-    }
-
     if (!value) {
-      processedFiles = new WeakSet<File>()
+      if (model.value) {
+        model.value = null
+      }
       return
     }
 
-    const files = Array.isArray(value) ? value : [value]
-    const pendingUploads = files.filter(
-      (entry) => isBrowserFile(entry) && !processedFiles.has(entry)
-    )
+    if (Array.isArray(value) && value.length === 0) {
+      if (model.value) {
+        model.value = null
+      }
+      return
+    }
 
-    for (const file of pendingUploads) {
-      processedFiles.add(file)
+    const entries = Array.isArray(value) ? value : [value]
+    const filesToUpload = entries.filter(isBrowserFile)
+
+    if (!filesToUpload.length) {
+      return
+    }
+
+    for (const file of filesToUpload) {
       await uploadFile(file)
     }
   }
@@ -88,17 +138,19 @@ watch(
 
 watch(
   () => model.value,
-  (file, previous) => {
-    if (!file && previous) {
-      uploadModel.value = null
-      processedFiles = new WeakSet<File>()
-    }
-  }
+  (file) => {
+    selectedFileLoaded.value = false
+    updateUploadPreview(file ?? null)
+  },
+  { immediate: true }
 )
 
 async function uploadFile(file: File) {
   const formData = new FormData()
   formData.append('file', file)
+  if (props.uploadFolderId) {
+    formData.append('folder', props.uploadFolderId)
+  }
 
   try {
     uploading.value = true
@@ -110,7 +162,7 @@ async function uploadFile(file: File) {
       throw new Error('Ungültige Upload-Antwort erhalten')
     }
 
-    handleFileSelect(uploadedFile as DirectusFile, { fromUpload: true })
+    handleFileSelect(uploadedFile as DirectusFile)
     toast.add({
       title: 'Upload abgeschlossen',
       description: `${file.name} wurde erfolgreich hochgeladen.`,
@@ -130,16 +182,9 @@ async function uploadFile(file: File) {
   }
 }
 
-function handleFileSelect(
-  file: DirectusFile,
-  { fromUpload = false }: { fromUpload?: boolean } = {}
-) {
-  if (!fromUpload) {
-    uploadModel.value = null
-    processedFiles = new WeakSet<File>()
-  }
-
+function handleFileSelect(file: DirectusFile) {
   model.value = file
+  updateUploadPreview(file)
   emit('selected:file', file)
   librarySlideover.value = false
 }
@@ -161,17 +206,22 @@ function handleFileSelect(
       }"
     >
       <template #file-leading="{ file }">
-        <div class="size-full overflow-hidden rounded-lg bg-(--ui-bg-muted)/30">
-          <img
-            v-if="file?.type?.startsWith?.('image')"
-            :src="createObjectUrl(file)"
-            :alt="file.name"
+        <div
+          class="size-full overflow-hidden rounded-lg"
+          :class="[selectedFileLoaded ? 'bg-black' : 'bg-(--ui-bg-muted)/30']"
+        >
+          <USkeleton v-if="!selectedFileLoaded" class="size-full" />
+          <NuxtImg
+            v-if="isUploadedPlaceholder(file) && file.previewUrl"
+            :src="model?.id"
+            alt=""
             class="size-full object-cover"
+            width="1500px"
+            @load="selectedFileLoaded = true"
           />
           <div v-else class="flex h-full w-full items-center justify-center">
             <UIcon name="i-lucide-file" class="size-6 text-(--ui-primary)" />
           </div>
-          <p>testest</p>
         </div>
       </template>
       <template #actions="{ open }">
@@ -204,6 +254,7 @@ function handleFileSelect(
         </USlideover>
       </template>
     </UFileUpload>
+
     <!-- <div v-if="selectedFile" class="mt-4 space-y-3">
       <div
         v-if="selectedFileIsImage && selectedFilePreview"
@@ -222,9 +273,7 @@ function handleFileSelect(
         <UIcon name="i-lucide-file" class="size-8 text-(--ui-primary)" />
         <span class="text-sm">Keine Vorschau verfügbar</span>
       </div>
-      <div
-        class="flex items-center justify-between text-sm text-(--ui-text-muted)"
-      >
+      <div class="flex items-center justify-between text-sm text-(--ui-text-muted)">
         <span class="truncate">
           {{ selectedFileName || 'Bild ausgewählt' }}
         </span>
@@ -237,6 +286,34 @@ function handleFileSelect(
           {{ selectedFile.type }}
         </UBadge>
       </div>
-    </div> -->
+    </div>
+
+    <UFileUpload class="w-96 min-h-48" :ui="{ file: '' }">
+      <template #file-leading="{ file }">
+        <UAvatar
+          :as="{ img: 'img' }"
+          :src="createObjectUrl(file)"
+          class="size-full rounded-lg"
+        />
+      </template>
+      <template #file-trailing="{ file }">
+        <UButton
+          icon="i-lucide-x"
+          color="primary"
+          variant="outline"
+          size="sm"
+          class="absolute -translate-x-1/2 -translate-y-1/2 bg-elevated"
+        />
+      </template> -->
+    <!-- <template #file="{ file }">
+        <div class="p-4 rounded">
+          <p class="font-medium">{{ file.name }}</p>
+          <img :src="createObjectUrl(file)" />
+          <p class="text-sm text-gray-600">
+            Größe: {{ (file.size / 1024).toFixed(2) }} KB
+          </p>
+        </div>
+      </template> -->
+    <!-- </UFileUpload> -->
   </div>
 </template>

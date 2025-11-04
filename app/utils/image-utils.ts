@@ -29,7 +29,7 @@ export function getAssetId (source: string | DirectusFile | null | undefined): s
       return value;
     }
 
-    return `assets/${value}`;
+    return `${value}`;
   };
 
   if (typeof source === 'string') {
