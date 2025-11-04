@@ -191,129 +191,62 @@ function handleFileSelect(file: DirectusFile) {
 </script>
 
 <template>
-  <div>
-    <UFileUpload
-      v-model="uploadModel"
-      icon="i-lucide-image"
-      label="Ziehen Sie Ihre Bilder hierher"
-      description="SVG, PNG, JPG oder GIF"
-      color="primary"
-      :interactive="false"
-      :disabled="uploading"
-      class="size-full aspect-24/9 transition-all"
-      :ui="{
-        base: 'hover:border-primary transition-all',
-      }"
-    >
-      <template #file-leading="{ file }">
-        <div
-          class="size-full overflow-hidden rounded-lg"
-          :class="[selectedFileLoaded ? 'bg-black' : 'bg-(--ui-bg-muted)/30']"
-        >
-          <USkeleton v-if="!selectedFileLoaded" class="size-full" />
-          <NuxtImg
-            v-if="isUploadedPlaceholder(file) && file.previewUrl"
-            :src="model?.id"
-            alt=""
-            class="size-full object-cover"
-            width="1500px"
-            @load="selectedFileLoaded = true"
-          />
-          <div v-else class="flex h-full w-full items-center justify-center">
-            <UIcon name="i-lucide-file" class="size-6 text-(--ui-primary)" />
-          </div>
-        </div>
-      </template>
-      <template #actions="{ open }">
-        <UButton
-          label="Bild hochladen"
-          icon="i-lucide-upload"
-          variant="outline"
-          :loading="uploading"
-          @click="open()"
-        />
-        <USlideover
-          v-model:open="librarySlideover"
-          :ui="{
-            header: 'p-0!',
-            content:
-              'max-w-5xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
-          }"
-        >
-          <UButton
-            icon="i-lucide-folder-open"
-            label="Datei Bibliothek"
-            variant="subtle"
-          />
-          <template #body>
-            <UiFileLibrary
-              :all-types="false"
-              @selected:file="handleFileSelect"
-            />
-          </template>
-        </USlideover>
-      </template>
-    </UFileUpload>
-
-    <!-- <div v-if="selectedFile" class="mt-4 space-y-3">
+  <UFileUpload
+    v-model="uploadModel"
+    icon="i-lucide-image"
+    label="Ziehen Sie Ihre Bilder hierher"
+    description="SVG, PNG, JPG oder GIF"
+    color="primary"
+    :interactive="false"
+    :disabled="uploading"
+    class="size-full aspect-24/9 transition-all"
+    :ui="{
+      base: 'hover:border-primary transition-all',
+    }"
+  >
+    <template #file-leading="{ file }">
       <div
-        v-if="selectedFileIsImage && selectedFilePreview"
-        class="aspect-[24/9] w-full overflow-hidden rounded-lg border border-(--ui-primary)/15 bg-(--ui-bg-muted)/40"
+        class="size-full overflow-hidden rounded-lg"
+        :class="[selectedFileLoaded ? 'bg-black' : 'bg-(--ui-bg-muted)/30']"
       >
+        <USkeleton v-if="!selectedFileLoaded" class="size-full" />
         <NuxtImg
-          :src="selectedFilePreview"
-          :alt="selectedFileName || 'Ausgewähltes Bild'"
+          v-if="isUploadedPlaceholder(file) && file.previewUrl"
+          :src="model?.id"
+          alt=""
           class="size-full object-cover"
+          width="1500px"
+          @load="selectedFileLoaded = true"
         />
-      </div>
-      <div
-        v-else
-        class="flex h-40 w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-(--ui-primary)/30 bg-(--ui-bg-muted)/30 text-(--ui-text-muted)"
-      >
-        <UIcon name="i-lucide-file" class="size-8 text-(--ui-primary)" />
-        <span class="text-sm">Keine Vorschau verfügbar</span>
-      </div>
-      <div class="flex items-center justify-between text-sm text-(--ui-text-muted)">
-        <span class="truncate">
-          {{ selectedFileName || 'Bild ausgewählt' }}
-        </span>
-        <UBadge
-          v-if="selectedFile?.type"
-          color="primary"
-          variant="subtle"
-          class="uppercase text-[10px] tracking-wide"
-        >
-          {{ selectedFile.type }}
-        </UBadge>
-      </div>
-    </div>
-
-    <UFileUpload class="w-96 min-h-48" :ui="{ file: '' }">
-      <template #file-leading="{ file }">
-        <UAvatar
-          :as="{ img: 'img' }"
-          :src="createObjectUrl(file)"
-          class="size-full rounded-lg"
-        />
-      </template>
-      <template #file-trailing="{ file }">
-        <UButton
-          icon="i-lucide-x"
-          color="primary"
-          variant="outline"
-          size="sm"
-          class="absolute -translate-x-1/2 -translate-y-1/2 bg-elevated"
-        />
-      </template> -->
-    <!-- <template #file="{ file }">
-        <div class="p-4 rounded">
-          <p class="font-medium">{{ file.name }}</p>
-          <img :src="createObjectUrl(file)" />
-          <p class="text-sm text-gray-600">
-            Größe: {{ (file.size / 1024).toFixed(2) }} KB
-          </p>
+        <div v-else class="flex h-full w-full items-center justify-center">
+          <UIcon name="i-lucide-file" class="size-6 text-(--ui-primary)" />
         </div>
-      </template> -->
-    <!-- </UFileUpload> -->
-  </div>
+      </div>
+    </template>
+    <template #actions="{ open }">
+      <UButton
+        label="Bild hochladen"
+        icon="i-lucide-upload"
+        variant="outline"
+        :loading="uploading"
+        @click="open()"
+      />
+      <USlideover
+        v-model:open="librarySlideover"
+        :ui="{
+          header: 'p-0!',
+          content: 'max-w-5xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
+        }"
+      >
+        <UButton
+          icon="i-lucide-folder-open"
+          label="Datei Bibliothek"
+          variant="subtle"
+        />
+        <template #body>
+          <UiFileLibrary :all-types="false" @selected:file="handleFileSelect" />
+        </template>
+      </USlideover>
+    </template>
+  </UFileUpload>
 </template>
