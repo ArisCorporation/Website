@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Editor } from '@tiptap/core'
-import type { DirectusFile } from '~~/types'
+import { mergeAttributes, type Editor } from '@tiptap/core'
+import type { DirectusFile, DirectusUser } from '~~/types'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import TextAlign from '@tiptap/extension-text-align'
@@ -10,6 +10,12 @@ import Table from '@tiptap/extension-table'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
+import Mention from '@tiptap/extension-mention'
+import { VueRenderer, VueNodeViewRenderer } from '@tiptap/vue-3'
+import tippy, { type Instance as TippyInstance } from 'tippy.js'
+
+import EditorMentionList from './mention-list.vue'
+import EditorMentionChip from './mention-chip.vue'
 
 const model = defineModel<string>()
 
@@ -17,6 +23,166 @@ const props = defineProps<{
   readOnly?: boolean
   simpleMode?: boolean
 }>()
+
+interface MentionSuggestionItem {
+  id: string
+  label: string
+  alias?: string
+  slug?: string
+  department?: string | null
+  avatarUrl?: string
+  position?: string | null
+  headOfDepartment?: boolean | null
+  profileUrl: string
+  searchTokens: string[]
+}
+
+const mentionableUsers = ref<MentionSuggestionItem[]>([])
+const mentionSuggestionLimit = 8
+const mentionFetchPending = ref(false)
+
+const mentionableUsersById = computed(() => {
+  const map = new Map<string, MentionSuggestionItem>()
+  for (const user of mentionableUsers.value) {
+    map.set(user.id, user)
+  }
+  return map
+})
+
+const mentionableUsersBySlug = computed(() => {
+  const map = new Map<string, MentionSuggestionItem>()
+  for (const user of mentionableUsers.value) {
+    if (user.slug) {
+      map.set(user.slug, user)
+    }
+  }
+  return map
+})
+
+const mentionableUsersByLabel = computed(() => {
+  const map = new Map<string, MentionSuggestionItem>()
+  for (const user of mentionableUsers.value) {
+    map.set(user.label.toLowerCase(), user)
+  }
+  return map
+})
+
+let mentionHydrationFrame: number | null = null
+
+const findMentionUser = (attrs: Record<string, unknown>): MentionSuggestionItem | undefined => {
+  const id = typeof attrs.id === 'string' && attrs.id ? attrs.id : null
+  const slugAttr = typeof attrs.slug === 'string' && attrs.slug ? attrs.slug : null
+  const labelAttr = typeof attrs.label === 'string' && attrs.label ? attrs.label : null
+
+  if (id) {
+    const byId = mentionableUsersById.value.get(id)
+    if (byId) {
+      return byId
+    }
+  }
+
+  if (slugAttr) {
+    const bySlug = mentionableUsersBySlug.value.get(slugAttr)
+    if (bySlug) {
+      return bySlug
+    }
+  }
+
+  if (id) {
+    const bySlugFromId = mentionableUsersBySlug.value.get(id)
+    if (bySlugFromId) {
+      return bySlugFromId
+    }
+  }
+
+  if (labelAttr) {
+    const byLabel = mentionableUsersByLabel.value.get(labelAttr.toLowerCase())
+    if (byLabel) {
+      return byLabel
+    }
+  }
+
+  return undefined
+}
+
+const hydrateEditorMentions = () => {
+  const instance = unref(editor)
+  if (!instance || !mentionableUsers.value.length) {
+    return
+  }
+
+  const { state } = instance
+  let tr = state.tr
+  let changed = false
+
+  state.doc.descendants((node, pos) => {
+    if (node.type.name !== 'mention') {
+      return
+    }
+
+    const attrs = node.attrs ?? {}
+    const user = findMentionUser(attrs)
+    if (!user) {
+      return
+    }
+
+    const desiredAttrs = {
+      ...attrs,
+      id: user.id,
+      label: user.label,
+      alias: user.alias ?? null,
+      slug: user.slug ?? null,
+      avatarUrl: user.avatarUrl ?? null,
+      department: user.department ?? null,
+      position: user.position ?? null,
+      headOfDepartment: user.headOfDepartment ?? null,
+      profileUrl: user.profileUrl,
+    }
+
+    const keys: Array<keyof typeof desiredAttrs> = [
+      'id',
+      'label',
+      'alias',
+      'slug',
+      'avatarUrl',
+      'department',
+      'position',
+      'headOfDepartment',
+      'profileUrl',
+    ]
+
+    const needsUpdate = keys.some((key) => {
+      const currentVal = attrs[key] ?? null
+      const nextVal = desiredAttrs[key] ?? null
+      return currentVal !== nextVal
+    })
+
+    if (needsUpdate) {
+      tr = tr.setNodeMarkup(pos, undefined, desiredAttrs)
+      changed = true
+    }
+  })
+
+  if (changed) {
+    instance.view.dispatch(tr)
+  }
+}
+
+const scheduleMentionHydration = () => {
+  if (typeof window === 'undefined' || typeof window.requestAnimationFrame === 'undefined') {
+    hydrateEditorMentions()
+    return
+  }
+
+  if (mentionHydrationFrame !== null) {
+    window.cancelAnimationFrame(mentionHydrationFrame)
+  }
+
+  mentionHydrationFrame = window.requestAnimationFrame(() => {
+    mentionHydrationFrame = null
+    hydrateEditorMentions()
+  })
+}
 
 const MEDIA_ASSET_FOLDER_ID = 'c558dbe9-3f85-4c86-bdac-7b4988cde5c5'
 
@@ -63,6 +229,139 @@ const buildAssetSrc = (value: string): string => {
   return `assets/${assetId}`
 }
 
+const resolveUserDisplayName = (user: DirectusUser): string => {
+  const first = user.first_name?.trim() ?? ''
+  const last = user.last_name?.trim() ?? ''
+  const name = [first, last].filter(Boolean).join(' ')
+  if (name) {
+    return name
+  }
+  if (user.discord_name) {
+    return user.discord_name
+  }
+  if (user.slug) {
+    return user.slug
+  }
+  if (user.email) {
+    return user.email
+  }
+  return 'Unbekanntes Mitglied'
+}
+
+const resolveUserDepartment = (user: DirectusUser): string | null => {
+  const department = user.primary_department
+  if (department && typeof department !== 'string') {
+    return department.name ?? null
+  }
+  return null
+}
+
+const resolveUserAvatarId = (user: DirectusUser): string => {
+  if (!user.avatar) {
+    return ''
+  }
+  if (typeof user.avatar === 'string') {
+    return user.avatar
+  }
+  return user.avatar.id ?? ''
+}
+
+const resolveUserPosition = (user: DirectusUser): string | null => {
+  const title = user.title?.trim()
+  if (title) {
+    return title
+  }
+
+  const role = user.role
+  if (role && typeof role !== 'string') {
+    return role.label ?? role.name ?? null
+  }
+
+  return null
+}
+
+const buildProfileUrl = (user: DirectusUser): string => `/ams/employees/${user.id}`
+
+const loadMentionableUsers = async () => {
+  if (mentionFetchPending.value) {
+    return
+  }
+
+  mentionFetchPending.value = true
+  try {
+    const users = (await useDirectus(
+      readUsers({
+        filter: {
+          status: { _eq: 'active' },
+          hidden: { _neq: true },
+          api_account: { _neq: true },
+        },
+        fields: [
+          'id',
+          'first_name',
+          'last_name',
+          'title',
+          'slug',
+          'discord_name',
+          'email',
+          'avatar',
+          'head_of_department',
+          { primary_department: ['name'] },
+          { role: ['name', 'label'] },
+        ],
+        sort: ['first_name', 'last_name'],
+        limit: 250,
+      })
+    )) as DirectusUser[]
+
+    mentionableUsers.value = users.map((user) => {
+      const label = resolveUserDisplayName(user)
+      const avatarId = resolveUserAvatarId(user)
+      const department = resolveUserDepartment(user)
+      const position = resolveUserPosition(user)
+      const slug = user.slug?.trim() ?? ''
+      const headOfDepartment = Boolean(user.head_of_department)
+      const profileUrl = buildProfileUrl(user)
+      const aliasValue = user.discord_name?.trim() ?? ''
+      const tokens = [
+        label,
+        aliasValue,
+        user.slug ?? '',
+        user.email ?? '',
+        position ?? '',
+        department ?? '',
+      ]
+        .filter(Boolean)
+        .map((token) => String(token).toLowerCase())
+      if (headOfDepartment) {
+        tokens.push('abteilungsleiter', 'leitung')
+      }
+
+      return {
+        id: user.id,
+        label,
+        alias: user.discord_name?.trim() || undefined,
+        slug: slug || undefined,
+        department,
+        avatarUrl: avatarId ? buildAssetSrc(avatarId) : undefined,
+        position,
+        headOfDepartment,
+        profileUrl,
+        searchTokens: tokens,
+      } satisfies MentionSuggestionItem
+    })
+    scheduleMentionHydration()
+  } catch (error) {
+    console.error('Editor mention user fetch failed:', error)
+  } finally {
+    mentionFetchPending.value = false
+  }
+}
+
+onMounted(() => {
+  void loadMentionableUsers()
+})
+
 const editorMediaModalOpen = ref(false)
 const editorMediaLibraryOpen = ref(false)
 const editorMediaUploading = ref(false)
@@ -82,6 +381,335 @@ const canInsertMedia = computed(
 
 const editorHeight = computed(() => (props.simpleMode ? '120px' : '100%'))
 
+const LinkExtended = Link.extend({
+  priority: 10,
+  parseHTML () {
+    return [
+      {
+        tag: 'a[href]',
+        getAttrs: (element) => {
+          const el = element as HTMLElement
+          const isMention =
+            el.dataset?.mention === 'user' ||
+            el.classList.contains('mention') ||
+            el.getAttribute('data-type') === 'mention' ||
+            el.hasAttribute('data-mention-id')
+
+          if (isMention) {
+            return false
+          }
+
+          return null
+        },
+      },
+    ]
+  },
+})
+
+const MentionWithLink = Mention.extend({
+  addOptions () {
+    return {
+      ...(this.parent?.() ?? {}),
+      HTMLAttributes: {
+        class:
+          'mention inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-sm font-semibold text-primary transition hover:border-primary/50 hover:bg-primary/20 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        'data-mention': 'user',
+      },
+    }
+  },
+  addAttributes () {
+    const parentAttributes = this.parent?.()
+    const toDatasetKey = (key: string) =>
+      key.replace(/-([a-z])/g, (_, char) => char.toUpperCase())
+
+    const readDataset = (element: Element, key: string): string | null => {
+      const attr = element.getAttribute(`data-${key}`)
+      if (attr && attr.trim()) {
+        return attr
+      }
+      if ('dataset' in element) {
+        const datasetKey = toDatasetKey(key)
+        const value = (element as HTMLElement).dataset?.[datasetKey]
+        if (value && value.trim()) {
+          return value
+        }
+      }
+      return null
+    }
+
+    const readMultiple = (element: Element, keys: string[]): string | null => {
+      for (const key of keys) {
+        const value =
+          key.startsWith('data-')
+            ? element.getAttribute(key)
+            : readDataset(element, key)
+        if (value && value.trim()) {
+          return value
+        }
+      }
+      return null
+    }
+
+    const getIdFromHref = (href: string | null | undefined): string | null => {
+      if (!href) {
+        return null
+      }
+      try {
+        const url = new URL(href, 'http://dummy.local')
+        const segments = url.pathname.split('/').filter(Boolean)
+        return segments.at(-1) ?? null
+      } catch {
+        const parts = href.split('/').filter(Boolean)
+        return parts.at(-1) ?? null
+      }
+    }
+
+    return {
+      ...(parentAttributes ?? {}),
+      id: {
+        default: null,
+        parseHTML: (element) =>
+          readMultiple(element, [
+            'mention-id',
+            'mention_id',
+            'data-mention-id',
+            'id',
+            'data-id',
+          ]) ?? getIdFromHref(element.getAttribute('href')),
+      },
+      label: {
+        default: null,
+        parseHTML: (element) =>
+          readMultiple(element, [
+            'mention-label',
+            'mention_label',
+            'data-mention-label',
+            'label',
+            'data-label',
+          ]) ?? element.textContent?.trim() ?? null,
+      },
+      avatarUrl: {
+        default: null,
+        parseHTML: (element) =>
+          readMultiple(element, [
+            'mention-avatar',
+            'mention_avatar',
+            'data-mention-avatar',
+            'avatar',
+            'data-avatar',
+          ]),
+      },
+      alias: {
+        default: null,
+        parseHTML: (element) =>
+          readMultiple(element, [
+            'mention-alias',
+            'mention_alias',
+            'data-mention-alias',
+            'alias',
+            'data-alias',
+          ]),
+      },
+      slug: {
+        default: null,
+        parseHTML: (element) =>
+          readMultiple(element, [
+            'mention-slug',
+            'mention_slug',
+            'data-mention-slug',
+            'slug',
+            'data-slug',
+          ]),
+      },
+      department: {
+        default: null,
+        parseHTML: (element) =>
+          readMultiple(element, [
+            'mention-department',
+            'mention_department',
+            'data-mention-department',
+            'department',
+            'data-department',
+          ]),
+      },
+      position: {
+        default: null,
+        parseHTML: (element) =>
+          readMultiple(element, [
+            'mention-position',
+            'mention_position',
+            'data-mention-position',
+            'position',
+            'data-position',
+          ]),
+      },
+      headOfDepartment: {
+        default: null,
+        parseHTML: (element) => {
+          const raw = readMultiple(element, [
+            'mention-head-of-department',
+            'mention_head_of_department',
+            'data-mention-head-of-department',
+            'head-of-department',
+            'data-head-of-department',
+          ])
+          if (raw === null) {
+            return null
+          }
+          return raw === 'true' || raw === '1'
+        },
+      },
+      profileUrl: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('href'),
+      },
+    }
+  },
+  parseHTML () {
+    const parentConfig = this.parent?.()
+    return [
+      ...(parentConfig ?? []),
+      { tag: `a[data-type="${this.name}"]` },
+      { tag: 'a[data-mention-id]' },
+      { tag: 'a[data-mention="user"]' },
+      { tag: 'a.mention[data-id]' },
+      { tag: 'a.mention[data-label]' },
+      { tag: 'a.mention' },
+    ]
+  },
+  renderHTML ({ node }) {
+    const id = node.attrs.id
+    const rawLabel = node.attrs.label ?? node.attrs.id ?? ''
+    const label = String(rawLabel)
+    const avatarUrl = node.attrs.avatarUrl ?? ''
+    const alias = node.attrs.alias ?? ''
+    const department = node.attrs.department ?? ''
+    const position = node.attrs.position ?? ''
+    const profileUrl = node.attrs.profileUrl ?? `/ams/employees/${id}`
+
+    const attrs = mergeAttributes(this.options.HTMLAttributes, {
+      'data-type': this.name,
+      'data-mention': 'user',
+      'data-id': id,
+      'data-label': label || undefined,
+      'data-alias': alias || undefined,
+      'data-avatar': avatarUrl || undefined,
+      'data-department': department || undefined,
+      'data-position': position || undefined,
+      'data-head-of-department': node.attrs.headOfDepartment ? 'true' : undefined,
+      'data-mention-id': id || undefined,
+      'data-mention-label': label || undefined,
+      'data-mention-alias': alias || undefined,
+      'data-mention-slug': node.attrs.slug || undefined,
+      'data-mention-avatar': avatarUrl || undefined,
+      'data-mention-department': department || undefined,
+      'data-mention-position': position || undefined,
+      'data-mention-head-of-department': node.attrs.headOfDepartment ? 'true' : undefined,
+      'data-slug': node.attrs.slug || undefined,
+      class: 'mention',
+      href: profileUrl,
+      'aria-label': label ? `Profil von ${label}` : undefined,
+      title: [alias || '', position, department].filter(Boolean).join(' • ') || undefined,
+      contenteditable: 'false',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+    })
+
+    return ['a', attrs, label]
+  },
+  addNodeView () {
+    return VueNodeViewRenderer(EditorMentionChip)
+  },
+})
+
+const mentionExtension = MentionWithLink.configure({
+  renderLabel: ({ node }) => {
+    const label = node.attrs.label ?? node.attrs.id ?? ''
+    return label ? `${label}` : ''
+  },
+  suggestion: {
+    char: '@',
+    startOfLine: false,
+    items: ({ query }) => {
+      if (!mentionableUsers.value.length && !mentionFetchPending.value) {
+        void loadMentionableUsers()
+      }
+
+      const normalizedQuery = query.trim().toLowerCase()
+      const candidates = mentionableUsers.value
+
+      if (!normalizedQuery) {
+        return candidates.slice(0, mentionSuggestionLimit)
+      }
+
+      return candidates
+        .filter((item) =>
+          item.searchTokens.some((token) => token.includes(normalizedQuery))
+        )
+        .slice(0, mentionSuggestionLimit)
+    },
+    render: () => {
+      let component: VueRenderer | null = null
+      let popup: TippyInstance | null = null
+
+      return {
+        onStart: (props) => {
+          component = new VueRenderer(EditorMentionList, {
+            props,
+            editor: props.editor,
+          })
+
+          if (!props.clientRect || !component?.element) {
+            return
+          }
+
+          popup = tippy('body', {
+            getReferenceClientRect: props.clientRect,
+            appendTo: () => document.body,
+            content: component.element,
+            showOnCreate: true,
+            interactive: true,
+            trigger: 'manual',
+            placement: 'bottom-start',
+            theme: 'mention-suggestion',
+            zIndex: 9999,
+          })[0]
+        },
+        onUpdate: (props) => {
+          component?.updateProps(props)
+
+          if (!props.clientRect) {
+            return
+          }
+
+          popup?.setProps({
+            getReferenceClientRect: props.clientRect,
+          })
+        },
+        onKeyDown: (props) => {
+          if (props.event.key === 'Escape') {
+            popup?.hide()
+            return true
+          }
+
+          const handler = component?.ref?.onKeyDown
+          if (handler) {
+            return handler(props)
+          }
+
+          return false
+        },
+        onExit: () => {
+          popup?.destroy()
+          popup = null
+          component?.destroy()
+          component = null
+        },
+      }
+    },
+  },
+})
+
 const editor = useEditor({
   editable: !props.readOnly,
   content: model.value,
@@ -94,7 +722,8 @@ const editor = useEditor({
       dropcursor: false,
     }),
     Underline,
-    Link,
+    LinkExtended,
+    mentionExtension,
     TextAlign,
     CharacterCount,
     Image,
@@ -109,9 +738,16 @@ const editor = useEditor({
   onUpdate: ({ editor }) => {
     model.value = editor.getHTML()
   },
+  onCreate: () => {
+    scheduleMentionHydration()
+  },
 })
 
 onBeforeUnmount(() => {
+  if (typeof window !== 'undefined' && mentionHydrationFrame !== null) {
+    window.cancelAnimationFrame(mentionHydrationFrame)
+    mentionHydrationFrame = null
+  }
   unref(editor)?.destroy()
 })
 
@@ -272,6 +908,26 @@ watch(
   (file) => {
     handleEditorLibrarySelect(file as DirectusFile)
   }
+)
+
+watch(
+  mentionableUsers,
+  (users) => {
+    if (users.length) {
+      scheduleMentionHydration()
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  () => unref(editor),
+  (instance) => {
+    if (instance) {
+      scheduleMentionHydration()
+    }
+  },
+  { immediate: true }
 )
 
 // TiptapUnderline,
@@ -604,6 +1260,13 @@ watch(
 .tiptap:focus {
   outline: none;
   border: none;
+}
+.tippy-box[data-theme~='mention-suggestion'] {
+  background-color: transparent;
+  box-shadow: none;
+}
+.tippy-box[data-theme~='mention-suggestion'] > .tippy-content {
+  padding: 0;
 }
 .ProseMirror {
   height: v-bind('editorHeight') !important;
