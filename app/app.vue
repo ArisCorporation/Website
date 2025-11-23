@@ -2,6 +2,8 @@
 const authStore = useAuthStore()
 const route = useRoute()
 
+patchChangelog()
+
 // Das Benutzerobjekt wird nicht-blockierend geladen:
 // authStore.fetchUser() (aufgerufen durch initializeAuth oder das Plugin) ist asynchron und aktualisiert den Store.
 // Komponenten, die das Benutzerobjekt benötigen, können es reaktiv aus dem Store beziehen.

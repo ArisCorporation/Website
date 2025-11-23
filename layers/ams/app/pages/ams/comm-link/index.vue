@@ -59,10 +59,12 @@ const { data, refresh, pending } = useAsyncData<CommLink[]>(
           'id',
           'status',
           'name',
-          'banner',
           'content',
           'date_created',
           'date_published',
+          {
+            banner: ['id', 'type'],
+          },
           {
             user_created: [
               'id',
@@ -103,7 +105,7 @@ const formRef = ref() // Use ref() for template refs
 const modalOpen = ref(false)
 
 const librarySlideover = ref(false)
-const bannerInput = useTemplateRef('bannerInput')
+const bannerInput = ref<DirectusFile | null | undefined>(null)
 const bannerUploading = ref(false)
 
 const filteredCommLinks = computed<CommLink[]>(() => {
@@ -159,6 +161,14 @@ const formData = reactive<Partial<CommLinkForm>>({
   content: '',
 })
 
+watch(
+  () => bannerInput.value?.id,
+  (id) => {
+    formData.banner = id ?? '' // immer ein String
+  },
+  { immediate: true } // direkt beim Start einmal ausführen
+)
+
 const editId = ref<string | null>(null)
 
 function handleSelection(commLink: CommLink): void {
@@ -168,6 +178,10 @@ function handleSelection(commLink: CommLink): void {
     ? (commLink.status as 'draft' | 'published')
     : 'draft'
   formData.banner = commLink.banner ? getAssetId(commLink.banner) : '' // Use getAssetId if banner is an ID, or directly if it's a URL
+  bannerInput.value =
+    typeof commLink.banner === 'string'
+      ? { id: commLink.banner }
+      : commLink.banner
   formData.channel = (commLink.channel as CommLinkChannel)?.id
   formData.content = commLink.content as string
 
@@ -396,56 +410,10 @@ definePageMeta({
                     <template #default>
                       <div class="space-y-4">
                         <UFormField name="banner" id="bannerField">
-                          <div
-                            class="aspect-[24/9] relative overflow-clip rounded-lg w-full group h-auto border border-dashed hover:border-(--ui-primary)/60 transition-all border-(--ui-bg-accented) items-center flex justify-center"
-                          >
-                            <div
-                              class="space-x-2 opacity-75 group-hover:opacity-100 transition-opacity z-10 absolute left-0 right-0 bottom-0 top-0 m-auto size-fit"
-                            >
-                              <UInput
-                                ref="bannerInput"
-                                type="file"
-                                accept="image/*"
-                                class="hidden"
-                                @change="handleBannerUpload"
-                              />
-                              <USlideover
-                                v-model:open="librarySlideover"
-                                :ui="{
-                                  header: '!p-0',
-                                  content:
-                                    'max-w-3xl ring-(--ui-primary)/10 divide-(--ui-primary)/10',
-                                }"
-                              >
-                                <UButton
-                                  icon="i-lucide-folder-open"
-                                  label="Datei Bibliothek"
-                                  variant="subtle"
-                                />
-                                <template #body>
-                                  <UiFileLibrary
-                                    @selected:file="handleFileSelect"
-                                  />
-                                </template>
-                              </USlideover>
-                              <UButton
-                                @click="bannerInput?.inputRef?.click()"
-                                icon="i-lucide-upload"
-                                label="Datei hochladen"
-                                variant="subtle"
-                                :loading="bannerUploading"
-                              />
-                            </div>
-                            <div
-                              class="absolute size-full bg-black/50 opacity-0 group-hover:opacity-100"
-                            />
-                            <NuxtImg
-                              v-if="formData.banner"
-                              :src="formData.banner"
-                              alt="Comm-Link Banner"
-                              class="size-full object-cover"
-                            />
-                          </div>
+                          <AMSGlobalFileDrawer
+                            v-model="bannerInput"
+                            upload-folder-id="c558dbe9-3f85-4c86-bdac-7b4988cde5c5"
+                          />
                         </UFormField>
                       </div>
                     </template>

@@ -18,7 +18,15 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'de',
         'data-app-version': `${version}-${process.env.NUXT_PUBLIC_SOURCE_COMMIT?.slice(0, 7) || 'DEV'}.${process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEVELOPMENT'}`
-      }
+      },
+      script: [
+        {
+          src: 'https://app.rybbit.io/api/script.js',
+          async: true,
+          defer: true,
+          'data-site-id': '3caeaa458fa0',
+        },
+      ],
     }
   },
 
@@ -51,7 +59,8 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@compodium/nuxt',
     'nuxt-tiptap-editor',
-    'nuxt-charts'
+    'nuxt-charts',
+    '@nuxtjs/mdc'
   ],
 
   css: ['~/assets/css/main.css'],
@@ -108,25 +117,26 @@ export default defineNuxtConfig({
     prefix: 'Tiptap'
   },
 
-  echarts: {
-    ssr: false,
-    renderer: 'svg',
-    charts: ['BarChart', 'MapChart', 'PieChart'],
-    components: [
-      'DatasetComponent',
-      'GridComponent',
-      'TooltipComponent',
-      'ToolboxComponent',
-      'GeoComponent',
-      'VisualMapComponent',
-      'LegendComponent'
-    ],
-  },
+  // echarts: {
+  //   ssr: false,
+  //   renderer: 'svg',
+  //   charts: ['BarChart', 'MapChart', 'PieChart'],
+  //   components: [
+  //     'DatasetComponent',
+  //     'GridComponent',
+  //     'TooltipComponent',
+  //     'ToolboxComponent',
+  //     'GeoComponent',
+  //     'VisualMapComponent',
+  //     'LegendComponent'
+  //   ],
+  // },
 
-  future: {
-    compatibilityVersion: 4
+  devServer: {
+    host: 'localdev.ariscorp.de',
+    port: 80,
+    https: true
   },
 
   compatibilityDate: '2024-11-01',
-
 })
