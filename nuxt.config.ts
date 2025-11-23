@@ -21,7 +21,7 @@ export default defineNuxtConfig({
       },
       script: [
         {
-          src: 'https://app.rybbit.io/api/script.js',
+          src: 'https://rybbit.ariscorp.de/api/script.js',
           async: true,
           defer: true,
           'data-site-id': '3caeaa458fa0',
