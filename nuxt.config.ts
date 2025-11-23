@@ -18,7 +18,15 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'de',
         'data-app-version': `${version}-${process.env.NUXT_PUBLIC_SOURCE_COMMIT?.slice(0, 7) || 'DEV'}.${process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEVELOPMENT'}`
-      }
+      },
+      script: [
+        {
+          src: 'https://app.rybbit.io/api/script.js',
+          async: true,
+          defer: true,
+          'data-site-id': '3caeaa458fa0',
+        },
+      ],
     }
   },
 
