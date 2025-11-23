@@ -204,13 +204,23 @@ async function handleRemove() {
       >
         <div class="flex justify-between">
           <div>
-            <NuxtLink :to="`https://ariscorp.de/shipexkurs/ships/${ship.slug}`" class="not-prose">
-              <h3
-                class="text-lg w-fit font-semibold text-white group-hover:text-shadow-primary group-hover:text-shadow-xs transition-all duration-300 hover:text-xl group-hover:text-(--ui-primary) !my-0"
+            <UModal
+              :ui="{
+                content:
+                  'rounded-lg shadow-lg ring ring-default max-w-none max-h-none min-w-[calc(100vw-2rem)] min-h-[calc(100vh-2rem)]',
+              }"
+            >
+              <button class="not-prose">
+                <h3
+                  class="text-lg w-fit font-semibold text-white group-hover:text-shadow-primary group-hover:text-shadow-xs transition-all duration-300 hover:text-xl group-hover:text-(--ui-primary) !my-0"
               >
-                {{ ship.name }}
-              </h3>
-            </NuxtLink>
+                  {{ ship.name }}
+                </h3>
+              </button>
+              <template #content>
+                <AMSUiShipQv :ship="ship" />
+              </template>
+            </UModal>
             <p class="text-sm text-(--ui-text-muted) !my-0">
               {{ getMainFocusLabel(ship.focuses) }}
             </p>
