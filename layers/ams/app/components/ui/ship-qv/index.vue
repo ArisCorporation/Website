@@ -468,7 +468,9 @@ const currentSideTab = ref('0')
           </template>
           <template #commercial>
             <div class="space-y-3 text-sm leading-relaxed">
-              <p class="text-(--ui-text-muted)">{{ commercialText }}</p>
+              <AMSUiVideoplayer
+                src="https://studio.ariscorp.de/assets/a2a15d7f-91c7-4563-bcee-613df16e87d4"
+              />
               <div
                 v-if="currentShip?.store_url || currentShip?.sales_url"
                 class="flex gap-2"
