@@ -5,6 +5,7 @@ type QuickViewItemValue = string | number | Array<string | number>
 type QuickViewItem = {
   label: string
   value: QuickViewItemValue
+  slider?: number
   link?: string | null
 }
 type QuickViewRow = {
@@ -12,11 +13,13 @@ type QuickViewRow = {
   columns?: 2 | 3
   items: QuickViewItem[]
 }
-type QuickViewCard = {
+type QuickViewCardTable = {
   title: string
   icon: string
-  rows: QuickViewRow[]
+  rows?: QuickViewRow[]
 }
+type QuickViewCard = QuickViewCardTable | { tabs: QuickViewCardTable[] }
+
 type QuickViewTab = {
   label: string
   slot: string
@@ -80,49 +83,53 @@ const loanerName = computed(() => {
 
 const dataCards = computed<QuickViewCard[]>(() => [
   {
-    title: 'Basis Daten',
-    icon: 'i-lucide-orbit',
-    rows: [
+    tabs: [
       {
-        columns: 3,
-        items: [
+        title: 'Basis Daten',
+        icon: 'i-lucide-user',
+        rows: [
           {
-            label: 'Hersteller',
-            value: manufacturerName.value,
-            link: manufacturerSlug.value
-              ? `/verseexkurs/companies/${manufacturerSlug.value}`
-              : null,
+            columns: 3,
+            items: [
+              {
+                label: 'Hersteller',
+                value: manufacturerName.value,
+                link: manufacturerSlug.value
+                  ? `/verseexkurs/companies/${manufacturerSlug.value}`
+                  : null,
+              },
+              { label: 'Modell', value: ship.value?.name ?? 'N/A' },
+              { label: 'Loaner', value: loanerName.value },
+            ],
           },
-          { label: 'Modell', value: ship.value?.name ?? 'N/A' },
-          { label: 'Loaner', value: loanerName.value },
+          {
+            columns: 2,
+            items: [
+              {
+                label: 'Rolle',
+                value: ship.value?.focuses?.length
+                  ? getMainFocusLabel(ship.value.focuses)
+                  : 'N/A',
+              },
+              {
+                label: 'Größe',
+                value: sizeLabel.value,
+              },
+            ],
+          },
         ],
       },
       {
-        columns: 2,
-        items: [
+        title: 'Kapazität',
+        icon: 'i-lucide-package',
+        rows: [
           {
-            label: 'Rolle',
-            value: ship.value?.focuses?.length
-              ? getMainFocusLabel(ship.value.focuses)
-              : 'N/A',
+            columns: 2,
+            items: [
+              { label: 'Crew', value: crewLabel.value },
+              { label: 'Fracht', value: formatScu(ship.value?.cargo) },
+            ],
           },
-          {
-            label: 'Größe',
-            value: sizeLabel.value,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    title: 'Kapazität',
-    icon: 'i-lucide-ship',
-    rows: [
-      {
-        columns: 2,
-        items: [
-          { label: 'Crew', value: crewLabel.value },
-          { label: 'Fracht', value: formatScu(ship.value?.cargo) },
         ],
       },
     ],
@@ -134,9 +141,15 @@ const dataCards = computed<QuickViewCard[]>(() => [
       {
         columns: 3,
         items: [
-          { label: 'Pledge', value: formatCurrencyValue(ship.value?.pledge_price) },
+          {
+            label: 'Pledge',
+            value: formatCurrencyValue(ship.value?.pledge_price),
+          },
           { label: 'Warbond', value: formatCurrencyValue(ship.value?.price) },
-          { label: 'Originalpreis', value: formatCurrencyValue(ship.value?.price) },
+          {
+            label: 'Originalpreis',
+            value: formatCurrencyValue(ship.value?.price),
+          },
         ],
       },
     ],
@@ -156,8 +169,15 @@ const dataCards = computed<QuickViewCard[]>(() => [
       {
         columns: 3,
         items: [
-          { label: 'SCM Geschwindigkeit', value: ship.value?.speed_scm ?? 'N/A' },
-          { label: 'Nav Geschwindigkeit', value: ship.value?.speed_max ?? 'N/A' },
+          {
+            label: 'SCM Geschwindigkeit',
+            value: 200,
+            slider: 600,
+          },
+          {
+            label: 'Nav Geschwindigkeit',
+            value: ship.value?.speed_max ?? 'N/A',
+          },
           {
             label: 'Masse',
             value:
@@ -260,7 +280,7 @@ const rightTabs = computed(() =>
 
 <template>
   <div class="grid grid-cols-12 size-full flex-1 p-2 gap-x-4">
-    <div class="col-span-7 space-y-2">
+    <div class="col-span-7 space-y-2 m-2">
       <NuxtImg
         :src="
           ship?.store_image
@@ -269,99 +289,83 @@ const rightTabs = computed(() =>
         "
         class="w-full h-auto rounded-lg shadow-lg object-cover border border-primary/10"
       />
-      <UTabs
-        :items="leftTabs"
-        size="sm"
-        :ui="{
-          list: 'border border-(--ui-primary)/10 bg-(--ui-bg-muted)/70',
-          indicator: 'bg-(--ui-primary)/10',
-          trigger: 'data-[state=active]:text-(--ui-primary)',
-        }"
-      />
+      <UCard variant="ams" :ui="{ body: 'sm:p-4' }">
+        <UTabs
+          :items="leftTabs"
+          size="xs"
+          :ui="{
+            list: 'border border-(--ui-primary)/10 bg-(--ui-bg-muted)/70',
+            indicator: 'bg-(--ui-primary)/10',
+            trigger: 'data-[state=active]:text-(--ui-primary)',
+          }"
+        >
+          <template #description>
+            <span class="text-sm"
+              >Lorem ipsum dolor sit amet, consectetur adipiscing elit. Bibendum
+              accumsan dictum sapien sit praesent sit enim justo proin
+              consectetur felis litora. Venenatis a magnis mollis tellus et ac
+              etiam nunc proin vehicula fusce euismod. Scelerisque blandit donec
+              sociosqu sollicitudin mollis egestas vehicula nullam porttitor
+              felis velit nullam. Senectus vestibulum cum sociosqu euismod sem
+              ullamcorper auctor pulvinar pharetra nisl lorem nunc.</span
+            >
+          </template>
+        </UTabs>
+      </UCard>
     </div>
     <div class="col-span-5">
       <UTabs
         :items="rightTabs"
-        size="sm"
+        size="xs"
         :ui="{
           list: 'border border-(--ui-primary)/10 bg-(--ui-bg-muted)/70',
           indicator: 'bg-(--ui-primary)/10',
           trigger: 'data-[state=active]:text-(--ui-primary)',
         }"
       >
-        <template
-          v-for="tab in quickViewTabs"
-          :key="tab.slot"
-          #[tab.slot]
-        >
+        <template v-for="tab in quickViewTabs" :key="tab.slot" #[tab.slot]>
           <div v-if="tab.cards.length" class="space-y-4">
             <UCard
               v-for="card in tab.cards"
-              :key="card.title"
+              :key="JSON.stringify(card)"
               variant="ams"
+              :ui="{
+                header: 'p-4 sm:px-4',
+                body: 'sm:py-4 sm:pt-1 sm:px-4',
+              }"
             >
-              <template #header>
+              <template v-if="!card?.tabs" #header>
                 <div class="flex items-center gap-2 ams-card-title">
-                  <UIcon :name="card.icon" class="size-5" />
-                  <h2>{{ card.title }}</h2>
+                  <UIcon :name="card.icon" class="size-4" />
+                  <h2 class="text-sm">{{ card.title }}</h2>
                 </div>
               </template>
               <template #default>
-                <div class="space-y-4">
-                  <template
-                    v-for="(row, rowIndex) in card.rows"
-                    :key="`${card.title}-${rowIndex}`"
-                  >
-                    <div
-                      class="grid gap-4"
-                      :class="row.columns === 3 ? 'grid-cols-3' : 'grid-cols-2'"
+                <div class="">
+                  <AMSUiShipQvTable
+                    v-if="!card?.tabs && card.rows"
+                    v-bind="card"
+                  />
+                  <template v-else>
+                    <UTabs
+                      :items="
+                        card.tabs.map((tab) => ({
+                          label: tab.title,
+                          icon: tab.icon,
+                          slot: tab.title,
+                        }))
+                      "
+                      size="xs"
+                      variant="link"
                     >
-                      <div
-                        v-for="(item, itemIndex) in row.items"
-                        :key="`${card.title}-${rowIndex}-${itemIndex}`"
+                      <template
+                        v-for="tab in card.tabs"
+                        :key="tab.title"
+                        #[tab.title]
                       >
-                        <label
-                          class="text-sm font-medium text-(--ui-text-muted)"
-                        >
-                          {{ item.label }}
-                        </label>
-                        <template v-if="Array.isArray(item.value)">
-                          <ul class="mt-0 uppercase mb-0 font-mono">
-                            <li
-                              v-for="value in item.value"
-                              :key="value"
-                              class="!my-0 marker:text-(--ui-primary) pl-0"
-                            >
-                              {{ value }}
-                            </li>
-                          </ul>
-                        </template>
-                        <template v-else>
-                          <NuxtLink
-                            v-if="item.link"
-                            :to="item.link"
-                            target="_blank"
-                            class="not-prose w-fit active:scale-95 transition-all hover:scale-105 block"
-                          >
-                            <p class="mt-0 mb-0 uppercase font-mono">
-                              {{ item.value }}
-                            </p>
-                          </NuxtLink>
-                          <p
-                            v-else
-                            class="mt-0 mb-0 uppercase font-mono"
-                          >
-                            {{ item.value }}
-                          </p>
-                        </template>
-                      </div>
-                    </div>
-                    <div
-                      v-if="rowIndex < card.rows.length - 1"
-                      class="col-span-2"
-                    >
-                      <USeparator color="ams" />
-                    </div>
+                        <AMSUiShipQvTable v-bind="tab" />
+                      </template>
+                    </UTabs>
                   </template>
                 </div>
               </template>
