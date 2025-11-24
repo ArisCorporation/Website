@@ -217,8 +217,8 @@ async function handleRemove() {
                   {{ ship.name }}
                 </h3>
               </button>
-              <template #content>
-                <AMSUiShipQv :ship="ship" />
+              <template #content="{ close }">
+                <AMSUiShipQv :ship="ship" @close="close" />
               </template>
             </UModal>
             <p class="text-sm text-(--ui-text-muted) !my-0">

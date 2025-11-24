@@ -58,8 +58,8 @@ defineProps<{
                 {{ item.value }}
               </p>
               <UProgress
-                v-if="item.slider && typeof item.value === 'number'"
-                :model-value="item.value"
+                v-if="item.slider"
+                :model-value="typeof item.value === 'number' ? item.value : 0"
                 :max="item.slider"
                 size="xs"
               />
