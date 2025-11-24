@@ -9,11 +9,30 @@ import type {
   UserHangar,
 } from '~~/types'
 
-const authStore = useAuthStore()
+type EntityWithId = { id?: unknown }
+const isEntityWithId = <T extends EntityWithId>(value: unknown): value is T =>
+  typeof value === 'object' && value !== null && 'id' in value
+
+const getShip = (item: UserHangar): Ship | null =>
+  isEntityWithId<Ship>(item.ship_id) ? item.ship_id : null
+const getUser = (item: UserHangar): DirectusUser | null =>
+  isEntityWithId<DirectusUser>(item.user_id) ? item.user_id : null
+const getManufacturer = (ship: Ship | null): Company | null =>
+  isEntityWithId<Company>(ship?.manufacturer) ? ship.manufacturer : null
+const getDepartment = (item: UserHangar): Department | null =>
+  isEntityWithId<Department>(item.department) ? item.department : null
+const getActiveModule = (item: UserHangar): ShipModule | null =>
+  isEntityWithId<ShipModule>(item.active_module) ? item.active_module : null
+const getShipModules = (ship: Ship | null) =>
+  Array.isArray(ship?.modules)
+    ? ship.modules.filter((module): module is ShipModule =>
+        isEntityWithId<ShipModule>(module)
+      )
+    : []
 
 const props = defineProps<{ data: UserHangar[]; search: string }>()
 
-const expanded = ref({})
+const expanded = ref<Record<string, boolean>>({})
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
@@ -53,13 +72,13 @@ const columns: TableColumn<UserHangar>[] = [
   {
     accessorKey: 'model',
     header: 'Modell',
-    cell: ({ row }) => `${(row.original.ship_id as Ship).name}`,
+    cell: ({ row }) => getShip(row.original)?.name ?? '',
   },
   {
     accessorKey: 'manufacturer',
     header: 'Hersteller',
     cell: ({ row }) =>
-      `${((row.original.ship_id as Ship).manufacturer as Company).name}`,
+      getManufacturer(getShip(row.original))?.name ?? '',
   },
   {
     accessorKey: 'buy_status',
@@ -94,19 +113,24 @@ const columns: TableColumn<UserHangar>[] = [
   {
     accessorKey: 'owner',
     header: 'Besitzer',
-    cell: ({ row }) =>
-      `${getUserLabel(row.original.user_id as DirectusUser) ?? ''}`,
+    cell: ({ row }) => {
+      const user = getUser(row.original)
+      return user ? getUserLabel(user) : ''
+    },
   },
   {
     accessorKey: 'department',
     header: 'Abteilung',
-    cell: ({ row }) => `${(row.original.department as Department)?.name ?? ''}`,
+    cell: ({ row }) => `${getDepartment(row.original)?.name ?? ''}`,
   },
 ]
 
-watch(props, () => {
-  expanded.value = {}
-})
+watch(
+  () => props.data,
+  () => {
+    expanded.value = {}
+  }
+)
 </script>
 
 <template>
@@ -128,32 +152,32 @@ watch(props, () => {
     >
       <template #store-image-cell="{ row }">
         <NuxtImg
-          :src="getAssetId((row.original.ship_id as Ship).store_image)"
+          :src="getAssetId(getShip(row.original)?.store_image)"
           class="rounded size-8 object-cover aspect-square"
         />
       </template>
       <template #model-cell="{ row }">
         <NuxtLink
-          :to="`/ships/${(row.original.ship_id as Ship).slug}`"
+          :to="`/ships/${getShip(row.original)?.slug}`"
           class="hover:text-(--ui-primary) transition-color duration-300 hover:text-shadow-xs hover:text-shadow-primary"
-          >{{ (row.original.ship_id as Ship).name }}</NuxtLink
+          >{{ getShip(row.original)?.name }}</NuxtLink
         >
       </template>
       <template #expanded="{ row }">
-        <div class="flex gap-4">
+        <div v-if="getShip(row.original)" class="flex gap-4">
           <div class="w-1/2">
             <NuxtImg
-              :src="getAssetId(row.original.ship_id?.store_image)"
+              :src="getAssetId(getShip(row.original)?.store_image)"
               class="w-full rounded h-auto aspect-video object-cover"
             />
           </div>
           <div class="w-1/2 text-base">
             <h2 class="text-2xl font-bold">
-              {{ row.original.ship_id?.name }}
+              {{ getShip(row.original)?.name ?? 'N/A' }}
             </h2>
             <p class="text-(--ui-text-muted) mb-4">
-              {{ getMainFocusLabel(row.original.ship_id?.focuses) }} -
-              {{ row.original.ship_id?.manufacturer?.name }}
+              {{ getMainFocusLabel(getShip(row.original)?.focuses) }} -
+              {{ getManufacturer(getShip(row.original))?.name ?? 'N/A' }}
             </p>
             <h2 class="text-(--ui-primary) text-xl font-semibold">
               Schiffsdetails
@@ -178,7 +202,7 @@ watch(props, () => {
               <div v-if="row.original.active_module">
                 <p class="text-(--ui-text-muted)">Aktives Modul</p>
                 <UBadge
-                  :label="(row.original.active_module as ShipModule)?.name"
+                  :label="getActiveModule(row.original)?.name"
                   variant="subtle"
                   class="mr-2"
                 />
@@ -193,28 +217,30 @@ watch(props, () => {
                 <UButton
                   variant="link"
                   color="neutral"
-                  :to="`/verseexkurs/companies/${row.original.ship_id?.manufacturer?.slug}`"
+                  :to="`/verseexkurs/companies/${getManufacturer(getShip(row.original))?.slug}`"
                   class="p-0 font-normal text-white"
                 >
                   <p class="text-base">
-                    {{ row.original.ship_id?.manufacturer?.name ?? 'N/A' }}
+                    {{
+                      getManufacturer(getShip(row.original))?.name ?? 'N/A'
+                    }}
                   </p>
                 </UButton>
               </div>
               <div class="w-1/2">
                 <p class="text-(--ui-text-muted)">Crew</p>
                 <p class="p-0 font-normal text-white">
-                  {{ row.original.ship_id?.crew_min ?? 'N/A' }}
+                  {{ getShip(row.original)?.crew_min ?? 'N/A' }}
                   -
-                  {{ row.original.ship_id?.crew_max ?? 'N/A' }}
+                  {{ getShip(row.original)?.crew_max ?? 'N/A' }}
                 </p>
               </div>
               <div class="w-1/2">
                 <p class="text-(--ui-text-muted)">Länge</p>
                 <p class="p-0 font-normal text-white">
                   {{
-                    row.original.ship_id?.length
-                      ? row.original.ship_id?.length + 'm'
+                    getShip(row.original)?.length
+                      ? getShip(row.original)?.length + 'm'
                       : 'N/A'
                   }}
                 </p>
@@ -223,8 +249,8 @@ watch(props, () => {
                 <p class="text-(--ui-text-muted)">Breite</p>
                 <p class="p-0 font-normal text-white">
                   {{
-                    row.original.ship_id?.beam
-                      ? row.original.ship_id?.beam + 'm'
+                    getShip(row.original)?.beam
+                      ? getShip(row.original)?.beam + 'm'
                       : 'N/A'
                   }}
                 </p>
@@ -233,8 +259,8 @@ watch(props, () => {
                 <p class="text-(--ui-text-muted)">Höhe</p>
                 <p class="p-0 font-normal text-white">
                   {{
-                    row.original.ship_id?.height
-                      ? row.original.ship_id?.height + 'm'
+                    getShip(row.original)?.height
+                      ? getShip(row.original)?.height + 'm'
                       : 'N/A'
                   }}
                 </p>
@@ -243,21 +269,18 @@ watch(props, () => {
                 <p class="text-(--ui-text-muted)">Gewicht</p>
                 <p class="p-0 font-normal text-white">
                   {{
-                    row.original.ship_id?.mass
-                      ? formatCurrency(row.original.ship_id?.mass / 1000) +
+                    getShip(row.original)?.mass
+                      ? formatCurrency(getShip(row.original)?.mass / 1000) +
                         ' Tonnen'
                       : 'N/A'
                   }}
                 </p>
               </div>
             </div>
-            <!-- <div
-              v-if="(row.original.ship_id as Ship)?.modules?.length"
-              class="mt-4"
-            >
+            <!-- <div v-if="getShipModules(getShip(row.original)).length" class="mt-4">
               <p class="text-(--ui-primary)">Module</p>
               <UBadge
-                v-for="module in ((row.original.ship_id as Ship)?.modules as ShipModule[])"
+                v-for="module in getShipModules(getShip(row.original))"
                 :key="module.id"
                 :label="module.name"
                 variant="subtle"
@@ -268,7 +291,7 @@ watch(props, () => {
             <!-- <div class="mt-4">
               <p class="text-(--ui-primary)">Module</p>
               <UBadge
-                v-for="module in ((row.original.ship_id as Ship)?.modules as ShipModule[])"
+                v-for="module in getShipModules(getShip(row.original))"
                 :key="module.id"
                 :label="module.name"
                 variant="subtle"
@@ -276,6 +299,9 @@ watch(props, () => {
               />
             </div> -->
           </div>
+        </div>
+        <div v-else class="p-4 text-sm text-(--ui-text-muted)">
+          Keine Schiffsdaten verfügbar.
         </div>
       </template>
     </UTable>

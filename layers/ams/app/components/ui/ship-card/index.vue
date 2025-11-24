@@ -207,13 +207,13 @@ async function handleRemove() {
             <UModal
               :ui="{
                 content:
-                  'rounded-lg shadow-lg ring ring-default max-w-none max-h-none min-w-[calc(100vw-2rem)] min-h-[calc(100vh-2rem)]',
+                  'rounded-lg overflow-y-auto shadow-lg ring ring-default max-w-none max-h-none min-w-[calc(100vw-2rem)] min-h-[calc(100vh-2rem)]',
               }"
             >
               <button class="not-prose">
                 <h3
                   class="text-lg w-fit font-semibold text-white group-hover:text-shadow-primary group-hover:text-shadow-xs transition-all duration-300 hover:text-xl group-hover:text-(--ui-primary) !my-0"
-              >
+                >
                   {{ ship.name }}
                 </h3>
               </button>

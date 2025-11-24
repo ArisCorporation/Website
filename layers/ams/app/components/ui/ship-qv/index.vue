@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import type { Ship } from '~~/types'
+import type {
+  Company,
+  Ship,
+  ShipPaint,
+  ShipRating,
+  ShipsLoaner,
+  ShipsVariant,
+} from '~~/types'
 
 type QuickViewItemValue = string | number | Array<string | number>
 type QuickViewItem = {
@@ -9,7 +16,6 @@ type QuickViewItem = {
   link?: string | null
 }
 type QuickViewRow = {
-  // Controls whether the row is rendered with 2 or 3 columns.
   columns?: 2 | 3
   items: QuickViewItem[]
 }
@@ -27,8 +33,118 @@ type QuickViewTab = {
   disabled?: boolean
 }
 
+type EntityWithId = { id?: unknown }
+const isEntityWithId = <T extends EntityWithId>(value: unknown): value is T =>
+  typeof value === 'object' && value !== null && 'id' in value
+
+const resolveShip = (value: unknown): Ship | null =>
+  isEntityWithId<Ship>(value) ? value : null
+const resolveCompany = (value: unknown): Company | null =>
+  isEntityWithId<Company>(value) ? value : null
+const resolveShipRating = (value: unknown): ShipRating | null =>
+  isEntityWithId<ShipRating>(value) ? value : null
+
 const props = defineProps<{ ship?: Ship | null }>()
-const ship = computed(() => props.ship ?? null)
+const currentShip = computed<Ship | null>(() => resolveShip(props.ship))
+const manufacturer = computed(() =>
+  resolveCompany(currentShip.value?.manufacturer)
+)
+const rating = computed(() => resolveShipRating(currentShip.value?.rating))
+
+const formatNumberWithUnit = (
+  value?: number | null,
+  unit?: string,
+  fractionDigits = 0
+) =>
+  typeof value === 'number'
+    ? `${value.toLocaleString('de-DE', {
+        maximumFractionDigits: fractionDigits,
+      })}${unit ? ` ${unit}` : ''}`
+    : 'N/A'
+const formatMeters = (value?: number | null) =>
+  formatNumberWithUnit(value, 'm', 1)
+const formatScu = (value?: number | null) => formatNumberWithUnit(value, 'SCU')
+const formatSpeed = (value?: number | null) =>
+  formatNumberWithUnit(value, 'm/s')
+const formatMass = (value?: number | null) =>
+  typeof value === 'number'
+    ? `${(value / 1000).toLocaleString('de-DE', {
+        maximumFractionDigits: 1,
+      })} Tonnen`
+    : 'N/A'
+const currencyFormatter = new Intl.NumberFormat('de-DE', {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 0,
+})
+const formatCurrencyValue = (value?: number | null) =>
+  typeof value === 'number' ? currencyFormatter.format(value) : 'N/A'
+
+const crewLabel = computed(() => {
+  const min = currentShip.value?.crew_min
+  const max = currentShip.value?.crew_max
+  if (min !== null && min !== undefined) {
+    return `${min} - ${max ?? '?'}`
+  }
+  if (max !== null && max !== undefined) return `${min ?? '?'} - ${max}`
+  return 'N/A'
+})
+
+const sizeLabel = computed(() => {
+  if (currentShip.value?.size_label) return currentShip.value.size_label
+  if (currentShip.value?.size)
+    return String(currentShip.value.size).toUpperCase()
+  return 'N/A'
+})
+
+const manufacturerName = computed(() => manufacturer.value?.name ?? 'N/A')
+const manufacturerSlug = computed(() => manufacturer.value?.slug ?? null)
+
+const loanerName = computed(() => {
+  const loaners = currentShip.value?.loaners
+  if (!Array.isArray(loaners)) return 'N/A'
+  const loanerShip = resolveShip(
+    loaners.find((loaner): loaner is ShipsLoaner =>
+      isEntityWithId<ShipsLoaner>(loaner)
+    )?.loaner_id
+  )
+  return loanerShip?.name ?? 'N/A'
+})
+
+const variantShips = computed<Ship[]>(() => {
+  const variants = currentShip.value?.variants
+  if (!Array.isArray(variants)) return []
+  return variants
+    .filter((variant): variant is ShipsVariant =>
+      isEntityWithId<ShipsVariant>(variant)
+    )
+    .map((variant) => resolveShip(variant.variant_id))
+    .filter((variant): variant is Ship => Boolean(variant))
+})
+
+const paints = computed<ShipPaint[]>(() => {
+  const list = currentShip.value?.paints
+  if (!Array.isArray(list)) return []
+  return list.filter((paint): paint is ShipPaint =>
+    isEntityWithId<ShipPaint>(paint)
+  )
+})
+
+const descriptionText = computed(
+  () =>
+    currentShip.value?.description?.trim() || 'Keine Beschreibung vorhanden.'
+)
+const historyText = computed(() => currentShip.value?.history?.trim() || '')
+const ratingText = computed(
+  () => rating.value?.introduction?.trim() || 'Keine Bewertung hinterlegt.'
+)
+const commercialText = computed(() =>
+  currentShip.value?.commercial_video_id ||
+  (Array.isArray(currentShip.value?.commercials) &&
+    currentShip.value.commercials?.length)
+    ? 'Commercial verfügbar.'
+    : 'Keine Commercial hinterlegt.'
+)
 
 const leftTabs = [
   { label: 'Beschreibung', slot: 'description' },
@@ -36,222 +152,169 @@ const leftTabs = [
   { label: 'Bewertung', slot: 'rating' },
 ]
 
-const formatMeters = (value?: number | null) =>
-  value || value === 0 ? `${value.toLocaleString('de-DE')} m` : 'N/A'
-
-const formatScu = (value?: number | null) =>
-  value || value === 0 ? `${value} SCU` : 'N/A'
-
-const formatCurrencyValue = (value?: number | null) =>
-  value || value === 0 ? `${value}$` : 'N/A'
-
-const crewLabel = computed(() => {
-  const min = ship.value?.crew_min
-  const max = ship.value?.crew_max
-  if (min || max) return `${min ?? '?'} - ${max ?? '?'}`
-  return 'N/A'
-})
-
-const sizeLabel = computed(() => {
-  if (ship.value?.size_label) return ship.value.size_label
-  if (ship.value?.size) return String(ship.value.size).toUpperCase()
-  return 'N/A'
-})
-
-const manufacturerName = computed(() => {
-  const value = ship.value?.manufacturer
-  if (value && typeof value !== 'string') return value.name ?? 'N/A'
-  return 'N/A'
-})
-
-const manufacturerSlug = computed(() => {
-  const value = ship.value?.manufacturer
-  if (value && typeof value !== 'string') return value.slug ?? null
-  return null
-})
-
-const loanerName = computed(() => {
-  const loaners = ship.value?.loaners
-  if (Array.isArray(loaners) && loaners[0] && typeof loaners[0] === 'object') {
-    const loanerShip = (loaners[0] as any)?.loaner_id as Ship | undefined
-    if (loanerShip && typeof loanerShip !== 'string') {
-      return loanerShip.name ?? 'N/A'
-    }
-  }
-  return 'N/A'
-})
-
-const dataCards = computed<QuickViewCard[]>(() => [
-  {
-    tabs: [
-      {
-        title: 'Basis Daten',
-        icon: 'i-lucide-user',
-        rows: [
-          {
-            columns: 3,
-            items: [
-              {
-                label: 'Hersteller',
-                value: manufacturerName.value,
-                link: manufacturerSlug.value
-                  ? `/verseexkurs/companies/${manufacturerSlug.value}`
-                  : null,
-              },
-              { label: 'Modell', value: ship.value?.name ?? 'N/A' },
-              { label: 'Loaner', value: loanerName.value },
-            ],
-          },
-          {
-            columns: 2,
-            items: [
-              {
-                label: 'Rolle',
-                value: ship.value?.focuses?.length
-                  ? getMainFocusLabel(ship.value.focuses)
-                  : 'N/A',
-              },
-              {
-                label: 'Größe',
-                value: sizeLabel.value,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        title: 'Kapazität',
-        icon: 'i-lucide-package',
-        rows: [
-          {
-            columns: 2,
-            items: [
-              { label: 'Crew', value: crewLabel.value },
-              { label: 'Fracht', value: formatScu(ship.value?.cargo) },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    title: 'Pledge',
-    icon: 'i-lucide-wallet',
-    rows: [
-      {
-        columns: 3,
-        items: [
-          {
-            label: 'Pledge',
-            value: formatCurrencyValue(ship.value?.pledge_price),
-          },
-          { label: 'Warbond', value: formatCurrencyValue(ship.value?.price) },
-          {
-            label: 'Originalpreis',
-            value: formatCurrencyValue(ship.value?.price),
-          },
-        ],
-      },
-    ],
-  },
-  {
-    title: 'Spezifikationen',
-    icon: 'i-lucide-activity-square',
-    rows: [
-      {
-        columns: 3,
-        items: [
-          { label: 'Länge', value: formatMeters(ship.value?.length) },
-          { label: 'Breite', value: formatMeters(ship.value?.beam) },
-          { label: 'Höhe', value: formatMeters(ship.value?.height) },
-        ],
-      },
-      {
-        columns: 3,
-        items: [
-          {
-            label: 'SCM Geschwindigkeit',
-            value: 200,
-            slider: 600,
-          },
-          {
-            label: 'Nav Geschwindigkeit',
-            value: ship.value?.speed_max ?? 'N/A',
-          },
-          {
-            label: 'Masse',
-            value:
-              ship.value?.mass || ship.value?.mass === 0
-                ? `${(ship.value.mass / 1000).toLocaleString('de-DE')} Tonnen`
-                : 'N/A',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    title: 'Entwicklung',
-    icon: 'i-lucide-flask-conical',
-    rows: [
-      {
-        columns: 3,
-        items: [
-          { label: 'Angekündigt', value: ship.value?.production_note ?? 'N/A' },
-          { label: 'Flight-Ready', value: ship.value?.live_patch ?? 'N/A' },
-          { label: 'Patch Version', value: ship.value?.p4k_version ?? 'N/A' },
-        ],
-      },
-    ],
-  },
-])
-
-const variantCards = computed<QuickViewCard[]>(() => {
-  const variants = ship.value?.variants
-  if (!Array.isArray(variants) || !variants.length) return []
-
-  const variantNames = variants
-    .map((variant: any) => variant?.variant_id as Ship | undefined)
-    .filter((v): v is Ship => !!v && typeof v !== 'string')
-
-  if (!variantNames.length) return []
-
+const dataCards = computed<QuickViewCard[]>(() => {
+  const ship = currentShip.value
   return [
     {
-      title: 'Varianten',
-      icon: 'i-lucide-layers',
+      tabs: [
+        {
+          title: 'Basis Daten',
+          icon: 'i-lucide-user',
+          rows: [
+            {
+              columns: 3,
+              items: [
+                {
+                  label: 'Hersteller',
+                  value: manufacturerName.value,
+                  link: manufacturerSlug.value
+                    ? `/verseexkurs/companies/${manufacturerSlug.value}`
+                    : null,
+                },
+                { label: 'Modell', value: ship?.name ?? 'N/A' },
+                { label: 'Loaner', value: loanerName.value },
+              ],
+            },
+            {
+              columns: 2,
+              items: [
+                {
+                  label: 'Rolle',
+                  value: ship?.focuses?.length
+                    ? getMainFocusLabel(ship.focuses)
+                    : 'N/A',
+                },
+                {
+                  label: 'Größe',
+                  value: sizeLabel.value,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          title: 'Kapazität',
+          icon: 'i-lucide-package',
+          rows: [
+            {
+              columns: 2,
+              items: [
+                { label: 'Crew', value: crewLabel.value },
+                { label: 'Fracht', value: formatScu(ship?.cargo) },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Pledge',
+      icon: 'i-lucide-wallet',
       rows: [
         {
-          columns: 2,
-          items: variantNames.map((variant) => ({
-            label: variant.name ?? 'Variante',
-            value: variant.name ?? 'N/A',
-          })),
+          columns: 3,
+          items: [
+            {
+              label: 'Pledge',
+              value: formatCurrencyValue(ship?.pledge_price),
+            },
+            { label: 'Warbond', value: formatCurrencyValue(ship?.price) },
+            {
+              label: 'Originalpreis',
+              value: formatCurrencyValue(ship?.price),
+            },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Spezifikationen',
+      icon: 'i-lucide-activity-square',
+      rows: [
+        {
+          columns: 3,
+          items: [
+            { label: 'Länge', value: formatMeters(ship?.length) },
+            { label: 'Breite', value: formatMeters(ship?.beam) },
+            { label: 'Höhe', value: formatMeters(ship?.height) },
+          ],
+        },
+        {
+          columns: 3,
+          items: [
+            {
+              label: 'SCM Geschwindigkeit',
+              value: formatSpeed(ship?.speed_scm),
+              slider: ship?.speed_max ?? undefined,
+            },
+            {
+              label: 'Nav Geschwindigkeit',
+              value: formatSpeed(ship?.speed_max),
+            },
+            {
+              label: 'Masse',
+              value: formatMass(ship?.mass),
+            },
+          ],
+        },
+      ],
+    },
+    {
+      title: 'Entwicklung',
+      icon: 'i-lucide-flask-conical',
+      rows: [
+        {
+          columns: 3,
+          items: [
+            { label: 'Angekündigt', value: ship?.production_note ?? 'N/A' },
+            { label: 'Flight-Ready', value: ship?.live_patch ?? 'N/A' },
+            { label: 'Patch Version', value: ship?.p4k_version ?? 'N/A' },
+          ],
         },
       ],
     },
   ]
 })
 
-const paintsCards = computed<QuickViewCard[]>(() => {
-  const paints = ship.value?.paints
-  if (!Array.isArray(paints) || !paints.length) return []
-
-  return [
-    {
-      title: 'Paints',
-      icon: 'i-lucide-droplets',
-      rows: [
+const variantCards = computed<QuickViewCard[]>(() =>
+  variantShips.value.length
+    ? [
         {
-          columns: 2,
-          items: paints.map((paint: any) => ({
-            label: paint?.name ?? 'Paint',
-            value: paint?.name ?? 'N/A',
-          })),
+          title: 'Varianten',
+          icon: 'i-lucide-layers',
+          rows: [
+            {
+              columns: 2,
+              items: variantShips.value.map((variant) => ({
+                label: variant.name ?? 'Variante',
+                value: variant.name ?? 'N/A',
+              })),
+            },
+          ],
         },
-      ],
-    },
-  ]
-})
+      ]
+    : []
+)
+
+const paintsCards = computed<QuickViewCard[]>(() =>
+  paints.value.length
+    ? [
+        {
+          title: 'Paints',
+          icon: 'i-lucide-droplets',
+          rows: [
+            {
+              columns: 2,
+              items: paints.value.map((paint) => ({
+                label: paint.name ?? 'Paint',
+                value: paint.name ?? 'N/A',
+              })),
+            },
+          ],
+        },
+      ]
+    : []
+)
 
 const quickViewTabs = computed<QuickViewTab[]>(() => [
   { label: 'Daten', slot: 'data', cards: dataCards.value },
@@ -283,8 +346,8 @@ const rightTabs = computed(() =>
     <div class="col-span-7 space-y-2 m-2">
       <NuxtImg
         :src="
-          ship?.store_image
-            ? getAssetId(ship.store_image)
+          currentShip?.store_image
+            ? getAssetId(currentShip.store_image)
             : '7c2783d5-5e37-44bd-a085-2494b354792a'
         "
         class="w-full h-auto rounded-lg shadow-lg object-cover border border-primary/10"
@@ -300,15 +363,70 @@ const rightTabs = computed(() =>
           }"
         >
           <template #description>
-            <span class="text-sm"
-              >Lorem ipsum dolor sit amet, consectetur adipiscing elit. Bibendum
-              accumsan dictum sapien sit praesent sit enim justo proin
-              consectetur felis litora. Venenatis a magnis mollis tellus et ac
-              etiam nunc proin vehicula fusce euismod. Scelerisque blandit donec
-              sociosqu sollicitudin mollis egestas vehicula nullam porttitor
-              felis velit nullam. Senectus vestibulum cum sociosqu euismod sem
-              ullamcorper auctor pulvinar pharetra nisl lorem nunc.</span
-            >
+            <div class="space-y-2 text-sm leading-relaxed">
+              <!-- <p class="text-(--ui-text) whitespace-pre-line">
+                {{ descriptionText }}
+              </p> -->
+              <UiEditor :model-value="descriptionText" read-only />
+            </div>
+          </template>
+          <template #commercial>
+            <div class="space-y-3 text-sm leading-relaxed">
+              <p class="text-(--ui-text-muted)">{{ commercialText }}</p>
+              <div
+                v-if="currentShip?.store_url || currentShip?.sales_url"
+                class="flex gap-2"
+              >
+                <UButton
+                  v-if="currentShip?.store_url"
+                  size="xs"
+                  color="primary"
+                  variant="solid"
+                  :to="currentShip.store_url"
+                  target="_blank"
+                  icon="i-lucide-external-link"
+                >
+                  Pledge Store
+                </UButton>
+                <UButton
+                  v-if="currentShip?.sales_url"
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  :to="currentShip.sales_url"
+                  target="_blank"
+                  icon="i-lucide-play-circle"
+                >
+                  Commercial ansehen
+                </UButton>
+              </div>
+            </div>
+          </template>
+          <template #rating>
+            <div class="space-y-2 text-sm leading-relaxed">
+              <p class="text-(--ui-text) whitespace-pre-line">
+                {{ ratingText }}
+              </p>
+              <div
+                v-if="rating?.ratings?.length"
+                class="grid grid-cols-2 gap-2 text-xs font-mono uppercase"
+              >
+                <div
+                  v-for="item in rating.ratings"
+                  :key="item.category"
+                  class="flex items-center justify-between rounded border border-(--ui-primary)/15 bg-(--ui-bg-muted)/40 px-2 py-1"
+                >
+                  <span class="text-(--ui-text-muted)">
+                    {{ item.category.replaceAll('_', ' ') }}
+                  </span>
+                  <UBadge
+                    :label="item.grade.replaceAll('_', ' ')"
+                    size="xs"
+                    variant="subtle"
+                  />
+                </div>
+              </div>
+            </div>
           </template>
         </UTabs>
       </UCard>
