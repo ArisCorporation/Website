@@ -22,6 +22,7 @@ type QuickViewRow = {
 type QuickViewCardTable = {
   title: string
   icon: string
+  uexDisclaimer?: boolean
   rows?: QuickViewRow[]
 }
 type QuickViewCardGroup = QuickViewCardTable | QuickViewCardTable[]
@@ -228,6 +229,7 @@ const dataCards = computed<QuickViewCardGroup[]>(() => {
       {
         title: 'In-Game',
         icon: 'i-lucide-currency',
+        uexDisclaimer: true,
         rows: [
           {
             columns: 2,
@@ -296,12 +298,12 @@ const dataCards = computed<QuickViewCardGroup[]>(() => {
             {
               label: 'SCM Geschwindigkeit',
               value: formatSpeed(ship?.speed_scm),
-              slider: 1000,
+              slider: 250,
             },
             {
               label: 'Nav Geschwindigkeit',
               value: formatSpeed(ship?.speed_max),
-              slider: 1000,
+              slider: 1500,
             },
           ],
         },
@@ -311,17 +313,17 @@ const dataCards = computed<QuickViewCardGroup[]>(() => {
             {
               label: 'Rollrate',
               value: formatSpeed(ship?.speed_scm),
-              slider: 1000,
+              slider: 100,
             },
             {
               label: 'Pitchrate',
               value: formatSpeed(ship?.speed_max),
-              slider: 1000,
+              slider: 100,
             },
             {
               label: 'Yawrate',
               value: formatSpeed(ship?.speed_max),
-              slider: 1000,
+              slider: 250,
             },
           ],
         },
@@ -334,9 +336,9 @@ const dataCards = computed<QuickViewCardGroup[]>(() => {
         {
           columns: 3,
           items: [
-            { label: 'Angekündigt', value: ship?.production_note ?? 'N/A' },
             { label: 'Flight-Ready', value: ship?.live_patch ?? 'N/A' },
             { label: 'Patch Version', value: ship?.p4k_version ?? 'N/A' },
+            { label: 'Datenstand', value: ship?.production_note ?? 'N/A' },
           ],
         },
       ],

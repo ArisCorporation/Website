@@ -2,6 +2,7 @@
 defineProps<{
   title: string
   icon: string
+  uexDisclaimer?: boolean
   rows: {
     columns: 2 | 3
     items: {
@@ -71,5 +72,11 @@ defineProps<{
         <USeparator color="ams" />
       </div>
     </template>
+    <NuxtImg
+      src="3390759c-7f0a-4077-a235-3f48414b1c4d"
+      alt="UEX Partnered"
+      v-if="$props.uexDisclaimer"
+      class="w-24 mt-2 ml-auto"
+    />
   </div>
 </template>
