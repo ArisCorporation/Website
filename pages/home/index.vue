@@ -112,6 +112,7 @@ const { data: userHangars } = await useAsyncData(
           visibility: { _eq: 'public' },
           group: { _eq: 'ariscorp' },
           planned: { _eq: false },
+          deleted: { _eq: false },
         },
         sort: ['ship_id.name'],
         limit: -1,
