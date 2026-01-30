@@ -162,7 +162,7 @@ const handleEdit = () => {
                   ? '/verseexkurs/technology/attachments/'
                   : type === 'weapons'
                   ? '/verseexkurs/technology/weapons/'
-                  : '/shipexkurs/ships/') + shipData.slug
+                  : '/shipexkurs/ships/') + shipData.id
               : ''
           "
           :role="!moduleView ? 'link' : 'button'"
@@ -170,14 +170,18 @@ const handleEdit = () => {
           @click="quickView ? $emit('quickViewOpen', shipData.id) : moduleView ? $emit('module-open', shipData) : null"
         >
           <NuxtImg
-            :src="shipData.store_image"
+            :src="
+              shipData.thumbnail?.id
+                ? 'https://assets.ariscorp.de/' + shipData.thumbnail.id
+                : 'https://assets.ariscorp.de/3efbbd97-b3b0-46b7-86bf-9d6e32e7fec3'
+            "
             :placeholder="[16, 16, 1, 5]"
             :preload="preloadImages"
             height="200"
             class="absolute object-cover w-full h-full"
             draggable="false"
           />
-          <div
+          <!-- <div
             v-if="displayProductionState || displayLoanerState"
             class="absolute top-1 left-2 text-stroke"
             :class="{
@@ -196,7 +200,7 @@ const handleEdit = () => {
             >
               Versteckt
             </p>
-          </div>
+          </div> -->
           <div
             v-if="displayDepartment && hangarData.userData.department && hangarData.userData.department.logo"
             class="absolute z-10 flex flex-row-reverse h-16 right-2 top-1"
@@ -233,10 +237,10 @@ const handleEdit = () => {
             </div>
           </NuxtLink>
           <NuxtLink
-            :to="'/verseexkurs/companies/' + shipData.manufacturer.slug"
+            :to="'/verseexkurs/companies/' + shipData.ship.manufacturer.slug"
             class="z-20 min-w-0 min-h-0 mt-auto text-xs text-white opacity-50 w-fit h-fit transition-group hover:no-underline hover:opacity-100 animate-link"
             :class="{ 'max-w-[calc(100%_-_60px)]': displayCrud }"
-            >{{ shipData.manufacturer.name }}
+            >{{ shipData.ship.manufacturer.name }}
           </NuxtLink>
           <NuxtLink
             v-if="displayOwner"
@@ -325,14 +329,26 @@ const handleEdit = () => {
           class="w-full px-1 ease-in-out overflow-clip transition-default bg-bprimary"
         >
           <div class="grid grid-cols-6 px-4 py-2 text-xs uppercase">
-            <TableRow title="Klassifizierung" :content="shipData.classification" />
-            <TableRow title="Crew" :content="(shipData.crew_min || 'N/A') + ' - ' + (shipData.crew_max || 'N/A')" />
+            <TableRow title="Klassifizierung" :content="'TBD'" />
+            <TableRow title="Crew" :content="(shipData.crew_min || 'N/A') + ' - ' + (shipData.stats.crew || 'N/A')" />
             <TableRow title="Kaufpreis" :content="shipData.price && shipData.price + ' aUEC'" />
-            <TableRow title="Fracht" :content="shipData.cargo" />
+            <TableRow title="Fracht" :content="shipData.stats.cargo" />
             <TableHr />
-            <TableRow title="Länge" :content="shipData.length && shipData.length + ' M'" third />
-            <TableRow title="Breite" :content="shipData.beam && shipData.beam + ' M'" third />
-            <TableRow title="Höhe" :content="shipData.height && shipData.height + ' M'" third />
+            <TableRow
+              title="Länge"
+              :content="shipData.stats.dimensions.length && shipData.stats.dimensions.length + ' M'"
+              third
+            />
+            <TableRow
+              title="Breite"
+              :content="shipData.stats.dimensions.width && shipData.stats.dimensions.width + ' M'"
+              third
+            />
+            <TableRow
+              title="Höhe"
+              :content="shipData.stats.dimensions.height && shipData.stats.dimensions.height + ' M'"
+              third
+            />
             <template v-if="hangarData">
               <TableHr />
               <TableRow title="Aktives Modul" :content="hangarData.userData.module?.name" full-width />

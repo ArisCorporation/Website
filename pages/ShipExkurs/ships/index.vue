@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const { directus, readItems, readField } = useCMS();
+import { readItems, readUsers } from '@directus/sdk';
+
+const { directus, readField } = useCMS();
 const userSettings = useUserSettingsStore();
 const { se: settings } = storeToRefs(userSettings);
 
@@ -20,230 +22,65 @@ const typeOptions = [
   { id: 'ships', label: 'Schiffe' },
   { id: 'ground', label: 'Fahrzeuge' },
 ];
-const sizeOptions = [
-  { id: '', label: 'Alle' },
-  { id: 'v', label: 'V - Bodenfahrzeug' },
-  { id: '1', label: 'XXS - Snub' },
-  { id: '2', label: 'XS - Sehr Klein' },
-  { id: '3', label: 'S - Klein' },
-  { id: '4', label: 'M - Mittel' },
-  { id: '5', label: 'L - Groß' },
-  { id: '6', label: 'XL - Capital' },
-];
-const manuOptions = ref([{ id: '', label: 'Alle', code: 'Alle' }]);
-const classOptions = ref([{ id: '', label: 'Alle' }]);
-const shipType = ref<{ id: string; label: string } | null>(typeOptions[0]);
-const shipSize = ref<{ id: string; label: string }[]>([sizeOptions[0]]);
-const shipManu = ref<{ id: string; label: string; code: string }[]>([manuOptions.value[0]]);
-const shipClass = ref<{ id: string; label: string }>(classOptions.value[0]);
 
-watch(shipType, () => {
-  if (!shipType.value) {
-    return (shipType.value = typeOptions[0]);
-  }
-});
-function arraysEqual(a, b) {
-  if (a === b) return true;
-  if (a == null || b == null) return false;
-  if (a.length !== b.length) return false;
-
-  // If you don't care about the order of the elements inside
-  // the array, you should sort both arrays here.
-  // Please note that calling sort on an array will modify that array.
-  // you might want to clone your array first.
-
-  for (let i = 0; i < a.length; ++i) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-watch(shipSize, (newShipSize, oldShipSize) => {
-  if (!arraysEqual(newShipSize, oldShipSize)) {
-    if (!newShipSize || newShipSize.length === 0) {
-      shipSize.value = [sizeOptions[0]];
-    } else if (newShipSize.find((size) => !oldShipSize.includes(size))?.label === 'Alle') {
-      shipSize.value = [sizeOptions[0]];
-    } else if (newShipSize.length !== 1 && newShipSize[0] !== sizeOptions[0]) {
-      shipSize.value = newShipSize.filter((size) => size?.label !== 'Alle');
-    }
-  }
-});
-watch(shipManu, (newShipManu, oldShipManu) => {
-  if (!arraysEqual(newShipManu, oldShipManu)) {
-    if (
-      (!oldShipManu.includes(manuOptions.value[0]) && newShipManu.includes(manuOptions.value[0])) ||
-      !newShipManu.length
-    ) {
-      shipManu.value = [manuOptions.value[0]];
-    } else {
-      shipManu.value = newShipManu.filter((manu) => manu?.label !== 'Alle');
-    }
-  }
-});
-
-useSearch(shipType, shipType, {
-  query: true,
-  debounce: false,
-  query_name: 'type',
-  options: typeOptions,
-});
-useSearch(
-  computed(() => shipSize.value?.map((size) => size.id)),
-  shipSize,
-  {
-    query: true,
-    debounce: false,
-    query_name: 'size',
-    options: sizeOptions,
-  },
-);
-
-const filter = computed(() => ({
-  ...(search.value && {
-    _or: [
-      { name: { _icontains: search.value } },
-      { manufacturer: { name: { _icontains: search.value } } },
-      { manufacturer: { code: { _icontains: search.value } } },
-    ],
-    status: { _eq: 'published' },
-  }),
-  _and: [
-    {
-      _or: [
-        ...(shipType.value?.id
-          ? [
-              {
-                gravlev: { _neq: shipType.value?.id === 'ships' ? true : false },
-              },
-              {
-                ground: { _neq: shipType.value?.id === 'ships' ? true : false },
-              },
-            ]
-          : []),
-      ],
-    },
-    {
-      _or: [
-        !shipManu.value.includes(manuOptions.value[0]) && shipManu.value.length
-          ? {
-              manufacturer: { _in: shipManu.value.map((manu) => manu.id) },
-            }
-          : {},
-      ].filter(Boolean),
-    },
-    {
-      _or: [
-        ...(shipClass.value?.id
-          ? [
-              {
-                classification: { _eq: shipClass.value?.id },
-              },
-            ]
-          : []),
-      ],
-    },
-    {
-      _or: [
-        !shipSize.value.includes(sizeOptions[0]) && shipSize.value.length
-          ? {
-              size: { _in: shipSize.value.map((manu) => manu.id) },
-            }
-          : {},
-      ].filter(Boolean),
-    },
-  ],
-}));
-
-function resetFilters() {
-  shipType.value = typeOptions[0];
-  shipSize.value = [sizeOptions[0]];
-}
-
-const { data: count, pending: countPending } = await useAsyncData(
-  'SE_HOME:COUNT',
+const { data: users } = await useAsyncData(
+  'HOME:USERS',
   () =>
     directus.request(
-      readItems('ships', {
+      readUsers({
+        fields: [
+          'id',
+          'title',
+          'first_name',
+          'last_name',
+          'slug',
+          'avatar',
+          'roles',
+          'head_of_department',
+          'role.id',
+          'role.label',
+        ],
+        filter: {
+          status: { _eq: 'active' },
+          hidden: { _eq: false },
+        },
         limit: -1,
-        fields: ['id'],
-        filter: filter.value,
+        sort: ['first_name'],
       }),
     ),
-  { watch: [filter, page, computed(() => settings.value.pageCount)] },
-);
-
-watch(
-  [count],
-  () => {
-    if (count.value) {
-      pageTotal.value = count.value.length;
-    }
+  {
+    transform: (rawUsers) => rawUsers.map((rawUser) => transformUser(rawUser)),
   },
-  { immediate: true },
-);
-watch([filter], () => {
-  page.value = 1;
-  console.log(shipSize);
-});
-
-const { data: ships, pending: shipsPending } = await useAsyncData(
-  'SE_HOME:SHIPS',
-  () =>
-    directus.request(
-      readItems('ships', {
-        fields: ['id', 'name', 'slug', 'store_image', 'production_status', 'manufacturer.name', 'manufacturer.slug'],
-        sort: ['name'],
-        limit: settings.value.pageCount,
-        page: page.value,
-        filter: filter.value,
-      }),
-    ),
-  { watch: [count], transform: (rawShips: any[]) => rawShips.map((rawShip: any) => transformShip(rawShip)) },
 );
 
-const { data: shipsManuRes } = await useAsyncData('SE_HOME:SHIPS_MANU', () =>
+const { data: shipVariants } = await useAsyncData('SHIPEXKURS:SHIPV', () =>
   directus.request(
-    readItems('ships', {
-      fields: ['manufacturer.id', 'manufacturer.name', 'manufacturer.code'],
+    readItems('ship_variants', {
+      fields: [
+        'id',
+        'name',
+        'stats',
+        { thumbnail: ['id'] },
+        {
+          ship: [
+            {
+              manufacturer: [
+                'id',
+                'name',
+                'slug',
+                {
+                  logo: ['id'],
+                },
+              ],
+            },
+          ],
+        },
+      ],
       sort: ['name'],
       limit: -1,
     }),
   ),
 );
-const { data: shipsClassRes } = await useAsyncData(
-  'SE_HOME:SHIPS_CLASSES',
-  () => directus.request(readField('ships', 'classification')),
-  {
-    transform: (rawField: any) =>
-      rawField?.meta?.options?.choices.map((choice: { value: string; text: string }) => ({
-        id: choice.value,
-        label: choice.text,
-      })),
-  },
-);
-classOptions.value.push(...shipsClassRes.value);
-
-function setManuOptions() {
-  const options: any[] = [];
-
-  shipsManuRes.value?.forEach((ship) => {
-    if (options.find((manu) => manu.id === ship.manufacturer?.id)) {
-      return;
-    } else {
-      options.push({ id: ship.manufacturer?.id, label: ship.manufacturer?.name, code: ship.manufacturer?.code });
-    }
-  });
-
-  manuOptions.value = [manuOptions.value[0], ...options.sort((a, b) => a.label.localeCompare(b.label))];
-}
-setManuOptions();
-
-useSearch(search, search_input_value, {
-  debounce: true,
-  query: true,
-  typingAction: () => (hideShips.value = true),
-  debounceAction: () => (hideShips.value = false),
-});
 
 defineShortcuts({
   s: {
@@ -287,7 +124,7 @@ useHead({
       </div>
     </div>
     <hr />
-    <div class="flex flex-wrap justify-between mb-6 xl:flex-nowrap h-fit basis-full">
+    <!-- <div class="flex flex-wrap justify-between mb-6 xl:flex-nowrap h-fit basis-full">
       <ButtonDefault
         class="my-auto h-fit basis-full xl:basis-auto"
         :disabled="shipType?.label === 'Alle' && shipSize[0].label === 'Alle' ? true : false"
@@ -302,6 +139,7 @@ useHead({
           :options="typeOptions"
           :option-label="(option: any) => option.label"
           :selected-label="shipType?.label"
+            v-if="!hideShips && !countPending && !shipsPending"
           no-selected-label="Alle"
         />
       </UFormGroup>
@@ -343,7 +181,6 @@ useHead({
           no-selected-label="Alle"
         />
       </UFormGroup>
-      <!-- class="w-64 pt-2 pr-2 xl:p-0 basis-full xl:basis-auto" -->
       <UFormGroup
         label="Hersteller"
         class="w-48 pt-2 pl-2 basis-1/2 xl:basis-auto xl:p-0"
@@ -368,10 +205,10 @@ useHead({
           multiple
         />
       </UFormGroup>
-    </div>
+    </div> -->
     <hr />
 
-    <div class="w-full mx-auto mb-2 text-center">
+    <!-- <div class="w-full mx-auto mb-2 text-center">
       <div class="relative flex justify-center">
         <UPagination v-model="page" :page-count="settings.pageCount" :total="pageTotal" />
         <div class="w-fit flex gap-1.5 items-center right-0 absolute">
@@ -390,7 +227,7 @@ useHead({
           Ergebnissen
         </span>
       </div>
-    </div>
+    </div> -->
     <div class="flex flex-wrap">
       <ClientOnly>
         <TransitionGroup
@@ -402,9 +239,9 @@ useHead({
           leave-from-class="translate-y-0 opacity-100"
           leave-to-class="opacity-0 -translate-y-0"
         >
+          <!-- v-if="!hideShips && !countPending && !shipsPending" -->
           <ShipCard
-            v-for="item in ships"
-            v-if="!hideShips && !countPending && !shipsPending"
+            v-for="item in shipVariants"
             :key="item.id"
             :ship-data="item"
             :detail-view="userSettings.se.shipDetailView"

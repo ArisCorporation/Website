@@ -1040,131 +1040,105 @@ export type ShipRatings = {
   user_updated?: string | DirectusUsers | null;
 };
 
-export type Ships = {
-  acceleration_main?: number | null;
-  acceleration_maneuvering?: number | null;
-  acceleration_retro?: number | null;
-  acceleration_vtol?: number | null;
-  api_ids: string;
-  base_data: string;
-  beam?: number | null;
-  brochure?: string | DirectusFiles | null;
-  cargo?: number | null;
-  categorization: string;
-  classification?: string | null;
-  commercial?: string | DirectusFiles | null;
-  commercial_video_id?: string | null;
-  commercials: any[] | ShipsCommercials[];
-  coolers?: unknown | null;
-  crew: string;
-  crew_max?: string | null;
-  crew_min?: number | null;
+export type ShipVariants = {
   date_created?: string | null;
   date_updated?: string | null;
-  description?: string | null;
-  dimensions: string;
-  erkul_id?: string | null;
-  field_overwrite?: unknown | null;
-  files: string;
-  fl_id?: string | null;
-  focuses?: unknown | null;
-  gallery: any[] | ShipsGallery[];
-  gravlev?: boolean | null;
-  ground?: boolean | null;
-  height?: number | null;
-  history?: string | null;
-  hologram?: string | DirectusFiles | null;
-  hydrogen_fuel_tanks?: unknown | null;
+  external_refs?: unknown | null;
+  hardpoints: any[] | Hardpoints[];
   id: string;
-  insurance_claim_time?: number | null;
-  insurance_data: string;
-  insurance_expedited_cost?: number | null;
-  insurance_expedited_time?: number | null;
-  length?: number | null;
-  live_patch?: string | null;
-  loaners: any[] | ShipsLoaners[];
-  main_thrusters?: unknown | null;
-  maneuvering_thrusters?: unknown | null;
-  manned_turrets?: unknown | null;
-  manufacturer?: string | Companies | null;
-  mass?: number | null;
-  max_to_zero?: number | null;
-  modules: any[] | ShipModules[];
   name?: string | null;
-  on_sale?: boolean | null;
-  ownable?: boolean | null;
-  p4k_id?: string | null;
-  p4k_mode?: boolean | null;
-  p4k_name?: string | null;
-  p4k_version?: string | null;
-  paints: any[] | ShipPaints[];
-  pilot_hardpoints?: unknown | null;
-  pitch?: number | null;
-  pledge_price?: number | null;
-  ports: string;
-  power_plants?: unknown | null;
-  price?: number | null;
-  production_note?: string | null;
-  production_status?: string | null;
-  quantum_drives?: unknown | null;
-  quantum_fuel_tanks?: unknown | null;
-  rating?: string | ShipRatings | null;
-  remote_turrets?: unknown | null;
-  retro_thrusters?: unknown | null;
-  roll?: number | null;
-  sales_url?: string | null;
-  scm_to_zero?: number | null;
-  shields?: unknown | null;
-  size?: number | null;
-  size_label?: string | null;
-  slug?: string | null;
-  sm_id?: number | null;
-  speed_max?: number | null;
-  speed_scm?: number | null;
-  status: string;
-  store_image?: string | DirectusFiles | null;
-  store_url?: string | null;
-  tabs: string;
-  'tabs--zj795': string;
-  tank_size_hydrogen?: number | null;
-  tank_size_quantum?: number | null;
-  tanks: string;
+  release_patch?: string | null;
+  ship?: string | Ships | null;
+  ship_configurations: any[] | ShipConfigurations[];
+  stats?: unknown | null;
+  thumbnail?: string | DirectusFiles | null;
   user_created?: string | DirectusUsers | null;
-  user_hangars: any[] | UserHangars[];
   user_updated?: string | DirectusUsers | null;
-  user_wishlists: any[] | UserWishlists[];
-  variants: any[] | ShipsVariants[];
-  velocity: string;
-  vtol_thrusters?: unknown | null;
-  yaw?: number | null;
-  zero_to_max?: number | null;
-  zero_to_scm?: number | null;
+  variant_code?: string | null;
 };
 
-export type ShipsCommercials = {
-  commercial_id?: string | DirectusFiles | null;
-  id: number;
-  ship_id?: string | Ships | null;
+export type ShipConfigurationHardpoints = {
+  configuration?: string | ShipConfigurations | null;
+  date_created?: string | null;
+  date_updated?: string | null;
+  hardpoint?: string | Hardpoints | null;
+  id: string;
+  item?: string | Items | null;
+  quantity?: number | null;
+  user_created?: string | DirectusUsers | null;
+  user_updated?: string | DirectusUsers | null;
 };
 
-export type ShipsGallery = {
-  directus_files_id?: string | DirectusFiles | null;
-  id: number;
-  ships_id?: string | Ships | null;
-  sort?: number | null;
+export type ShipConfigurations = {
+  code?: string | null;
+  date_created?: string | null;
+  date_updated?: string | null;
+  hardpoints: any[] | ShipConfigurationHardpoints[];
+  id: string;
+  name?: string | null;
+  ship_variant?: string | ShipVariants | null;
+  user_created?: string | DirectusUsers | null;
+  user_updated?: string | DirectusUsers | null;
 };
 
-export type ShipsLoaners = {
-  id: number;
-  loaner_id?: string | Ships | null;
-  ship_id?: string | Ships | null;
+
+export type Ships = {
+  date_created?: string | null;
+  date_updated?: string | null;
+  external_refs?: unknown | null;
+  id: string;
+  manufacturer?: string | Companies | null;
+  name?: string | null;
+  notes?: string | null;
+  paints?: unknown | null;
+  ship_variants: any[] | ShipVariants[];
+  user_created?: string | DirectusUsers | null;
+  user_updated?: string | DirectusUsers | null;
 };
 
-export type ShipsVariants = {
-  id: number;
-  ship_id?: string | Ships | null;
-  variant_id?: string | Ships | null;
+export type Hardpoints = {
+  category?: string | null;
+  childs: any[] | Hardpoints[];
+  code?: string | null;
+  configuration: any[] | ShipConfigurationHardpoints[];
+  date_created?: string | null;
+  date_updated?: string | null;
+  external_id?: string | null;
+  gimballed?: boolean | null;
+  id: string;
+  is_leaf?: boolean | null;
+  item?: string | Items | null;
+  item_quantity?: number | null;
+  meta?: unknown | null;
+  parent?: string | Hardpoints | null;
+  path?: string | null;
+  position?: string | null;
+  powered?: boolean | null;
+  ship_variant?: string | ShipVariants | null;
+  size?: number | null;
+  user_created?: string | DirectusUsers | null;
+  user_updated?: string | DirectusUsers | null;
 };
+
+export type Items = {
+  class?: string | null;
+  configuration?: string | ShipConfigurationHardpoints | null;
+  date_created?: string | null;
+  date_updated?: string | null;
+  external_id?: string | null;
+  external_refs?: unknown | null;
+  grade?: string | null;
+  id: string;
+  manufacturer?: string | Companies | null;
+  name?: string | null;
+  size?: number | null;
+  stats?: unknown | null;
+  subtype?: string | null;
+  type?: string | null;
+  user_created?: string | DirectusUsers | null;
+  user_updated?: string | DirectusUsers | null;
+};
+
 
 export type SpaceStations = {
   banner?: string | DirectusFiles | null;
@@ -1474,15 +1448,14 @@ export type CMSTypes = {
   projects: Projects[];
   release_notes: ReleaseNotes[];
   release_notes_translations: ReleaseNotesTranslations[];
-  ship_modules: ShipModules[];
-  ship_modules_gallery: ShipModulesGallery[];
   ship_paints: ShipPaints[];
   ship_ratings: ShipRatings[];
   ships: Ships[];
-  ships_commercials: ShipsCommercials[];
-  ships_gallery: ShipsGallery[];
-  ships_loaners: ShipsLoaners[];
-  ships_variants: ShipsVariants[];
+  ship_variants: ShipsVariants[];
+  hardpoints: Hardpoints[];
+  items: Items[];
+  ship_configuration_hardpoints: ShipConfigurationHardpoints[];
+  ship_configurations: ShipConfigurations[];
   space_stations: SpaceStations[];
   spectrum_categories: SpectrumCategories[];
   spectrum_threads: SpectrumThreads[];
