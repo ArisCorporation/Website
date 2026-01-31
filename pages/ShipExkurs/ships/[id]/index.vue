@@ -394,13 +394,13 @@ useHead({
                 </ButtonDefault>
               </UTooltip>
             </div>
-            <!-- <NuxtImg
+            <NuxtImg
               v-if="store_image_view"
-              :src="data?.store_image"
+              :src="data?.thumbnail?.id"
               class="object-cover size-full"
-              :style="{ 'object-position': data?.store_image_properties.object_position }"
+              :style="{ 'object-position': data?.thumbnail.object_position }"
               loading="lazy"
-            /> -->
+            />
             <!-- <TresCanvas
               v-else-if="!store_image_view && data?.hologram"
               clear-color="#111"
@@ -456,9 +456,9 @@ useHead({
           />
           <TableRow title="Frachtkapazität" :content="data?.stats.cargo" suffix="SCU" />
           <TableHr />
-          <TableRow title="Klassifizierung" :content="data?.classification_label" />
-          <TableRow title="Größe" :content="data?.size_label && `${data?.size_label_short} - ${data?.size_label}`" />
-          <TableRow title="Fokusse" :content="data?.focus_labels?.join(', ')" is-list full-width />
+          <TableRow title="Größe" :content="data?.stats?.size" full-width />
+          <TableRow title="Karriere" :content="data?.stats?.career" />
+          <TableRow title="Rolle" :content="data?.stats?.role" />
           <TableHr />
           <TableRow title="Min Crew" :content="data?.crew_min" />
           <TableRow title="Max Crew" :content="data?.stats.crew" />
