@@ -2,21 +2,21 @@ export { IWeaponOptic };
 
 declare global {
   interface IWeaponOptic {
-    id: String;
-    name: String;
-    slug: String;
-    storeImage: String;
-    gallery: Array<String>;
-    class: String;
-    size: String;
+    id: string;
+    name: string;
+    slug: string;
+    storeImage: string;
+    gallery: Array<string>;
+    class: string;
+    size: string;
     manufacturer: Company;
     weight: number;
     price: number;
-    zoomLevel: String;
-    zeroing: Boolean;
-    autoZeroing: Boolean;
+    zoomLevel: string;
+    zeroing: boolean;
+    autoZeroing: boolean;
     zeroingRange: number;
-    rangefinder: Boolean;
-    description: String;
+    rangefinder: boolean;
+    description: string;
   }
 }

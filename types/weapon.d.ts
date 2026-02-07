@@ -2,26 +2,26 @@ export { IWeapon };
 
 declare global {
   interface IWeapon {
-    id: String;
-    name: String;
-    slug: String;
-    storeImage: String;
-    price: String;
+    id: string;
+    name: string;
+    slug: string;
+    storeImage: string;
+    price: string;
     manufacturer: Company;
-    class: String;
+    class: string;
     weight: number;
-    calibre: String;
-    damageType: String;
-    firemodes: String;
+    calibre: string;
+    damageType: string;
+    firemodes: string;
     firerateSingle: number;
     firerateBurst: number;
     firerateFullauto: number;
     firerateLoaded: number;
-    mag: String;
+    mag: string;
     optic: IWeaponOptic;
     weaponMuzzleVelocity: number;
     locktime: number;
-    description: String;
+    description: string;
     maxRange: number;
     effectiveRange: number;
     table: Array;

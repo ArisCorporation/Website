@@ -108,7 +108,7 @@ useHead({
         :placeholder="[16, 16, 1, 5]"
         class="w-full h-auto mx-auto aspect-[1118/351]"
       />
-      <hr />
+      <hr >
       <div class="w-full sm:flex sm:space-x-12">
         <div class="w-full">
           <label for="channelSelect">Channel:</label>

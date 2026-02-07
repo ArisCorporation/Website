@@ -4,10 +4,10 @@ defineProps(['editor']);
 
 <template>
   <UButton
-    @click="editor?.chain().focus().undo().run()"
     icon="i-fa6-solid-rotate-left"
     size="xs"
     variant="ghost"
     color="white"
+    @click="editor?.chain().focus().undo().run()"
   />
 </template>

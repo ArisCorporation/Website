@@ -2,11 +2,11 @@ export { IShipRating };
 
 declare global {
   interface IShipRating {
-    id: String;
-    baseShip: String;
+    id: string;
+    baseShip: string;
     ships: Array[IShip];
-    introduction: String;
-    ratings: Array<{ category: String; grade: number; reason: String }>;
-    s_w: Array<{ name: String; category: String }>;
+    introduction: string;
+    ratings: Array<{ category: string; grade: number; reason: string }>;
+    s_w: Array<{ name: string; category: string }>;
   }
 }

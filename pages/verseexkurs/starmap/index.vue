@@ -242,7 +242,7 @@ useHead({
                           </h3>
                           <hr
                             class="-mx-1 mb-3 mt-2 relative bg-bprimary text-primary-400 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-                          />
+                          >
                           <div class="px-2 border rounded-lg bg-bprimary border-btertiary">
                             <div class="p-2">
                               <TableRow title="Zugehörigkeit">

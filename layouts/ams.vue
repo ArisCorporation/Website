@@ -285,7 +285,7 @@ useHead({
           <div class="absolute right-0 justify-center hidden mt-2 text-center w-14 group-hover:flex">Hilfe</div>
         </div>
       </div>
-      <hr class="my-2" />
+      <hr class="my-2" >
       <div class="container 2xl:max-w-[2000px] min-h-screen px-4 mx-auto mb-6">
         <div class="mt-4">
           <slot />

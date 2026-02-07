@@ -423,7 +423,7 @@ definePageMeta({
             </h1>
             <Editor :model-value="selectedEvent.description" read-only class="text-justify" />
             <div v-if="selectedEvent.link">
-              <hr class="hr-short" />
+              <hr class="hr-short" >
               <div class="animate-link w-fit">
                 <NuxtLink :to="selectedEvent.link"> Mehr lesen </NuxtLink>
               </div>
@@ -438,7 +438,7 @@ definePageMeta({
         </div>
       </div>
       <div class="flex my-2">
-        <hr />
+        <hr >
 
         <ButtonDefault class="mx-2" @click="modalStore.openModal('Hilfe', { hideCloseButton: true })">
           <UIcon name="i-heroicons-information-circle" class="flex m-auto size-5" />

@@ -2,15 +2,15 @@ export { ICommLink };
 
 declare global {
   interface ICommLink {
-    id: String;
-    name: String;
-    slug: String;
+    id: string;
+    name: string;
+    slug: string;
     author: IMember;
-    storeImage: String;
+    storeImage: string;
     datePosted: Date;
-    description: String;
-    content: String;
+    description: string;
+    content: string;
     channel: ICommLinkChannel;
-    size: Number;
+    size: number;
   }
 }

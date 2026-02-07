@@ -1,7 +1,7 @@
 <template>
   <div>
     <span v-if="$slots.default"><slot /></span>
-    <hr />
+    <hr >
   </div>
 </template>
 

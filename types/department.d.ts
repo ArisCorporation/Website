@@ -2,15 +2,15 @@ export { IDepartment };
 
 declare global {
   interface IDepartment {
-    id: String;
-    logo: String;
-    name: String;
-    pic1: String;
-    pic2: String;
-    text: String;
+    id: string;
+    logo: string;
+    name: string;
+    pic1: string;
+    pic2: string;
+    text: string;
     ships: Array<IShip>;
     members: Array<IMember>;
     head_of_department: IMember;
-    tabdId: Number;
+    tabdId: number;
   }
 }

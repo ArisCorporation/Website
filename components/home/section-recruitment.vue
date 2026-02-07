@@ -12,9 +12,9 @@ const modalStore = useModalStore();
   <div class="mt-16">
     <div>
       <h1>Wir suchen neue <span class="text-primary-400">Mitarbeiter</span></h1>
-      <hr />
+      <hr >
       <h2>Rekrutierung:</h2>
-      <hr class="hr-short" />
+      <hr class="hr-short" >
     </div>
     <p>
       Falls du nun Interesse hast dich bei uns zu bewerben, dann kannst du das ganz einfach über unseren Discord machen.
@@ -36,7 +36,7 @@ const modalStore = useModalStore();
         <div class="text-left">
           <div>
             <h3 class="text-secondary">Bewerben:</h3>
-            <hr />
+            <hr >
           </div>
           <div>
             <p>
@@ -66,7 +66,7 @@ const modalStore = useModalStore();
               kümmern!
             </p>
           </div>
-          <hr />
+          <hr >
           <div class="relative flex flex-wrap-reverse sm:flex-nowrap">
             <ButtonDefault class="w-full mt-4 sm:my-auto sm:w-fit h-fit" @click="close"> Schließen </ButtonDefault>
             <div class="flex justify-center mx-auto space-x-12">

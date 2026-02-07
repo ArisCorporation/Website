@@ -52,7 +52,7 @@ useHead({
       <DefaultPanel>
         <NuxtImg :src="data?.banner" :placeholder="[16, 16, 1, 5]" class="object-cover w-full mx-auto max-h-96" />
       </DefaultPanel>
-      <hr class="mb-2 hr-short" />
+      <hr class="mb-2 hr-short" >
       <div class="flex flex-wrap justify-between space-y-4">
         <div
           class="relative flex max-w-full pr-4 w-fit sm:max-w-1/2 after:w-full after:h-2px after:bg-secondary after:absolute after:-bottom-2"

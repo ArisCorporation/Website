@@ -175,7 +175,7 @@ definePageMeta({
           <TableRow v-if="data.famous_goods" title="Bekannteste Waren" :content="data?.famous_goods" full-width />
         </TableParent>
       </div>
-      <hr />
+      <hr >
       <Editor :model-value="data?.content" read-only />
       <template
         v-if="
@@ -185,7 +185,7 @@ definePageMeta({
           (data?.weapon_mods && data.weapon_mods[0])
         "
       >
-        <hr />
+        <hr >
         <h3>Waren der Firma {{ data?.name }}</h3>
         <UAccordion
           :items="[
