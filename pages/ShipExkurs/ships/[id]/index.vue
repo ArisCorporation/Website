@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, toRefs, watchEffect } from 'vue';
 import { Spherical, Vector3 } from 'three';
+import { readItems } from '@directus/sdk';
 
 const userSettings = useUserSettingsStore();
 const { se: settings } = storeToRefs(userSettings);
@@ -36,41 +37,47 @@ const { data } = await useAsyncData(String(params.id), async () => {
     }),
   );
 
+  const buildData = await directus.request(
+    readItems('builds', {
+      limit: 1,
+      sort: ['-date_created'],
+    }),
+  );
+
   const uexId = arisData?.external_refs?.find((ref: any) => ref.source === 'UEX')?.id;
+  const rsiId = arisData?.external_refs?.find((ref: any) => ref.source === 'RSI')?.id;
 
-  // Wenn keine uexId -> return ohne Preise, aber NICHT crashen
-  if (!uexId) {
-    return { ...arisData, prices: null, uexData: null };
-  }
-
-  // // Parallel fetchen (schneller) + robust parsen
-  const [pledgeRaw, purchasesRaw, vehiclesRaw] = await Promise.all([
+  const [pledgeRaw, purchasesRaw, vehiclesRaw, rsiRaw] = await Promise.all([
     $fetch(`https://api.uexcorp.uk/2.0/vehicles_prices?id_vehicle=${uexId}`),
     $fetch(`https://api.uexcorp.uk/2.0/vehicles_purchases_prices?id_vehicle=${uexId}`),
     $fetch(`https://api.uexcorp.uk/2.0/vehicles`),
+    $fetch('https://robertsspaceindustries.com/ship-matrix/index'),
   ]);
 
   const pledgeUSD = pledgeRaw?.data?.find((p: any) => p.currency === 'USD') ?? null;
   const purchases = purchasesRaw?.data?.[0] ?? null;
   const uexVehicleData = vehiclesRaw?.data?.find((v: any) => String(v.id) === String(uexId)) ?? null;
 
-  // const score = arisData?.rating?.ratings?.reduce(
-  //   (total: number, rating: any) =>
-  //     total +
-  //     (rating.grade === 'bad'
-  //       ? 5
-  //       : rating.grade === 'medium'
-  //         ? 10
-  //         : rating.grade === 'good'
-  //           ? 15
-  //           : rating.grade === 'very_good'
-  //             ? 20
-  //             : 0),
-  //   0,
-  // );
+  const rsiData = rsiRaw.data?.find((v: any) => String(v.id) === String(rsiId)) ?? null;
+
+  const score = arisData?.rating?.ratings?.reduce(
+    (total: number, rating: any) =>
+      total +
+      (rating.grade === 'bad'
+        ? 5
+        : rating.grade === 'medium'
+          ? 10
+          : rating.grade === 'good'
+            ? 15
+            : rating.grade === 'very_good'
+              ? 20
+              : 0),
+    0,
+  );
 
   return {
     ...arisData,
+    build: buildData[0],
     prices: {
       price: purchases?.price_buy_avg ?? null,
       pledge_price: pledgeUSD?.price ?? null,
@@ -78,39 +85,42 @@ const { data } = await useAsyncData(String(params.id), async () => {
       onSale: pledgeUSD?.on_sale ?? null,
     },
     uexData: uexVehicleData,
-    stores: purchasesRaw?.data,
-    // rating: {
-    //   ...arisData.rating,
-    //   ...(arisData.rating.user_created && { user_created: transformUser(arisData.rating.user_created) }),
-    //   ...(arisData.rating.ratings && {
-    //     ratings: arisData.rating.ratings.map((rating: any) => ({
-    //       category: rating.category,
-    //       reason: rating.reason,
-    //       grade: rating.grade,
-    //       grade_points:
-    //         rating.grade === 'bad'
-    //           ? 5
-    //           : rating.grade === 'medium'
-    //             ? 10
-    //             : rating.grade === 'good'
-    //               ? 15
-    //               : rating.grade === 'very_good'
-    //                 ? 20
-    //                 : 0,
-    //       grade_label:
-    //         rating.grade === 'bad'
-    //           ? 'Schlecht'
-    //           : rating.grade === 'medium'
-    //             ? 'Mittel'
-    //             : rating.grade === 'good'
-    //               ? 'Gut'
-    //               : rating.grade === 'very_good'
-    //                 ? 'Sehr Gut'
-    //                 : 'Unbekannt',
-    //     })),
-    //     score,
-    //   }),
-    // },
+    stores: purchasesRaw?.data[0] ? purchasesRaw?.data : null,
+    rsiData: rsiData ?? null,
+    rating: arisData?.rating
+      ? {
+          ...arisData?.rating,
+          ...(arisData?.rating?.user_created && { user_created: transformUser(arisData?.rating?.user_created) }),
+          ...(arisData?.rating?.ratings && {
+            ratings: arisData?.rating?.ratings?.map((rating: any) => ({
+              category: rating?.category,
+              reason: rating?.reason,
+              grade: rating?.grade,
+              grade_points:
+                rating?.grade === 'bad'
+                  ? 5
+                  : rating?.grade === 'medium'
+                    ? 10
+                    : rating?.grade === 'good'
+                      ? 15
+                      : rating?.grade === 'very_good'
+                        ? 20
+                        : 0,
+              grade_label:
+                rating?.grade === 'bad'
+                  ? 'Schlecht'
+                  : rating?.grade === 'medium'
+                    ? 'Mittel'
+                    : rating?.grade === 'good'
+                      ? 'Gut'
+                      : rating?.grade === 'very_good'
+                        ? 'Sehr Gut'
+                        : 'Unbekannt',
+            })),
+            score,
+          }),
+        }
+      : null,
   };
 });
 
@@ -130,7 +140,6 @@ console.log(data);
 // }));
 
 const storeCols: TableColumn<any>[] = [
-  { key: 'city_name', label: 'Landezone' },
   { key: 'terminal_name', label: 'Store' },
   { key: 'price_buy', label: 'Preis' },
 ];
@@ -460,7 +469,7 @@ useHead({
           <TableRow title="Karriere" :content="data?.stats?.career" />
           <TableRow title="Rolle" :content="data?.stats?.role" />
           <TableHr />
-          <TableRow title="Min Crew" :content="data?.crew_min" />
+          <TableRow title="Min Crew" :content="data?.rsiData?.min_crew" />
           <TableRow title="Max Crew" :content="data?.stats.crew" />
           <TableHr />
           <TableRow title="Treibstoff" :content="data?.stats.propulsion.FuelCapacity" suffix="L" />
@@ -512,15 +521,13 @@ useHead({
         </TableParent>
         <TableParent title="API Statistiken">
           <TableRow
-            title="Letztes Update der Daten"
-            :content="data?.date_updated ? new Date(data?.date_updated).toLocaleDateString('de-DE') : null"
-            full-width
+            title="P4K-Daten Version"
+            :content="`${data?.build?.game_version?.split('-')[0]} ${data?.build?.channel}`"
           />
           <TableRow
-            title="P4K-Daten"
-            :content="data?.p4k_mode === true ? 'Aktiviert' : data?.p4k_mode === false ? 'Deaktiviert' : null"
+            title="Letztes Update der Daten"
+            :content="data?.date_updated ? new Date(data?.date_updated).toLocaleDateString('de-DE') : null"
           />
-          <TableRow title="P4K-Daten Version" :content="data?.p4k_version" />
         </TableParent>
         <div class="flex flex-wrap max-w-full gap-2">
           <NuxtLink :to="data?.uexData?.url_store" external target="_blank" class="flex-grow text-tbase">
@@ -591,7 +598,7 @@ useHead({
                   <UIcon name="i-lucide-arrow-down" class="mr-3" />
                   <p class="p-0 flex items-center space-x-2 text-sm">
                     <span class="">S1</span>
-                    <span class="font-bold test-aris-400/75">PowerBolt</span>
+                    <span class="font-bold text-aris-400/75">PowerBolt</span>
                     <span class="text-xs">-</span>
                     <span class="text-xs">Civilian Grade A</span>
                   </p>
