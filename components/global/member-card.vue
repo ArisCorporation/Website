@@ -37,16 +37,16 @@ defineProps({
     <div class="aspect-potrait mx-auto relative max-w-[270px] w-full group rounded-sm border-secondary border-b-2">
       <div class="absolute flex w-full h-full text-xs sm:text-base">
         <div class="z-20 m-auto opacity-0 group-hover:opacity-100 transition-short-group">
-          <hr />
+          <hr >
           <p>
             Position:
             <span class="text-secondary">{{ data.position?.name }}</span>
           </p>
           <template v-if="data.roles">
-            <hr />
+            <hr >
             <p>&ldquo;{{ data.roles?.join(', ') }}&ldquo;</p>
           </template>
-          <hr />
+          <hr >
           <p class="flex justify-center space-x-4">
             <NuxtLink :to="ams ? data.biography_ams_link : data.biography_link" class="animate-link hover:brightness-85"
               >BIOGRAFIE</NuxtLink

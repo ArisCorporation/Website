@@ -71,7 +71,7 @@ expireDate.setHours(expireDate.getHours() + 24);
           <ESection>
             <EText class="text-[14px] leading-[24px]">
               Oder kopiere und füge die folgende URL in deinen Browser ein:
-              <br />
+              <br >
               <ELink
                 :href="'https://ariscorp.de/ams/reset-password?token=' + token"
                 class="text-[#e48632] no-underline"
@@ -83,7 +83,7 @@ expireDate.setHours(expireDate.getHours() + 24);
           <ESection>
             <EText class="text-[14px] leading-[24px]">
               <strong class="text-white">Wichtig:</strong> Der Link ist nur für 24 Stunden gültig.
-              <br />
+              <br >
               <span>
                 Die Anfrage wurde am
                 <strong class="text-white">
@@ -101,7 +101,7 @@ expireDate.setHours(expireDate.getHours() + 24);
           <ESection>
             <EText class="text-[#6f6f6f] text-[12px] leading-[24px]">
               <span>Dieser Link ist nur für dich bestimmt und sollte nicht geteilt werden.</span>
-              <br />
+              <br >
               <span>
                 Falls du nicht um das Zurücksetzen deines Passworts gebeten hast, kannst du diese E-Mail ignorieren.
               </span>

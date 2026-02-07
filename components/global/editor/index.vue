@@ -193,7 +193,7 @@ onBeforeUnmount(() => {
           <div class="flex -mx-2.5">
             <hr
               class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-            />
+            >
           </div>
           <div class="sm:hidden">
             <div class="flex flex-row justify-between py-2 gap-x-2">
@@ -216,7 +216,7 @@ onBeforeUnmount(() => {
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
                 @click="editor.chain().focus().setColor"
-              />
+              >
             </div>
             <div class="flex flex-row py-2 gap-x-6">
               <div class="flex flex-row gap-x-2">
@@ -232,7 +232,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <EditorButtonDivider :editor="editor" />
@@ -263,7 +263,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
           </div>
           <div class="hidden sm:block md:hidden">
@@ -286,7 +286,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <div class="flex flex-row gap-x-2">
@@ -326,7 +326,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
           </div>
           <div class="hidden md:block xl:hidden">
@@ -358,7 +358,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
             <div class="flex flex-row justify-between py-2 gap-x-2">
               <EditorButtonDivider :editor="editor" />
@@ -389,7 +389,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
           </div>
           <div class="hidden xl:block">
@@ -445,7 +445,7 @@ onBeforeUnmount(() => {
             <div class="flex -mx-2.5">
               <hr
                 class="m-0 my-auto relative bg-bprimary text-primary-400 before:left-0 before:w-1 before:aspect-[1/1] before:absolute before:inline-block before:bg-primary-400 after:w-1 after:right-0 after:aspect-[1/1] after:absolute after:inline-block after:bg-primary-400"
-              />
+              >
             </div>
           </div>
         </template>

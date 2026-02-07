@@ -123,7 +123,7 @@ useHead({
         </UFormGroup>
       </div>
     </div>
-    <hr />
+    <hr >
     <!-- <div class="flex flex-wrap justify-between mb-6 xl:flex-nowrap h-fit basis-full">
       <ButtonDefault
         class="my-auto h-fit basis-full xl:basis-auto"
@@ -206,7 +206,7 @@ useHead({
         />
       </UFormGroup>
     </div> -->
-    <hr />
+    <hr >
 
     <!-- <div class="w-full mx-auto mb-2 text-center">
       <div class="relative flex justify-center">

@@ -2,10 +2,10 @@ export { ILiterature };
 
 declare global {
   interface ILiterature {
-    id: String;
-    title: String;
+    id: string;
+    title: string;
     series: ILiteratureSeries;
     chapter: number;
-    content: String;
+    content: string;
   }
 }

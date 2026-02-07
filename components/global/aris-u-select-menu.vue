@@ -63,12 +63,12 @@ const value = computed({
     <template v-if="value || initialValue">
       <button
         v-if="(value === initialValue) !== null"
-        @click="value = null"
         class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit"
+        @click="value = null"
       >
         <UIcon name="i-heroicons-x-mark-16-solid" class="my-auto transition opacity-75 hover:opacity-100" />
       </button>
-      <button v-else @click="value = initialValue" class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit">
+      <button v-else class="absolute top-0 bottom-0 z-20 flex my-auto left-3 h-fit" @click="value = initialValue">
         <UIcon name="i-heroicons-arrow-uturn-left" class="my-auto transition opacity-75 hover:opacity-100" />
       </button>
     </template>

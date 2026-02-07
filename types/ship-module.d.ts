@@ -2,15 +2,15 @@ export { IShipModule };
 
 declare global {
   interface IShipModule {
-    id: String;
-    storeImage: String;
-    name: String;
-    slug: String;
+    id: string;
+    storeImage: string;
+    name: string;
+    slug: string;
     ship: Ship;
     pledgePrice: number;
     price: number;
-    productionState: String;
+    productionState: string;
     manufacturer: ICompany;
-    description: String;
+    description: string;
   }
 }

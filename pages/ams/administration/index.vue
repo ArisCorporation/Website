@@ -3755,7 +3755,7 @@ useHead({
       accept="image/jpg, image/jpeg, image/png, image/gif, image/webp"
       hidden
       @change="setCropperImage"
-    />
+    >
     <div class="lg:max-w-[calc(100vw_-_20rem)] mx-auto mb-4">
       <h1 class="text-center">Verwaltungsdashboard</h1>
       <UTabs

@@ -56,7 +56,7 @@ const changeTab = (index: number) => {
       {{ title }}
     </h1>
     <HeadlessTabList>
-      <hr v-if="!hideHr" />
+      <hr v-if="!hideHr" >
       <slot name="tablist">
         <div :class="{ 'justify-between': between }" class="flex flex-wrap w-full">
           <HeadlessTab v-for="tab in tablist" :key="tab.header" class="m-1 sm:p-1 md:p-3 !outline-none animate-link">
@@ -73,7 +73,7 @@ const changeTab = (index: number) => {
           </HeadlessTab>
         </div>
       </slot>
-      <hr />
+      <hr >
     </HeadlessTabList>
     <HeadlessTabPanels>
       <slot name="tabcontent">

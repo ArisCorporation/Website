@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, shallowRef, toRefs, watchEffect } from 'vue';
+import { computed, ref, shallowRef, toRefs, watch, watchEffect } from 'vue';
 import { Spherical, Vector3 } from 'three';
 import { readItems } from '@directus/sdk';
 
@@ -32,7 +32,27 @@ const setTab = (index: number) => {
 const { data } = await useAsyncData(String(params.id), async () => {
   const arisData = await directus.request(
     readItem('ship_variants', String(params.id), {
-      fields: ['*.*', 'configurations.*.*.*', 'hull.manufacturer.*', 'rating.*.*'],
+      fields: [
+        '*.*',
+        'configurations.*.*.*',
+        'configurations.hardpoints.*',
+        'configurations.hardpoints.hardpoint.*',
+        'configurations.hardpoints.hardpoint.item.*',
+        'configurations.hardpoints.hardpoint.item.manufacturer.*',
+        'configurations.hardpoints.item.*',
+        'configurations.hardpoints.item.manufacturer.*',
+        'configurations.hardpoints.hardpoint.DATA.*',
+        'configurations.hardpoints.hardpoint.DATA.manufacturer.*',
+        'ship_variant_configurations.*',
+        'ship_variant_configurations.hardpoints.*',
+        'ship_variant_configurations.hardpoints.item.*',
+        'ship_variant_configurations.hardpoints.item.manufacturer.*',
+        'ship_variant_configurations.hardpoints.hardpoint.*',
+        'ship_variant_configurations.hardpoints.hardpoint.DATA.*',
+        'ship_variant_configurations.hardpoints.hardpoint.DATA.manufacturer.*',
+        'hull.manufacturer.*',
+        'rating.*.*',
+      ],
       sort: ['name'],
     }),
   );
@@ -205,11 +225,31 @@ const buildStatSections = (stats: Record<string, any> | null | undefined) => {
   });
 };
 
+const normalizeHardpoint = (hp: any) => ({
+  ...(hp ?? {}),
+  ...(hp?.hardpoint ?? {}),
+});
+
 const flattenHardpoints = (hardpoints: any[] = []): any[] =>
-  hardpoints.flatMap((hp) => [
-    hp,
-    ...(Array.isArray(hp?.childs) && hp.childs.length ? flattenHardpoints(hp.childs) : []),
-  ]);
+  hardpoints.flatMap((hp) => {
+    const node = normalizeHardpoint(hp);
+    const children = Array.isArray(node?.childs) ? node.childs : [];
+    return [node, ...(children.length ? flattenHardpoints(children) : [])];
+  });
+
+const matches = (component: ComponentEntry, needles: string[]) => {
+  const haystack = [
+    component.type,
+    component.subtype,
+    component.class,
+    component.category,
+    component.code,
+    component.name,
+  ]
+    .filter(Boolean)
+    .map((s) => String(s).toLowerCase());
+  return needles.some((needle) => haystack.some((field) => field?.includes(needle.toLowerCase())));
+};
 
 type ComponentEntry = {
   id: string;
@@ -220,6 +260,8 @@ type ComponentEntry = {
   manufacturer?: string | null;
   type?: string | null;
   subtype?: string | null;
+  category?: string | null;
+  code?: string | null;
   quantity?: number | null;
   stats?: Record<string, any> | null;
 };
@@ -231,131 +273,119 @@ const selectedComponent = computed<ComponentEntry | null>(
 const filterTerm = ref('');
 const componentDetailOpen = ref(false);
 
-const mockComponents: ComponentEntry[] = [
-  {
-    id: 'mock-powerbolt',
-    name: 'PowerBolt',
-    size: 1,
-    grade: 'Civilian Grade A',
-    type: 'Power Plant',
-    subtype: 'S1',
-    quantity: 1,
-    stats: {
-      max_power_segments: 23,
-      distortion_resistance: {
-        shutdown_dmg: '9 500',
-        decay_delay: '4.5 s',
-        decay_rate: 633.33,
-        shutdown_time: '19.5 s',
-      },
-      radar_emissions: {
-        em_max: '11 400',
-        em_decay_rate: 0.15,
-      },
-      cooling_segment_usage: {
-        min_max: '0 - 23',
-      },
-      operating_temperature: {
-        min_max: '-273 - 132 deg C',
-        start: 'Ambient Temperature',
-        cooling_threshold: '30 deg C',
-        ir_emit_threshold: '50 deg C',
-        warning: '110 deg C',
-        overheat: '132 deg C',
-        recovery: '127 deg C',
-      },
-      misfire_explosion: {
-        countdown: '174 s',
-        cancel_health_ratio: '20 %',
-      },
-      self_repair: {
-        use: 'x 1',
-        time_to_repair: '116 s',
-        health_ratio: '20 %',
-      },
-      health_damage_multipliers: {
-        physical: 'x 0.85',
-        energy: 'x 0.7',
-        distortion: 'x 1',
-      },
-      health: '2 000 hp',
-      mass: '2 500 kg',
-      volume: '756 K uSCU',
-    },
-  },
-];
-
-const primaryConfiguration = computed(
-  () => data?.value?.ship_configurations?.[0] ?? data?.value?.configurations?.[0] ?? null,
+const configurations = computed(
+  () =>
+    data?.value?.ship_variant_configurations ?? data?.value?.ship_configurations ?? data?.value?.configurations ?? [],
 );
 
-const components = computed<ComponentEntry[]>(() => {
-  const hardpoints = primaryConfiguration.value?.hardpoints ?? data?.value?.hardpoints ?? [];
+const selectedConfigurationCode = ref<string | null>(
+  configurations.value?.[0]?.code ?? configurations.value?.[0]?.id ?? null,
+);
 
-  if (!hardpoints?.length) return mockComponents;
+const selectedConfiguration = computed(
+  () =>
+    configurations.value.find((cfg: any) => cfg?.code === selectedConfigurationCode.value) ??
+    configurations.value[0] ??
+    null,
+);
 
-  const flattened = flattenHardpoints(hardpoints)
-    .filter((hp) => hp?.item)
-    .map((hp, index) => {
-      const item = hp.item ?? {};
-      const id = String(hp?.id ?? item?.id ?? `hp-${index}`);
+const configurationOptions = computed(() =>
+  configurations.value.map((cfg: any) => ({
+    label: cfg?.code ?? cfg?.name ?? 'Unbenannt',
+    value: cfg?.code ?? cfg?.id,
+  })),
+);
 
-      return {
-        id,
-        name: item?.name ?? hp?.code ?? 'Unbekannt',
-        size: item?.size ?? hp?.size ?? null,
-        grade: item?.grade ?? null,
-        class: item?.class ?? null,
-        manufacturer: item?.manufacturer?.name ?? hp?.manufacturer?.name ?? null,
-        type: item?.type ?? hp?.category ?? 'Komponente',
-        subtype: item?.subtype ?? null,
-        quantity: hp?.quantity ?? hp?.item_quantity ?? hp?.meta?.quantity ?? 1,
-        stats: item?.stats ?? hp?.meta?.stats ?? null,
-      };
-    });
+watch(
+  () => selectedConfigurationCode.value,
+  () => {
+    selectedComponentId.value = null;
+    componentDetailOpen.value = false;
+  },
+);
 
-  return flattened.length ? flattened : mockComponents;
+watchEffect(() => {
+  if (!selectedConfigurationCode.value && configurations.value.length) {
+    selectedConfigurationCode.value = configurations.value[0]?.code ?? configurations.value[0]?.id ?? null;
+  }
 });
 
-const componentGroups = computed(() => {
-  const grouped: Record<string, ComponentEntry[]> = {};
-  const order: string[] = [];
+const components = computed<ComponentEntry[]>(() => {
+  const hardpoints = selectedConfiguration.value?.hardpoints ?? [];
 
-  components.value.forEach((component) => {
-    const key = formatLabel(component.type ?? 'Komponenten');
-    if (!grouped[key]) {
-      grouped[key] = [];
-      order.push(key);
-    }
-    grouped[key].push(component);
+  const flattened = flattenHardpoints(hardpoints).map((hp, index) => {
+    const item = hp?.item ?? hp?.DATA ?? hp?.data ?? {};
+    const id = String(hp?.id ?? item?.id ?? `hp-${index}`);
+
+    return {
+      id,
+      name: item?.name ?? hp?.name ?? hp?.code ?? 'Unbekannt',
+      size: item?.size ?? hp?.size ?? null,
+      grade: item?.grade ?? null,
+      class: item?.class ?? hp?.class ?? null,
+      manufacturer: item?.manufacturer?.name ?? hp?.manufacturer?.name ?? item?.manufacturer ?? null,
+      type: item?.type ?? hp?.meta?.type ?? hp?.category ?? 'Komponente',
+      subtype: item?.subtype ?? hp?.meta?.subtype ?? null,
+      category: hp?.category ?? hp?.meta?.type ?? null,
+      code: hp?.code ?? null,
+      quantity: hp?.quantity ?? hp?.item_quantity ?? hp?.meta?.quantity ?? 1,
+      stats: item?.stats ?? hp?.meta?.stats ?? null,
+    };
   });
 
-  return order.map((key) => ({ label: key, items: grouped[key] }));
+  return flattened;
+});
+
+const staticGroups = [
+  { id: 'weapons', label: 'Waffen', match: (c: ComponentEntry) => matches(c, ['weapon', 'gun']) },
+  { id: 'manned_turrets', label: 'Manned Turrets', match: (c: ComponentEntry) => matches(c, ['turret']) && !matches(c, ['remote']) },
+  { id: 'remote_turrets', label: 'Remote Turrets', match: (c: ComponentEntry) => matches(c, ['remote']) && matches(c, ['turret']) },
+  { id: 'shields', label: 'Shields', match: (c: ComponentEntry) => matches(c, ['shield']) },
+  { id: 'coolers', label: 'Coolers', match: (c: ComponentEntry) => matches(c, ['cooler', 'cooling']) },
+  { id: 'flight_controller', label: 'Flight Controller', match: (c: ComponentEntry) => matches(c, ['flightcontroller']) },
+  { id: 'life_support', label: 'Life Support', match: (c: ComponentEntry) => matches(c, ['lifesupport']) },
+  { id: 'radar', label: 'Radar', match: (c: ComponentEntry) => matches(c, ['radar']) },
+  { id: 'defense', label: 'Defense', match: (c: ComponentEntry) => matches(c, ['countermeasure', 'defensive']) },
+  { id: 'cargo', label: 'Cargo', match: (c: ComponentEntry) => matches(c, ['cargo']) },
+  { id: 'powerplants', label: 'Powerplants', match: (c: ComponentEntry) => matches(c, ['powerplant', 'power_plant']) },
+  { id: 'quantum', label: 'Quantum Drive', match: (c: ComponentEntry) => matches(c, ['quantum', 'jump']) },
+  { id: 'thrusters', label: 'Thrusters', match: (c: ComponentEntry) => matches(c, ['thruster']) },
+  { id: 'fuel', label: 'Fuel', match: (c: ComponentEntry) => matches(c, ['fuel']) },
+  { id: 'missiles', label: 'Missiles', match: (c: ComponentEntry) => matches(c, ['missile']) },
+  { id: 'bombs', label: 'Bombs', match: (c: ComponentEntry) => matches(c, ['bomb']) },
+  { id: 'emp', label: 'EMP', match: (c: ComponentEntry) => matches(c, ['emp']) },
+  { id: 'qed', label: 'QED', match: (c: ComponentEntry) => matches(c, ['qed']) },
+  { id: 'mining', label: 'Mining', match: (c: ComponentEntry) => matches(c, ['mining']) },
+  { id: 'salvage', label: 'Salvage', match: (c: ComponentEntry) => matches(c, ['salvage']) },
+  { id: 'utility', label: 'Utility', match: (_c: ComponentEntry) => true },
+];
+
+const componentGroups = computed(() => {
+  const groups = staticGroups.map((group) => ({
+    id: group.id,
+    label: group.label,
+    items: components.value.filter(group.match),
+  }));
+
+  return groups.filter((g) => g.items.length);
 });
 
 const filteredComponentGroups = computed(() => {
   const term = filterTerm.value.trim().toLowerCase();
-  if (!term) return componentGroups.value;
+  const groups = componentGroups.value;
 
-  return componentGroups.value
+  const filterFn = (c: ComponentEntry) =>
+    [c.name, c.type, c.subtype, c.manufacturer, c.grade, c.category, c.code]
+      .filter(Boolean)
+      .some((field) => String(field).toLowerCase().includes(term));
+
+  return groups
     .map((group) => ({
       ...group,
-      items: group.items.filter((c) =>
-        [c.name, c.type, c.subtype, c.manufacturer, c.grade]
-          .filter(Boolean)
-          .some((field) => String(field).toLowerCase().includes(term)),
-      ),
+      items: term ? group.items.filter(filterFn) : group.items,
     }))
     .filter((group) => group.items.length);
 });
-
-const accordionItems = computed(() =>
-  filteredComponentGroups.value.map((group, idx) => ({
-    label: `${group.label} (${group.items.length})`,
-    slot: `group-${idx}`,
-    defaultOpen: idx === 0,
-  })),
-);
 
 const isComponentOpen = (id: string | number) => selectedComponentId.value === String(id);
 
@@ -368,7 +398,10 @@ const toggleComponent = (id: string | number) => {
 };
 
 watchEffect(() => {
-  if (!selectedComponentId.value && components.value.length) selectedComponentId.value = String(components.value[0].id);
+  if (!selectedComponentId.value && components.value.length) {
+    selectedComponentId.value = String(components.value[0].id);
+    componentDetailOpen.value = true;
+  }
 });
 
 watchEffect(() => {
@@ -380,6 +413,7 @@ watchEffect(() => {
   }
   if (!allFiltered.some((c) => String(c.id) === selectedComponentId.value)) {
     selectedComponentId.value = String(allFiltered[0].id);
+    componentDetailOpen.value = true;
   }
 });
 
@@ -805,18 +839,47 @@ useHead({
     <TabGroup v-if="tablist.length" :tablist="tablist" :store="selectedTab" :change="(i) => (selectedTab = i)" between>
       <template #tabcontent>
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '1')">
-          <DefaultPanel bg="bprimary" class="mb-3">
-            <div class="p-4 space-y-6">
-              <div v-if="componentGroups.length" class="space-y-3">
+          <div class="flex flex-col gap-4 lg:flex-row">
+            <DefaultPanel
+              bg="bprimary"
+              class="mb-3 transition-all duration-300 ease-in-out"
+              :class="componentDetailOpen ? 'lg:w-[60%]' : 'lg:w-full'"
+            >
+              <div class="p-4 space-y-4">
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <UInput
-                    v-model="filterTerm"
-                    icon="i-heroicons-magnifying-glass-20-solid"
+                  <div class="flex flex-col w-full gap-3 sm:flex-row">
+                    <UInput
+                      v-model="filterTerm"
+                      icon="i-heroicons-magnifying-glass-20-solid"
+                      size="sm"
+                      class="sm:w-1/2"
+                      placeholder="Komponenten filtern..."
+                    />
+                    <USelect
+                      v-if="configurationOptions.length"
+                      v-model="selectedConfigurationCode"
+                      :options="configurationOptions"
+                      option-attribute="label"
+                      value-attribute="value"
+                      size="sm"
+                      class="sm:w-1/2"
+                      placeholder="Configuration wählen (Code)"
+                    />
+                  </div>
+                  <UButton
+                    v-if="componentDetailOpen"
+                    color="gray"
+                    variant="ghost"
                     size="sm"
-                    placeholder="Komponenten filtern..."
-                  />
+                    icon="i-heroicons-x-mark-20-solid"
+                    class="self-end lg:self-auto"
+                    @click="componentDetailOpen = false"
+                  >
+                    Detail schließen
+                  </UButton>
                 </div>
-                <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+
+                <div v-if="componentGroups.length" class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                   <div
                     v-for="group in filteredComponentGroups"
                     :key="group.label"
@@ -840,77 +903,82 @@ useHead({
                         @click="toggleComponent(component.id)"
                       >
                         <p class="p-0 text-xs uppercase text-secondary truncate max-w-[40%]">
-                          <span v-if="component.size">S{{ component.size }}</span>
+                          {{ component.type ?? 'Komponente' }}
                         </p>
                         <p class="p-0 text-sm font-semibold text-aris-300 truncate">
                           {{ component.name }}
                         </p>
                         <p class="p-0 ml-auto text-[11px] text-light-gray flex items-center gap-2">
+                          <span v-if="component.size">S{{ component.size }}</span>
                           <span v-if="component.grade">{{ component.grade }}</span>
-                          <!-- <span v-if="component.quantity">x{{ component.quantity }}</span> -->
+                          <span v-if="component.quantity">x{{ component.quantity }}</span>
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
+                <p v-else class="text-sm text-light-gray">Für dieses Schiff sind keine Komponenten hinterlegt.</p>
               </div>
-              <p v-else class="text-sm text-light-gray">Für dieses Schiff sind keine Komponenten hinterlegt.</p>
-            </div>
-          </DefaultPanel>
-          <Slideover v-model="componentDetailOpen" big>
-            <template #slideHeader>
-              <div class="flex items-center gap-3">
-                <UIcon name="i-lucide-chip" class="text-aris-400 size-6" />
-                <div>
-                  <p class="p-0 text-xs uppercase text-secondary">
-                    {{ selectedComponent?.type ?? 'Komponente' }}
-                  </p>
-                  <h3 class="p-0 text-xl text-aris-200 font-semibold">
-                    {{ selectedComponent?.name ?? 'Keine Auswahl' }}
-                  </h3>
-                  <p class="p-0 text-xs text-light-gray flex items-center gap-2">
-                    <span v-if="selectedComponent?.size">S{{ selectedComponent?.size }}</span>
-                    <span v-if="selectedComponent?.grade">{{ selectedComponent?.grade }}</span>
-                    <span v-if="selectedComponent?.quantity">x{{ selectedComponent?.quantity }}</span>
-                  </p>
-                </div>
-              </div>
-            </template>
-            <template #slideContent>
-              <div class="space-y-4 px-4 pb-4">
-                <TableParent title="Basisdaten" bg="bsecondary">
-                  <TableRow title="Hersteller" :content="selectedComponent?.manufacturer" third />
-                  <TableRow title="Typ" :content="selectedComponent?.type ?? 'Komponente'" third />
-                  <TableRow title="Subtyp" :content="selectedComponent?.subtype" third />
-                  <TableRow title="Größe" :content="selectedComponent?.size" third />
-                  <TableRow title="Klasse" :content="selectedComponent?.class" third />
-                  <TableRow title="Grade" :content="selectedComponent?.grade" third />
-                  <TableRow title="Menge" :content="selectedComponent?.quantity" third />
-                </TableParent>
+            </DefaultPanel>
 
-                <div v-if="buildStatSections(selectedComponent?.stats).length" class="space-y-3">
-                  <TableParent
-                    v-for="section in buildStatSections(selectedComponent?.stats)"
-                    :key="section.label"
-                    :title="section.label"
-                    bg="bsecondary"
-                  >
-                    <template v-if="section.entries.length">
-                      <TableRow
-                        v-for="(entry, idx) in section.entries"
-                        :key="idx"
-                        :title="entry.label || 'Wert'"
-                        :content="entry.value"
-                        full-width
-                      />
-                    </template>
-                    <p v-else class="col-span-6 text-sm text-light-gray">Keine Werte vorhanden.</p>
+            <Transition name="slideIn">
+              <DefaultPanel
+                v-if="componentDetailOpen && selectedComponent"
+                bg="bprimary"
+                class="mb-3 lg:w-[40%] w-full transition-all duration-300 ease-in-out shadow-inner"
+              >
+                <div class="p-4 space-y-4">
+                  <div class="flex items-center gap-3">
+                    <UIcon name="i-lucide-chip" class="text-aris-400 size-6" />
+                    <div>
+                      <p class="p-0 text-xs uppercase text-secondary">
+                        {{ selectedComponent.type ?? 'Komponente' }}
+                      </p>
+                      <h3 class="p-0 text-xl text-aris-200 font-semibold">
+                        {{ selectedComponent.name }}
+                      </h3>
+                      <p class="p-0 text-xs text-light-gray flex items-center gap-2">
+                        <span v-if="selectedComponent.size">S{{ selectedComponent.size }}</span>
+                        <span v-if="selectedComponent.grade">{{ selectedComponent.grade }}</span>
+                        <span v-if="selectedComponent.quantity">x{{ selectedComponent.quantity }}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <TableParent title="Basisdaten" bg="bsecondary">
+                    <TableRow title="Hersteller" :content="selectedComponent.manufacturer" third />
+                    <TableRow title="Typ" :content="selectedComponent.type ?? 'Komponente'" third />
+                    <TableRow title="Subtyp" :content="selectedComponent.subtype" third />
+                    <TableRow title="Größe" :content="selectedComponent.size" third />
+                    <TableRow title="Klasse" :content="selectedComponent.class" third />
+                    <TableRow title="Grade" :content="selectedComponent.grade" third />
+                    <TableRow title="Menge" :content="selectedComponent.quantity" third />
                   </TableParent>
+
+                  <div v-if="buildStatSections(selectedComponent.stats).length" class="space-y-3">
+                    <TableParent
+                      v-for="section in buildStatSections(selectedComponent.stats)"
+                      :key="section.label"
+                      :title="section.label"
+                      bg="bsecondary"
+                    >
+                      <template v-if="section.entries.length">
+                        <TableRow
+                          v-for="(entry, idx) in section.entries"
+                          :key="idx"
+                          :title="entry.label || 'Wert'"
+                          :content="entry.value"
+                          full-width
+                        />
+                      </template>
+                      <p v-else class="col-span-6 text-sm text-light-gray">Keine Werte vorhanden.</p>
+                    </TableParent>
+                  </div>
+                  <p v-else class="text-sm text-light-gray">Keine Detaildaten verfügbar.</p>
                 </div>
-                <p v-else class="text-sm text-light-gray">Keine Detaildaten verfügbar.</p>
-              </div>
-            </template>
-          </Slideover>
+              </DefaultPanel>
+            </Transition>
+          </div>
         </template>
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '2')">
           <DefaultPanel bg="bprimary" class="mb-3">
@@ -1126,3 +1194,14 @@ useHead({
     </div>
   </NuxtLayout>
 </template>
+
+<style scoped lang="postcss">
+.slideIn-enter-active,
+.slideIn-leave-active {
+  @apply transition-all duration-300 ease-in-out;
+}
+.slideIn-enter-from,
+.slideIn-leave-to {
+  @apply translate-x-6 opacity-0;
+}
+</style>

@@ -2,14 +2,14 @@ export { IShipComponent };
 
 declare global {
   interface IShipComponent {
-    id: String;
-    name: String;
-    slug: String;
+    id: string;
+    name: string;
+    slug: string;
     size: number;
     grade: number;
-    type: String;
+    type: string;
     manufacturer: ICompany;
-    description: String;
+    description: string;
     durabilityHealth: number;
     durabilityLifetime: number;
     powerConnectionBase: number;
