@@ -223,7 +223,7 @@ onMounted(() => {
   `);
 
   console.log(
-    'Hey! Bist du in unsere Organistation interessiert? Dann schau doch mal auf unserem Discord-Server vorbei: https://discord.ariscorp.de',
+    'Hey! Bist du an unserer Organistation interessiert? Dann schau doch mal auf unserem Discord-Server vorbei! (https://discord.ariscorp.de)',
   );
 
   console.log('%c🚀 Starting ArisCorp-Homepage...', 'color: #00ffe8');
