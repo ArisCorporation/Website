@@ -10,16 +10,10 @@ const { directus, readItem } = useCMS();
 const { params } = useRoute();
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
 const toast = useToast();
-const config = useRuntimeConfig();
-const carousel = ref();
 const store_image_view = ref(true);
-const orbit_controls = ref();
 const modalStore = useModalStore();
 
 const selectedTab = ref(0);
-const setTab = (index: number) => {
-  selectedTab.value = index;
-};
 
 // const { data } = await useAsyncData('SHIP:DATA', () =>
 //   directus.request(
@@ -144,8 +138,6 @@ const { data } = await useAsyncData(String(params.id), async () => {
   };
 });
 
-console.log(data);
-
 // if (!data?.value) {
 //   throw createError({
 //     statusCode: 404,
@@ -225,31 +217,10 @@ const buildStatSections = (stats: Record<string, any> | null | undefined) => {
   });
 };
 
-const normalizeHardpoint = (hp: any) => ({
-  ...(hp ?? {}),
-  ...(hp?.hardpoint ?? {}),
-});
-
-const flattenHardpoints = (hardpoints: any[] = []): any[] =>
-  hardpoints.flatMap((hp) => {
-    const node = normalizeHardpoint(hp);
-    const children = Array.isArray(node?.childs) ? node.childs : [];
-    return [node, ...(children.length ? flattenHardpoints(children) : [])];
-  });
-
-const matches = (component: ComponentEntry, needles: string[]) => {
-  const haystack = [
-    component.type,
-    component.subtype,
-    component.class,
-    component.category,
-    component.code,
-    component.name,
-  ]
-    .filter(Boolean)
-    .map((s) => String(s).toLowerCase());
-  return needles.some((needle) => haystack.some((field) => field?.includes(needle.toLowerCase())));
-};
+const normalizeCategory = (value: unknown) =>
+  String(value ?? '')
+    .replace(/[\s_-]+/g, '')
+    .toLowerCase();
 
 type ComponentEntry = {
   id: string;
@@ -264,6 +235,23 @@ type ComponentEntry = {
   code?: string | null;
   quantity?: number | null;
   stats?: Record<string, any> | null;
+};
+
+type HardpointComponent = ComponentEntry & {
+  parentId: string | null;
+  childIds: string[];
+  categoryKey: string;
+  categoryRaw?: string | null;
+};
+
+type HardpointTreeNode = HardpointComponent & { children?: HardpointTreeNode[]; depth?: number };
+
+type ManualGroupDefinition = {
+  id: string;
+  label: string;
+  categories: string[];
+  render?: 'list' | 'tree';
+  fallback?: boolean;
 };
 
 const selectedComponentId = ref<string | null>(null);
@@ -310,81 +298,218 @@ watchEffect(() => {
   }
 });
 
-const components = computed<ComponentEntry[]>(() => {
-  const hardpoints = selectedConfiguration.value?.hardpoints ?? [];
+const normalizeHardpointNode = (hp: any, index: number, parentId: string | null): HardpointComponent => {
+  const hardpointData = hp?.hardpoint ?? hp ?? {};
+  const itemData = hp?.item ?? hardpointData?.item ?? hardpointData?.DATA ?? hardpointData?.data ?? {};
+  const id = String(hardpointData?.id ?? hp?.id ?? itemData?.id ?? `hp-${index}`);
+  const rawChilds = Array.isArray(hardpointData?.childs ?? hp?.childs) ? (hardpointData?.childs ?? hp?.childs) : [];
+  const childIds = rawChilds
+    .map((child: any) => {
+      if (typeof child === 'object') return child?.id ?? child?.hardpoint?.id ?? child?.hardpoint ?? null;
+      return child;
+    })
+    .filter(Boolean)
+    .map((childId: any) => String(childId));
 
-  const flattened = flattenHardpoints(hardpoints).map((hp, index) => {
-    const item = hp?.item ?? hp?.DATA ?? hp?.data ?? {};
-    const id = String(hp?.id ?? item?.id ?? `hp-${index}`);
+  const categoryRaw = hardpointData?.category ?? hp?.category ?? itemData?.category ?? null;
+  const categoryKey = normalizeCategory(categoryRaw ?? itemData?.type ?? itemData?.subtype ?? itemData?.class);
 
-    return {
-      id,
-      name: item?.name ?? hp?.name ?? hp?.code ?? 'Unbekannt',
-      size: item?.size ?? hp?.size ?? null,
-      grade: item?.grade ?? null,
-      class: item?.class ?? hp?.class ?? null,
-      manufacturer: item?.manufacturer?.name ?? hp?.manufacturer?.name ?? item?.manufacturer ?? null,
-      type: item?.type ?? hp?.meta?.type ?? hp?.category ?? 'Komponente',
-      subtype: item?.subtype ?? hp?.meta?.subtype ?? null,
-      category: hp?.category ?? hp?.meta?.type ?? null,
-      code: hp?.code ?? null,
-      quantity: hp?.quantity ?? hp?.item_quantity ?? hp?.meta?.quantity ?? 1,
-      stats: item?.stats ?? hp?.meta?.stats ?? null,
-    };
+  return {
+    id,
+    name: itemData?.name ?? hardpointData?.code ?? hardpointData?.path ?? 'Unbekannt',
+    size: itemData?.size ?? hardpointData?.size ?? null,
+    grade: itemData?.grade ?? null,
+    class: itemData?.class ?? hardpointData?.class ?? null,
+    manufacturer: itemData?.manufacturer?.name ?? hardpointData?.manufacturer?.name ?? itemData?.manufacturer ?? null,
+    type: itemData?.type ?? hardpointData?.category ?? 'Komponente',
+    subtype: itemData?.subtype ?? itemData?.type ?? null,
+    category: categoryRaw ?? null,
+    code: hardpointData?.code ?? null,
+    quantity: hp?.quantity ?? hp?.item_quantity ?? hardpointData?.item_quantity ?? hardpointData?.meta?.quantity ?? 1,
+    stats: itemData?.stats ?? hardpointData?.meta?.stats ?? null,
+    parentId,
+    childIds,
+    categoryKey,
+    categoryRaw,
+  };
+};
+
+const flattenHardpoints = (hardpoints: any[] = [], parentId: string | null = null, acc: HardpointComponent[] = []) => {
+  hardpoints.forEach((hp, index) => {
+    const node = normalizeHardpointNode(hp, index, parentId);
+    acc.push(node);
+
+    const rawChilds = Array.isArray(hp?.hardpoint?.childs ?? hp?.childs) ? (hp?.hardpoint?.childs ?? hp?.childs) : [];
+    const childObjects = rawChilds.filter((child: any) => typeof child === 'object');
+    if (childObjects.length) flattenHardpoints(childObjects, node.id, acc);
   });
+  return acc;
+};
 
-  return flattened;
+const hardpoints = computed<HardpointComponent[]>(() =>
+  flattenHardpoints(selectedConfiguration.value?.hardpoints ?? []),
+);
+
+const components = computed<ComponentEntry[]>(() => hardpoints.value);
+
+const hardpointMap = computed(() => {
+  const map = new Map<string, HardpointComponent>();
+  hardpoints.value.forEach((hp) => map.set(String(hp.id), hp));
+  return map;
 });
 
-const staticGroups = [
-  { id: 'weapons', label: 'Waffen', match: (c: ComponentEntry) => matches(c, ['weapon', 'gun']) },
-  { id: 'manned_turrets', label: 'Manned Turrets', match: (c: ComponentEntry) => matches(c, ['turret']) && !matches(c, ['remote']) },
-  { id: 'remote_turrets', label: 'Remote Turrets', match: (c: ComponentEntry) => matches(c, ['remote']) && matches(c, ['turret']) },
-  { id: 'shields', label: 'Shields', match: (c: ComponentEntry) => matches(c, ['shield']) },
-  { id: 'coolers', label: 'Coolers', match: (c: ComponentEntry) => matches(c, ['cooler', 'cooling']) },
-  { id: 'flight_controller', label: 'Flight Controller', match: (c: ComponentEntry) => matches(c, ['flightcontroller']) },
-  { id: 'life_support', label: 'Life Support', match: (c: ComponentEntry) => matches(c, ['lifesupport']) },
-  { id: 'radar', label: 'Radar', match: (c: ComponentEntry) => matches(c, ['radar']) },
-  { id: 'defense', label: 'Defense', match: (c: ComponentEntry) => matches(c, ['countermeasure', 'defensive']) },
-  { id: 'cargo', label: 'Cargo', match: (c: ComponentEntry) => matches(c, ['cargo']) },
-  { id: 'powerplants', label: 'Powerplants', match: (c: ComponentEntry) => matches(c, ['powerplant', 'power_plant']) },
-  { id: 'quantum', label: 'Quantum Drive', match: (c: ComponentEntry) => matches(c, ['quantum', 'jump']) },
-  { id: 'thrusters', label: 'Thrusters', match: (c: ComponentEntry) => matches(c, ['thruster']) },
-  { id: 'fuel', label: 'Fuel', match: (c: ComponentEntry) => matches(c, ['fuel']) },
-  { id: 'missiles', label: 'Missiles', match: (c: ComponentEntry) => matches(c, ['missile']) },
-  { id: 'bombs', label: 'Bombs', match: (c: ComponentEntry) => matches(c, ['bomb']) },
-  { id: 'emp', label: 'EMP', match: (c: ComponentEntry) => matches(c, ['emp']) },
-  { id: 'qed', label: 'QED', match: (c: ComponentEntry) => matches(c, ['qed']) },
-  { id: 'mining', label: 'Mining', match: (c: ComponentEntry) => matches(c, ['mining']) },
-  { id: 'salvage', label: 'Salvage', match: (c: ComponentEntry) => matches(c, ['salvage']) },
-  { id: 'utility', label: 'Utility', match: (_c: ComponentEntry) => true },
+const GROUP_DEFINITIONS: ManualGroupDefinition[] = [
+  {
+    id: 'weapons',
+    label: 'Waffen',
+    categories: ['weapongun', 'weapondefensive', 'turret', 'turretbase', 'missile', 'missilerack', 'missilelauncher'],
+    render: 'tree',
+  },
+  { id: 'shields', label: 'Schilde', categories: ['shield'] },
+  { id: 'powerplants', label: 'Power Plant', categories: ['powerplant'] },
+  { id: 'coolers', label: 'Kühler', categories: ['cooler'] },
+  { id: 'quantum', label: 'Quantum Drive', categories: ['quantumdrive', 'jumpdrive'] },
+  { id: 'quantumfuel', label: 'Quantum Treibstoff', categories: ['quantumfueltank'] },
+  { id: 'fuel', label: 'Treibstoff', categories: ['fuelintake', 'fueltank'] },
+  { id: 'thrusters_main', label: 'Haupttriebwerke', categories: ['mainthruster'] },
+  { id: 'thrusters_maneuver', label: 'Manövertriebwerke', categories: ['manneuverthruster'] },
+  { id: 'radar', label: 'Radar & Scanner', categories: ['radar'] },
+  { id: 'life_support', label: 'Life Support', categories: ['lifesupportgenerator'] },
+  { id: 'cargo', label: 'Cargo', categories: ['cargogrid'] },
+  { id: 'docking', label: 'Docking', categories: ['dockingcollar'] },
+  { id: 'armor', label: 'Panzerung', categories: ['armor'] },
+  {
+    id: 'controllers',
+    label: 'Kontrollsysteme',
+    categories: [
+      'shieldcontroller',
+      'coolercontroller',
+      'weaponcontroller',
+      'fuelcontroller',
+      'commscontroller',
+      'energycontroller',
+      'flightcontroller',
+      'capacitorassignmentcontroller',
+      'relay',
+    ],
+  },
+  { id: 'utility', label: 'Sonstige', categories: [], fallback: true },
 ];
 
-const componentGroups = computed(() => {
-  const groups = staticGroups.map((group) => ({
-    id: group.id,
-    label: group.label,
-    items: components.value.filter(group.match),
-  }));
+const matchesGroup = (hp: HardpointComponent, def: ManualGroupDefinition) =>
+  def.categories.length ? def.categories.includes(hp.categoryKey) : Boolean(def.fallback);
 
-  return groups.filter((g) => g.items.length);
+const flattenTreeWithDepth = (
+  nodes: HardpointTreeNode[],
+  depth = 0,
+  acc: HardpointTreeNode[] = [],
+): HardpointTreeNode[] => {
+  nodes.forEach((node) => {
+    const clone: HardpointTreeNode = { ...node, depth };
+    acc.push(clone);
+    if (node.children?.length) flattenTreeWithDepth(node.children, depth + 1, acc);
+  });
+  return acc;
+};
+
+const buildTreeForGroup = (allowedIds: Set<string>) => {
+  const cache = new Map<string, HardpointTreeNode>();
+  const cloneNode = (id: string): HardpointTreeNode | null => {
+    if (!allowedIds.has(id)) return null;
+    if (cache.has(id)) return cache.get(id) as HardpointTreeNode;
+    const base = hardpointMap.value.get(id);
+    if (!base) return null;
+    const node: HardpointTreeNode = { ...base, children: [] };
+    cache.set(id, node);
+    node.children = (base.childIds ?? [])
+      .map((childId) => cloneNode(String(childId)))
+      .filter(Boolean) as HardpointTreeNode[];
+    return node;
+  };
+
+  const roots = [...allowedIds]
+    .map((id) => cloneNode(id))
+    .filter((node): node is HardpointTreeNode => Boolean(node))
+    .filter((node) => {
+      const parentId = node.parentId ? String(node.parentId) : null;
+      return !parentId || !allowedIds.has(parentId);
+    });
+
+  return { roots, flattened: flattenTreeWithDepth(roots) };
+};
+
+const filterTreeByTerm = (nodes: HardpointTreeNode[], predicate: (node: HardpointTreeNode) => boolean) =>
+  nodes
+    .map((node) => {
+      const children = node.children ? filterTreeByTerm(node.children, predicate) : [];
+      const selfMatches = predicate(node);
+      if (selfMatches || children.length) {
+        return { ...node, children };
+      }
+      return null;
+    })
+    .filter(Boolean) as HardpointTreeNode[];
+
+const componentGroups = computed(() => {
+  const assigned = new Set<string>();
+
+  const groups = GROUP_DEFINITIONS.map((definition) => {
+    const items = hardpoints.value.filter(
+      (hp) => !assigned.has(hp.id) && (definition.fallback ? true : matchesGroup(hp, definition)),
+    );
+
+    if (!items.length) return null;
+
+    items.forEach((hp) => assigned.add(hp.id));
+
+    if (definition.render === 'tree') {
+      const allowedIds = new Set(items.map((hp) => hp.id));
+      const { roots, flattened } = buildTreeForGroup(allowedIds);
+      return {
+        ...definition,
+        render: definition.render ?? 'list',
+        tree: roots,
+        items: flattened,
+      };
+    }
+
+    return {
+      ...definition,
+      render: definition.render ?? 'list',
+      items,
+    };
+  }).filter(Boolean) as Array<
+    ManualGroupDefinition & { render: 'list' | 'tree'; items: HardpointTreeNode[]; tree?: HardpointTreeNode[] }
+  >;
+
+  return groups;
 });
 
 const filteredComponentGroups = computed(() => {
   const term = filterTerm.value.trim().toLowerCase();
-  const groups = componentGroups.value;
-
-  const filterFn = (c: ComponentEntry) =>
+  const predicate = (c: HardpointTreeNode) =>
     [c.name, c.type, c.subtype, c.manufacturer, c.grade, c.category, c.code]
       .filter(Boolean)
       .some((field) => String(field).toLowerCase().includes(term));
 
-  return groups
-    .map((group) => ({
-      ...group,
-      items: term ? group.items.filter(filterFn) : group.items,
-    }))
-    .filter((group) => group.items.length);
+  if (!term) return componentGroups.value;
+
+  return componentGroups.value
+    .map((group) => {
+      if (group.render === 'tree') {
+        const filteredTree = filterTreeByTerm(group.tree ?? [], predicate);
+        return {
+          ...group,
+          tree: filteredTree,
+          items: flattenTreeWithDepth(filteredTree),
+        };
+      }
+      return {
+        ...group,
+        items: group.items.filter(predicate),
+      };
+    })
+    .filter((group) => (group.render === 'tree' ? group.tree?.length : group.items.length));
 });
 
 const isComponentOpen = (id: string | number) => selectedComponentId.value === String(id);
@@ -428,12 +553,7 @@ function openModule(module: any) {
 
 const module_carousel_wrapper = ref();
 const module_carousel = ref();
-const {
-  isFullscreen: isModuleCarouselFS,
-  enter: enterModuleCarouselFS,
-  exit: exitModuleCarouselFS,
-  toggle: toggleModuleCarouselFS,
-} = useFullscreen(module_carousel_wrapper);
+const { toggle: toggleModuleCarouselFS } = useFullscreen(module_carousel_wrapper);
 const module_shortcuts_enabled = computed(() => modalStore.isModalOpen && modalStore.type === 'module');
 
 const stars_props = {
@@ -450,16 +570,7 @@ const stars_props = {
 const stars_position = ref();
 const stars_scale = ref();
 
-const {
-  radius: stars_radius,
-  depth: stars_depth,
-  count: stars_count,
-  size: stars_size,
-  sizeAttenuation: stars_sizeAttenuation,
-  transparent: stars_transparent,
-  alphaMap: stars_alphaMap,
-  alphaTest: stars_alphaTest,
-} = toRefs(stars_props);
+const { radius: stars_radius, depth: stars_depth, count: stars_count } = toRefs(stars_props);
 
 const setStars = () => {
   let circle = stars_radius.value + stars_depth.value;
@@ -486,8 +597,6 @@ const setStars = () => {
 watchEffect(() => {
   setStars();
 });
-
-const starsRef = shallowRef();
 
 defineShortcuts({
   f: () => module_shortcuts_enabled.value && toggleModuleCarouselFS(),
@@ -900,6 +1009,7 @@ useHead({
                         :class="[
                           isComponentOpen(component.id) ? 'border-aris-400/70 shadow-lg' : 'hover:border-aris-400/40',
                         ]"
+                        :style="group.render === 'tree' ? { paddingLeft: `${(component.depth ?? 0) * 12}px` } : {}"
                         @click="toggleComponent(component.id)"
                       >
                         <p class="p-0 text-xs uppercase text-secondary truncate max-w-[40%]">
