@@ -11,9 +11,62 @@
 
 const removePopover = ref(false);
 const emit = defineEmits(['edit', 'removeOpen', 'removeConfirm', 'module-open', 'quickViewOpen']);
+
+type ShipCardManufacturer = {
+  code?: string | null;
+  name?: string | null;
+  slug?: string | null;
+};
+
+type ShipCardData = {
+  id?: string | number | null;
+  slug?: string | null;
+  name?: string | null;
+  hull?: { manufacturer?: ShipCardManufacturer | null } | null;
+  production_status?: string | null;
+  production_status_value?: string | null;
+  ship?: { manufacturer?: ShipCardManufacturer | null } | null;
+  stats?: {
+    cargo?: number | string | null;
+    crew?: number | string | null;
+    dimensions?: {
+      height?: number | string | null;
+      length?: number | string | null;
+      width?: number | string | null;
+    } | null;
+  } | null;
+  store_image?: { id?: string | null } | string | null;
+  thumbnail?: { id?: string | null } | string | null;
+};
+
+type HangarCardData = {
+  id?: string | number | null;
+  loaner?: boolean | null;
+  ship?: {
+    manufacturer?: ShipCardManufacturer | null;
+    name?: string | null;
+  } | null;
+  userData?: {
+    department?: {
+      logo?: string | null;
+      name?: string | null;
+    } | null;
+    module?: {
+      name?: string | null;
+    } | null;
+    name?: string | null;
+    owner?: {
+      full_name?: string | null;
+      slug?: string | null;
+    } | null;
+    planned?: boolean | null;
+    visibility?: string | null;
+  } | null;
+};
+
 const props = defineProps<{
-  shipData: any;
-  hangarData?: any;
+  shipData: ShipCardData;
+  hangarData?: HangarCardData;
   displayOwner?: boolean;
   displayPlannedState?: boolean;
   displayCrud?: boolean;
@@ -29,7 +82,7 @@ const props = defineProps<{
   hidden?: boolean;
   color?: string;
   onboarding?: boolean;
-  virtualElement?: any;
+  virtualElement?: unknown;
   moduleView?: boolean;
   quickView?: boolean;
   type?: string;
@@ -146,6 +199,37 @@ const handleEdit = () => {
   emit('edit', title, props.hangarData);
 };
 
+const shipEntry = computed(() => props.shipData?.ship ?? props.shipData?.hull ?? props.shipData ?? null);
+
+const manufacturer = computed(() => shipEntry.value?.manufacturer ?? null);
+
+const thumbnailId = computed(
+  () =>
+    props.shipData?.thumbnail?.id ??
+    props.shipData?.thumbnail ??
+    props.shipData?.store_image?.id ??
+    props.shipData?.store_image ??
+    null,
+);
+
+const detailPath = computed(() => {
+  if (props.quickView || props.moduleView) return '';
+
+  const basePath =
+    props.type === 'attachments'
+      ? '/verseexkurs/technology/attachments/'
+      : props.type === 'weapons'
+        ? '/verseexkurs/technology/weapons/'
+        : '/shipexkurs/ships/';
+
+  const identifier =
+    props.type === 'attachments' || props.type === 'weapons'
+      ? (props.shipData?.slug ?? props.shipData?.id ?? '')
+      : (props.shipData?.id ?? props.shipData?.slug ?? '');
+
+  return `${basePath}${identifier}`;
+});
+
 // border-danger text-danger border-success text-success
 </script>
 
@@ -154,27 +238,13 @@ const handleEdit = () => {
     <DefaultPanel :color="color ?? 'primary'" :class="{ 'animate-link': !displayCrud }">
       <div class="relative h-fit">
         <NuxtLink
-          :to="
-            quickView
-              ? ''
-              : !moduleView
-              ? (type === 'attachments'
-                  ? '/verseexkurs/technology/attachments/'
-                  : type === 'weapons'
-                  ? '/verseexkurs/technology/weapons/'
-                  : '/shipexkurs/ships/') + shipData.id
-              : ''
-          "
+          :to="detailPath"
           :role="!moduleView ? 'link' : 'button'"
           class="block relative transition-all duration-500 ease h-[200px] bg-image group peer"
           @click="quickView ? $emit('quickViewOpen', shipData.id) : moduleView ? $emit('module-open', shipData) : null"
         >
           <NuxtImg
-            :src="
-              shipData.thumbnail?.id
-                ? 'https://assets.ariscorp.de/' + shipData.thumbnail.id
-                : 'https://assets.ariscorp.de/3efbbd97-b3b0-46b7-86bf-9d6e32e7fec3'
-            "
+            :src="thumbnailId ? thumbnailId : 'https://assets.ariscorp.de/3efbbd97-b3b0-46b7-86bf-9d6e32e7fec3'"
             :placeholder="[16, 16, 1, 5]"
             :preload="preloadImages"
             height="200"
@@ -228,7 +298,7 @@ const handleEdit = () => {
             Geplant
           </div>
           <NuxtLink
-            :to="(type === 'attachments' ? '/technology/attachments/' : '/shipexkurs/ships/') + shipData.slug"
+            :to="detailPath"
             class="m-0 transition hover:no-underline basis-full opacity-80 text-secondary hover:opacity-100"
           >
             <div class="animate-link w-fit">
@@ -237,11 +307,19 @@ const handleEdit = () => {
             </div>
           </NuxtLink>
           <NuxtLink
-            :to="'/verseexkurs/companies/' + shipData.ship.manufacturer.slug"
+            v-if="manufacturer?.slug"
+            :to="'/verseexkurs/companies/' + manufacturer.slug"
             class="z-20 min-w-0 min-h-0 mt-auto text-xs text-white opacity-50 w-fit h-fit transition-group hover:no-underline hover:opacity-100 animate-link"
             :class="{ 'max-w-[calc(100%_-_60px)]': displayCrud }"
-            >{{ shipData.ship.manufacturer.name }}
+            >{{ manufacturer?.name }}
           </NuxtLink>
+          <p
+            v-else
+            class="z-20 min-w-0 min-h-0 mt-auto text-xs text-white opacity-50 w-fit h-fit"
+            :class="{ 'max-w-[calc(100%_-_60px)]': displayCrud }"
+          >
+            {{ manufacturer?.name ?? 'Unbekannt' }}
+          </p>
           <NuxtLink
             v-if="displayOwner"
             :to="(internalBio ? '/ams/employees/' : '/') + 'biography/' + hangarData.userData.owner.slug"
