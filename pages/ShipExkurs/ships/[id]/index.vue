@@ -665,7 +665,9 @@ const getResourceRate = (stdItem: DetailRecord, resource: string, type?: string)
 
 const getUniquePortSizes = (stdItem: DetailRecord) => {
   const ports = Array.isArray(stdItem.Ports) ? stdItem.Ports : [];
-  const sizes = [...new Set(ports.map((port) => formatDisplayValue(isPlainObject(port) ? port.Size : null)).filter(Boolean))];
+  const sizes = [
+    ...new Set(ports.map((port) => formatDisplayValue(isPlainObject(port) ? port.Size : null)).filter(Boolean)),
+  ];
   return sizes.length ? sizes.map((size) => `S${size}`).join(', ') : null;
 };
 
@@ -697,7 +699,7 @@ const cargoGridStats = computed<DetailRecord[]>(() =>
 const getCargoGridData = (component: HardpointComponent) => {
   const cargoComponents = components.value.filter((entry) => entry.categoryKey === 'cargogrid');
   const cargoIndex = cargoComponents.findIndex((entry) => entry.id === component.id);
-  return cargoIndex >= 0 ? cargoGridStats.value[cargoIndex] ?? null : null;
+  return cargoIndex >= 0 ? (cargoGridStats.value[cargoIndex] ?? null) : null;
 };
 
 const getCargoGridContainer = (component: HardpointComponent) => {
@@ -707,13 +709,31 @@ const getCargoGridContainer = (component: HardpointComponent) => {
   return getCargoGridData(component);
 };
 
+const VALID_SCU_SIZES = [1, 2, 4, 8, 16, 24, 32];
+
 const getCargoGridBoxSizeInScu = (size: unknown) => {
   if (!isPlainObject(size)) return null;
-  const x = typeof size.x === 'number' ? size.x : null;
-  const y = typeof size.y === 'number' ? size.y : null;
-  const z = typeof size.z === 'number' ? size.z : null;
-  if (![x, y, z].every((value): value is number => typeof value === 'number' && value > 0)) return null;
-  return (x * y * z) / SCU_BOX_VOLUME;
+
+  const x = typeof (size as any).x === 'number' ? (size as any).x : (size as any).X;
+  const y = typeof (size as any).y === 'number' ? (size as any).y : (size as any).Y;
+  const z = typeof (size as any).z === 'number' ? (size as any).z : (size as any).Z;
+
+  if (![x, y, z].every((v): v is number => typeof v === 'number' && v > 0)) {
+    return null;
+  }
+
+  const volume = x * y * z;
+  const rawScu = volume / SCU_BOX_VOLUME;
+
+  // kleine Toleranz gegen Floating-Point-Fehler
+  const EPSILON = 0.0001;
+
+  // sortiert von groß nach klein → finde erstes <= rawScu
+  const validScu = VALID_SCU_SIZES.slice()
+    .sort((a, b) => b - a)
+    .find((scu) => scu <= rawScu + EPSILON);
+
+  return validScu ?? null;
 };
 
 const buildSupportSection = (stdItem: DetailRecord, title = 'Versorgung') => {
@@ -736,7 +756,7 @@ const buildWeaponSections = (component: HardpointComponent) => {
     : isPlainObject(stdItem.Ammunition)
       ? stdItem.Ammunition
       : {};
-  const mode = Array.isArray(weapon.Modes) ? weapon.Modes[0] ?? null : null;
+  const mode = Array.isArray(weapon.Modes) ? (weapon.Modes[0] ?? null) : null;
   const consumption = isPlainObject(weapon.Consumption) ? weapon.Consumption : {};
   const damage = isPlainObject(ammunition.ImpactDamage) ? ammunition.ImpactDamage : {};
 
@@ -772,10 +792,7 @@ const buildMissileSections = (component: HardpointComponent) => {
     .map(([key, value]) => makeDetailRow(formatLabel(key), value));
 
   return compactSections([
-    makeDetailSection('Schaden', [
-      makeDetailRow('Gesamtschaden', getDamageTotal(damage)),
-      ...getDamageRows(damage),
-    ]),
+    makeDetailSection('Schaden', [makeDetailRow('Gesamtschaden', getDamageTotal(damage)), ...getDamageRows(damage)]),
     makeDetailSection('Flugprofil', additionalRows),
   ]);
 };
@@ -869,13 +886,12 @@ const buildTankSections = (component: HardpointComponent) => {
   const resourceContainer = isPlainObject(stdItem.ResourceContainer) ? stdItem.ResourceContainer : {};
   const capacity = isPlainObject(resourceContainer.Capacity) ? resourceContainer.Capacity : {};
   const unit = formatDisplayValue(capacity.UnitName) ?? null;
-  const generatedResource =
-    getResourceStates(stdItem)
-      .flatMap((state) => {
-        const stateRecord = isPlainObject(state) ? state : {};
-        return Array.isArray(stateRecord.Deltas) ? stateRecord.Deltas : [];
-      })
-      .find((delta) => normalizeTextValue(isPlainObject(delta) ? delta.GeneratedResource : null));
+  const generatedResource = getResourceStates(stdItem)
+    .flatMap((state) => {
+      const stateRecord = isPlainObject(state) ? state : {};
+      return Array.isArray(stateRecord.Deltas) ? stateRecord.Deltas : [];
+    })
+    .find((delta) => normalizeTextValue(isPlainObject(delta) ? delta.GeneratedResource : null));
   const generatedResourceLabel = isPlainObject(generatedResource) ? generatedResource.GeneratedResource : null;
 
   return compactSections([
@@ -896,10 +912,7 @@ const buildFuelIntakeSections = (component: HardpointComponent) => {
   const intake = isPlainObject(stdItem.FuelIntake) ? stdItem.FuelIntake : {};
 
   return compactSections([
-    makeDetailSection('Aufnahme', [
-      makeDetailRow('Min. Rate', intake.MinRate),
-      makeDetailRow('Rate', intake.Rate),
-    ]),
+    makeDetailSection('Aufnahme', [makeDetailRow('Min. Rate', intake.MinRate), makeDetailRow('Rate', intake.Rate)]),
     buildSupportSection(stdItem),
   ]);
 };
@@ -1004,9 +1017,7 @@ const buildFallbackSections = (component: HardpointComponent) => {
           ]);
         }
 
-        return makeDetailSection('Systemwerte', [
-          makeDetailRow(formatLabel(key), value, { fullWidth: true }),
-        ]);
+        return makeDetailSection('Systemwerte', [makeDetailRow(formatLabel(key), value, { fullWidth: true })]);
       }),
   );
 };
@@ -1659,7 +1670,12 @@ useHead({
                     {{ selectedComponentDescription }}
                   </p>
 
-                  <TableParent v-if="selectedComponentOverviewRows.length" :no-panel="true" title="Basisdaten" bg="bsecondary">
+                  <TableParent
+                    v-if="selectedComponentOverviewRows.length"
+                    :no-panel="true"
+                    title="Basisdaten"
+                    bg="bsecondary"
+                  >
                     <TableRow
                       v-for="row in selectedComponentOverviewRows"
                       :key="row.title"
@@ -1699,6 +1715,11 @@ useHead({
                 </div>
               </DefaultPanel>
             </Transition>
+            <ClientOnly>
+              <DefaultPanel>
+                <iframe height="500px" width="100%" src="https://sc-cargo.space/#/v1/viewer/c2%20hercules-official" />
+              </DefaultPanel>
+            </ClientOnly>
           </div>
         </template>
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '2')">
