@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // import { getShortCompanyName } from '~/utils'
-import type { UserHangar } from '~~/types'
+import type { Company, ShipHull, ShipVariant, UserHangar } from '~~/types'
 
 const props = defineProps<{ data: UserHangar[] | null }>()
 
@@ -42,25 +42,33 @@ function processChartData(
 }
 
 const shipsByManufacturer = computed(() =>
-  processChartData(props.data, (ship) =>
-    getCompanyCode(ship.ship_id?.manufacturer)
+  processChartData(props.data, (item) =>
+    getCompanyCode(
+      (((item.ship as ShipVariant)?.hull as ShipHull)?.manufacturer as Company)
+    )
   )
 )
 const shipsBySize = computed(() =>
-  processChartData(props.data, (ship) => getSizeLetter(ship.ship_id?.size))
+  processChartData(props.data, (item) =>
+    getSizeLetter((item.ship as ShipVariant)?.stats?.size as string)
+  )
 )
 const shipsByClassification = computed(() =>
-  processChartData(props.data, (ship) =>
-    getShipClassLabel(ship.ship_id?.classification)
+  processChartData(props.data, (item) =>
+    getShipClassLabel((item.ship as ShipVariant)?.stats?.role as string)
   )
 )
 const shipsByProductionStatus = computed(() =>
-  processChartData(props.data, (ship) =>
-    getShipProductionLabel(ship.ship_id?.production_status)
+  processChartData(props.data, (item) =>
+    getShipProductionLabel(
+      (item.ship as ShipVariant)?.production_state as string
+    )
   )
 )
 const shipsByDepartment = computed(() =>
-  processChartData(props.data, (ship) => ship.department?.name)
+  processChartData(props.data, (item) =>
+    typeof item.department === 'object' ? item.department?.name ?? undefined : undefined
+  )
 )
 </script>
 

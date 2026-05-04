@@ -18,8 +18,8 @@ export const hangarItemSchema = z.object({
   // NOT EDITABLE:
   id: z.string().optional(),
   date_created: z.string().optional(),
-  user_id: z.string().optional(),
-  ship_id: z.string().optional(),
+  user: z.string().optional(),
+  ship: z.string().optional(),
 });
 
 // Typ-Inferenz aus dem Zod-Schema für Typsicherheit
@@ -137,10 +137,10 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
         active_module: resolveToStringOrUndefined(pickedSourceData.active_module),
         // date_created: UserHangar.date_created ist string | null, schema.date_created ist string().optional()
         date_created: pickedSourceData.date_created ?? undefined,
-        // user_id: UserHangar.user_id ist DirectusUser | string | null, schema.user_id ist string().optional()
-        user_id: resolveToStringOrUndefined(pickedSourceData.user_id),
-        // ship_id: UserHangar.ship_id ist Ship | string | null, schema.ship_id ist string().optional()
-        ship_id: resolveToStringOrUndefined(pickedSourceData.ship_id),
+        // user: UserHangar.user ist DirectusUser | string | null, schema.user ist string().optional()
+        user: resolveToStringOrUndefined(pickedSourceData.user),
+        // ship: UserHangar.ship ist ShipVariant | string | null, schema.ship ist string().optional()
+        ship: resolveToStringOrUndefined(pickedSourceData.ship),
       };
 
       // Weise die aufbereiteten Daten dem Formularstatus deiner Komponente zu

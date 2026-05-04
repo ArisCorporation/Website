@@ -43,15 +43,7 @@ watch(
   }
 )
 
-useLazyAsyncData('global:simple_departments', () =>
-  useDirectus(
-    readItems('departments', {
-      limit: -1,
-      fields: ['id', 'name'],
-      sort: ['name'],
-    })
-  )
-)
+await useSimpleDepartments()
 
 const { data, pending, refresh } = await useFetchAMSHangar(
   targetUserId,
@@ -82,9 +74,9 @@ const filteredShips = computed<UserHangar[]>(() => {
     [
       'name',
       'department.name',
-      'ship_id.name',
-      'ship_id.manufacturer.name',
-      'ship_id.manufacturer.code',
+      'ship.name',
+      'ship.hull.manufacturer.name',
+      'ship.hull.manufacturer.code',
     ],
     searchInput.value
   )
