@@ -54,6 +54,7 @@ export default function useFetchAMSFleet() {
     },
     {
       default: () => [] as UserHangar[],
+      server: false,
     },
   );
 }
