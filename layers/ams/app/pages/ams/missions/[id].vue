@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { deleteItem, updateItem } from '@directus/sdk'
+import { createItem, deleteItem, updateItem } from '@directus/sdk'
 
 const route = useRoute()
 const { data: mission, refresh } = await useFetchAMSMission(route.params.id as string)
@@ -28,6 +28,27 @@ const signupTarget = ref<{
 function openSignup(type: 'flex' | 'flex_team' | 'position', team?: any, position?: any) {
   signupTarget.value = { type, team, position }
   signupModalOpen.value = true
+}
+
+async function signupTentative() {
+  if (!currentUser.value || !mission.value) return
+  try {
+    await useDirectus(
+      createItem('ams_mission_registrations' as any, {
+        mission: mission.value.id,
+        user: currentUser.value.id,
+        type: 'flex',
+        team: null,
+        position: null,
+        status: 'tentative',
+        note: null,
+      }),
+    )
+    toast.add({ title: 'Unter Vorbehalt angemeldet', color: 'success', icon: 'i-lucide-clock' })
+    await refresh()
+  } catch {
+    toast.add({ title: 'Fehler', color: 'error', icon: 'i-lucide-alert-triangle' })
+  }
 }
 
 async function unregister() {
@@ -207,7 +228,7 @@ definePageMeta({
 
       <div class="space-y-4">
         <div class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/50 p-5 space-y-3">
-          <h3 class="text-xs font-semibold text-(--ui-primary) uppercase tracking-wider">
+          <h3 class="text-xs font-semibold text-(--ui-primary) uppercase tracking-wider mt-0!">
             Mission Info
           </h3>
           <div class="flex items-center gap-2 text-sm">
@@ -247,7 +268,7 @@ definePageMeta({
         </div>
 
         <div class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/50 p-5">
-          <h3 class="text-xs font-semibold text-(--ui-primary) uppercase tracking-wider mb-3">
+          <h3 class="text-xs font-semibold text-(--ui-primary) uppercase tracking-wider mt-0! mb-3">
             Mein Status
           </h3>
           <div v-if="myRegistration" class="space-y-3">
@@ -282,16 +303,24 @@ definePageMeta({
               />
             </div>
           </div>
-          <div v-else-if="mission.status === 'active'" class="space-y-3">
-            <p class="text-sm text-(--ui-muted-foreground)">
+          <div v-else-if="mission.status === 'active'" class="space-y-2">
+            <p class="text-sm text-(--ui-muted-foreground) mb-3">
               Du bist noch nicht angemeldet.
             </p>
             <UButton
               icon="i-lucide-user-plus"
-              label="Flex anmelden"
-              variant="outline"
+              label="Anmelden"
+              variant="subtle"
               class="w-full justify-center"
               @click="openSignup('flex')"
+            />
+            <UButton
+              icon="i-lucide-clock"
+              label="Unter Vorbehalt"
+              color="warning"
+              variant="outline"
+              class="w-full justify-center"
+              @click="signupTentative"
             />
           </div>
           <p v-else class="text-sm text-(--ui-muted-foreground)">
@@ -304,7 +333,7 @@ definePageMeta({
           class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/50 p-5"
         >
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-xs font-semibold text-(--ui-primary) uppercase tracking-wider">
+            <h3 class="text-xs font-semibold text-(--ui-primary) uppercase tracking-wider m-0!">
               Anmeldungen
             </h3>
             <UBadge v-if="pendingRegistrations.length" color="warning" variant="subtle" size="xs">

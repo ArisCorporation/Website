@@ -336,205 +336,219 @@ definePageMeta({
       />
     </AMSPageHeader>
 
-    <div class="max-w-4xl space-y-6">
-      <div class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/50 p-6">
-        <h2 class="text-sm font-semibold text-(--ui-primary) uppercase tracking-wider mb-4">
-          Mission Details
-        </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField label="Titel" required class="sm:col-span-2">
-            <UInput v-model="form.title" placeholder="z.B. Operation Silberstern" class="w-full" />
-          </UFormField>
-
-          <UFormField label="Typ">
-            <USelectMenu
-              v-model="form.mission_type"
-              :items="TYPE_OPTIONS"
-              value-key="value"
-              label-key="label"
-              class="w-full"
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
+      <!-- Teams & Schiffe – Hauptbereich -->
+      <div class="lg:col-span-2 space-y-4">
+        <div class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/50 overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-(--ui-primary)/10 bg-(--ui-primary)/5">
+            <div class="flex items-center gap-2">
+              <UIcon name="i-lucide-layers" class="h-4 w-4 text-(--ui-primary)" />
+              <h2 class="text-sm font-semibold text-(--ui-primary) uppercase tracking-wider m-0!">Teams & Schiffe</h2>
+            </div>
+            <UButton
+              size="sm"
+              variant="outline"
+              icon="i-lucide-plus"
+              label="Team hinzufügen"
+              @click="addTeam"
             />
-          </UFormField>
+          </div>
 
-          <UFormField label="Status">
-            <USelectMenu
-              v-model="form.status"
-              :items="STATUS_OPTIONS"
-              value-key="value"
-              label-key="label"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField label="Datum & Uhrzeit">
-            <UInput v-model="form.planned_date" type="datetime-local" class="w-full" />
-          </UFormField>
-
-          <UFormField label="Max. Teilnehmer" hint="0 = unbegrenzt">
-            <UInput v-model.number="form.max_members" type="number" min="0" class="w-full" />
-          </UFormField>
-
-          <UFormField label="Standort" hint="z.B. Port Olisar">
-            <UInput v-model="form.location" placeholder="z.B. Stanton – Port Olisar" class="w-full" />
-          </UFormField>
-
-          <UFormField label="Treffpunkt / Startort" hint="Wo geht es los?">
-            <UInput v-model="form.start_location" placeholder="z.B. Hurston – Lorville" class="w-full" />
-          </UFormField>
-
-          <UFormField label="Beschreibung" class="sm:col-span-2">
-            <UTextarea
-              v-model="form.description"
-              placeholder="Ziele, Regeln, Informationen zur Mission..."
-              :rows="4"
-              class="w-full"
-            />
-          </UFormField>
-        </div>
-      </div>
-
-      <div class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/50 p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-sm font-semibold text-(--ui-primary) uppercase tracking-wider">
-            Teams & Schiffe
-          </h2>
-          <UButton
-            size="sm"
-            variant="outline"
-            icon="i-lucide-plus"
-            label="Team hinzufügen"
-            @click="addTeam"
-          />
-        </div>
-
-        <div v-if="!teams.length" class="text-center py-8 text-(--ui-muted-foreground) text-sm">
-          Noch keine Teams. Klicke auf "Team hinzufügen".
-        </div>
-
-        <div class="space-y-4">
-          <div
-            v-for="(team, ti) in teams"
-            :key="ti"
-            class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg)/50 overflow-hidden"
-          >
-            <div
-              class="flex items-center gap-3 px-4 py-3 bg-(--ui-primary)/5 border-b border-(--ui-primary)/10"
-            >
-              <UIcon name="i-lucide-users" class="h-4 w-4 text-(--ui-primary) shrink-0" />
-              <UInput
-                v-model="team.name"
-                placeholder="Team Name"
-                variant="ghost"
-                class="flex-1 font-semibold"
-              />
-              <UInput
-                v-model="team.description"
-                placeholder="Beschreibung (optional)"
-                variant="ghost"
-                class="flex-1 hidden sm:block text-sm"
-              />
-              <UButton
-                size="xs"
-                color="error"
-                variant="ghost"
-                icon="i-lucide-trash-2"
-                @click="removeTeam(ti)"
-              />
+          <div class="p-5 space-y-4">
+            <div v-if="!teams.length" class="text-center py-10 text-(--ui-muted-foreground) text-sm">
+              <UIcon name="i-lucide-users" class="h-8 w-8 mx-auto mb-2 opacity-30" />
+              <p>Noch keine Teams. Klicke auf "Team hinzufügen".</p>
             </div>
 
-            <div class="p-4 space-y-4">
-              <div v-if="!team.ships.length" class="text-sm text-(--ui-muted-foreground) text-center py-2">
-                Noch keine Schiffe.
+            <div
+              v-for="(team, ti) in teams"
+              :key="ti"
+              class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg)/50 overflow-hidden"
+            >
+              <!-- Team Header -->
+              <div class="flex items-center gap-3 px-4 py-3 bg-(--ui-primary)/5 border-b border-(--ui-primary)/10">
+                <span class="text-xs font-bold text-(--ui-primary)/50 w-5 text-center shrink-0">{{ ti + 1 }}</span>
+                <UInput
+                  v-model="team.name"
+                  placeholder="Team Name"
+                  variant="ghost"
+                  class="flex-1 font-semibold"
+                />
+                <UInput
+                  v-model="team.description"
+                  placeholder="Beschreibung (optional)"
+                  variant="ghost"
+                  class="flex-1 hidden sm:block text-sm text-(--ui-muted-foreground)"
+                />
+                <UButton
+                  size="xs"
+                  color="error"
+                  variant="ghost"
+                  icon="i-lucide-trash-2"
+                  @click="removeTeam(ti)"
+                />
               </div>
 
-              <div
-                v-for="(ship, si) in team.ships"
-                :key="si"
-                class="rounded border border-(--ui-border)/30 bg-(--ui-bg-muted)/30 p-3 space-y-3"
-              >
-                <div class="flex items-center gap-2">
-                  <UIcon name="i-lucide-rocket" class="h-4 w-4 text-(--ui-primary)/60 shrink-0" />
-                  <USelectMenu
-                    v-model="ship.hangar_id"
-                    :items="fleetOptions"
-                    value-key="value"
-                    label-key="label"
-                    placeholder="Schiff aus der Flotte wählen..."
-                    class="flex-1"
-                    searchable
-                  />
-
-                  <UButton
-                    size="xs"
-                    color="error"
-                    variant="ghost"
-                    icon="i-lucide-trash-2"
-                    @click="removeShip(team, si)"
-                  />
+              <!-- Schiffe -->
+              <div class="divide-y divide-(--ui-primary)/5">
+                <div v-if="!team.ships.length" class="px-4 py-3 text-sm text-(--ui-muted-foreground) text-center">
+                  Kein Schiff zugewiesen.
                 </div>
 
-                <div v-if="ship.positions.length" class="space-y-2 pl-2">
-                  <div
-                    v-for="(pos, pi) in ship.positions"
-                    :key="pi"
-                    class="flex items-center gap-2"
-                  >
+                <div
+                  v-for="(ship, si) in team.ships"
+                  :key="si"
+                  class="px-4 py-3 space-y-3"
+                >
+                  <!-- Schiff auswählen -->
+                  <div class="flex items-center gap-2">
+                    <UIcon name="i-lucide-rocket" class="h-4 w-4 text-(--ui-primary)/50 shrink-0" />
                     <USelectMenu
-                      v-model="pos.role"
-                      :items="ROLE_OPTIONS"
+                      v-model="ship.hangar_id"
+                      :items="fleetOptions"
                       value-key="value"
                       label-key="label"
-                      class="w-44 shrink-0"
-                    />
-                    <USelectMenu
-                      v-model="pos.assigned_user"
-                      :items="employeeOptions"
-                      value-key="value"
-                      label-key="label"
-                      placeholder="Direkt zuweisen (optional)"
+                      placeholder="Schiff aus der Flotte wählen…"
                       class="flex-1"
                       searchable
-                      clearable
                     />
                     <UButton
                       size="xs"
                       color="error"
                       variant="ghost"
-                      icon="i-lucide-minus"
-                      @click="removePosition(ship, pi)"
+                      icon="i-lucide-x"
+                      @click="removeShip(team, si)"
                     />
                   </div>
-                </div>
 
+                  <!-- Positionen -->
+                  <div v-if="ship.positions.length" class="ml-6 space-y-2">
+                    <div
+                      v-for="(pos, pi) in ship.positions"
+                      :key="pi"
+                      class="flex items-center gap-2"
+                    >
+                      <USelectMenu
+                        v-model="pos.role"
+                        :items="ROLE_OPTIONS"
+                        value-key="value"
+                        label-key="label"
+                        class="w-40 shrink-0"
+                      />
+                      <USelectMenu
+                        v-model="pos.assigned_user"
+                        :items="employeeOptions"
+                        value-key="value"
+                        label-key="label"
+                        placeholder="Direkt zuweisen (optional)"
+                        class="flex-1"
+                        searchable
+                        clearable
+                      />
+                      <UButton
+                        size="xs"
+                        color="error"
+                        variant="ghost"
+                        icon="i-lucide-minus"
+                        @click="removePosition(ship, pi)"
+                      />
+                    </div>
+                  </div>
+
+                  <UButton
+                    size="xs"
+                    variant="ghost"
+                    icon="i-lucide-plus"
+                    label="Position hinzufügen"
+                    class="ml-6"
+                    @click="addPosition(ship)"
+                  />
+                </div>
+              </div>
+
+              <!-- Schiff hinzufügen -->
+              <div class="px-4 py-2 border-t border-(--ui-primary)/5 bg-(--ui-bg-muted)/20">
                 <UButton
                   size="xs"
                   variant="ghost"
                   icon="i-lucide-plus"
-                  label="Position hinzufügen"
-                  @click="addPosition(ship)"
+                  label="Schiff hinzufügen"
+                  @click="addShip(team)"
                 />
               </div>
-
-              <UButton
-                size="sm"
-                variant="ghost"
-                icon="i-lucide-plus"
-                label="Schiff hinzufügen"
-                @click="addShip(team)"
-              />
             </div>
           </div>
         </div>
       </div>
 
-      <div class="flex justify-end gap-3 pb-8">
-        <UButton to="/ams/missions" variant="ghost" label="Abbrechen" />
-        <UButton
-          :loading="loading"
-          icon="i-lucide-save"
-          :label="isEditing ? 'Änderungen speichern' : 'Mission erstellen'"
-          @click="save"
-        />
+      <!-- Details Sidebar -->
+      <div class="space-y-4 lg:sticky lg:top-4 lg:self-start">
+        <div class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/50 p-5 space-y-4">
+          <h2 class="text-xs font-semibold text-(--ui-primary) uppercase tracking-wider mt-0!">Mission Details</h2>
+
+          <UFormField label="Titel" required>
+            <UInput v-model="form.title" placeholder="z.B. Operation Silberstern" class="w-full" />
+          </UFormField>
+
+          <div class="grid grid-cols-2 gap-3">
+            <UFormField label="Typ">
+              <USelectMenu
+                v-model="form.mission_type"
+                :items="TYPE_OPTIONS"
+                value-key="value"
+                label-key="label"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField label="Status">
+              <USelectMenu
+                v-model="form.status"
+                :items="STATUS_OPTIONS"
+                value-key="value"
+                label-key="label"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
+
+          <UFormField label="Datum & Uhrzeit">
+            <UInput v-model="form.planned_date" type="datetime-local" class="w-full" />
+          </UFormField>
+
+          <div class="grid grid-cols-2 gap-3">
+            <UFormField label="Treffpunkt">
+              <UInput v-model="form.location" placeholder="Port Olisar…" class="w-full" />
+            </UFormField>
+            <UFormField label="Startort">
+              <UInput v-model="form.start_location" placeholder="Lorville…" class="w-full" />
+            </UFormField>
+          </div>
+
+          <UFormField label="Max. Teilnehmer" hint="0 = unbegrenzt">
+            <UInput v-model.number="form.max_members" type="number" min="0" class="w-full" />
+          </UFormField>
+
+          <UFormField label="Beschreibung">
+            <UTextarea
+              v-model="form.description"
+              placeholder="Ziele, Regeln, Infos…"
+              :rows="4"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <UButton
+            :loading="loading"
+            icon="i-lucide-save"
+            :label="isEditing ? 'Änderungen speichern' : 'Mission erstellen'"
+            class="w-full justify-center"
+            @click="save"
+          />
+          <UButton to="/ams/missions" variant="ghost" label="Abbrechen" class="w-full justify-center" />
+        </div>
       </div>
     </div>
   </div>

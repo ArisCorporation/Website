@@ -63,7 +63,7 @@ function handlePositionClick(team: any, pos: any) {
       >
         <div class="flex items-center gap-2">
           <UIcon name="i-lucide-users" class="h-4 w-4 text-(--ui-primary)" />
-          <h3 class="font-semibold text-white">{{ team.name }}</h3>
+          <h3 class="font-semibold text-white m-0!">{{ team.name }}</h3>
           <span v-if="team.description" class="text-xs text-(--ui-muted-foreground) hidden sm:block">
             – {{ team.description }}
           </span>
