@@ -11,7 +11,7 @@ export default function useFetchAMSMissions() {
             'mission_type',
             'title',
             'planned_date',
-            'max_members',
+            'duration',
             'date_created',
             { user_created: ['id', 'first_name', 'last_name', 'avatar'] },
             { registrations: ['id', 'status', 'type'] },

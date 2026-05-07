@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { createItem, updateItem } from '@directus/sdk'
+import { getMissionRoleLabel } from '~~/app/utils/ams-mission-roles'
 
 const props = defineProps<{
   open: boolean
@@ -21,17 +22,13 @@ const toast = useToast()
 const note = ref('')
 const loading = ref(false)
 
-const ROLE_LABELS: Record<string, string> = {
-  pilot: 'Pilot',
-  co_pilot: 'Co-Pilot',
-  mining_operator: 'Mining Operator',
-  cargo_operator: 'Cargo Operator',
-  turret_operator: 'Turret Operator',
-  engineer: 'Ingenieur',
-  medic: 'Medic',
-  scout: 'Aufklärer',
-  passenger: 'Passagier',
-  other: 'Sonstiges',
+const POSITION_TYPE_BADGE_LABELS = {
+  primary: 'Primär',
+  secondary: 'Sekundär',
+} as const
+
+function normalizePositionType(value?: string | null) {
+  return value === 'secondary' ? 'secondary' : 'primary'
 }
 
 const modalOpen = computed({
@@ -44,8 +41,10 @@ const typeLabel = computed(() => {
   if (props.target.type === 'flex') return 'Flex-Anmeldung (gesamte Mission)'
   if (props.target.type === 'flex_team')
     return `Flex-Anmeldung im Team: ${props.target.team?.name}`
-  const roleLabel = ROLE_LABELS[props.target.position?.role] ?? props.target.position?.role
-  return `Position: ${roleLabel}${props.target.team ? ` (${props.target.team.name})` : ''}`
+  const roleLabel = getMissionRoleLabel(props.target.position?.role)
+  const positionTypeLabel =
+    POSITION_TYPE_BADGE_LABELS[normalizePositionType(props.target.position?.position_type)]
+  return `${positionTypeLabel}: ${roleLabel}${props.target.team ? ` (${props.target.team.name})` : ''}`
 })
 
 const requiresApproval = computed(() => props.target?.type === 'position')

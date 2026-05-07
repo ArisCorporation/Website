@@ -3,13 +3,19 @@ import type { Department, DirectusField } from "~~/types";
 import type { DateValue } from "@internationalized/date";
 import { parseDate } from "@internationalized/date";
 import { createItem, deleteItem, readItems, updateItem } from "@directus/sdk";
+import {
+  STANDARD_MISSION_ROLE_OPTIONS,
+  getMissionRoleOption,
+  getMissionRoleOptions,
+  getMissionRoleSummary,
+} from "~~/app/utils/ams-mission-roles";
 import UInputTime from "~/components/UInputTime.vue";
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const authStore = useAuthStore();
-const { currentUserId, isAuthLoading } = storeToRefs(authStore);
+const { currentUserId, currentUserAL, isAuthLoading } = storeToRefs(authStore);
 
 const editId = computed(() => route.query.edit as string | undefined);
 const isEditing = computed(() => !!editId.value);
@@ -59,19 +65,6 @@ const {
   },
 );
 
-const ROLE_OPTIONS = [
-  { label: "Pilot", value: "pilot" },
-  { label: "Co-Pilot", value: "co_pilot" },
-  { label: "Mining Operator", value: "mining_operator" },
-  { label: "Cargo Operator", value: "cargo_operator" },
-  { label: "Turret Operator", value: "turret_operator" },
-  { label: "Ingenieur", value: "engineer" },
-  { label: "Medic", value: "medic" },
-  { label: "Aufklärer", value: "scout" },
-  { label: "Passagier", value: "passenger" },
-  { label: "Sonstiges", value: "other" },
-];
-
 const TYPE_OPTIONS = [
   { label: "Bergbau", value: "mining" },
   { label: "Kampf", value: "combat" },
@@ -90,8 +83,21 @@ const STATUS_OPTIONS = [
   { label: "Abgeschlossen", value: "completed" },
 ];
 
+const POSITION_TYPE_ORDER = ["primary", "secondary"] as const;
+const POSITION_TYPE_LABELS: Record<PositionType, string> = {
+  primary: "Primäre Funktionen",
+  secondary: "Sekundäre Funktionen",
+};
+const POSITION_TYPE_BADGE_LABELS: Record<PositionType, string> = {
+  primary: "Primär",
+  secondary: "Sekundär",
+};
+
+type PositionType = (typeof POSITION_TYPE_ORDER)[number];
+
 interface PositionDraft {
   id?: string;
+  position_type: PositionType;
   role: string;
   assigned_user: any | null;
   status: string;
@@ -116,7 +122,7 @@ const form = reactive({
   mission_type: "mining",
   status: "draft",
   description: "",
-  max_members: 0,
+  duration_hours: "",
   location: "",
   start_location: "",
 });
@@ -250,6 +256,39 @@ function clearPlannedDate() {
   plannedTime.value = "";
 }
 
+function normalizePositionType(value?: string | null): PositionType {
+  return value === "secondary" ? "secondary" : "primary";
+}
+
+function formatDurationHours(value?: number | null) {
+  const durationMinutes = Number(value ?? 0);
+
+  if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+    return "";
+  }
+
+  const hoursValue = durationMinutes / 60;
+  const formatted = Number(hoursValue.toFixed(2)).toString();
+
+  return formatted.replace(".", ",");
+}
+
+function parseDurationHours(value?: string | null) {
+  const normalizedValue = value?.trim().replace(",", ".") ?? "";
+
+  if (!normalizedValue) {
+    return null;
+  }
+
+  const parsedHours = Number(normalizedValue);
+
+  if (!Number.isFinite(parsedHours) || parsedHours <= 0) {
+    return null;
+  }
+
+  return Math.round(parsedHours * 60);
+}
+
 const teams = ref<TeamDraft[]>([]);
 
 const originalIds = ref<{
@@ -261,16 +300,22 @@ const originalIds = ref<{
   ships: [],
   positions: [],
 });
+const editMissionCreatorId = ref<string | null>(null);
+const editMissionLoaded = ref(!isEditing.value);
+const unauthorizedEditHandled = ref(false);
 
 if (editId.value) {
   const { data: existing } = await useFetchAMSMission(editId.value);
   if (existing.value) {
+    editMissionCreatorId.value = existing.value.user_created?.id ?? null;
     form.title = existing.value.title;
     form.mission_type = existing.value.mission_type;
     form.status = existing.value.status;
     setPlannedDate(existing.value.planned_date);
     form.description = existing.value.description ?? "";
-    form.max_members = existing.value.max_members ?? 0;
+    form.duration_hours = formatDurationHours(
+      Number((existing.value as any).duration ?? 0),
+    );
     form.location = (existing.value as any).location ?? "";
     form.start_location = (existing.value as any).start_location ?? "";
     teams.value = (existing.value.teams ?? []).map((t: any) => ({
@@ -291,6 +336,7 @@ if (editId.value) {
           ) ?? null,
         positions: (s.positions ?? []).map((p: any) => ({
           id: p.id,
+          position_type: normalizePositionType(p.position_type),
           role: p.role,
           assigned_user: p.assigned_user ?? null,
           status: p.status,
@@ -311,11 +357,13 @@ if (editId.value) {
         .filter(Boolean) as string[],
     };
   }
+
+  editMissionLoaded.value = true;
 }
 
 const fleetOptions = computed(() =>
   [...(fleet.value ?? [])]
-    .sort((a, b) => {
+    .sort((a: any, b: any) => {
       const aLabel = a.ship?.hull?.name ?? a.ship?.name ?? "";
       const bLabel = b.ship?.hull?.name ?? b.ship?.name ?? "";
       return aLabel.localeCompare(bLabel);
@@ -345,6 +393,17 @@ const employeeOptions = computed(() =>
 );
 
 const departmentSelectItems = computed<any[]>(() => departments.value ?? []);
+
+const canManageExistingMission = computed(() => {
+  if (!isEditing.value) return true;
+
+  const accessLevel = Number(currentUserAL.value ?? 0);
+  return (
+    accessLevel >= 3 ||
+    (!!currentUserId.value &&
+      editMissionCreatorId.value === currentUserId.value)
+  );
+});
 
 async function refreshMissionPlannerSources() {
   if (isAuthLoading.value || !currentUserId.value) return;
@@ -376,6 +435,44 @@ watch(
   { immediate: true },
 );
 
+watch(
+  [isAuthLoading, editMissionLoaded, canManageExistingMission],
+  ([loading, missionLoaded, canManage]) => {
+    if (
+      !isEditing.value ||
+      loading ||
+      !missionLoaded ||
+      canManage ||
+      unauthorizedEditHandled.value
+    ) {
+      return;
+    }
+
+    unauthorizedEditHandled.value = true;
+    toast.add({
+      title: "Kein Zugriff",
+      description:
+        "Diese Mission kann nur vom Mission Planner oder der Verwaltung bearbeitet werden.",
+      color: "error",
+      icon: "i-lucide-ban",
+    });
+    router.replace("/ams/missions");
+  },
+  { immediate: true },
+);
+
+watch(
+  teams,
+  (draftTeams) => {
+    for (const team of draftTeams) {
+      for (const ship of team.ships) {
+        normalizeShipPositionRoles(ship);
+      }
+    }
+  },
+  { deep: true },
+);
+
 function addTeam() {
   teams.value.push({
     name: `Team ${teams.value.length + 1}`,
@@ -397,20 +494,310 @@ function removeShip(team: TeamDraft, i: number) {
   team.ships.splice(i, 1);
 }
 
-function addPosition(ship: ShipDraft) {
-  ship.positions.push({ role: "pilot", assigned_user: null, status: "open" });
+function getShipCrewLimit(ship: ShipDraft) {
+  const rawCrew = (ship.hangar_id as any)?.ship?.stats?.crew;
+
+  if (typeof rawCrew === "number" && Number.isFinite(rawCrew) && rawCrew > 0) {
+    return rawCrew;
+  }
+
+  if (typeof rawCrew === "string") {
+    const parsedCrew = Number.parseInt(rawCrew, 10);
+    return Number.isFinite(parsedCrew) && parsedCrew > 0 ? parsedCrew : null;
+  }
+
+  return null;
 }
 
-function removePosition(ship: ShipDraft, i: number) {
-  ship.positions.splice(i, 1);
+function getShipPositionsByType(ship: ShipDraft, positionType: PositionType) {
+  return ship.positions.filter(
+    (position) =>
+      normalizePositionType(position.position_type) === positionType,
+  );
+}
+
+function getShipRoleSource(ship: ShipDraft) {
+  return (ship.hangar_id as any)?.ship ?? null;
+}
+
+function getShipRoleOptions(ship: ShipDraft) {
+  return getMissionRoleOptions(getShipRoleSource(ship)).map((role) => ({
+    label: role.label,
+    value: role.value,
+  }));
+}
+
+function getShipRoleOption(ship: ShipDraft, role?: string | null) {
+  return getMissionRoleOption(role, getShipRoleSource(ship));
+}
+
+function getShipDefaultRole(ship: ShipDraft) {
+  return (
+    getShipRoleOptions(ship)[0]?.value ??
+    STANDARD_MISSION_ROLE_OPTIONS[0]?.value ??
+    "pilot"
+  );
+}
+
+function getShipRoleSummary(ship: ShipDraft) {
+  return getMissionRoleSummary(getShipRoleSource(ship));
+}
+
+function normalizeShipPositionRoles(ship: ShipDraft) {
+  const allowedRoleValues = getShipRoleOptions(ship).map((role) => role.value);
+
+  if (!allowedRoleValues.length) {
+    return;
+  }
+
+  const fallbackRole = getShipDefaultRole(ship);
+
+  for (const position of ship.positions) {
+    if (!allowedRoleValues.includes(position.role)) {
+      position.role = fallbackRole;
+    }
+  }
+}
+
+function getShipPositionCount(ship: ShipDraft, positionType?: PositionType) {
+  if (!positionType) {
+    return ship.positions.length;
+  }
+
+  return getShipPositionsByType(ship, positionType).length;
+}
+
+function getShipLabel(ship: ShipDraft) {
+  return (
+    (ship.hangar_id as any)?.name ||
+    (ship.hangar_id as any)?.ship?.name ||
+    "dieses Schiff"
+  );
+}
+
+function canAddPosition(ship: ShipDraft, positionType: PositionType) {
+  const crewLimit = getShipCrewLimit(ship);
+  return (
+    crewLimit === null || getShipPositionCount(ship, positionType) < crewLimit
+  );
+}
+
+function isShipOverCrewLimit(ship: ShipDraft, positionType: PositionType) {
+  const crewLimit = getShipCrewLimit(ship);
+  return (
+    crewLimit !== null && getShipPositionCount(ship, positionType) > crewLimit
+  );
+}
+
+function getShipPositionSummary(ship: ShipDraft, positionType: PositionType) {
+  const crewLimit = getShipCrewLimit(ship);
+  const positionCount = getShipPositionCount(ship, positionType);
+
+  if (crewLimit === null) {
+    return `${positionCount} Positionen`;
+  }
+
+  return `${positionCount}/${crewLimit} Positionen`;
+}
+
+function getShipCrewLimitHint(ship: ShipDraft, positionType: PositionType) {
+  const crewLimit = getShipCrewLimit(ship);
+
+  if (crewLimit === null) {
+    return "Kein Crew-Limit hinterlegt";
+  }
+
+  const remainingSlots = crewLimit - getShipPositionCount(ship, positionType);
+
+  if (remainingSlots < 0) {
+    return `Max-Crew um ${Math.abs(remainingSlots)} Position${Math.abs(remainingSlots) === 1 ? "" : "en"} überschritten`;
+  }
+
+  if (remainingSlots === 0) {
+    return "Maximale Crew erreicht";
+  }
+
+  return `${remainingSlots} Position${remainingSlots === 1 ? "" : "en"} frei`;
+}
+
+function addPosition(ship: ShipDraft, positionType: PositionType) {
+  const crewLimit = getShipCrewLimit(ship);
+
+  if (crewLimit !== null && !canAddPosition(ship, positionType)) {
+    toast.add({
+      title: "Max-Crew erreicht",
+      description: `${getShipLabel(ship)} erlaubt maximal ${crewLimit} ${POSITION_TYPE_BADGE_LABELS[positionType]}-Positionen.`,
+      color: "warning",
+      icon: "i-lucide-users",
+    });
+    return;
+  }
+
+  ship.positions.push({
+    position_type: positionType,
+    role: getShipDefaultRole(ship),
+    assigned_user: null,
+    status: "open",
+  });
+}
+
+function removePosition(ship: ShipDraft, position: PositionDraft) {
+  const index = ship.positions.indexOf(position);
+  if (index === -1) return;
+  ship.positions.splice(index, 1);
 }
 
 const loading = ref(false);
+
+const allDraftShips = computed(() => teams.value.flatMap((team) => team.ships));
+
+const totalDraftCrewLimit = computed(() =>
+  allDraftShips.value.reduce((total, ship) => {
+    const crewLimit = getShipCrewLimit(ship);
+    return crewLimit === null ? total : total + crewLimit;
+  }, 0),
+);
+
+const hasUnlimitedDraftCrew = computed(() =>
+  allDraftShips.value.some((ship) => getShipCrewLimit(ship) === null),
+);
+
+const shipsOverCrewLimit = computed(() =>
+  teams.value.flatMap((team) =>
+    team.ships.flatMap((ship) =>
+      POSITION_TYPE_ORDER.filter((positionType) =>
+        isShipOverCrewLimit(ship, positionType),
+      ).map((positionType) => ({ ship, positionType })),
+    ),
+  ),
+);
+
+function getTotalDraftPositionCount(positionType: PositionType) {
+  return allDraftShips.value.reduce(
+    (total, ship) => total + getShipPositionCount(ship, positionType),
+    0,
+  );
+}
+
+function getTotalDraftPositionSummary(positionType: PositionType) {
+  const positionCount = getTotalDraftPositionCount(positionType);
+
+  if (!allDraftShips.value.length) {
+    return "0 Positionen";
+  }
+
+  if (hasUnlimitedDraftCrew.value) {
+    return `${positionCount} Positionen`;
+  }
+
+  return `${positionCount}/${totalDraftCrewLimit.value} Positionen`;
+}
+
+const totalDraftPrimarySummary = computed(() =>
+  getTotalDraftPositionSummary("primary"),
+);
+const totalDraftSecondarySummary = computed(() =>
+  getTotalDraftPositionSummary("secondary"),
+);
+
+const totalDraftPositionsHint = computed(() => {
+  if (!allDraftShips.value.length) {
+    return "Noch keine Schiffe hinzugefügt.";
+  }
+
+  if (shipsOverCrewLimit.value.length) {
+    return "Mindestens ein Schiff überschreitet aktuell die hinterlegte Max-Crew.";
+  }
+
+  if (hasUnlimitedDraftCrew.value) {
+    return "Schiffe ohne hinterlegte Max-Crew bleiben unbegrenzt.";
+  }
+
+  return "Basierend auf der hinterlegten Max-Crew der gewählten Schiffe.";
+});
+
+const assignedUserTypeConflict = computed(() => {
+  const seenAssignments = new Map<string, Set<PositionType>>();
+
+  for (const ship of allDraftShips.value) {
+    for (const position of ship.positions) {
+      const assignedUserId =
+        position.assigned_user && typeof position.assigned_user === "object"
+          ? position.assigned_user.id
+          : (position.assigned_user ?? null);
+
+      if (!assignedUserId) continue;
+
+      const positionType = normalizePositionType(position.position_type);
+      const userAssignments =
+        seenAssignments.get(assignedUserId) ?? new Set<PositionType>();
+
+      if (userAssignments.has(positionType)) {
+        return {
+          positionType,
+          userLabel: getUserLabel(position.assigned_user),
+        };
+      }
+
+      userAssignments.add(positionType);
+      seenAssignments.set(assignedUserId, userAssignments);
+    }
+  }
+
+  return null;
+});
 
 async function save() {
   if (!form.title.trim()) {
     toast.add({
       title: "Titel erforderlich",
+      color: "error",
+      icon: "i-lucide-alert-triangle",
+    });
+    return;
+  }
+
+  if (isEditing.value && !canManageExistingMission.value) {
+    toast.add({
+      title: "Kein Zugriff",
+      description: "Diese Mission kann nicht von dir bearbeitet werden.",
+      color: "error",
+      icon: "i-lucide-ban",
+    });
+    return;
+  }
+
+  if (shipsOverCrewLimit.value.length) {
+    const firstConflict = shipsOverCrewLimit.value[0];
+    if (!firstConflict) return;
+    const crewLimit = getShipCrewLimit(firstConflict.ship);
+
+    toast.add({
+      title: "Zu viele Rollen",
+      description: `${getShipLabel(firstConflict.ship)} überschreitet${crewLimit ? ` die Max-Crew von ${crewLimit}` : ""} bei ${POSITION_TYPE_BADGE_LABELS[firstConflict.positionType]}.`,
+      color: "error",
+      icon: "i-lucide-users",
+    });
+    return;
+  }
+
+  if (assignedUserTypeConflict.value) {
+    toast.add({
+      title: "Doppelte Rollenart",
+      description: `${assignedUserTypeConflict.value.userLabel} ist mehrfach auf ${POSITION_TYPE_BADGE_LABELS[assignedUserTypeConflict.value.positionType]}-Positionen gesetzt.`,
+      color: "error",
+      icon: "i-lucide-users",
+    });
+    return;
+  }
+
+  const durationMinutes = parseDurationHours(form.duration_hours);
+
+  if (durationMinutes === null) {
+    toast.add({
+      title: "Dauer erforderlich",
+      description:
+        "Bitte gib eine voraussichtliche Dauer in Stunden an, z. B. 1,5.",
       color: "error",
       icon: "i-lucide-alert-triangle",
     });
@@ -425,7 +812,7 @@ async function save() {
       status: form.status,
       planned_date: plannedDateValue.value || null,
       description: form.description || null,
-      max_members: form.max_members || 0,
+      duration: durationMinutes,
       location: form.location || null,
       start_location: form.start_location || null,
     };
@@ -510,7 +897,10 @@ async function save() {
               : (pos.assigned_user ?? null);
 
           const posPayload = {
+            position_type: normalizePositionType(pos.position_type),
             role: pos.role,
+            role_description:
+              getShipRoleOption(ship, pos.role)?.description ?? null,
             assigned_user: assignedUserId,
             status: assignedUserId ? "filled" : "open",
           };
@@ -559,6 +949,21 @@ async function save() {
         });
       } catch (syncError) {
         console.error("Mission discord sync after save failed", syncError);
+      }
+    } else {
+      try {
+        await $fetch(`/api/ams/missions/${missionId}/share-discord`, {
+          method: "POST",
+        });
+      } catch (shareError) {
+        console.error("Mission discord share after create failed", shareError);
+        toast.add({
+          title: "Mission erstellt",
+          description:
+            "Die Mission wurde gespeichert, aber nicht automatisch in Discord geteilt.",
+          color: "warning",
+          icon: "i-lucide-alert-triangle",
+        });
       }
     }
 
@@ -627,13 +1032,21 @@ definePageMeta({
                 Teams & Schiffe
               </h2>
             </div>
-            <UButton
-              size="sm"
-              variant="outline"
-              icon="i-lucide-plus"
-              label="Team hinzufügen"
-              @click="addTeam"
-            />
+            <div class="flex items-center gap-2">
+              <UBadge color="neutral" variant="subtle" size="sm">
+                Primär {{ totalDraftPrimarySummary }}
+              </UBadge>
+              <UBadge color="neutral" variant="subtle" size="sm">
+                Sekundär {{ totalDraftSecondarySummary }}
+              </UBadge>
+              <UButton
+                size="sm"
+                variant="outline"
+                icon="i-lucide-plus"
+                label="Team hinzufügen"
+                @click="addTeam"
+              />
+            </div>
           </div>
 
           <div class="p-5 space-y-4">
@@ -735,6 +1148,28 @@ definePageMeta({
                       class="flex-1"
                       searchable
                     />
+                    <UBadge
+                      :color="
+                        isShipOverCrewLimit(ship, 'primary')
+                          ? 'error'
+                          : 'neutral'
+                      "
+                      variant="subtle"
+                      size="sm"
+                    >
+                      Primär {{ getShipPositionSummary(ship, "primary") }}
+                    </UBadge>
+                    <UBadge
+                      :color="
+                        isShipOverCrewLimit(ship, 'secondary')
+                          ? 'error'
+                          : 'neutral'
+                      "
+                      variant="subtle"
+                      size="sm"
+                    >
+                      Sekundär {{ getShipPositionSummary(ship, "secondary") }}
+                    </UBadge>
                     <UButton
                       size="xs"
                       color="error"
@@ -744,48 +1179,102 @@ definePageMeta({
                     />
                   </div>
 
+                  <p
+                    class="ml-6 text-xs"
+                    :class="
+                      isShipOverCrewLimit(ship, 'primary') ||
+                      isShipOverCrewLimit(ship, 'secondary')
+                        ? 'text-red-400'
+                        : 'text-(--ui-text-muted)'
+                    "
+                  >
+                    Primär: {{ getShipCrewLimitHint(ship, "primary") }} •
+                    Sekundär:
+                    {{ getShipCrewLimitHint(ship, "secondary") }}
+                  </p>
+                  <p
+                    v-if="getShipRoleSummary(ship)"
+                    class="ml-6 text-xs text-(--ui-primary)/75"
+                  >
+                    Verfügbare Rollen: {{ getShipRoleSummary(ship) }}
+                  </p>
+
                   <!-- Positionen -->
-                  <div v-if="ship.positions.length" class="ml-6 space-y-2">
+                  <div class="ml-6 grid gap-4 md:grid-cols-2">
                     <div
-                      v-for="(pos, pi) in ship.positions"
-                      :key="pi"
-                      class="flex items-center gap-2"
+                      v-for="positionType in POSITION_TYPE_ORDER"
+                      :key="positionType"
+                      class="space-y-2 rounded-xl border border-(--ui-primary)/8 bg-(--ui-bg-muted)/25 p-3"
                     >
-                      <USelectMenu
-                        v-model="pos.role"
-                        :items="ROLE_OPTIONS"
-                        value-key="value"
-                        label-key="label"
-                        class="w-40 shrink-0"
-                      />
-                      <USelectMenu
-                        v-model="pos.assigned_user"
-                        :items="employeeOptions"
-                        value-key="value"
-                        label-key="label"
-                        placeholder="Direkt zuweisen (optional)"
-                        class="flex-1"
-                        searchable
-                        clearable
-                      />
-                      <UButton
-                        size="xs"
-                        color="error"
-                        variant="ghost"
-                        icon="i-lucide-minus"
-                        @click="removePosition(ship, pi)"
-                      />
+                      <div class="flex items-center justify-between gap-3">
+                        <div>
+                          <p class="text-xs font-semibold text-white">
+                            {{ POSITION_TYPE_LABELS[positionType] }}
+                          </p>
+                          <p class="text-[11px] text-(--ui-text-muted)">
+                            {{ getShipPositionSummary(ship, positionType) }}
+                          </p>
+                        </div>
+                        <UButton
+                          size="xs"
+                          variant="ghost"
+                          icon="i-lucide-plus"
+                          :label="POSITION_TYPE_BADGE_LABELS[positionType]"
+                          :disabled="!canAddPosition(ship, positionType)"
+                          @click="addPosition(ship, positionType)"
+                        />
+                      </div>
+
+                      <div
+                        v-if="getShipPositionsByType(ship, positionType).length"
+                        class="space-y-2"
+                      >
+                        <div
+                          v-for="(pos, pi) in getShipPositionsByType(
+                            ship,
+                            positionType,
+                          )"
+                          :key="pos.id ?? `${positionType}-${pi}`"
+                          class="grid gap-2 sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_auto] sm:items-center"
+                        >
+                          <USelectMenu
+                            v-model="pos.role"
+                            :items="getShipRoleOptions(ship)"
+                            value-key="value"
+                            label-key="label"
+                            class="w-full min-w-0"
+                          />
+                          <USelectMenu
+                            v-model="pos.assigned_user"
+                            :items="employeeOptions"
+                            value-key="value"
+                            label-key="label"
+                            placeholder="Direkt zuweisen"
+                            class="w-full min-w-0"
+                            searchable
+                            clearable
+                          />
+                          <div class="flex justify-end sm:justify-start">
+                            <UButton
+                              size="xs"
+                              color="error"
+                              variant="ghost"
+                              icon="i-lucide-minus"
+                              @click="removePosition(ship, pos)"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        v-else
+                        class="rounded-lg border border-dashed border-(--ui-primary)/12 px-3 py-4 text-center text-xs text-(--ui-text-muted)"
+                      >
+                        Noch keine
+                        {{ POSITION_TYPE_LABELS[positionType].toLowerCase() }}.
+                      </div>
                     </div>
                   </div>
-
-                  <UButton
-                    size="xs"
-                    variant="ghost"
-                    icon="i-lucide-plus"
-                    label="Position hinzufügen"
-                    class="ml-6"
-                    @click="addPosition(ship)"
-                  />
                 </div>
               </div>
 
@@ -850,28 +1339,53 @@ definePageMeta({
           <div class="grid grid-cols-2 gap-3">
             <UFormField label="Treffpunkt">
               <UInput
-                v-model="form.location"
+                v-model="form.start_location"
                 placeholder="Port Olisar…"
                 class="w-full"
               />
             </UFormField>
-            <UFormField label="Startort">
+            <UFormField label="Missionsort">
               <UInput
-                v-model="form.start_location"
+                v-model="form.location"
                 placeholder="Lorville…"
                 class="w-full"
               />
             </UFormField>
           </div>
 
-          <UFormField label="Max. Teilnehmer" hint="0 = unbegrenzt">
-            <UInput
-              v-model.number="form.max_members"
-              type="number"
-              min="0"
-              class="w-full"
-            />
-          </UFormField>
+          <div class="grid grid-cols-2 gap-3">
+            <UFormField
+              label="Vorr. Dauer"
+              hint="in Stunden, z.B. 1,5"
+              required
+            >
+              <UInput
+                v-model="form.duration_hours"
+                inputmode="decimal"
+                placeholder="z.B. 2,5"
+                class="w-full"
+              />
+            </UFormField>
+
+            <div
+              class="rounded-xl border border-(--ui-primary)/10 bg-(--ui-bg)/60 px-3 py-2.5"
+            >
+              <p
+                class="text-[0.6rem] uppercase tracking-[0.24em] text-(--ui-text-muted)"
+              >
+                Rollenübersicht
+              </p>
+              <p class="mt-1 text-sm font-medium text-white">
+                Primär {{ totalDraftPrimarySummary }}
+              </p>
+              <p class="mt-1 text-sm font-medium text-white">
+                Sekundär {{ totalDraftSecondarySummary }}
+              </p>
+              <p class="mt-1 text-xs text-(--ui-text-muted)">
+                {{ totalDraftPositionsHint }}
+              </p>
+            </div>
+          </div>
 
           <UFormField label="Beschreibung">
             <UTextarea

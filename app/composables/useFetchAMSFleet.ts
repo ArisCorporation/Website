@@ -15,6 +15,7 @@ const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
       "id",
       "name",
       "variant_code",
+      "custom_mission_roles",
       "stats",
       "production_state",
       { thumbnail: ["id"] },
@@ -48,7 +49,7 @@ export default function useFetchAMSFleet() {
           },
           fields: USER_HANGAR_FIELDS,
           limit: -1,
-          sort: ["ship.name"],
+          sort: ["ship.name" as any],
         }),
       )) as UserHangar[];
     },

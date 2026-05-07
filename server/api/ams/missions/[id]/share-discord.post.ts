@@ -1,4 +1,9 @@
-import { getDiscordEnvironment, getShareErrorMessage, upsertMissionDiscordShare } from '../../../../utils/ams-discord-mission-share'
+import {
+  getDiscordEnvironment,
+  getShareErrorMessage,
+  hasMissionPlannerAccess,
+  upsertMissionDiscordShare,
+} from '../../../../utils/ams-discord-mission-share'
 
 type CurrentUser = {
   id: string
@@ -57,12 +62,12 @@ export default defineEventHandler(async (event) => {
   const mission = missionResponse.data
 
   const currentUserAccessLevel = Number(currentUser.role?.access_level ?? 0)
-  const isPlanner = mission.user_created?.id === currentUser.id || currentUserAccessLevel >= 3
+  const isPlanner = mission.user_created?.id === currentUser.id || hasMissionPlannerAccess(currentUserAccessLevel)
 
   if (!isPlanner) {
     throw createError({
       statusCode: 403,
-      statusMessage: 'Nur Mission Planner dürfen ein Event auf Discord teilen',
+      statusMessage: 'Nur Mission Planner, Verwaltung und Admins dürfen ein Event auf Discord teilen',
     })
   }
 

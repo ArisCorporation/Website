@@ -7,9 +7,10 @@ const THUMBNAIL_URL =
 const FALLBACK_FOOTER_ICON_URL =
   "https://cdn.discordapp.com/embed/avatars/1.png";
 
-export const PRODUCTION_CHANNEL_ID = "802246136449466416";
+export const PRODUCTION_CHANNEL_ID = "1501988606527668497";
 export const DEVELOPMENT_DM_USER_ID = "350897207261659137";
 export const DISCORD_EMBED_COLOR = 0x00ffe8;
+export const MISSION_PLANNER_ACCESS_LEVEL = 3;
 
 const TYPE_LABELS: Record<string, string> = {
   mining: "Bergbau",
@@ -48,6 +49,11 @@ const ROLE_ORDER = [
   "other",
 ];
 
+const POSITION_TYPE_LABELS: Record<"primary" | "secondary", string> = {
+  primary: "Primär",
+  secondary: "Sekundär",
+};
+
 type DiscordChannelResponse = {
   id: string;
 };
@@ -75,6 +81,7 @@ type MissionPosition = {
   id: string;
   role?: string | null;
   status?: string | null;
+  position_type?: "primary" | "secondary" | null;
 };
 
 type MissionShip = {
@@ -116,8 +123,8 @@ type MissionShareRecord = {
   status?: string | null;
   mission_type?: string | null;
   planned_date?: string | null;
+  duration?: number | null;
   description?: string | null;
-  max_members?: number | null;
   location?: string | null;
   start_location?: string | null;
   user_created?: {
@@ -200,10 +207,29 @@ function getDiscordTimestamp(value?: string | null) {
   return `<t:${unixSeconds}:F>`;
 }
 
+function formatDuration(value?: number | null) {
+  const durationMinutes = Number(value ?? 0);
+
+  if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+    return null;
+  }
+
+  const hoursValue = durationMinutes / 60;
+  return `${Number(hoursValue.toFixed(2)).toString().replace(".", ",")} h`;
+}
+
+function hasMissionPlannerAccess(accessLevel?: number | null) {
+  return Number(accessLevel ?? 0) >= MISSION_PLANNER_ACCESS_LEVEL;
+}
+
 function getPositionStatusLabel(position: MissionPosition) {
   if (position.status === "filled") return "besetzt";
   if (position.status === "pending") return "angefragt";
   return "frei";
+}
+
+function getPositionType(position: MissionPosition): "primary" | "secondary" {
+  return position.position_type === "secondary" ? "secondary" : "primary";
 }
 
 function getRoleOrder(role?: string | null) {
@@ -227,6 +253,11 @@ function getShipLabel(ship: MissionShip) {
 
 function getSortedPositions(ship: MissionShip) {
   return [...(ship.positions ?? [])].sort((a, b) => {
+    const typeDelta =
+      (getPositionType(a) === "secondary" ? 1 : 0) -
+      (getPositionType(b) === "secondary" ? 1 : 0);
+    if (typeDelta !== 0) return typeDelta;
+
     const roleDelta = getRoleOrder(a.role) - getRoleOrder(b.role);
     if (roleDelta !== 0) return roleDelta;
 
@@ -237,16 +268,35 @@ function getSortedPositions(ship: MissionShip) {
   });
 }
 
+function buildPositionGroup(label: string, positions: MissionPosition[]) {
+  if (!positions.length) return null;
+
+  const lines = positions.map(
+    (position) =>
+      `• ${ROLE_LABELS[position.role ?? ""] ?? position.role ?? "Position"} ${getPositionStatusLabel(position)}`,
+  );
+
+  return `${label}:\n${lines.join("\n")}`;
+}
+
 function buildTeamField(team: MissionTeam) {
   const shipBlocks = (team.ships ?? []).map((ship) => {
-    const positions = getSortedPositions(ship)
-      .map(
-        (position) =>
-          `• ${ROLE_LABELS[position.role ?? ""] ?? position.role ?? "Position"} ${getPositionStatusLabel(position)}`,
-      )
-      .join(" \n");
+    const sortedPositions = getSortedPositions(ship);
+    const primaryPositions = sortedPositions.filter(
+      (position) => getPositionType(position) === "primary",
+    );
+    const secondaryPositions = sortedPositions.filter(
+      (position) => getPositionType(position) === "secondary",
+    );
+    const positionGroups = [
+      buildPositionGroup(POSITION_TYPE_LABELS.primary, primaryPositions),
+      buildPositionGroup(POSITION_TYPE_LABELS.secondary, secondaryPositions),
+    ].filter((group): group is string => Boolean(group));
 
-    return `**${getShipLabel(ship)}**\n${positions || "Keine Positionen"}`;
+    return [
+      `**${getShipLabel(ship)}**`,
+      positionGroups.join("\n") || "Keine Positionen",
+    ].join("\n");
   });
 
   const fallback = shipBlocks.length
@@ -372,8 +422,8 @@ async function fetchMissionShareRecord(
           "status",
           "mission_type",
           "planned_date",
+          "duration",
           "description",
-          "max_members",
           "location",
           "start_location",
           "discord_share_channel_id",
@@ -398,6 +448,7 @@ async function fetchMissionShareRecord(
           "teams.ships.positions.id",
           "teams.ships.positions.role",
           "teams.ships.positions.status",
+          "teams.ships.positions.position_type",
         ].join(","),
       },
     },
@@ -415,6 +466,7 @@ async function updateMissionShareRecord(
     method: "PATCH",
     headers: {
       "content-type": "application/json",
+      "x-ams-discord-internal": "1",
       ...(requestHeaders ?? {}),
     },
     body: payload,
@@ -435,7 +487,6 @@ function buildMissionEmbed(
   mission: MissionShareRecord,
   botIdentity: DiscordBotIdentity,
 ) {
-  const registrationCount = mission.registrations?.length ?? 0;
   const approvedRegistrations =
     mission.registrations?.filter(
       (registration) => registration.status === "approved",
@@ -444,10 +495,7 @@ function buildMissionEmbed(
     mission.registrations?.filter(
       (registration) => registration.status === "pending",
     ).length ?? 0;
-  const tentativeRegistrations =
-    mission.registrations?.filter(
-      (registration) => registration.status === "tentative",
-    ).length ?? 0;
+  const registrationCount = approvedRegistrations + pendingRegistrations;
   const allPositions = (mission.teams ?? [])
     .flatMap((team) => team.ships ?? [])
     .flatMap((ship) => ship.positions ?? []);
@@ -467,6 +515,7 @@ function buildMissionEmbed(
   );
   const missionType = mission.mission_type ?? "other";
   const eventUrl = getEventUrl(mission.id);
+  const duration = formatDuration(mission.duration);
 
   const baseFields = [
     {
@@ -479,6 +528,15 @@ function buildMissionEmbed(
       value: getDiscordTimestamp(mission.planned_date),
       inline: true,
     },
+    ...(duration
+      ? [
+          {
+            name: "Vorr. Dauer",
+            value: duration,
+            inline: true,
+          },
+        ]
+      : []),
     {
       name: "Planner",
       value: getUserLabel(mission.user_created),
@@ -486,24 +544,22 @@ function buildMissionEmbed(
     },
     {
       name: "Treffpunkt",
-      value: mission.location?.trim() || "Noch offen",
-      inline: true,
-    },
-    {
-      name: "Startort",
       value: mission.start_location?.trim() || "Noch offen",
       inline: true,
     },
     {
+      name: "Missionsort",
+      value: mission.location?.trim() || "Noch offen",
+      inline: true,
+    },
+    {
       name: "Anmeldungen",
-      value: mission.max_members
-        ? `${registrationCount}/${mission.max_members}`
-        : `${registrationCount}`,
+      value: `${registrationCount}`,
       inline: true,
     },
     {
       name: "Status",
-      value: `${approvedRegistrations} bestätigt • ${pendingRegistrations} ausstehend • ${tentativeRegistrations} vorbehalten`,
+      value: `${approvedRegistrations} bestätigt • ${pendingRegistrations} ausstehend`,
       inline: false,
     },
     {
@@ -672,4 +728,4 @@ export async function upsertMissionDiscordShare(options: {
   } satisfies ShareResult;
 }
 
-export { getDiscordEnvironment, getShareErrorMessage };
+export { getDiscordEnvironment, getShareErrorMessage, hasMissionPlannerAccess };

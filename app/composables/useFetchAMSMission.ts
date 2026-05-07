@@ -22,11 +22,13 @@ export default function useFetchAMSMission(id: MaybeRef<string>) {
                         { user: ['id', 'first_name', 'last_name', 'avatar'] },
                         {
                           ship: [
-                            'id',
-                            'name',
-                            'variant_code',
-                            { thumbnail: ['id'] },
-                            {
+                        'id',
+                        'name',
+                        'variant_code',
+                        'custom_mission_roles',
+                        'stats',
+                        { thumbnail: ['id'] },
+                        {
                               hull: [
                                 'id',
                                 'name',
@@ -59,7 +61,7 @@ export default function useFetchAMSMission(id: MaybeRef<string>) {
                 '*',
                 { user: ['id', 'first_name', 'last_name', 'avatar'] },
                 { team: ['id', 'name'] },
-                { position: ['id', 'role'] },
+                { position: ['id', 'role', 'role_description', 'position_type'] },
               ],
             },
           ] as any,

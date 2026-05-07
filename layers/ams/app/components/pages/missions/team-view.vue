@@ -1,50 +1,90 @@
 <script setup lang="ts">
+import {
+  getMissionRoleDescription,
+  getMissionRoleLabel,
+  getMissionRoleOrder,
+} from "~~/app/utils/ams-mission-roles"
+
 const props = defineProps<{
   teams: any[]
   registrations?: any[]
-  myRegistration: any
-  isPlanner: boolean
+  myActiveRegistrations?: any[]
+  canManageRegistrations: boolean
   signupOpen: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'signupFlexTeam', team: any): void
   (e: 'signupPosition', team: any, position: any): void
-  (e: 'refresh'): void
+  (e: 'removeRegistration', registration: any): void
 }>()
 
-const ROLE_LABELS: Record<string, string> = {
-  pilot: 'Pilot',
-  co_pilot: 'Co-Pilot',
-  mining_operator: 'Mining Operator',
-  cargo_operator: 'Cargo Operator',
-  turret_operator: 'Turret Operator',
-  engineer: 'Ingenieur',
-  medic: 'Medic',
-  scout: 'Aufklärer',
-  passenger: 'Passagier',
-  other: 'Sonstiges',
+const POSITION_TYPE_ORDER = ['primary', 'secondary'] as const
+type PositionType = (typeof POSITION_TYPE_ORDER)[number]
+
+const POSITION_TYPE_LABELS: Record<PositionType, string> = {
+  primary: 'Primäre Funktionen',
+  secondary: 'Sekundäre Funktionen',
 }
 
-const ROLE_ORDER = [
-  'pilot',
-  'co_pilot',
-  'mining_operator',
-  'cargo_operator',
-  'turret_operator',
-  'engineer',
-  'medic',
-  'scout',
-  'passenger',
-  'other',
-]
+const POSITION_TYPE_BADGE_LABELS: Record<PositionType, string> = {
+  primary: 'Primär',
+  secondary: 'Sekundär',
+}
 
-const canSignup = computed(
-  () => props.signupOpen && !props.myRegistration,
-)
+function normalizePositionType(value?: string | null): PositionType {
+  return value === 'secondary' ? 'secondary' : 'primary'
+}
+
+function getNormalizedRegistrationStatus(status?: string) {
+  if (status === 'tentative') return 'approved'
+  return status ?? 'pending'
+}
+
+function findMissionPosition(positionId?: string) {
+  if (!positionId) return null
+
+  return (props.teams ?? [])
+    .flatMap((team: any) => team.ships ?? [])
+    .flatMap((ship: any) => ship.positions ?? [])
+    .find((position: any) => position.id === positionId) ?? null
+}
+
+function getPositionAssignedUserId(position: any) {
+  if (!position?.assigned_user) return null
+  return typeof position.assigned_user === 'object'
+    ? position.assigned_user.id ?? null
+    : position.assigned_user
+}
+
+function isRegistrationEffectivelyActive(registration: any) {
+  const status = getNormalizedRegistrationStatus(registration?.status)
+  if (status === 'rejected') return false
+
+  if (registration?.type !== 'position') {
+    return true
+  }
+
+  const position = findMissionPosition(registration?.position?.id)
+  if (!position) return false
+
+  if (status === 'pending') {
+    return position.status === 'pending'
+  }
+
+  if (status === 'approved') {
+    return getPositionAssignedUserId(position) === registration?.user?.id
+  }
+
+  return false
+}
+
+const myActiveRegistrations = computed(() => props.myActiveRegistrations ?? [])
 
 const activeRegistrations = computed(() =>
-  (props.registrations ?? []).filter((registration: any) => registration.status !== 'rejected'),
+  (props.registrations ?? []).filter(
+    (registration: any) => isRegistrationEffectivelyActive(registration),
+  ),
 )
 
 const missionFlexRegistrations = computed(() =>
@@ -65,26 +105,55 @@ const positionRegistrations = computed(() => {
 
   const statusOrder: Record<string, number> = {
     pending: 0,
-    tentative: 1,
-    approved: 2,
+    approved: 1,
   }
 
   for (const registrations of grouped.values()) {
-    registrations.sort((a: any, b: any) => (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99))
+    registrations.sort(
+      (a: any, b: any) =>
+        (statusOrder[getNormalizedRegistrationStatus(a.status)] ?? 99) -
+        (statusOrder[getNormalizedRegistrationStatus(b.status)] ?? 99),
+    )
   }
 
   return grouped
 })
 
+const myFlexRegistration = computed(
+  () =>
+    myActiveRegistrations.value.find(
+      (registration: any) => registration.type === 'flex' || registration.type === 'flex_team',
+    ) ?? null,
+)
+
+const myPositionRegistrations = computed(() =>
+  myActiveRegistrations.value.filter((registration: any) => registration.type === 'position'),
+)
+
+const myPositionTypes = computed(() => {
+  const types = new Set<PositionType>()
+
+  for (const registration of myPositionRegistrations.value) {
+    types.add(normalizePositionType(registration.position?.position_type))
+  }
+
+  return types
+})
+
+const canSignupFlex = computed(
+  () => props.signupOpen && !myActiveRegistrations.value.length,
+)
+
 function sortRegistrations(registrations: any[]) {
   const statusOrder: Record<string, number> = {
     pending: 0,
-    tentative: 1,
-    approved: 2,
+    approved: 1,
   }
 
   return [...registrations].sort((a: any, b: any) => {
-    const statusDelta = (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99)
+    const statusDelta =
+      (statusOrder[getNormalizedRegistrationStatus(a.status)] ?? 99) -
+      (statusOrder[getNormalizedRegistrationStatus(b.status)] ?? 99)
     if (statusDelta !== 0) return statusDelta
 
     return getUserLabel(a.user).localeCompare(getUserLabel(b.user), 'de')
@@ -128,26 +197,77 @@ function getShipMeta(ship: any) {
     .join(' • ')
 }
 
-function getShipOpenPositions(ship: any) {
-  return (ship.positions ?? []).filter((position: any) => getEffectivePositionState(position) === 'open').length
+function getShipCrewLimit(ship: any) {
+  const rawCrew = ship.hangar_id?.ship?.stats?.crew
+
+  if (typeof rawCrew === 'number' && Number.isFinite(rawCrew) && rawCrew > 0) {
+    return rawCrew
+  }
+
+  if (typeof rawCrew === 'string') {
+    const parsedCrew = Number.parseInt(rawCrew, 10)
+    return Number.isFinite(parsedCrew) && parsedCrew > 0 ? parsedCrew : null
+  }
+
+  return null
 }
 
-function getRoleOrder(role?: string) {
-  const index = ROLE_ORDER.indexOf(role ?? '')
-  return index === -1 ? ROLE_ORDER.length : index
+function getShipPositionsByType(ship: any, positionType: PositionType) {
+  return (ship.positions ?? []).filter(
+    (position: any) => normalizePositionType(position.position_type) === positionType,
+  )
 }
 
-function getSortedPositions(ship: any) {
-  return [...(ship.positions ?? [])].sort((a: any, b: any) => {
-    const orderDelta = getRoleOrder(a.role) - getRoleOrder(b.role)
+function getShipPositionCount(ship: any, positionType?: PositionType) {
+  if (!positionType) return ship.positions?.length ?? 0
+  return getShipPositionsByType(ship, positionType).length
+}
+
+function getShipOpenPositions(ship: any, positionType?: PositionType) {
+  const positions = positionType ? getShipPositionsByType(ship, positionType) : ship.positions ?? []
+  return positions.filter((position: any) => getEffectivePositionState(position) === 'open').length
+}
+
+function getShipPositionSummary(ship: any, positionType: PositionType) {
+  const crewLimit = getShipCrewLimit(ship)
+  const count = getShipPositionCount(ship, positionType)
+
+  if (crewLimit === null) {
+    return `${count} Positionen`
+  }
+
+  return `${count}/${crewLimit} Positionen`
+}
+
+function getShipRoleSource(ship: any) {
+  return ship?.hangar_id?.ship ?? null
+}
+
+function getPositionRoleLabel(pos: any, ship: any) {
+  return getMissionRoleLabel(pos?.role, getShipRoleSource(ship))
+}
+
+function getPositionRoleDescription(pos: any, ship: any) {
+  if (typeof pos?.role_description === 'string' && pos.role_description.trim()) {
+    return pos.role_description.trim()
+  }
+
+  return getMissionRoleDescription(pos?.role, getShipRoleSource(ship))
+}
+
+function getSortedPositions(ship: any, positionType: PositionType) {
+  return [...getShipPositionsByType(ship, positionType)].sort((a: any, b: any) => {
+    const orderDelta =
+      getMissionRoleOrder(a.role, getShipRoleSource(ship)) -
+      getMissionRoleOrder(b.role, getShipRoleSource(ship))
     if (orderDelta !== 0) return orderDelta
 
-    return (ROLE_LABELS[a.role] ?? a.role ?? '').localeCompare(ROLE_LABELS[b.role] ?? b.role ?? '', 'de')
+    return getPositionRoleLabel(a, ship).localeCompare(getPositionRoleLabel(b, ship), 'de')
   })
 }
 
 function hasMyTeamFlex(team: any) {
-  return props.myRegistration?.type === 'flex_team' && props.myRegistration?.team?.id === team.id
+  return myFlexRegistration.value?.type === 'flex_team' && myFlexRegistration.value?.team?.id === team.id
 }
 
 function getTeamFlexRegistrations(team: any) {
@@ -168,7 +288,7 @@ function getRelevantPositionRegistration(pos: any) {
     const assignedRegistration = registrations.find(
       (registration: any) =>
         registration.user?.id === assignedUserId &&
-        ['approved', 'tentative'].includes(registration.status),
+        getNormalizedRegistrationStatus(registration.status) === 'approved',
     )
 
     if (assignedRegistration) return assignedRegistration
@@ -177,13 +297,36 @@ function getRelevantPositionRegistration(pos: any) {
   return registrations[0]
 }
 
+function getPositionRegistrations(pos: any) {
+  return positionRegistrations.value.get(pos.id) ?? []
+}
+
+function getPositionPendingCount(pos: any) {
+  return getPositionRegistrations(pos).filter(
+    (registration: any) =>
+      getNormalizedRegistrationStatus(registration.status) === 'pending',
+  ).length
+}
+
 function getEffectivePositionState(pos: any) {
   const registration = getRelevantPositionRegistration(pos)
+  const status = getNormalizedRegistrationStatus(registration?.status)
 
-  if (registration?.status === 'tentative') return 'tentative'
-  if (registration?.status === 'pending') return 'pending'
-  if (registration?.status === 'approved' || pos.status === 'filled') return 'filled'
+  if (status === 'pending') return 'pending'
+  if (status === 'approved' || pos.status === 'filled') return 'filled'
   return 'open'
+}
+
+function canSignupPosition(pos: any) {
+  if (!props.signupOpen) return false
+  if (myFlexRegistration.value) return false
+
+  const positionType = normalizePositionType(pos.position_type)
+  return !myPositionTypes.value.has(positionType)
+}
+
+function isPositionInteractive(pos: any) {
+  return getEffectivePositionState(pos) !== 'filled' && canSignupPosition(pos)
 }
 
 function getPositionStatusLabel(pos: any) {
@@ -191,7 +334,6 @@ function getPositionStatusLabel(pos: any) {
 
   if (state === 'filled') return 'Besetzt'
   if (state === 'pending') return 'Anfrage'
-  if (state === 'tentative') return 'Vorbehalt'
   return 'Offen'
 }
 
@@ -200,16 +342,27 @@ function getPositionStatusColor(pos: any) {
 
   if (state === 'filled') return 'info'
   if (state === 'pending') return 'warning'
-  if (state === 'tentative') return 'warning'
-  return canSignup.value ? 'primary' : 'neutral'
+  return canSignupPosition(pos) ? 'primary' : 'neutral'
 }
 
 function getPositionOccupantLabel(pos: any) {
   const registration = getRelevantPositionRegistration(pos)
+  const status = getNormalizedRegistrationStatus(registration?.status)
 
   if (registration?.user) {
-    if (registration.status === 'pending') return `${getUserLabel(registration.user)} angefragt`
-    if (registration.status === 'tentative') return `${getUserLabel(registration.user)} unter Vorbehalt`
+    if (status === 'pending') {
+      const pendingCount = getPositionPendingCount(pos)
+
+      if (isPositionInteractive(pos)) {
+        return pendingCount > 1
+          ? `${pendingCount} Anfragen offen • Klicken zum Anfragen`
+          : `${getUserLabel(registration.user)} angefragt • Klicken zum Anfragen`
+      }
+
+      return pendingCount > 1
+        ? `${pendingCount} Anfragen offen`
+        : `${getUserLabel(registration.user)} angefragt`
+    }
     return getUserLabel(registration.user)
   }
 
@@ -217,28 +370,36 @@ function getPositionOccupantLabel(pos: any) {
     return getUserLabel(pos.assigned_user)
   }
 
-  if (canSignup.value) return 'Klicken zum Anfragen'
+  if (canSignupPosition(pos)) return 'Klicken zum Anfragen'
+  if (myFlexRegistration.value) return 'Flex bereits eingetragen'
+
+  const positionType = normalizePositionType(pos.position_type)
+  if (myPositionTypes.value.has(positionType)) {
+    return `${POSITION_TYPE_BADGE_LABELS[positionType]} bereits belegt`
+  }
+
   return 'Noch frei'
 }
 
 function getPositionTextClass(pos: any) {
   const state = getEffectivePositionState(pos)
 
-  if (state === 'pending') return 'text-yellow-300/80'
-  if (state === 'tentative') return 'text-amber-300/80'
+  if (state === 'pending') {
+    return isPositionInteractive(pos)
+      ? 'text-yellow-200'
+      : 'text-yellow-300/80'
+  }
   if (state === 'filled') return 'text-(--ui-text-muted)'
-  return canSignup.value ? 'text-(--ui-primary)/80' : 'text-(--ui-text-muted)'
+  return canSignupPosition(pos) ? 'text-(--ui-primary)/80' : 'text-(--ui-text-muted)'
 }
 
 function getRegistrationStatusLabel(registration: any) {
-  if (registration.status === 'pending') return 'Anfrage'
-  if (registration.status === 'tentative') return 'Vorbehalt'
+  if (getNormalizedRegistrationStatus(registration.status) === 'pending') return 'Anfrage'
   return null
 }
 
 function getRegistrationStatusColor(registration: any) {
-  if (registration.status === 'pending') return 'warning'
-  if (registration.status === 'tentative') return 'warning'
+  if (getNormalizedRegistrationStatus(registration.status) === 'pending') return 'warning'
   return 'neutral'
 }
 
@@ -250,14 +411,14 @@ function positionClasses(pos: any) {
   }
 
   if (state === 'pending') {
+    if (isPositionInteractive(pos)) {
+      return 'border-yellow-500/24 bg-yellow-500/8 cursor-pointer hover:border-yellow-400/45 hover:bg-yellow-500/14'
+    }
+
     return 'border-yellow-500/18 bg-yellow-500/6'
   }
 
-  if (state === 'tentative') {
-    return 'border-amber-500/18 bg-amber-500/6'
-  }
-
-  if (canSignup.value) {
+  if (canSignupPosition(pos)) {
     return 'border-(--ui-primary)/22 bg-(--ui-primary)/6 cursor-pointer hover:border-(--ui-primary)/42 hover:bg-(--ui-primary)/12'
   }
 
@@ -265,16 +426,20 @@ function positionClasses(pos: any) {
 }
 
 function handlePositionClick(team: any, pos: any) {
-  if (getEffectivePositionState(pos) === 'open' && canSignup.value) {
+  if (isPositionInteractive(pos)) {
     emit('signupPosition', team, pos)
   }
+}
+
+function removeRegistration(registration: any) {
+  emit('removeRegistration', registration)
 }
 </script>
 
 <template>
   <div class="space-y-3">
     <div
-      v-if="myRegistration?.type === 'flex' || myRegistration?.type === 'flex_team'"
+      v-if="myFlexRegistration?.type === 'flex' || myFlexRegistration?.type === 'flex_team'"
       class="rounded-xl border border-(--ui-primary)/12 bg-(--ui-bg)/70 px-3.5 py-3 ring-1 ring-inset ring-white/5"
     >
       <div class="flex items-start gap-2.5">
@@ -284,11 +449,11 @@ function handlePositionClick(team: any, pos: any) {
             Dein Flex-Status
           </p>
           <p class="mt-1 text-sm text-white">
-            <template v-if="myRegistration.type === 'flex'">
+            <template v-if="myFlexRegistration.type === 'flex'">
               Du bist aktuell als Flex für die gesamte Mission eingetragen.
             </template>
             <template v-else>
-              Du bist aktuell als Team-Flex für {{ myRegistration.team?.name || 'dieses Team' }} eingetragen.
+              Du bist aktuell als Team-Flex für {{ myFlexRegistration.team?.name || 'dieses Team' }} eingetragen.
             </template>
           </p>
         </div>
@@ -335,6 +500,14 @@ function handlePositionClick(team: any, pos: any) {
           >
             {{ getRegistrationStatusLabel(registration) }}
           </UBadge>
+          <UButton
+            v-if="canManageRegistrations"
+            size="xs"
+            color="error"
+            variant="ghost"
+            icon="i-lucide-user-minus"
+            @click.stop="removeRegistration(registration)"
+          />
         </div>
       </div>
     </div>
@@ -388,7 +561,7 @@ function handlePositionClick(team: any, pos: any) {
             {{ getTeamPendingPositions(team) }} Anfrage
           </UBadge>
           <UButton
-            v-if="canSignup"
+            v-if="canSignupFlex"
             size="xs"
             variant="outline"
             icon="i-lucide-user-plus"
@@ -428,6 +601,14 @@ function handlePositionClick(team: any, pos: any) {
               >
                 {{ getRegistrationStatusLabel(registration) }}
               </UBadge>
+              <UButton
+                v-if="canManageRegistrations"
+                size="xs"
+                color="error"
+                variant="ghost"
+                icon="i-lucide-user-minus"
+                @click.stop="removeRegistration(registration)"
+              />
             </div>
           </div>
         </div>
@@ -468,7 +649,13 @@ function handlePositionClick(team: any, pos: any) {
                 </p>
                 <div class="mt-1.5 flex flex-wrap gap-1.5">
                   <UBadge color="neutral" variant="subtle" size="xs">
-                    {{ ship.positions?.length ?? 0 }} Rollen
+                    {{ getShipPositionCount(ship) }} Rollen
+                  </UBadge>
+                  <UBadge color="neutral" variant="subtle" size="xs">
+                    Primär {{ getShipPositionSummary(ship, 'primary') }}
+                  </UBadge>
+                  <UBadge color="neutral" variant="subtle" size="xs">
+                    Sekundär {{ getShipPositionSummary(ship, 'secondary') }}
                   </UBadge>
                   <UBadge :color="(getShipOpenPositions(ship) ? 'primary' : 'neutral') as any" variant="subtle" size="xs">
                     {{ getShipOpenPositions(ship) }} offen
@@ -479,27 +666,71 @@ function handlePositionClick(team: any, pos: any) {
           </div>
 
           <div
-            v-if="ship.positions?.length"
-            class="flex flex-wrap gap-1.5"
+            v-if="getShipPositionCount(ship)"
+            class="grid gap-3 xl:grid-cols-2"
           >
             <div
-              v-for="pos in getSortedPositions(ship)"
-              :key="pos.id"
-              class="min-w-[10.5rem] max-w-full rounded-lg border px-2.5 py-2 transition-all"
-              :class="positionClasses(pos)"
-              @click="handlePositionClick(team, pos)"
+              v-for="positionType in POSITION_TYPE_ORDER"
+              :key="positionType"
+              class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg)/45 p-2.5"
             >
               <div class="flex items-center justify-between gap-2">
-                <p class="truncate text-xs font-semibold leading-5 text-white">
-                  {{ ROLE_LABELS[pos.role] ?? pos.role }}
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-(--ui-primary)/75">
+                  {{ POSITION_TYPE_LABELS[positionType] }}
                 </p>
-                <UBadge :color="(getPositionStatusColor(pos) as any)" variant="subtle" size="xs">
-                  {{ getPositionStatusLabel(pos) }}
+                <UBadge :color="(getShipOpenPositions(ship, positionType) ? 'primary' : 'neutral') as any" variant="subtle" size="xs">
+                  {{ getShipPositionSummary(ship, positionType) }}
                 </UBadge>
               </div>
 
-              <p class="mt-1.5 truncate text-[11px]" :class="getPositionTextClass(pos)">
-                {{ getPositionOccupantLabel(pos) }}
+              <div
+                v-if="getShipPositionsByType(ship, positionType).length"
+                class="mt-2 space-y-1.5"
+              >
+                <div
+                  v-for="pos in getSortedPositions(ship, positionType)"
+                  :key="pos.id"
+                  class="rounded-lg border px-2.5 py-2 transition-all"
+                  :class="positionClasses(pos)"
+                  @click="handlePositionClick(team, pos)"
+                >
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="truncate text-xs font-semibold leading-5 text-white">
+                      {{ getPositionRoleLabel(pos, ship) }}
+                    </p>
+                    <div class="flex items-center gap-1">
+                      <UBadge color="neutral" variant="subtle" size="xs">
+                        {{ POSITION_TYPE_BADGE_LABELS[positionType] }}
+                      </UBadge>
+                      <UBadge :color="(getPositionStatusColor(pos) as any)" variant="subtle" size="xs">
+                        {{ getPositionStatusLabel(pos) }}
+                      </UBadge>
+                      <UButton
+                        v-if="canManageRegistrations && getRelevantPositionRegistration(pos)"
+                        size="xs"
+                        color="error"
+                        variant="ghost"
+                        icon="i-lucide-user-minus"
+                        @click.stop="removeRegistration(getRelevantPositionRegistration(pos))"
+                      />
+                    </div>
+                  </div>
+
+                  <p
+                    v-if="getPositionRoleDescription(pos, ship)"
+                    class="mt-1 text-[11px] leading-4 text-(--ui-text-muted)"
+                  >
+                    {{ getPositionRoleDescription(pos, ship) }}
+                  </p>
+
+                  <p class="mt-1.5 truncate text-[11px]" :class="getPositionTextClass(pos)">
+                    {{ getPositionOccupantLabel(pos) }}
+                  </p>
+                </div>
+              </div>
+
+              <p v-else class="mt-2 text-xs text-(--ui-text-muted)">
+                Keine {{ POSITION_TYPE_LABELS[positionType].toLowerCase() }} definiert.
               </p>
             </div>
           </div>

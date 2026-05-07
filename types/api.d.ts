@@ -850,6 +850,10 @@ export interface ShipVariant {
   external_refs?: Record<string, any> | null;
   thumbnail?: DirectusFile | string | null;
   release_patch?: string | null;
+  custom_mission_roles?:
+    | Array<{ name: string; description?: string | null }>
+    | string
+    | null;
   stats?: ShipVariantStats | null;
   hull?: ShipHull | string | null;
   rating?: ShipRating | string | null;
