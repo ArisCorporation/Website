@@ -142,9 +142,9 @@ const sidebarItems = computed<sidebarElement[]>(() => {
     { type: "separator", label: "Abteilungen" },
     {
       type: "link",
-      label: "Mission-Control",
+      label: "Mission Control",
       link: "/ams/missions",
-      icon: "i-lucide-shield-check",
+      icon: "i-lucide-rocket",
       exact: false,
     },
     {
