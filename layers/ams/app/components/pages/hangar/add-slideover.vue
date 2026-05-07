@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Company, Ship, UserHangar } from '~~/types'
+import type { Company, ShipHull, ShipVariant, UserHangar } from '~~/types'
 
 interface addItem {
-  ship_id: string | null
+  ship: string | null
   name: string // Custom name for the ship in the hangar
   group: 'ariscorp' | 'private'
   visibility: 'public' | 'internal' | 'hidden'
@@ -21,14 +21,14 @@ const isLoading = ref<boolean>(false)
 const isDisabled = ref<boolean>(false)
 
 const initialShipState = (): addItem => ({
-  ship_id: null,
+  ship: null,
   name: '',
   group: 'ariscorp',
   visibility: 'public',
 })
 
 const ships = ref<addItem[]>([
-  { ship_id: null, name: '', group: 'ariscorp', visibility: 'public' },
+  { ship: null, name: '', group: 'ariscorp', visibility: 'public' },
 ])
 
 // Name conflict checking per item
@@ -64,7 +64,7 @@ async function checkItemNameConflict(index: number) {
           deleted: { _eq: false },
           group: { _eq: 'ariscorp' },
         },
-        fields: ['id', { ship_id: ['id'] }],
+        fields: ['id', { ship: ['id'] }],
         limit: 5,
       })
     )) as UserHangar[]
@@ -73,9 +73,9 @@ async function checkItemNameConflict(index: number) {
       return
     }
     const sameModel = results.some((r: any) => {
-      const s = r.ship_id as any
+      const s = r.ship as any
       const sid = typeof s === 'string' ? s : s?.id
-      return item.ship_id && String(sid) === String(item.ship_id)
+      return item.ship && String(sid) === String(item.ship)
     })
     nameConflictStatuses.value[index] = sameModel ? 'same_model' : 'other_model'
   } catch (e) {
@@ -85,7 +85,7 @@ async function checkItemNameConflict(index: number) {
 }
 
 watch(
-  () => ships.value.map((s) => `${s.group}|${s.name}|${s.ship_id}`).join('||'),
+  () => ships.value.map((s) => `${s.group}|${s.name}|${s.ship}`).join('||'),
   async () => {
     ensureStatusSize()
     await Promise.all(ships.value.map((_, i) => checkItemNameConflict(i)))
@@ -101,14 +101,21 @@ const hasBlockingNameConflict = computed(() =>
 
 const { data: shipList } = await useAsyncData('ams:add-modal-ships', () =>
   useDirectus(
-    readItems('ships', {
+    readItems('ship_variants', {
       fields: [
         'id',
         'name',
-        'slug',
-        'focuses',
-        { store_image: ['id'] },
-        { manufacturer: ['id', 'name', 'code'] },
+        'variant_code',
+        'stats',
+        { thumbnail: ['id'] },
+        {
+          hull: [
+            'id',
+            'name',
+            'slug',
+            { manufacturer: ['id', 'name', 'code'] },
+          ],
+        },
       ],
       sort: ['name'],
       limit: -1,
@@ -116,24 +123,29 @@ const { data: shipList } = await useAsyncData('ams:add-modal-ships', () =>
   )
 )
 
-function getShip(item: addItem): Ship | undefined {
-  if (!shipList.value || !item.ship_id) {
+function getShip(item: addItem): ShipVariant | undefined {
+  if (!shipList.value || !item.ship) {
     return undefined
   }
-  return shipList.value.find((ship) => ship.id === item.ship_id) as Ship
+  return shipList.value.find((ship) => ship.id === item.ship) as ShipVariant
+}
+
+function getShipHull(item: addItem): ShipHull | undefined {
+  const variant = getShip(item)
+  return typeof variant?.hull === 'object' ? (variant.hull as ShipHull) : undefined
 }
 
 const canSubmit = computed(() => {
   if (ships.value.length === 0) return false
   // Ensure every ship entry has a model selected
-  return ships.value.every((ship) => !!ship.ship_id)
+  return ships.value.every((ship) => !!ship.ship)
 })
 
 function openSlideover() {
   // Reset to a single empty ship when opening, if it's empty or for a fresh start
   if (
     ships.value.length === 0 ||
-    ships.value.every((s) => !s.ship_id && !s.name)
+    ships.value.every((s) => !s.ship && !s.name)
   ) {
     ships.value = [initialShipState()]
   }
@@ -163,18 +175,18 @@ async function handleSubmit() {
   try {
     // Ensure the payload matches UserHangar[] structure.
     // If addItem is not directly UserHangar, map it here.
-    // For example, filter out ships with no ship_id if backend doesn't allow it,
+    // For example, filter out ships with no ship if backend doesn't allow it,
     // though `canSubmit` should prevent this.
     const payload = ships.value
-      .filter((ship) => !!ship.ship_id)
+      .filter((ship) => !!ship.ship)
       .map((ship) =>
-        ship.ship_id
+        ship.ship
           ? {
-              ship_id: ship.ship_id,
+              ship: ship.ship,
               name: ship.name,
               group: ship.group,
               visibility: ship.visibility,
-              user_id: targetUserId.value,
+              user: targetUserId.value,
             }
           : null
       )
@@ -229,7 +241,7 @@ async function handleSubmit() {
             </div>
             <UFormField label="Modell" required>
               <USelectMenu
-                v-model="item.ship_id"
+                v-model="item.ship"
                 variant="ams"
                 :items="shipList"
                 label-key="name"
@@ -309,24 +321,24 @@ async function handleSubmit() {
               class="flex w-full p-3 text-sm rounded-md items-center gap-4 ring ring-(--ui-bg-accented)"
             >
               <NuxtImg
-                v-if="item.ship_id"
-                :src="getAssetId(getShip(item)?.store_image)"
+                v-if="item.ship"
+                :src="getAssetId(getShip(item)?.thumbnail)"
                 class="size-12 object-cover rounded-md"
               />
               <USkeleton v-else class="size-12 rounded-md" />
-              <div v-if="item.ship_id" class="flex-1">
+              <div v-if="item.ship" class="flex-1">
                 <strong class="pb-1 block">{{
                   getShip(item)?.name ?? ''
                 }}</strong>
                 <p class="!m-0 text-(--ui-text-muted) text-xs">
                   <span
                     >{{
-                      getShip(item) &&
-                      getCompanyCode(getShip(item)?.manufacturer as Company)
+                      getShipHull(item) &&
+                      getCompanyCode(getShipHull(item)?.manufacturer as Company)
                     }}
                     &bull;
                     {{
-                      getShip(item) && getMainFocusLabel(getShip(item)?.focuses)
+                      getShip(item)?.stats?.role ?? 'N/A'
                     }}</span
                   >
                 </p>
@@ -338,7 +350,7 @@ async function handleSubmit() {
           highlight
           @click="
             ships.push({
-              ship_id: null,
+              ship: null,
               name: '',
               group: 'ariscorp',
               visibility: 'public',

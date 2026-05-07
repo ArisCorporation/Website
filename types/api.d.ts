@@ -798,6 +798,88 @@ export interface ShipsVariant {
   variant_id?: Ship | string | null;
 }
 
+export interface ShipHull {
+  /** @primaryKey */
+  id: string;
+  user_created?: DirectusUser | string | null;
+  date_created?: string | null;
+  user_updated?: DirectusUser | string | null;
+  date_updated?: string | null;
+  name?: string | null;
+  slug?: string | null;
+  manufacturer?: Company | string | null;
+  external_refs?: Record<string, any> | null;
+  paints?: Record<string, any> | null;
+  description?: string | null;
+  variants?: ShipVariant[] | string[];
+}
+
+export interface ShipVariantStats {
+  career?: string | null;
+  role?: string | null;
+  size?: 'v' | '1' | '2' | '3' | '4' | '5' | '6' | string | null;
+  crew?: number | null;
+  cargo?: number | null;
+  mass?: number | null;
+  health?: number | null;
+  shield_face_type?: string | null;
+  dimensions?: {
+    length?: number | null;
+    width?: number | null;
+    height?: number | null;
+  } | null;
+  flight?: Record<string, any> | null;
+  insurance?: Record<string, any> | null;
+  propulsion?: Record<string, any> | null;
+  quantum?: Record<string, any> | null;
+  cargo_grids?: Array<Record<string, any>> | null;
+  damage_before_destruction?: Record<string, any> | null;
+  damage_before_detach?: Record<string, any> | null;
+  [key: string]: any;
+}
+
+export interface ShipVariant {
+  /** @primaryKey */
+  id: string;
+  user_created?: DirectusUser | string | null;
+  date_created?: string | null;
+  user_updated?: DirectusUser | string | null;
+  date_updated?: string | null;
+  name?: string | null;
+  variant_code?: string | null;
+  external_refs?: Record<string, any> | null;
+  thumbnail?: DirectusFile | string | null;
+  release_patch?: string | null;
+  custom_mission_roles?:
+    | Array<{ name: string; description?: string | null }>
+    | string
+    | null;
+  stats?: ShipVariantStats | null;
+  hull?: ShipHull | string | null;
+  rating?: ShipRating | string | null;
+  production_state?: 'flight-ready' | 'in-production' | 'in-concept' | null;
+  configurations?: ShipVariantConfiguration[] | string[];
+  modules?: ShipModule[] | string[];
+}
+
+export interface ShipVariantConfiguration {
+  /** @primaryKey */
+  id: string;
+  user_created?: DirectusUser | string | null;
+  date_created?: string | null;
+  user_updated?: DirectusUser | string | null;
+  date_updated?: string | null;
+  ship_variant?: ShipVariant | string | null;
+  code?: string | null;
+  name?: string | null;
+  hardpoints?: ShipHardpoint[] | string[];
+}
+
+export interface ShipHardpoint {
+  /** @primaryKey */
+  id: string;
+}
+
 export interface SpaceStation {
   /** @primaryKey */
   id: string;
@@ -1029,8 +1111,8 @@ export interface Uee {
 export interface UserHangar {
   /** @primaryKey */
   id?: number;
-  user_id?: DirectusUser | string | null;
-  ship_id?: Ship | string | null;
+  user?: DirectusUser | string | null;
+  ship?: ShipVariant | string | null;
   name?: string | null;
   name_public?: boolean | null;
   deleted?: boolean | null;
@@ -1670,6 +1752,10 @@ export interface Schema {
   ships_gallery: ShipsGallery[];
   ships_loaners: ShipsLoaner[];
   ships_variants: ShipsVariant[];
+  ship_hulls: ShipHull[];
+  ship_variants: ShipVariant[];
+  ship_variant_configurations: ShipVariantConfiguration[];
+  ship_hardpoints: ShipHardpoint[];
   space_stations: SpaceStation[];
   spectrum_categories: SpectrumCategory[];
   spectrum_threads: SpectrumThread[];
@@ -1773,6 +1859,10 @@ export enum CollectionNames {
   ships_gallery = 'ships_gallery',
   ships_loaners = 'ships_loaners',
   ships_variants = 'ships_variants',
+  ship_hulls = 'ship_hulls',
+  ship_variants = 'ship_variants',
+  ship_variant_configurations = 'ship_variant_configurations',
+  ship_hardpoints = 'ship_hardpoints',
   space_stations = 'space_stations',
   spectrum_categories = 'spectrum_categories',
   spectrum_threads = 'spectrum_threads',

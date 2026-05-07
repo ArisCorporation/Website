@@ -1,6 +1,10 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { version } from './package.json';
 
+const environment =
+  process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEVELOPMENT';
+const enableMissionReminderSchedule = environment === 'PRODUCTION';
+
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
@@ -21,7 +25,7 @@ export default defineNuxtConfig({
       },
       script: [
         {
-          src: 'https://app.rybbit.io/api/script.js',
+          src: 'https://rybbit.ariscorp.de/api/script.js',
           async: true,
           defer: true,
           'data-site-id': '3caeaa458fa0',
@@ -44,6 +48,17 @@ export default defineNuxtConfig({
       VERSION: version || 'V',
       ENVIRONMENT: process.env.NUXT_PUBLIC_ENVIRONMENT || 'DEVELOPMENT',
     }
+  },
+
+  nitro: {
+    experimental: {
+      tasks: true,
+    },
+    scheduledTasks: enableMissionReminderSchedule
+      ? {
+          '0 * * * *': ['ams:missions:discord-reminders'],
+        }
+      : {},
   },
 
   extends: [

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type {
   Company,
-  Ship,
+  ShipHull,
   ShipModule,
   ShipModulesGallery,
+  ShipVariant,
   UserHangar,
 } from '~~/types'
 
@@ -17,8 +18,13 @@ const { currentUserId: userId } = storeToRefs(authStore)
 
 const editSlideoverOpen = ref<boolean>(false)
 
-const ship = computed<Ship>(() => {
-  return props.item.ship_id as Ship
+const ship = computed<ShipVariant>(() => {
+  return props.item.ship as ShipVariant
+})
+
+const shipHull = computed<ShipHull | undefined>(() => {
+  const hull = (props.item.ship as ShipVariant)?.hull
+  return typeof hull === 'object' ? (hull as ShipHull) : undefined
 })
 
 function handleEditOpen() {
@@ -66,7 +72,7 @@ async function checkNameConflict(name: string) {
           id: { _neq: props.item.id as any },
         },
         limit: -1,
-        fields: ['id', { ship_id: ['id', 'name'] }],
+        fields: ['id', { ship: ['id', 'name'] }],
       })
     )) as UserHangar[]
 
@@ -75,9 +81,9 @@ async function checkNameConflict(name: string) {
       return
     }
 
-    const currentShipId = (props.item.ship_id as any)?.id || props.item.ship_id
+    const currentShipId = (props.item.ship as any)?.id || props.item.ship
     const sameModel = results.some((r: any) => {
-      const s = r.ship_id as any
+      const s = r.ship as any
       const sid = typeof s === 'string' ? s : s?.id
       return String(sid) === String(currentShipId)
     })
@@ -94,25 +100,13 @@ async function checkNameConflict(name: string) {
 watch(
   () => formData.value.name,
   (val) => {
-    // Lightweight debounce
-    const n = String(val || '')
-    // Fire immediately for short inputs too, backend will return empty
-    checkNameConflict(n)
+    if (!editSlideoverOpen.value) return
+    checkNameConflict(String(val || ''))
   },
   { immediate: true }
 )
 
-const { data: departments } = useLazyAsyncData(
-  'global:simple_departments',
-  () =>
-    useDirectus(
-      readItems('departments', {
-        limit: -1,
-        fields: ['id', 'name'],
-        sort: ['name'],
-      })
-    )
-)
+const { data: departments } = useNuxtData('global:simple_departments')
 </script>
 
 <template>
@@ -129,7 +123,7 @@ const { data: departments } = useLazyAsyncData(
     <template #header>
       <div class="relative aspect-[26/9] overflow-hidden">
         <NuxtImg
-          :src="getAssetId(ship.store_image)"
+          :src="getAssetId(ship.thumbnail)"
           class="h-full not-prose w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
       </div>

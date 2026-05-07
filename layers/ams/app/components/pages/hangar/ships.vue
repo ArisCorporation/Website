@@ -3,8 +3,9 @@ import type { TableColumn } from '@nuxt/ui'
 import type {
   Company,
   Department,
-  Ship,
+  ShipHull,
   ShipModule,
+  ShipVariant,
   UserHangar,
 } from '~~/types'
 
@@ -50,13 +51,13 @@ const columns: TableColumn<UserHangar>[] = [
   {
     accessorKey: 'model',
     header: 'Modell',
-    cell: ({ row }) => `${(row.original.ship_id as Ship).name}`,
+    cell: ({ row }) => `${(row.original.ship as ShipVariant).name}`,
   },
   {
     accessorKey: 'manufacturer',
     header: 'Hersteller',
     cell: ({ row }) =>
-      `${((row.original.ship_id as Ship).manufacturer as Company).name}`,
+      `${(((row.original.ship as ShipVariant).hull as ShipHull)?.manufacturer as Company)?.name ?? ''}`,
   },
   {
     accessorKey: 'buy_status',
@@ -111,7 +112,6 @@ const columns: TableColumn<UserHangar>[] = [
     id: 'actions',
   },
 ]
-console.log(props.data)
 watch(props, () => {
   expanded.value = {}
 })
@@ -136,15 +136,15 @@ watch(props, () => {
     >
       <template #store-image-cell="{ row }">
         <NuxtImg
-          :src="getAssetId((row.original.ship_id as Ship).store_image)"
+          :src="getAssetId((row.original.ship as ShipVariant).thumbnail)"
           class="rounded size-8 object-cover aspect-square"
         />
       </template>
       <template #model-cell="{ row }">
         <NuxtLink
-          :to="`/ships/${(row.original.ship_id as Ship).slug}`"
+          :to="`/ships/${((row.original.ship as ShipVariant).hull as ShipHull)?.slug ?? ''}`"
           class="hover:text-(--ui-primary) transition-color duration-300 hover:text-shadow-xs hover:text-shadow-primary"
-          >{{ (row.original.ship_id as Ship).name }}</NuxtLink
+          >{{ (row.original.ship as ShipVariant).name }}</NuxtLink
         >
       </template>
       <template #actions-cell="{ row }">
@@ -170,17 +170,20 @@ watch(props, () => {
         <div class="flex gap-4">
           <div class="w-1/2">
             <NuxtImg
-              :src="getAssetId(row.original.ship_id?.store_image)"
+              :src="getAssetId((row.original.ship as ShipVariant)?.thumbnail)"
               class="w-full rounded h-auto aspect-video object-cover"
             />
           </div>
           <div class="w-1/2 text-base">
             <h2 class="text-2xl font-bold">
-              {{ row.original.ship_id?.name }}
+              {{ (row.original.ship as ShipVariant)?.name }}
             </h2>
             <p class="text-(--ui-text-muted) mb-4">
-              {{ getMainFocusLabel(row.original.ship_id?.focuses) }} -
-              {{ row.original.ship_id?.manufacturer?.name }}
+              {{ (row.original.ship as ShipVariant)?.stats?.role ?? 'N/A' }} -
+              {{
+                (((row.original.ship as ShipVariant)?.hull as ShipHull)
+                  ?.manufacturer as Company)?.name
+              }}
             </p>
             <h2 class="text-(--ui-primary) text-xl font-semibold">
               Schiffsdetails
@@ -197,7 +200,7 @@ watch(props, () => {
                 <p class="p-0 font-normal text-white">
                   {{
                     row.original.active_module &&
-                    row.original?.ship_id?.modules?.length
+                    (row.original.ship as ShipVariant)?.modules?.length
                       ? (row.original.active_module as ShipModule)?.name
                       : 'N/A'
                   }}
@@ -213,28 +216,29 @@ watch(props, () => {
                 <UButton
                   variant="link"
                   color="neutral"
-                  :to="`/verseexkurs/companies/${row.original.ship_id?.manufacturer?.slug}`"
+                  :to="`/verseexkurs/companies/${(((row.original.ship as ShipVariant)?.hull as ShipHull)?.manufacturer as Company)?.slug ?? ''}`"
                   class="p-0 font-normal text-white"
                 >
                   <p class="text-base">
-                    {{ row.original.ship_id?.manufacturer?.name ?? 'N/A' }}
+                    {{
+                      (((row.original.ship as ShipVariant)?.hull as ShipHull)
+                        ?.manufacturer as Company)?.name ?? 'N/A'
+                    }}
                   </p>
                 </UButton>
               </div>
               <div class="w-1/2">
                 <p class="text-(--ui-text-muted)">Crew</p>
                 <p class="p-0 font-normal text-white">
-                  {{ row.original.ship_id?.crew_min ?? 'N/A' }}
-                  -
-                  {{ row.original.ship_id?.crew_max ?? 'N/A' }}
+                  {{ (row.original.ship as ShipVariant)?.stats?.crew ?? 'N/A' }}
                 </p>
               </div>
               <div class="w-1/2">
                 <p class="text-(--ui-text-muted)">Länge</p>
                 <p class="p-0 font-normal text-white">
                   {{
-                    row.original.ship_id?.length
-                      ? row.original.ship_id?.length + 'm'
+                    (row.original.ship as ShipVariant)?.stats?.dimensions?.length
+                      ? (row.original.ship as ShipVariant)?.stats?.dimensions?.length + 'm'
                       : 'N/A'
                   }}
                 </p>
@@ -243,8 +247,8 @@ watch(props, () => {
                 <p class="text-(--ui-text-muted)">Breite</p>
                 <p class="p-0 font-normal text-white">
                   {{
-                    row.original.ship_id?.beam
-                      ? row.original.ship_id?.beam + 'm'
+                    (row.original.ship as ShipVariant)?.stats?.dimensions?.width
+                      ? (row.original.ship as ShipVariant)?.stats?.dimensions?.width + 'm'
                       : 'N/A'
                   }}
                 </p>
@@ -253,8 +257,8 @@ watch(props, () => {
                 <p class="text-(--ui-text-muted)">Höhe</p>
                 <p class="p-0 font-normal text-white">
                   {{
-                    row.original.ship_id?.height
-                      ? row.original.ship_id?.height + 'm'
+                    (row.original.ship as ShipVariant)?.stats?.dimensions?.height
+                      ? (row.original.ship as ShipVariant)?.stats?.dimensions?.height + 'm'
                       : 'N/A'
                   }}
                 </p>
@@ -263,8 +267,8 @@ watch(props, () => {
                 <p class="text-(--ui-text-muted)">Gewicht</p>
                 <p class="p-0 font-normal text-white">
                   {{
-                    row.original.ship_id?.mass
-                      ? formatCurrency(row.original.ship_id?.mass / 1000) +
+                    (row.original.ship as ShipVariant)?.stats?.mass
+                      ? formatCurrency(((row.original.ship as ShipVariant)?.stats?.mass ?? 0) / 1000) +
                         ' Tonnen'
                       : 'N/A'
                   }}
@@ -272,29 +276,18 @@ watch(props, () => {
               </div>
             </div>
             <div
-              v-if="(row.original.ship_id as Ship)?.modules?.length"
+              v-if="(row.original.ship as ShipVariant)?.modules?.length"
               class="mt-4"
             >
               <p class="text-(--ui-primary)">Module</p>
               <UBadge
-                v-for="module in ((row.original.ship_id as Ship)?.modules as ShipModule[])"
+                v-for="module in ((row.original.ship as ShipVariant)?.modules as ShipModule[])"
                 :key="module.id"
                 :label="module.name"
                 variant="subtle"
                 class="mr-2"
               />
             </div>
-            <!-- TODO: ADD PAINTS -->
-            <!-- <div class="mt-4">
-              <p class="text-(--ui-primary)">Module</p>
-              <UBadge
-                v-for="module in ((row.original.ship_id as Ship)?.modules as ShipModule[])"
-                :key="module.id"
-                :label="module.name"
-                variant="subtle"
-                class="mr-2"
-              />
-            </div> -->
           </div>
         </div>
       </template>

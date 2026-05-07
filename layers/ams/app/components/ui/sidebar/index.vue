@@ -77,6 +77,13 @@ const sidebarItems = computed<sidebarElement[]>(() => {
       type: 'link',
     },
     {
+      label: 'Mission Control',
+      link: '/ams/missions',
+      icon: 'i-lucide-rocket',
+      exact: false,
+      type: 'link',
+    },
+    {
       label: 'Flotte',
       link: '/ams/fleet',
       icon: 'i-material-symbols-transportation-outline',

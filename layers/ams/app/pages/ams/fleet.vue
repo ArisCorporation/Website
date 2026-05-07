@@ -1,63 +1,55 @@
 <script setup lang="ts">
-import { AMSPagesFleetStats } from '#components'
-import type { UserHangar } from '~~/types'
+import { AMSPagesFleetStats } from "#components";
+import type { UserHangar } from "~~/types";
 
-const mode = useCookie<'cards' | 'table'>('ams:fleet-view')
-mode.value = mode.value || 'cards'
+const mode = useCookie<"cards" | "table">("ams:fleet-view");
+mode.value = mode.value || "cards";
 
-const searchInput = ref('')
+const searchInput = ref("");
 
 const viewOptions = reactive([
   {
-    key: 'cards',
-    label: 'Karten Ansicht',
-    icon: 'i-lucide-layout-grid',
+    key: "cards",
+    label: "Karten Ansicht",
+    icon: "i-lucide-layout-grid",
   },
   {
-    key: 'table',
-    label: 'Tabellen Ansicht',
-    icon: 'i-lucide-list',
+    key: "table",
+    label: "Tabellen Ansicht",
+    icon: "i-lucide-list",
   },
   {
-    key: 'stats',
-    label: 'Statistiken',
-    icon: 'i-lucide-bar-chart-3',
+    key: "stats",
+    label: "Statistiken",
+    icon: "i-lucide-bar-chart-3",
   },
-])
+]);
 
-const { data, refresh } = await useFetchAMSFleet()
+const { data, refresh } = await useFetchAMSFleet();
 
-useLazyAsyncData('global:simple_departments', () =>
-  useDirectus(
-    readItems('departments', {
-      limit: -1,
-      fields: ['id', 'name'],
-      sort: ['name'],
-    })
-  )
-)
+await useSimpleDepartments();
 
 const filteredShips = computed<UserHangar[]>(() => {
   return searchItems<UserHangar>(
     data.value ?? [],
     [
-      'name',
-      'department.name',
-      'user_id.first_name',
-      'user_id.middle_name',
-      'user_id.last_name',
-      'ship_id.name',
-      'ship_id.manufacturer.name',
-      'ship_id.manufacturer.code',
+      "name",
+      "department.name",
+      "user.first_name",
+      "user.middle_name",
+      "user.last_name",
+      "ship.name",
+      "ship.hull.manufacturer.name",
+      "ship.hull.manufacturer.code",
     ],
-    searchInput.value
-  )
-})
+    searchInput.value,
+  );
+});
 
 definePageMeta({
-  layout: 'ams',
+  layout: "ams",
   auth: true,
-})
+});
 </script>
 
 <template>

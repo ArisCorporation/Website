@@ -1,66 +1,87 @@
 <script setup lang="ts">
-import type { DirectusUser, Ship, ShipModule, UserHangar } from '~~/types' // Pfad anpassen, falls nötig
+import type {
+  Company,
+  DirectusUser,
+  ShipHull,
+  ShipModule,
+  ShipVariant,
+  UserHangar,
+} from "~~/types"; // Pfad anpassen, falls nötig
 
-const authStore = useAuthStore()
+const authStore = useAuthStore();
 
-const expanded = ref(false)
+const expanded = ref(false);
 
-const loading = ref(false)
+const loading = ref(false);
 
 type ShipProps = {
-  mode: 'ship'
-  data: Ship
-  fleetMode: boolean
-  forceExpanded: boolean
-}
+  mode: "ship";
+  data: ShipVariant;
+  fleetMode: boolean;
+  forceExpanded: boolean;
+};
 
 type HangarItemProps = {
-  mode: 'hangar-item'
-  data: UserHangar
-  fleetMode: boolean
-  forceExpanded: boolean
-}
+  mode: "hangar-item";
+  data: UserHangar;
+  fleetMode: boolean;
+  forceExpanded: boolean;
+};
 
-type ShipCardProps = ShipProps | HangarItemProps
+type ShipCardProps = ShipProps | HangarItemProps;
 
 const props = defineProps<
   ShipCardProps & { refreshOverride?: () => void | Promise<void> }
->()
-const emit = defineEmits(['updated', 'removed'])
+>();
+const emit = defineEmits(["updated", "removed"]);
 
-const ship = computed<Ship>(() => {
-  if (props.mode === 'ship') {
-    return props.data
+const ship = computed<ShipVariant>(() => {
+  if (props.mode === "ship") {
+    return props.data;
   }
 
-  return props.data.ship_id as Ship
-})
+  return props.data.ship as ShipVariant;
+});
+
+const shipHull = computed<ShipHull | undefined>(() => {
+  const hull = ship.value?.hull;
+  return typeof hull === "object" ? (hull as ShipHull) : undefined;
+});
+
+const shipManufacturer = computed<Company | undefined>(() => {
+  const manufacturer = shipHull.value?.manufacturer;
+  return typeof manufacturer === "object"
+    ? (manufacturer as Company)
+    : undefined;
+});
 
 const hangarItem = computed<UserHangar | null>(() => {
-  return props.mode === 'hangar-item' ? props.data : null
-})
+  return props.mode === "hangar-item" ? props.data : null;
+});
 
 const editMode = computed<boolean>(() => {
-  if (props.mode === 'ship') return false
+  if (props.mode === "ship") return false;
 
-  if (!props.fleetMode) return true
+  if (!props.fleetMode) return true;
 
-  if (authStore.currentUserAL >= 5) return true
+  if (authStore.currentUserAL >= 5) return true;
 
-  if (authStore.currentUserId === props.data.user_id?.id) return true
+  const owner = props.data.user;
+  const ownerId = typeof owner === "object" ? owner?.id : owner;
+  if (authStore.currentUserId === ownerId) return true;
 
-  return false
-})
+  return false;
+});
 
 async function handleRemove() {
-  loading.value = true
+  loading.value = true;
   await removeHangarItem(
     Number(hangarItem.value?.id),
     props.fleetMode,
-    props.refreshOverride
-  )
-  loading.value = false
-  emit('removed')
+    props.refreshOverride,
+  );
+  loading.value = false;
+  emit("removed");
 }
 </script>
 
@@ -96,7 +117,7 @@ async function handleRemove() {
           class="absolute inset-0 bg-gradient-to-t from-(--ui-bg-muted) to-transparent opacity-60 z-10 group-hover:translate-y-[100%] transition-all duration-300"
         />
         <NuxtImg
-          :src="getAssetId(ship.store_image)"
+          :src="getAssetId(ship?.thumbnail) ?? ''"
           class="h-full not-prose w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <!-- <div class="absolute bottom-3 left-3 flex items-center space-x-2 z-20">
@@ -117,13 +138,13 @@ async function handleRemove() {
           <div>
             <p class="text-(--ui-text-muted)">Schiffsname</p>
             <p class="font-normal text-white">
-              {{ hangarItem.name ? hangarItem.name : 'N/A' }}
+              {{ hangarItem.name ? hangarItem.name : "N/A" }}
             </p>
           </div>
           <div>
             <p class="text-(--ui-text-muted)">Kaufstatus</p>
             <p class="font-normal text-white">
-              {{ getBuyStatusLabel(hangarItem.buy_status) ?? 'N/A' }}
+              {{ getBuyStatusLabel(hangarItem.buy_status) ?? "N/A" }}
             </p>
           </div>
           <div v-if="hangarItem.active_module">
@@ -142,14 +163,14 @@ async function handleRemove() {
             <UButton
               variant="link"
               color="neutral"
-              :to="`/verseexkurs/companies/${ship?.manufacturer?.slug}`"
+              :to="`/verseexkurs/companies/${shipManufacturer?.slug ?? ''}`"
               class="p-0 font-normal text-white"
             >
               <p class="text-xs">
                 {{
-                  ship?.manufacturer?.name
-                    ? getCompanyCode(ship?.manufacturer)?.split(' ')[0]
-                    : 'N/A'
+                  shipManufacturer?.name
+                    ? getCompanyCode(shipManufacturer)?.split(" ")[0]
+                    : "N/A"
                 }}
               </p>
             </UButton>
@@ -157,36 +178,46 @@ async function handleRemove() {
           <div class="w-1/2">
             <p class="text-(--ui-text-muted)">Crew</p>
             <p class="p-0 font-normal text-white">
-              {{ ship?.crew_min ?? 'N/A' }}
-              -
-              {{ ship?.crew_max ?? 'N/A' }}
+              {{ ship?.stats?.crew ?? "N/A" }}
             </p>
           </div>
           <div class="w-1/2">
             <p class="text-(--ui-text-muted)">Länge</p>
             <p class="p-0 font-normal text-white">
-              {{ ship?.length ? ship?.length + 'm' : 'N/A' }}
+              {{
+                ship?.stats?.dimensions?.length
+                  ? ship.stats.dimensions.length + "m"
+                  : "N/A"
+              }}
             </p>
           </div>
           <div class="w-1/2">
             <p class="text-(--ui-text-muted)">Breite</p>
             <p class="p-0 font-normal text-white">
-              {{ ship?.beam ? ship?.beam + 'm' : 'N/A' }}
+              {{
+                ship?.stats?.dimensions?.width
+                  ? ship.stats.dimensions.width + "m"
+                  : "N/A"
+              }}
             </p>
           </div>
           <div class="w-1/2">
             <p class="text-(--ui-text-muted)">Höhe</p>
             <p class="p-0 font-normal text-white">
-              {{ ship?.height ? ship?.height + 'm' : 'N/A' }}
+              {{
+                ship?.stats?.dimensions?.height
+                  ? ship.stats.dimensions.height + "m"
+                  : "N/A"
+              }}
             </p>
           </div>
           <div class="w-1/2">
             <p class="text-(--ui-text-muted)">Gewicht</p>
             <p class="p-0 font-normal text-white">
               {{
-                ship?.mass
-                  ? formatCurrency(ship?.mass / 1000) + ' Tonnen'
-                  : 'N/A'
+                ship?.stats?.mass
+                  ? formatCurrency((ship.stats.mass ?? 0) / 1000) + " Tonnen"
+                  : "N/A"
               }}
             </p>
           </div>
@@ -204,7 +235,10 @@ async function handleRemove() {
       >
         <div class="flex justify-between">
           <div>
-            <NuxtLink :to="`https://ariscorp.de/shipexkurs/ships/${ship.slug}`" class="not-prose">
+            <NuxtLink
+              :to="`https://ariscorp.de/shipexkurs/ships/${shipHull?.slug ?? ''}`"
+              class="not-prose"
+            >
               <h3
                 class="text-lg w-fit font-semibold text-white group-hover:text-shadow-primary group-hover:text-shadow-xs transition-all duration-300 hover:text-xl group-hover:text-(--ui-primary) !my-0"
               >
@@ -212,15 +246,19 @@ async function handleRemove() {
               </h3>
             </NuxtLink>
             <p class="text-sm text-(--ui-text-muted) !my-0">
-              {{ getMainFocusLabel(ship.focuses) }}
+              {{ ship?.stats?.role ?? "N/A" }}
             </p>
           </div>
           <UTooltip
-            v-if="mode === 'hangar-item' && hangarItem?.department"
-            :text="`Abteilung: ${hangarItem?.department?.name}`"
+            v-if="
+              mode === 'hangar-item' &&
+              hangarItem?.department &&
+              typeof hangarItem.department === 'object'
+            "
+            :text="`Abteilung: ${(hangarItem.department as any).name}`"
           >
             <NuxtImg
-              :src="getAssetId(hangarItem?.department?.logo)"
+              :src="getAssetId((hangarItem.department as any)?.logo)"
               class="size-12 !my-0"
             />
           </UTooltip>
@@ -248,10 +286,13 @@ async function handleRemove() {
           </div>
           <UTooltip
             v-if="mode === 'hangar-item' && fleetMode"
-            :text="`Besitzer: ${getUserLabel(hangarItem?.user_id as DirectusUser)}`"
+            :text="`Besitzer: ${getUserLabel(hangarItem?.user as DirectusUser)}`"
           >
             <NuxtImg
-              :src="getAssetId(hangarItem?.user_id?.avatar)"
+              :src="
+                getAssetId((hangarItem?.user as DirectusUser)?.avatar) ??
+                '88adb941-f746-405d-bcc4-c2804fb48e33'
+              "
               class="w-12 h-auto aspect-[270/320] !my-0 ml-auto rounded"
             />
           </UTooltip>
