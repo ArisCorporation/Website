@@ -838,6 +838,23 @@ export interface ShipVariantStats {
   [key: string]: any;
 }
 
+export interface AMSMissionRole {
+  /** @primaryKey */
+  id: string;
+  name?: string | null;
+  description?: string | null;
+  sort?: number | null;
+  ship_variants?: ShipVariantMissionRole[] | string[];
+}
+
+export interface ShipVariantMissionRole {
+  /** @primaryKey */
+  id: string;
+  sort?: number | null;
+  ship_variant_id?: ShipVariant | string | null;
+  ams_mission_role_id?: AMSMissionRole | string | null;
+}
+
 export interface ShipVariant {
   /** @primaryKey */
   id: string;
@@ -854,6 +871,7 @@ export interface ShipVariant {
     | Array<{ name: string; description?: string | null }>
     | string
     | null;
+  mission_roles?: ShipVariantMissionRole[] | string[];
   stats?: ShipVariantStats | null;
   hull?: ShipHull | string | null;
   rating?: ShipRating | string | null;
@@ -1742,6 +1760,7 @@ export interface Schema {
   projects: Project[];
   release_notes: ReleaseNote[];
   release_notes_translations: ReleaseNotesTranslation[];
+  ams_mission_roles: AMSMissionRole[];
   ship_modules: ShipModule[];
   ship_modules_gallery: ShipModulesGallery[];
   ship_paints: ShipPaint[];
@@ -1753,6 +1772,7 @@ export interface Schema {
   ships_loaners: ShipsLoaner[];
   ships_variants: ShipsVariant[];
   ship_hulls: ShipHull[];
+  ship_variant_mission_roles: ShipVariantMissionRole[];
   ship_variants: ShipVariant[];
   ship_variant_configurations: ShipVariantConfiguration[];
   ship_hardpoints: ShipHardpoint[];
@@ -1849,6 +1869,7 @@ export enum CollectionNames {
   projects = 'projects',
   release_notes = 'release_notes',
   release_notes_translations = 'release_notes_translations',
+  ams_mission_roles = 'ams_mission_roles',
   ship_modules = 'ship_modules',
   ship_modules_gallery = 'ship_modules_gallery',
   ship_paints = 'ship_paints',
@@ -1860,6 +1881,7 @@ export enum CollectionNames {
   ships_loaners = 'ships_loaners',
   ships_variants = 'ships_variants',
   ship_hulls = 'ship_hulls',
+  ship_variant_mission_roles = 'ship_variant_mission_roles',
   ship_variants = 'ship_variants',
   ship_variant_configurations = 'ship_variant_configurations',
   ship_hardpoints = 'ship_hardpoints',

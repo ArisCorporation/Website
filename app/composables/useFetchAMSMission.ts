@@ -26,6 +26,14 @@ export default function useFetchAMSMission(id: MaybeRef<string>) {
                         'name',
                         'variant_code',
                         'custom_mission_roles',
+                        {
+                          mission_roles: [
+                            'sort',
+                            {
+                              ams_mission_role_id: ['id', 'name', 'description'],
+                            },
+                          ],
+                        },
                         'stats',
                         { thumbnail: ['id'] },
                         {
