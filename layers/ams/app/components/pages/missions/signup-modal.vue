@@ -5,6 +5,8 @@ const props = defineProps<{
   open: boolean
   missionId: string
   target: { type: 'flex' | 'flex_team' | 'position'; team?: any; position?: any } | null
+  signupAllowed: boolean
+  signupClosedMessage: string
 }>()
 
 const emit = defineEmits<{
@@ -50,6 +52,16 @@ const requiresApproval = computed(() => props.target?.type === 'position')
 
 async function submit() {
   if (!props.target || !currentUser.value) return
+  if (!props.signupAllowed) {
+    toast.add({
+      title: 'Anmeldung geschlossen',
+      description: props.signupClosedMessage,
+      color: 'warning',
+      icon: 'i-lucide-ban',
+    })
+    return
+  }
+
   loading.value = true
   try {
     await useDirectus(
@@ -132,9 +144,19 @@ watch(
               description="Die Anmeldung auf eine feste Position muss vom Mission Planner genehmigt werden."
             />
 
+            <UAlert
+              v-if="!signupAllowed"
+              color="warning"
+              variant="subtle"
+              icon="i-lucide-ban"
+              title="Anmeldung geschlossen"
+              :description="signupClosedMessage"
+            />
+
             <div class="flex justify-end gap-2 pt-1">
               <UButton variant="ghost" @click="modalOpen = false">Abbrechen</UButton>
               <UButton
+                :disabled="!signupAllowed"
                 :loading="loading"
                 icon="i-lucide-user-plus"
                 label="Anmelden"

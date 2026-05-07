@@ -10,6 +10,7 @@ export default function useFetchAMSMission(id: MaybeRef<string>) {
             {
               teams: [
                 '*',
+                { department: ['id', 'name', 'logo'] },
                 {
                   ships: [
                     '*',
