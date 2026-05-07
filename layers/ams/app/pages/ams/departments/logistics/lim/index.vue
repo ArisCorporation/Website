@@ -1,6 +1,30 @@
 <script setup lang="ts">
+import { h, resolveComponent } from "vue";
 import type { TableColumn } from "@nuxt/ui";
-import type { DirectusUser, DirectusRole } from "~~/types";
+import type { DirectusRole } from "~~/types";
+
+function sortableHeader(label: string) {
+  return ({ column }: { column: any }) =>
+    h(
+      "button",
+      {
+        class:
+          "flex items-center gap-1 text-(--ui-primary) hover:text-white transition-colors text-xs uppercase tracking-wider font-medium",
+        onClick: () => column.toggleSorting(),
+      },
+      [
+        label,
+        h(resolveComponent("UIcon"), {
+          name: !column.getIsSorted()
+            ? "i-lucide-chevrons-up-down"
+            : column.getIsSorted() === "asc"
+              ? "i-lucide-chevron-up"
+              : "i-lucide-chevron-down",
+          class: "size-3 shrink-0",
+        }),
+      ],
+    );
+}
 
 interface LivItem {
   id: string;
@@ -18,6 +42,8 @@ interface LivItem {
   user_updated?: string | null;
 }
 
+const NEW_ROW_ID = "__new__";
+
 const authStore = useAuthStore();
 const { currentUser } = storeToRefs(authStore);
 const toast = useToast();
@@ -31,25 +57,14 @@ const canEdit = computed(() => {
   );
 });
 
-const isLogisticsHead = computed(() => {
-  const al = (currentUser.value?.role as DirectusRole | undefined)
-    ?.access_level;
-  const isHead = currentUser.value?.head_of_department === true;
-  const dept = (currentUser.value?.primary_department as any)?.slug;
-  return (
-    (isHead && dept === "logistics") || (typeof al === "number" && al >= 5)
-  );
-});
-
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-// server: false so refresh() always triggers a live re-fetch on the client
 const {
   data: items,
   refresh,
   pending,
 } = useLazyAsyncData<LivItem[]>(
-  "liv-items",
+  "lim-items",
   () =>
     useDirectus(
       readItems("liv" as any, {
@@ -89,6 +104,15 @@ const uniqueLocationItems = computed(() =>
     .sort()
     .map((l) => ({ label: l, value: l })),
 );
+
+const uniqueLocationStrings = computed(() =>
+  uniqueLocationItems.value.map((l) => l.value),
+);
+
+const handleCreateLocation = (label: string) => {
+  uniqueLocationItems.value.push({ label, value: label });
+  editDraft.value.location = label;
+};
 
 const hasActiveFilter = computed(
   () =>
@@ -145,6 +169,7 @@ const editingId = ref<string | null>(null);
 const editDraft = ref<Partial<LivItem>>({});
 const isSaving = ref(false);
 const deletingId = ref<string | null>(null);
+const pendingNewRow = ref(false);
 
 function startEdit(item: LivItem) {
   editingId.value = item.id;
@@ -152,6 +177,9 @@ function startEdit(item: LivItem) {
 }
 
 function cancelEdit() {
+  if (editingId.value === NEW_ROW_ID) {
+    pendingNewRow.value = false;
+  }
   editingId.value = null;
   editDraft.value = {};
 }
@@ -160,22 +188,47 @@ async function saveEdit() {
   if (!editingId.value) return;
   isSaving.value = true;
   try {
-    await useDirectus(
-      updateItem("liv" as any, editingId.value, {
-        material: editDraft.value.material,
-        quality: Number(editDraft.value.quality),
-        quantity: Number(editDraft.value.quantity),
-        quantity_unit: editDraft.value.quantity_unit,
-        category: editDraft.value.category,
-        location: editDraft.value.location,
-        notes: editDraft.value.notes,
-      }),
-    );
-    toast.add({
-      title: "Gespeichert",
-      color: "success",
-      icon: "i-lucide-check",
-    });
+    if (editingId.value === NEW_ROW_ID) {
+      if (!editDraft.value.material) {
+        toast.add({ title: "Material ist erforderlich", color: "warning" });
+        isSaving.value = false;
+        return;
+      }
+      await useDirectus(
+        createItem("liv" as any, {
+          material: editDraft.value.material,
+          quality: editDraft.value.quality
+            ? Number(editDraft.value.quality)
+            : undefined,
+          quantity: editDraft.value.quantity
+            ? Number(editDraft.value.quantity)
+            : undefined,
+          quantity_unit: editDraft.value.quantity_unit ?? "SCU",
+          category: editDraft.value.category,
+          location: editDraft.value.location,
+          notes: editDraft.value.notes,
+        }),
+      );
+      toast.add({ title: "Erstellt", color: "success", icon: "i-lucide-plus" });
+      pendingNewRow.value = false;
+    } else {
+      await useDirectus(
+        updateItem("liv" as any, editingId.value, {
+          material: editDraft.value.material,
+          quality: Number(editDraft.value.quality),
+          quantity: Number(editDraft.value.quantity),
+          quantity_unit: editDraft.value.quantity_unit,
+          category: editDraft.value.category,
+          location: editDraft.value.location,
+          notes: editDraft.value.notes,
+        }),
+      );
+      toast.add({
+        title: "Gespeichert",
+        color: "success",
+        icon: "i-lucide-check",
+      });
+    }
     editingId.value = null;
     editDraft.value = {};
     await refresh();
@@ -207,86 +260,25 @@ async function deleteRow(id: string) {
   }
 }
 
-// ─── New Item ─────────────────────────────────────────────────────────────────
-
-const showNewModal = ref(false);
-const newDraft = ref<Partial<LivItem>>({ quantity_unit: "SCU" });
-const isCreating = ref(false);
-
-function openNewModal() {
-  newDraft.value = { quantity_unit: "SCU" };
-  showNewModal.value = true;
+function addNewRow() {
+  if (!canEdit.value || pendingNewRow.value) return;
+  pendingNewRow.value = true;
+  editingId.value = NEW_ROW_ID;
+  editDraft.value = { quantity_unit: "SCU" };
 }
 
-async function createNew() {
-  if (!newDraft.value.material) return;
-  isCreating.value = true;
-  try {
-    await useDirectus(createItem("liv" as any, { ...newDraft.value }));
-    toast.add({ title: "Erstellt", color: "success", icon: "i-lucide-plus" });
-    showNewModal.value = false;
-    await refresh();
-  } catch {
-    toast.add({
-      title: "Fehler beim Erstellen",
-      color: "error",
-      icon: "i-lucide-x",
-    });
-  } finally {
-    isCreating.value = false;
+// ─── Table data (new row always at top) ───────────────────────────────────────
+
+const tableData = computed<LivItem[]>(() => {
+  if (pendingNewRow.value) {
+    return [{ id: NEW_ROW_ID } as LivItem, ...filteredItems.value];
   }
-}
-
-// ─── Permission Management ────────────────────────────────────────────────────
-
-const showPermissions = ref(false);
-const memberSearch = ref("");
-
-const { data: allMembers, refresh: refreshMembers } = useLazyAsyncData<
-  DirectusUser[]
->(
-  "liv-members",
-  async () => {
-    if (!isLogisticsHead.value) return [];
-    return (await useDirectus(
-      readUsers({
-        filter: { status: { _eq: "active" } },
-        fields: [
-          "id",
-          "first_name",
-          "middle_name",
-          "last_name",
-          "avatar",
-          "liv_editor" as any,
-        ] as any,
-        limit: -1,
-        sort: ["first_name"] as any,
-      }),
-    )) as DirectusUser[];
-  },
-  { server: false },
-);
-
-const filteredMembers = computed(() => {
-  const q = memberSearch.value.toLowerCase();
-  return (allMembers.value ?? []).filter(
-    (m) => !q || getUserLabel(m).toLowerCase().includes(q),
-  );
+  return filteredItems.value;
 });
 
-const editorCount = computed(
-  () => (allMembers.value ?? []).filter((m) => (m as any).liv_editor).length,
-);
+// ─── Sorting ──────────────────────────────────────────────────────────────────
 
-async function toggleEditor(user: DirectusUser) {
-  const current = (user as any).liv_editor ?? false;
-  try {
-    await useDirectus(updateUser(user.id, { liv_editor: !current } as any));
-    await refreshMembers();
-  } catch {
-    toast.add({ title: "Fehler", color: "error" });
-  }
-}
+const sorting = ref<{ id: string; desc: boolean }[]>([]);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -363,12 +355,36 @@ function formatRelativeDate(d?: string | null) {
 // ─── Table columns ────────────────────────────────────────────────────────────
 
 const columns = computed<TableColumn<LivItem>[]>(() => [
-  { accessorKey: "material", header: "Material" },
-  { accessorKey: "category", header: "Kategorie" },
-  { accessorKey: "quantity", header: "Menge" },
-  { accessorKey: "quality", header: "Qualität" },
-  { accessorKey: "location", header: "Standort" },
-  { accessorKey: "date_updated", header: "Geändert" },
+  {
+    accessorKey: "material",
+    header: sortableHeader("Material"),
+    enableSorting: true,
+  },
+  {
+    accessorKey: "category",
+    header: sortableHeader("Kategorie"),
+    enableSorting: true,
+  },
+  {
+    accessorKey: "quantity",
+    header: sortableHeader("Menge"),
+    enableSorting: true,
+  },
+  {
+    accessorKey: "quality",
+    header: sortableHeader("Qualität"),
+    enableSorting: true,
+  },
+  {
+    accessorKey: "location",
+    header: sortableHeader("Standort"),
+    enableSorting: true,
+  },
+  {
+    accessorKey: "date_updated",
+    header: sortableHeader("Geändert"),
+    enableSorting: true,
+  },
   ...(canEdit.value
     ? [{ accessorKey: "actions", header: "" } as TableColumn<LivItem>]
     : []),
@@ -384,37 +400,18 @@ definePageMeta({
   <div>
     <AMSPageHeader
       icon="i-lucide-package"
-      title="Logistics Inventory"
+      title="Logistics Inventory Management"
       description="Lagerbestand &amp; Ressourcenverwaltung der Logistics-Abteilung."
     >
-      <div class="flex items-center gap-2">
-        <UButton
-          v-if="isLogisticsHead"
-          @click="showPermissions = !showPermissions"
-          :variant="showPermissions ? 'solid' : 'outline'"
-          :color="showPermissions ? 'primary' : 'neutral'"
-          icon="i-lucide-shield-check"
-          size="sm"
-        >
-          Zugriff
-          <UBadge
-            v-if="editorCount"
-            :label="String(editorCount)"
-            color="primary"
-            variant="solid"
-            size="xs"
-            class="ml-1"
-          />
-        </UButton>
-        <UButton
-          v-if="canEdit"
-          @click="openNewModal"
-          icon="i-lucide-plus"
-          size="sm"
-        >
-          Neu
-        </UButton>
-      </div>
+      <UButton
+        v-if="canEdit"
+        @click="addNewRow"
+        :disabled="!!pendingNewRow"
+        icon="i-lucide-plus"
+        size="sm"
+      >
+        Neu
+      </UButton>
     </AMSPageHeader>
 
     <!-- ─── Stats ───────────────────────────────────────────────────────────── -->
@@ -478,134 +475,6 @@ definePageMeta({
       </AMSUiCard>
     </div>
 
-    <!-- ─── Permission Panel ────────────────────────────────────────────────── -->
-    <Transition
-      enter-active-class="transition-all duration-300 ease-out"
-      enter-from-class="opacity-0 -translate-y-3"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition-all duration-200 ease-in"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 -translate-y-3"
-    >
-      <div v-if="showPermissions && isLogisticsHead" class="mb-6">
-        <AMSUiCard>
-          <div class="p-5">
-            <!-- Header -->
-            <div class="flex items-start justify-between mb-4">
-              <div>
-                <div class="flex items-center gap-2 mb-1">
-                  <UIcon
-                    name="i-lucide-shield-check"
-                    class="size-4 text-(--ui-primary)"
-                  />
-                  <h3 class="font-semibold text-sm text-white">
-                    LIV Editor-Rechte
-                  </h3>
-                </div>
-                <p class="text-xs text-(--ui-text-muted)">
-                  Mitglieder mit aktiviertem Toggle können Inventareinträge
-                  erstellen, bearbeiten und löschen.
-                </p>
-              </div>
-              <div
-                class="flex items-center gap-2 text-xs text-(--ui-text-muted) shrink-0 ml-4"
-              >
-                <UIcon name="i-lucide-users" class="size-3.5" />
-                {{ editorCount }} / {{ allMembers?.length ?? 0 }} Editoren
-              </div>
-            </div>
-
-            <!-- Search -->
-            <UInput
-              v-model="memberSearch"
-              icon="i-lucide-search"
-              placeholder="Mitglied suchen …"
-              size="sm"
-              variant="outline"
-              class="mb-4"
-            />
-
-            <!-- Member grid -->
-            <div
-              class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2"
-            >
-              <div
-                v-for="member in filteredMembers"
-                :key="member.id"
-                class="relative flex flex-col items-center gap-2 p-3 rounded-lg border transition-all duration-200 cursor-pointer"
-                :class="
-                  (member as any).liv_editor
-                    ? 'border-(--ui-primary)/40 bg-(--ui-primary)/8 hover:bg-(--ui-primary)/12'
-                    : 'border-(--ui-primary)/10 bg-(--ui-bg-elevated)/20 hover:border-(--ui-primary)/20 hover:bg-(--ui-bg-elevated)/40'
-                "
-                @click="toggleEditor(member)"
-              >
-                <!-- Editor badge -->
-                <div
-                  v-if="(member as any).liv_editor"
-                  class="absolute -top-1.5 -right-1.5 rounded-full bg-(--ui-primary) size-4 flex items-center justify-center"
-                >
-                  <UIcon name="i-lucide-check" class="size-2.5 text-black" />
-                </div>
-
-                <!-- Avatar -->
-                <div
-                  class="size-12 rounded-full overflow-hidden border-2 transition-all"
-                  :class="
-                    (member as any).liv_editor
-                      ? 'border-(--ui-primary)/60'
-                      : 'border-(--ui-primary)/20'
-                  "
-                >
-                  <NuxtImg
-                    :src="
-                      getAssetId(member.avatar) ??
-                      '88adb941-f746-405d-bcc4-c2804fb48e33'
-                    "
-                    class="size-full object-cover"
-                  />
-                </div>
-
-                <!-- Name -->
-                <p
-                  class="text-xs text-center text-white font-medium leading-tight line-clamp-2"
-                >
-                  {{ getUserLabel(member) }}
-                </p>
-
-                <!-- Toggle indicator -->
-                <div
-                  class="flex items-center gap-1 text-[10px] font-medium mt-auto"
-                  :class="
-                    (member as any).liv_editor
-                      ? 'text-(--ui-primary)'
-                      : 'text-(--ui-text-muted)'
-                  "
-                >
-                  <UIcon
-                    :name="
-                      (member as any).liv_editor
-                        ? 'i-lucide-shield-check'
-                        : 'i-lucide-shield-off'
-                    "
-                    class="size-3"
-                  />
-                  {{ (member as any).liv_editor ? "Editor" : "Leser" }}
-                </div>
-              </div>
-
-              <p
-                v-if="!filteredMembers.length"
-                class="col-span-full text-center text-(--ui-text-muted) text-xs py-6"
-              >
-                Keine Mitglieder gefunden.
-              </p>
-            </div>
-          </div>
-        </AMSUiCard>
-      </div>
-    </Transition>
-
     <!-- ─── Toolbar ──────────────────────────────────────────────────────────── -->
     <div class="flex flex-wrap gap-2 mb-4">
       <UInput
@@ -667,8 +536,9 @@ definePageMeta({
       </div>
       <UTable
         v-else
+        v-model:sorting="sorting"
         :columns="columns"
-        :data="filteredItems"
+        :data="tableData"
         :ui="{
           thead: 'bg-(--ui-primary)/5 [&>tr]:after:bg-(--ui-primary)/20',
           th: 'text-(--ui-primary) text-xs uppercase tracking-wider',
@@ -683,8 +553,9 @@ definePageMeta({
             <UInput
               v-model="editDraft.material"
               size="sm"
-              placeholder="Material"
+              placeholder="Material *"
               class="w-36"
+              autofocus
             />
           </div>
           <div v-else class="flex items-center gap-2">
@@ -782,8 +653,12 @@ definePageMeta({
         <!-- Standort -->
         <template #location-cell="{ row }">
           <div v-if="editingId === row.original.id">
-            <UInput
+            <USelectMenu
               v-model="editDraft.location"
+              :items="uniqueLocationStrings"
+              autocomplete
+              create-item
+              @create="handleCreateLocation"
               size="sm"
               placeholder="z.B. ARC-L1"
               class="w-36"
@@ -845,7 +720,7 @@ definePageMeta({
       </UTable>
 
       <div
-        v-if="!pending && !filteredItems.length"
+        v-if="!pending && !filteredItems.length && !pendingNewRow"
         class="py-16 text-center text-(--ui-text-muted)"
       >
         <UIcon
@@ -861,88 +736,5 @@ definePageMeta({
         </p>
       </div>
     </div>
-
-    <!-- ─── New Item Modal ─────────────────────────────────────────────────── -->
-    <UModal v-model:open="showNewModal" title="Neuen Eintrag erstellen">
-      <template #body>
-        <div class="space-y-4">
-          <UFormField label="Material" required>
-            <UInput
-              v-model="newDraft.material"
-              placeholder="z.B. Laranite"
-              class="w-full"
-            />
-          </UFormField>
-          <div class="grid grid-cols-2 gap-3">
-            <UFormField label="Kategorie">
-              <USelect
-                v-model="newDraft.category"
-                :items="categoryItems"
-                value-key="value"
-                label-key="label"
-                placeholder="Kategorie …"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField label="Standort">
-              <UInput
-                v-model="newDraft.location"
-                placeholder="z.B. ARC-L1"
-                class="w-full"
-              />
-            </UFormField>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <UFormField label="Menge">
-              <UInput
-                v-model="newDraft.quantity"
-                type="number"
-                placeholder="0"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField label="Einheit">
-              <USelect
-                v-model="newDraft.quantity_unit"
-                :items="['SCU', 'mSCU', 'Units']"
-                class="w-full"
-              />
-            </UFormField>
-          </div>
-          <UFormField label="Qualität (0–1000)">
-            <UInput
-              v-model="newDraft.quality"
-              type="number"
-              placeholder="1000"
-              :min="0"
-              :max="1000"
-              class="w-full"
-            />
-          </UFormField>
-          <UFormField label="Notizen">
-            <UTextarea
-              v-model="newDraft.notes"
-              placeholder="Optionale Anmerkungen …"
-              class="w-full"
-            />
-          </UFormField>
-        </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton @click="showNewModal = false" variant="ghost" color="neutral"
-            >Abbrechen</UButton
-          >
-          <UButton
-            @click="createNew"
-            :loading="isCreating"
-            :disabled="!newDraft.material"
-            icon="i-lucide-plus"
-          >
-            Erstellen
-          </UButton>
-        </div>
-      </template>
-    </UModal>
   </div>
 </template>

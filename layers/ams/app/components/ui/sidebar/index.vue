@@ -5,7 +5,6 @@ import type { DirectusRole } from '~~/types'
 const authStore = useAuthStore()
 const { currentUser } = storeToRefs(authStore)
 const router = useRouter()
-const route = useRoute()
 const mobileOpen = ref(false)
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -23,33 +22,7 @@ interface linkElement {
   exact: boolean
 }
 
-interface childLink {
-  label: string
-  link: string
-  icon: string
-}
-
-interface groupElement {
-  type: 'group'
-  label: string
-  icon: string
-  slug: string
-  children: childLink[]
-}
-
-type sidebarElement = separatorElement | linkElement | groupElement
-
-// ─── Department groups ────────────────────────────────────────────────────────
-
-const openGroups = ref<Record<string, boolean>>({})
-
-function toggleGroup(slug: string) {
-  openGroups.value[slug] = !openGroups.value[slug]
-}
-
-function isGroupActive(children: childLink[]) {
-  return children.some(c => route.path.startsWith(c.link))
-}
+type sidebarElement = separatorElement | linkElement
 
 // ─── Items ────────────────────────────────────────────────────────────────────
 
@@ -78,40 +51,16 @@ const sidebarItems = computed<sidebarElement[]>(() => {
     { type: 'link', label: 'Kalender', link: '/ams/calendar', icon: 'i-lucide-calendar-range', exact: false },
     { type: 'link', label: 'Verwaltung', link: '/ams/admin', icon: 'i-lucide-shield-check', exact: false },
     { type: 'separator', label: 'Abteilungen' },
-    {
-      type: 'group',
-      label: 'Logistics',
-      icon: 'i-lucide-package',
-      slug: 'logistics',
-      children: [
-        { label: 'Inventory (LIV)', link: '/ams/departments/logistics/liv', icon: 'i-lucide-boxes' },
-      ],
-    },
+    { type: 'link', label: 'Logistics', link: '/ams/departments/logistics', icon: 'i-lucide-package', exact: false },
     { type: 'separator', label: 'Anderes' },
     { type: 'link', label: 'Toolbox', link: '/ams/toolbox', icon: 'i-lucide-tool-case', exact: false },
   ]
 
   return allItems.filter((item): boolean => {
     if (item.type === 'separator') return true
-    if (item.type === 'group') {
-      return item.children.some(c => linkVisible(c.link))
-    }
     return linkVisible(item.link)
   })
 })
-
-// Auto-open active department group — must be after sidebarItems is declared
-watch(
-  () => route.path,
-  (path) => {
-    for (const item of sidebarItems.value) {
-      if (item.type === 'group' && item.children.some(c => path.startsWith(c.link))) {
-        openGroups.value[item.slug] = true
-      }
-    }
-  },
-  { immediate: true }
-)
 </script>
 
 <template>
@@ -150,33 +99,9 @@ watch(
           </div>
           <div class="shrink-0 h-[1px] w-full bg-(--ui-primary)/10" />
           <nav class="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
-            <template v-for="item in sidebarItems" :key="item.type === 'link' ? item.link : item.type === 'group' ? item.slug : item.label">
+            <template v-for="item in sidebarItems" :key="item.type === 'link' ? item.link : item.label">
               <USeparator v-if="item.type === 'separator'" color="ams" :label="item.label" class="mt-8 first:mt-0" />
               <AMSUiSidebarLink v-else-if="item.type === 'link'" :label="item.label" :link="item.link" :icon="item.icon" :exact="item.exact" @click="mobileOpen = false" />
-              <template v-else-if="item.type === 'group'">
-                <button
-                  @click="toggleGroup(item.slug)"
-                  class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200"
-                  :class="isGroupActive(item.children) ? 'text-(--ui-primary) bg-(--ui-primary)/10' : 'text-(--ui-text-muted) hover:text-white hover:bg-(--ui-primary)/5'"
-                >
-                  <UIcon :name="item.icon" class="size-4 shrink-0" />
-                  <span class="flex-1 text-left font-medium">{{ item.label }}</span>
-                  <UIcon name="i-lucide-chevron-right" class="size-3.5 transition-transform duration-200 shrink-0" :class="openGroups[item.slug] ? 'rotate-90' : ''" />
-                </button>
-                <div v-if="openGroups[item.slug]" class="mt-0.5 ml-3 pl-3 border-l border-(--ui-primary)/20 space-y-0.5">
-                  <NuxtLink
-                    v-for="child in item.children"
-                    :key="child.link"
-                    :to="child.link"
-                    @click="mobileOpen = false"
-                    class="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-all duration-150"
-                    :class="route.path.startsWith(child.link) ? 'text-(--ui-primary) bg-(--ui-primary)/10 font-medium' : 'text-(--ui-text-muted) hover:text-white hover:bg-(--ui-primary)/5'"
-                  >
-                    <UIcon :name="child.icon" class="size-3.5 shrink-0" />
-                    <span>{{ child.label }}</span>
-                  </NuxtLink>
-                </div>
-              </template>
             </template>
           </nav>
           <!-- Footer -->
@@ -215,32 +140,9 @@ watch(
         </div>
         <div class="shrink-0 h-[1px] w-full bg-(--ui-primary)/10" />
         <nav class="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
-          <template v-for="item in sidebarItems" :key="item.type === 'link' ? item.link : item.type === 'group' ? item.slug : item.label">
+          <template v-for="item in sidebarItems" :key="item.type === 'link' ? item.link : item.label">
             <USeparator v-if="item.type === 'separator'" color="ams" :label="item.label" class="mt-8 first:mt-0" />
             <AMSUiSidebarLink v-else-if="item.type === 'link'" :label="item.label" :link="item.link" :icon="item.icon" :exact="item.exact" />
-            <template v-else-if="item.type === 'group'">
-              <button
-                @click="toggleGroup(item.slug)"
-                class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-all duration-200"
-                :class="isGroupActive(item.children) ? 'text-(--ui-primary) bg-(--ui-primary)/10' : 'text-(--ui-text-muted) hover:text-white hover:bg-(--ui-primary)/5'"
-              >
-                <UIcon :name="item.icon" class="size-4 shrink-0" />
-                <span class="flex-1 text-left font-medium">{{ item.label }}</span>
-                <UIcon name="i-lucide-chevron-right" class="size-3.5 transition-transform duration-200 shrink-0" :class="openGroups[item.slug] ? 'rotate-90' : ''" />
-              </button>
-              <div v-if="openGroups[item.slug]" class="mt-0.5 ml-3 pl-3 border-l border-(--ui-primary)/20 space-y-0.5">
-                <NuxtLink
-                  v-for="child in item.children"
-                  :key="child.link"
-                  :to="child.link"
-                  class="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm transition-all duration-150"
-                  :class="route.path.startsWith(child.link) ? 'text-(--ui-primary) bg-(--ui-primary)/10 font-medium' : 'text-(--ui-text-muted) hover:text-white hover:bg-(--ui-primary)/5'"
-                >
-                  <UIcon :name="child.icon" class="size-3.5 shrink-0" />
-                  <span>{{ child.label }}</span>
-                </NuxtLink>
-              </div>
-            </template>
           </template>
         </nav>
         <!-- Footer -->
