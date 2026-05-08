@@ -87,7 +87,44 @@ export default defineAppConfig({
     },
     table: {
       slots: {
-        base: 'not-prose'
+        root: 'relative overflow-x-auto overflow-y-hidden',
+        base: 'min-w-full not-prose',
+        thead:
+          'relative bg-[linear-gradient(180deg,rgba(0,255,232,0.08)_0%,rgba(9,15,32,0.92)_100%)] supports-[backdrop-filter]:backdrop-blur-sm',
+        tbody:
+          'divide-y divide-(--ui-primary)/10 [&>tr]:data-[selectable=true]:hover:bg-white/[0.03] [&>tr]:data-[selectable=true]:focus-visible:outline-(--ui-primary)',
+        tfoot:
+          'bg-[linear-gradient(180deg,rgba(9,15,32,0.88)_0%,rgba(4,9,22,0.96)_100%)]',
+        tr: 'transition-colors duration-200 data-[selected=true]:bg-(--ui-primary)/8 hover:bg-white/[0.025]',
+        th: 'px-4 py-3 text-left rtl:text-right text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-(--ui-primary) first:ps-5 last:pe-5 [&:has([role=checkbox])]:pe-0',
+        td: 'px-4 py-3.5 text-sm text-(--ui-text) align-middle whitespace-nowrap first:ps-5 last:pe-5 [&:has([role=checkbox])]:pe-0',
+        separator: 'absolute inset-x-0 bottom-0 h-px bg-(--ui-primary)/18',
+        empty: 'py-10 text-center text-sm text-(--ui-text-muted)',
+        loading: 'py-10 text-center'
+      },
+      variants: {
+        pinned: {
+          true: {
+            th: 'sticky bg-[rgba(8,14,28,0.94)] data-[pinned=left]:left-0 data-[pinned=right]:right-0',
+            td: 'sticky bg-[rgba(6,11,24,0.92)] data-[pinned=left]:left-0 data-[pinned=right]:right-0'
+          }
+        },
+        sticky: {
+          true: {
+            thead:
+              'sticky top-0 inset-x-0 z-[1] bg-[rgba(8,14,28,0.9)] supports-[backdrop-filter]:backdrop-blur-md',
+            tfoot:
+              'sticky bottom-0 inset-x-0 z-[1] bg-[rgba(8,14,28,0.9)] supports-[backdrop-filter]:backdrop-blur-md'
+          },
+          header: {
+            thead:
+              'sticky top-0 inset-x-0 z-[1] bg-[rgba(8,14,28,0.9)] supports-[backdrop-filter]:backdrop-blur-md'
+          },
+          footer: {
+            tfoot:
+              'sticky bottom-0 inset-x-0 z-[1] bg-[rgba(8,14,28,0.9)] supports-[backdrop-filter]:backdrop-blur-md'
+          }
+        }
       }
     },
     selectMenu: {

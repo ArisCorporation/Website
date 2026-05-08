@@ -526,7 +526,7 @@ definePageMeta({
 
     <!-- ─── Table ────────────────────────────────────────────────────────────── -->
     <div
-      class="rounded-lg border border-(--ui-primary)/20 overflow-hidden mb-8"
+      class="mb-8 overflow-hidden rounded-2xl border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.72)_0%,rgba(4,9,22,0.96)_100%)] shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm"
     >
       <div v-if="pending" class="py-12 flex justify-center">
         <UIcon
@@ -539,13 +539,6 @@ definePageMeta({
         v-model:sorting="sorting"
         :columns="columns"
         :data="tableData"
-        :ui="{
-          thead: 'bg-(--ui-primary)/5 [&>tr]:after:bg-(--ui-primary)/20',
-          th: 'text-(--ui-primary) text-xs uppercase tracking-wider',
-          tbody: 'divide-(--ui-primary)/10',
-          tr: 'hover:bg-(--ui-primary)/5 transition-colors duration-150',
-          td: 'text-(--ui-text) py-2.5',
-        }"
       >
         <!-- Material -->
         <template #material-cell="{ row }">
