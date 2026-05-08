@@ -526,7 +526,7 @@ definePageMeta({
 
     <!-- ─── Table ────────────────────────────────────────────────────────────── -->
     <div
-      class="mb-8 overflow-hidden rounded-2xl border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.72)_0%,rgba(4,9,22,0.96)_100%)] shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm"
+      class="mb-8 overflow-hidden rounded-[calc(var(--ui-radius)*4.5)] border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.72)_0%,rgba(4,9,22,0.96)_100%)] shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm"
     >
       <div v-if="pending" class="py-12 flex justify-center">
         <UIcon

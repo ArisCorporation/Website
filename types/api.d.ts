@@ -28,7 +28,7 @@ export interface AsteroidBelt {
 export interface BingoCollection {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -36,14 +36,14 @@ export interface BingoCollection {
   /** @description Es müssen mindestens 24 Karten sein, damit dass Bingo funktioniert!! */
   cards?: string[] | null;
   phrases?:
-  | string[]
-  | Array<{
-    phrase?: string | null;
-    label?: string | null;
-    value?: string | null;
-    [key: string]: unknown;
-  }>
-  | null;
+    | string[]
+    | Array<{
+        phrase?: string | null;
+        label?: string | null;
+        value?: string | null;
+        [key: string]: unknown;
+      }>
+    | null;
   title?: string | null;
   description?: string | null;
   slug?: string | null;
@@ -54,14 +54,14 @@ export interface BingoCollection {
 export interface BingoGame {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
   date_updated?: string | null;
   name?: string | null;
   collection?: BingoCollection | string | null;
-  board?: 'json' | null;
+  board?: "json" | null;
   has_bingo?: boolean | null;
   line_count?: number | null;
 }
@@ -99,7 +99,7 @@ export interface CommLinkChannel {
 export interface CommLink {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   date_published?: string | null;
@@ -116,7 +116,7 @@ export interface CommLink {
 export interface Company {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -145,7 +145,14 @@ export interface CompaniesHeadquarter {
   /** @primaryKey */
   id: number;
   company_id?: Company | string | null;
-  headquarter?: LandingZone | System | Planet | Moon | SpaceStation | string | null;
+  headquarter?:
+    | LandingZone
+    | System
+    | Planet
+    | Moon
+    | SpaceStation
+    | string
+    | null;
   collection?: string | null;
 }
 
@@ -176,7 +183,7 @@ export interface Credits {
 export interface Department {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -204,7 +211,7 @@ export interface DepartmentsFile {
 export interface Fauna {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -227,7 +234,7 @@ export interface FaunaFile {
 export interface Flora {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -235,7 +242,7 @@ export interface Flora {
   name?: string | null;
   slug?: string | null;
   banner?: DirectusFile | string | null;
-  category?: 'plant' | 'collectible' | null;
+  category?: "plant" | "collectible" | null;
   content?: string | null;
 }
 
@@ -284,7 +291,7 @@ export interface FractionCategory {
 export interface Fraction {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -327,7 +334,7 @@ export interface Jumppoint {
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
   date_updated?: string | null;
-  size?: 'small' | 'medium' | 'large' | null;
+  size?: "small" | "medium" | "large" | null;
   systems?: JumppointsSystem[] | string[];
 }
 
@@ -341,7 +348,7 @@ export interface JumppointsSystem {
 export interface LandingZone {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -362,13 +369,13 @@ export interface Language {
   user_updated?: DirectusUser | string | null;
   date_updated?: string | null;
   name?: string | null;
-  direction?: 'ltr' | 'rtl' | null;
+  direction?: "ltr" | "rtl" | null;
 }
 
 export interface LiteratureBook {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -408,7 +415,7 @@ export interface Message {
 export interface Moon {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -446,7 +453,7 @@ export interface MoonsOrbit {
 export interface OneDayInHistory {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -462,7 +469,7 @@ export interface OneDayInHistory {
 export interface Partner {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -482,19 +489,22 @@ export interface PersonalWeaponAttachment {
   store_image?: DirectusFile | string | null;
   name?: string | null;
   slug?: string | null;
-  category?: 'sight' | 'barrel' | 'underbarrel' | 'magazine' | null;
+  category?: "sight" | "barrel" | "underbarrel" | "magazine" | null;
   classification?: PersonalWeaponAttachmentsClassification | string | null;
-  size?: '1' | '2' | '3' | null;
+  size?: "1" | "2" | "3" | null;
   weight?: number | null;
   price?: number | null;
-  zoom_level?: '1' | '2' | '3' | '4' | '8' | '16' | null;
+  zoom_level?: "1" | "2" | "3" | "4" | "8" | "16" | null;
   /** @required */
   auto_zeroing: boolean;
   zeroing_range?: number | null;
   /** @required */
   rangefinder: boolean;
   content?: string | null;
-  statistic?: Array<{ property: 'noise_level' | 'damage' | 'recoil'; value: number }> | null;
+  statistic?: Array<{
+    property: "noise_level" | "damage" | "recoil";
+    value: number;
+  }> | null;
   max_rounds?: number | null;
   manufacturer?: Company | string | null;
   gallery?: DirectusFile[] | string[] | null;
@@ -508,7 +518,7 @@ export interface PersonalWeaponAttachmentsClassification {
   user_updated?: DirectusUser | string | null;
   date_updated?: string | null;
   name?: string | null;
-  classification?: 'sight' | 'barrel' | 'underbarrel' | 'magazine' | null;
+  classification?: "sight" | "barrel" | "underbarrel" | "magazine" | null;
   personal_weapon_attachments?: PersonalWeaponAttachment[] | string[];
 }
 
@@ -531,12 +541,47 @@ export interface PersonalWeapon {
   slug?: string | null;
   store_image?: DirectusFile | string | null;
   manufacturer?: Company | string | null;
-  classification?: 'crossbow' | 'grenade_launcher' | 'hmg' | 'lmg' | 'pistol' | 'railgun' | 'rocket_launcher' | 'sniper_rifle' | 'shotgun' | 'smg' | 'assault_rifle' | 'taser' | null;
-  damage_type?: 'electrons' | 'ballistic' | 'laser' | 'plasma' | 'explosive' | null;
-  fire_modes?: Array<'charge' | 'fully_automatic' | 'single_shot' | 'burst_shot'> | null;
+  classification?:
+    | "crossbow"
+    | "grenade_launcher"
+    | "hmg"
+    | "lmg"
+    | "pistol"
+    | "railgun"
+    | "rocket_launcher"
+    | "sniper_rifle"
+    | "shotgun"
+    | "smg"
+    | "assault_rifle"
+    | "taser"
+    | null;
+  damage_type?:
+    | "electrons"
+    | "ballistic"
+    | "laser"
+    | "plasma"
+    | "explosive"
+    | null;
+  fire_modes?: Array<
+    "charge" | "fully_automatic" | "single_shot" | "burst_shot"
+  > | null;
   weight?: number | null;
   calibre?: number | null;
-  statistics?: Array<{ property: string; zero_meters: number; '15m': number; '20m': number; '25m': number; '30m': number; '40m': number; '50m': number; '100m': number; '200m': number; '400m': number; '800m': number; '1000m': number }> | null;
+  statistics?: Array<{
+    property: string;
+    zero_meters: number;
+    "15m": number;
+    "20m": number;
+    "25m": number;
+    "30m": number;
+    "40m": number;
+    "50m": number;
+    "100m": number;
+    "200m": number;
+    "400m": number;
+    "800m": number;
+    "1000m": number;
+  }> | null;
   fire_rates?: Array<{ name: string; value: number }> | null;
   muzzle_velocity?: number | null;
   locktime?: number | null;
@@ -550,7 +595,7 @@ export interface PersonalWeapon {
 export interface Planet {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -562,7 +607,31 @@ export interface Planet {
   orbital_period?: number | null;
   age?: number | null;
   distance?: number | null;
-  type?: 'terrestrickRock' | 'superEarth' | 'superJupiter' | 'ironPlanet' | 'smogPlanet' | 'desertPlanet' | 'oceanPlanet' | 'lavaPlanet' | 'mesoplanet' | 'protoplanet' | 'dwarfPlanet' | 'gasGiant' | 'gasDwarf' | 'iceGiant' | 'icePlanet' | 'planetoid' | 'planetaryMoon' | 'corelessPlanet' | 'artificial' | 'puffyPlanet' | 'carbonPlanet' | 'chthonianPlanet' | 'roguePlanet' | null;
+  type?:
+    | "terrestrickRock"
+    | "superEarth"
+    | "superJupiter"
+    | "ironPlanet"
+    | "smogPlanet"
+    | "desertPlanet"
+    | "oceanPlanet"
+    | "lavaPlanet"
+    | "mesoplanet"
+    | "protoplanet"
+    | "dwarfPlanet"
+    | "gasGiant"
+    | "gasDwarf"
+    | "iceGiant"
+    | "icePlanet"
+    | "planetoid"
+    | "planetaryMoon"
+    | "corelessPlanet"
+    | "artificial"
+    | "puffyPlanet"
+    | "carbonPlanet"
+    | "chthonianPlanet"
+    | "roguePlanet"
+    | null;
   /** @required */
   habitable: boolean;
   /** @required */
@@ -589,7 +658,7 @@ export interface PlanetsOrbit {
 export interface Project {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -601,7 +670,7 @@ export interface Project {
 export interface ReleaseNote {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -659,21 +728,33 @@ export interface ShipPaint {
 export interface ShipRating {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
   date_updated?: string | null;
   introduction?: string | null;
-  ratings?: Array<{ category: 'combat_potential' | 'economic_potential' | 'usage_potential' | `p-p_ratio` | 'conclusion'; grade: 'bad' | 'medium' | 'good' | 'very_good'; reason: string }> | null;
-  strengths_and_weaknesses?: Array<{ category: 'strength' | 'weakness'; name: string }> | null;
+  ratings?: Array<{
+    category:
+      | "combat_potential"
+      | "economic_potential"
+      | "usage_potential"
+      | `p-p_ratio`
+      | "conclusion";
+    grade: "bad" | "medium" | "good" | "very_good";
+    reason: string;
+  }> | null;
+  strengths_and_weaknesses?: Array<{
+    category: "strength" | "weakness";
+    name: string;
+  }> | null;
   ships?: Ship[] | string[];
 }
 
 export interface Ship {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -717,23 +798,230 @@ export interface Ship {
   history?: string | null;
   rating?: ShipRating | string | null;
   production_status?: string | null;
-  field_overwrite?: Array<'store_image' | 'name' | 'p4k_mode' | 'p4k_name' | 'p4k_version' | 'gallery' | 'paints' | 'brochure' | 'hologram' | 'p4k_id' | 'erkul_id' | 'fl_id' | 'sm_id' | 'manufacturer' | 'store_url' | 'sales_url' | 'on_sale' | 'pledge_price' | 'price' | 'production_status' | 'production_note' | 'live_patch' | 'size' | 'size_label' | 'length' | 'height' | 'beam' | 'mass' | 'crew_min' | 'crew_max' | 'hydrogen_fuel_tanks' | 'quantum_fuel_tanks' | 'speed_max' | 'speed_scm' | 'zero_to_scm' | 'scm_to_zero' | 'zero_to_max' | 'max_to_zero' | 'pitch_max' | 'yaw_max' | 'roll_max' | 'axis_acceleration_x' | 'axis_acceleration_y' | 'axis_acceleration_z' | 'acceleration_main' | 'acceleration_retro' | 'acceleration_vtol' | 'acceleration_maneuvering' | 'insurance_claim_time' | 'insurance_expedited_cost' | 'insurance_expedited_time' | 'classification' | 'focuses' | 'ground' | 'gravlev' | 'pilot_hardpoints' | 'remote_turrets' | 'manned_turrets' | 'shields' | 'power_plants' | 'coolers' | 'quantum_drives' | 'main_thrusters' | 'retro_thrusters' | 'maneuvering_thrusters' | 'vtol_thrusters' | 'commercial_video_id' | 'description' | 'history' | 'rating' | 'loaners' | 'variants' | 'modules'> | null;
+  field_overwrite?: Array<
+    | "store_image"
+    | "name"
+    | "p4k_mode"
+    | "p4k_name"
+    | "p4k_version"
+    | "gallery"
+    | "paints"
+    | "brochure"
+    | "hologram"
+    | "p4k_id"
+    | "erkul_id"
+    | "fl_id"
+    | "sm_id"
+    | "manufacturer"
+    | "store_url"
+    | "sales_url"
+    | "on_sale"
+    | "pledge_price"
+    | "price"
+    | "production_status"
+    | "production_note"
+    | "live_patch"
+    | "size"
+    | "size_label"
+    | "length"
+    | "height"
+    | "beam"
+    | "mass"
+    | "crew_min"
+    | "crew_max"
+    | "hydrogen_fuel_tanks"
+    | "quantum_fuel_tanks"
+    | "speed_max"
+    | "speed_scm"
+    | "zero_to_scm"
+    | "scm_to_zero"
+    | "zero_to_max"
+    | "max_to_zero"
+    | "pitch_max"
+    | "yaw_max"
+    | "roll_max"
+    | "axis_acceleration_x"
+    | "axis_acceleration_y"
+    | "axis_acceleration_z"
+    | "acceleration_main"
+    | "acceleration_retro"
+    | "acceleration_vtol"
+    | "acceleration_maneuvering"
+    | "insurance_claim_time"
+    | "insurance_expedited_cost"
+    | "insurance_expedited_time"
+    | "classification"
+    | "focuses"
+    | "ground"
+    | "gravlev"
+    | "pilot_hardpoints"
+    | "remote_turrets"
+    | "manned_turrets"
+    | "shields"
+    | "power_plants"
+    | "coolers"
+    | "quantum_drives"
+    | "main_thrusters"
+    | "retro_thrusters"
+    | "maneuvering_thrusters"
+    | "vtol_thrusters"
+    | "commercial_video_id"
+    | "description"
+    | "history"
+    | "rating"
+    | "loaners"
+    | "variants"
+    | "modules"
+  > | null;
   ownable?: boolean | null;
-  classification?: 'starter' | 'exploration' | 'cargo' | 'combat' | 'mining' | 'salvage' | 'racing' | 'specialized' | `multi-role` | 'other' | 'personal_transport' | 'support' | 'industrial' | null;
-  focuses?: Array<'light_freight' | 'medium_freight' | 'heavy_freight' | 'light_transport' | 'medium_transport' | 'heavy_transport' | 'military_transport' | 'light_data' | 'medium_data' | 'heavy_data' | 'light_refining' | 'medium_refining' | 'heavy_refining' | 'light_salvage' | 'medium_salvage' | 'heavy_salvage' | 'light_mining' | 'medium_mining' | 'heavy_mining' | 'light_repair' | 'medium_repair' | 'heavy_repair' | 'light_refueling' | 'medium_refueling' | 'heavy_refueling' | 'light_construction' | 'medium_construction' | 'heavy_construction' | 'light_science' | 'medium_science' | 'heavy_science' | 'light_carrier' | 'medium_carrier' | 'heavy_carrier' | 'luxury' | 'modular' | 'medical' | 'touring' | 'expedition' | 'exploration' | 'pathfinder' | 'reporting' | 'light_fighter' | 'medium_fighter' | 'heavy_fighter' | 'light_gunship' | 'medium_gunship' | 'heavy_gunship' | 'snub' | 'frigate' | 'destroyer' | 'corvette' | 'recon' | 'bomber' | 'interdicion' | 'dropship' | 'stealth' | 'minelayer' | `e-war` | 'anti_air' | 'ground_combat' | 'tow_ship'> | null;
-  pilot_hardpoints?: Array<{ size: number; gimbaled: boolean; name: string; class_name: string; manufacturer: string }> | null;
-  remote_turrets?: Array<{ size: number; name: string; class_name: string; manufacturer: string }> | null;
-  manned_turrets?: Array<{ size: number; name: string; class_name: string; manufacturer: string }> | null;
-  shields?: Array<{ size: number; grade: number; name: string; class_name: string; manufacturer: string }> | null;
-  coolers?: Array<{ size: number; grade: number; name: string; class_name: string; manufacturer: string }> | null;
-  quantum_drives?: Array<{ size: number; grade: number; name: string; class_name: string; manufacturer: string }> | null;
-  power_plants?: Array<{ size: number; grade: number; name: string; class_name: string; manufacturer: string }> | null;
+  classification?:
+    | "starter"
+    | "exploration"
+    | "cargo"
+    | "combat"
+    | "mining"
+    | "salvage"
+    | "racing"
+    | "specialized"
+    | `multi-role`
+    | "other"
+    | "personal_transport"
+    | "support"
+    | "industrial"
+    | null;
+  focuses?: Array<
+    | "light_freight"
+    | "medium_freight"
+    | "heavy_freight"
+    | "light_transport"
+    | "medium_transport"
+    | "heavy_transport"
+    | "military_transport"
+    | "light_data"
+    | "medium_data"
+    | "heavy_data"
+    | "light_refining"
+    | "medium_refining"
+    | "heavy_refining"
+    | "light_salvage"
+    | "medium_salvage"
+    | "heavy_salvage"
+    | "light_mining"
+    | "medium_mining"
+    | "heavy_mining"
+    | "light_repair"
+    | "medium_repair"
+    | "heavy_repair"
+    | "light_refueling"
+    | "medium_refueling"
+    | "heavy_refueling"
+    | "light_construction"
+    | "medium_construction"
+    | "heavy_construction"
+    | "light_science"
+    | "medium_science"
+    | "heavy_science"
+    | "light_carrier"
+    | "medium_carrier"
+    | "heavy_carrier"
+    | "luxury"
+    | "modular"
+    | "medical"
+    | "touring"
+    | "expedition"
+    | "exploration"
+    | "pathfinder"
+    | "reporting"
+    | "light_fighter"
+    | "medium_fighter"
+    | "heavy_fighter"
+    | "light_gunship"
+    | "medium_gunship"
+    | "heavy_gunship"
+    | "snub"
+    | "frigate"
+    | "destroyer"
+    | "corvette"
+    | "recon"
+    | "bomber"
+    | "interdicion"
+    | "dropship"
+    | "stealth"
+    | "minelayer"
+    | `e-war`
+    | "anti_air"
+    | "ground_combat"
+    | "tow_ship"
+  > | null;
+  pilot_hardpoints?: Array<{
+    size: number;
+    gimbaled: boolean;
+    name: string;
+    class_name: string;
+    manufacturer: string;
+  }> | null;
+  remote_turrets?: Array<{
+    size: number;
+    name: string;
+    class_name: string;
+    manufacturer: string;
+  }> | null;
+  manned_turrets?: Array<{
+    size: number;
+    name: string;
+    class_name: string;
+    manufacturer: string;
+  }> | null;
+  shields?: Array<{
+    size: number;
+    grade: number;
+    name: string;
+    class_name: string;
+    manufacturer: string;
+  }> | null;
+  coolers?: Array<{
+    size: number;
+    grade: number;
+    name: string;
+    class_name: string;
+    manufacturer: string;
+  }> | null;
+  quantum_drives?: Array<{
+    size: number;
+    grade: number;
+    name: string;
+    class_name: string;
+    manufacturer: string;
+  }> | null;
+  power_plants?: Array<{
+    size: number;
+    grade: number;
+    name: string;
+    class_name: string;
+    manufacturer: string;
+  }> | null;
   quantum_fuel_tanks?: Array<{ size: number; capacity: number }> | null;
   hydrogen_fuel_tanks?: Array<{ size: number; capacity: number }> | null;
-  main_thrusters?: Array<{ size: number; grade: number; manufacturer: string }> | null;
-  retro_thrusters?: Array<{ size: number; grade: number; manufacturer: string }> | null;
-  vtol_thrusters?: Array<{ size: number; grade: number; manufacturer: string }> | null;
-  maneuvering_thrusters?: Array<{ size: number; grade: number; manufacturer: string }> | null;
+  main_thrusters?: Array<{
+    size: number;
+    grade: number;
+    manufacturer: string;
+  }> | null;
+  retro_thrusters?: Array<{
+    size: number;
+    grade: number;
+    manufacturer: string;
+  }> | null;
+  vtol_thrusters?: Array<{
+    size: number;
+    grade: number;
+    manufacturer: string;
+  }> | null;
+  maneuvering_thrusters?: Array<{
+    size: number;
+    grade: number;
+    manufacturer: string;
+  }> | null;
   mass?: number | null;
   length?: number | null;
   beam?: number | null;
@@ -750,7 +1038,7 @@ export interface Ship {
   commercial?: DirectusFile | string | null;
   cargo?: number | null;
   starter_ship?: boolean | null;
-  size?: 'v' | '1' | '2' | '3' | '4' | '5' | '6' | null;
+  size?: "v" | "1" | "2" | "3" | "4" | "5" | "6" | null;
   user_wishlists?: UserWishlist[] | string[];
   user_hangars?: UserHangar[] | string[];
   commercials?: DirectusFile[] | string[] | null;
@@ -758,7 +1046,7 @@ export interface Ship {
   modules?: ShipModule[] | string[];
   paints?: ShipPaint[] | string[];
   loaners?: ShipsLoaner[] | string[];
-  '3d_models'?: DirectusFile[] | string[] | null;
+  "3d_models"?: DirectusFile[] | string[] | null;
   variants?: ShipsVariant[] | string[];
 }
 
@@ -817,7 +1105,7 @@ export interface ShipHull {
 export interface ShipVariantStats {
   career?: string | null;
   role?: string | null;
-  size?: 'v' | '1' | '2' | '3' | '4' | '5' | '6' | string | null;
+  size?: "v" | "1" | "2" | "3" | "4" | "5" | "6" | string | null;
   crew?: number | null;
   cargo?: number | null;
   mass?: number | null;
@@ -875,7 +1163,7 @@ export interface ShipVariant {
   external_refs?: Record<string, any> | null;
   thumbnail?: DirectusFile | string | null;
   release_patch?: string | null;
-  custom_mission_roles?:
+  mission_roles?:
     | Array<{ name: string; description?: string | null }>
     | string
     | null;
@@ -884,7 +1172,7 @@ export interface ShipVariant {
   stats?: ShipVariantStats | null;
   hull?: ShipHull | string | null;
   rating?: ShipRating | string | null;
-  production_state?: 'flight-ready' | 'in-production' | 'in-concept' | null;
+  production_state?: "flight-ready" | "in-production" | "in-concept" | null;
   configurations?: ShipVariantConfiguration[] | string[];
   modules?: ShipModule[] | string[];
 }
@@ -918,7 +1206,7 @@ export interface SpaceStation {
   name?: string | null;
   slug?: string | null;
   content?: string | null;
-  type?: 'orbital_station' | 'lagrange_point' | null;
+  type?: "orbital_station" | "lagrange_point" | null;
 }
 
 export interface SpectrumCategory {
@@ -938,7 +1226,7 @@ export interface SpectrumCategory {
 export interface SpectrumThread {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -960,7 +1248,12 @@ export interface Starmap {
   user_updated?: DirectusUser | string | null;
   date_updated?: string | null;
   history_introduction?: string | null;
-  history?: Array<{ image: string; year: number; title: string; description: string }> | null;
+  history?: Array<{
+    image: string;
+    year: number;
+    title: string;
+    description: string;
+  }> | null;
   distances?: string | null;
   jumppoint_connections?: string | null;
   borders?: string | null;
@@ -976,15 +1269,40 @@ export interface Star {
   name?: string | null;
   slug?: string | null;
   banner?: DirectusFile | string | null;
-  size?: 'main_sequence' | 'Hypergiant' | 'supergiant' | 'bright_giant' | 'giant' | 'subgiant' | 'dwarf' | 'subdwarf' | null;
-  type?: 'black_hole' | 'neutron_star' | 'o' | 'b' | 'a' | 'f' | 'g' | 'k' | 'm' | 'l' | 't' | 'y' | 'r' | 'n' | 's' | null;
+  size?:
+    | "main_sequence"
+    | "Hypergiant"
+    | "supergiant"
+    | "bright_giant"
+    | "giant"
+    | "subgiant"
+    | "dwarf"
+    | "subdwarf"
+    | null;
+  type?:
+    | "black_hole"
+    | "neutron_star"
+    | "o"
+    | "b"
+    | "a"
+    | "f"
+    | "g"
+    | "k"
+    | "m"
+    | "l"
+    | "t"
+    | "y"
+    | "r"
+    | "n"
+    | "s"
+    | null;
   content?: string | null;
 }
 
 export interface System {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -995,10 +1313,17 @@ export interface System {
   banner?: DirectusFile | string | null;
   starmap_id?: string | null;
   content?: string | null;
-  star_type?: 'single' | 'binary' | null;
+  star_type?: "single" | "binary" | null;
   star_class?: string | null;
   size?: number | null;
-  affiliation?: 'uee' | 'in_development' | 'unclaimed' | 'banu' | 'xian' | 'vanduul' | null;
+  affiliation?:
+    | "uee"
+    | "in_development"
+    | "unclaimed"
+    | "banu"
+    | "xian"
+    | "vanduul"
+    | null;
   discovery_year?: number | null;
   population?: number | null;
   economy?: number | null;
@@ -1019,7 +1344,15 @@ export interface SystemsOrbit {
   /** @primaryKey */
   id: number;
   system_id?: System | string | null;
-  object?: Planet | Moon | Jumppoint | SpaceStation | AsteroidBelt | Star | string | null;
+  object?:
+    | Planet
+    | Moon
+    | Jumppoint
+    | SpaceStation
+    | AsteroidBelt
+    | Star
+    | string
+    | null;
   sort?: number | null;
   collection?: string | null;
 }
@@ -1027,7 +1360,16 @@ export interface SystemsOrbit {
 export interface Task {
   /** @primaryKey */
   id: string;
-  status?: 'backlog' | 'ideas' | 'in_concept' | 'todo' | 'in_progress' | 'in_review' | 'done' | 'on_hold' | null;
+  status?:
+    | "backlog"
+    | "ideas"
+    | "in_concept"
+    | "todo"
+    | "in_progress"
+    | "in_review"
+    | "done"
+    | "on_hold"
+    | null;
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -1061,7 +1403,7 @@ export interface TasksFile {
 export interface Technology {
   /** @primaryKey */
   id: string;
-  status?: 'published' | 'draft' | 'archived';
+  status?: "published" | "draft" | "archived";
   user_created?: DirectusUser | string | null;
   date_created?: string | null;
   user_updated?: DirectusUser | string | null;
@@ -1073,7 +1415,7 @@ export interface Technology {
   content?: string | null;
   icon?: DirectusFile | string | null;
   /** @required */
-  category: 'ship' | 'personal';
+  category: "ship" | "personal";
 }
 
 export interface Test {
@@ -1091,12 +1433,23 @@ export interface TimelineItem {
   /** @required */
   title: string;
   /** @required */
-  category: 'ariscorp_timeline' | 'verse_timeline' | 'one_day_in_history' | 'company_founding' | 'epoch';
+  category:
+    | "ariscorp_timeline"
+    | "verse_timeline"
+    | "one_day_in_history"
+    | "company_founding"
+    | "epoch";
   banner?: DirectusFile | string | null;
   description?: string | null;
   old?: string | null;
   old2?: string | null;
-  dates?: Array<{ type: 'start' | 'end'; until_now: boolean; year: number; month: number; day: number }> | null;
+  dates?: Array<{
+    type: "start" | "end";
+    until_now: boolean;
+    year: number;
+    month: number;
+    day: number;
+  }> | null;
   old3?: string | null;
   linked_item?: TimelineItemsLinkedItem[] | string[];
 }
@@ -1105,7 +1458,17 @@ export interface TimelineItemsLinkedItem {
   /** @primaryKey */
   id: number;
   timeline_items_id?: TimelineItem | string | null;
-  item?: System | Company | LiteratureCategory | Fraction | SpectrumCategory | Ship | DirectusUser | SpectrumThread | string | null;
+  item?:
+    | System
+    | Company
+    | LiteratureCategory
+    | Fraction
+    | SpectrumCategory
+    | Ship
+    | DirectusUser
+    | SpectrumThread
+    | string
+    | null;
   collection?: string | null;
 }
 
@@ -1144,14 +1507,13 @@ export interface UserHangar {
   name_public?: boolean | null;
   deleted?: boolean | null;
   serial?: string | null;
-  group?: 'ariscorp' | 'private' | null;
-  visibility?: 'public' | 'internal' | 'hidden' | null;
+  group?: "ariscorp" | "private" | null;
+  visibility?: "public" | "internal" | "hidden" | null;
   department?: Department | string | null;
-  buy_status?: 'pledged' | 'in_game' | 'planned' | null;
+  buy_status?: "pledged" | "in_game" | "planned" | null;
   active_module?: ShipModule | string | null;
   date_created?: string | null;
   date_updated?: string | null;
-
 }
 
 export interface UserPasswordResetToken {
@@ -1178,7 +1540,12 @@ export interface VerseExkurs {
   user_updated?: DirectusUser | string | null;
   date_updated?: string | null;
   content?: string | null;
-  ve_links?: Array<{ name: string; link: string; icon: string; description: string }> | null;
+  ve_links?: Array<{
+    name: string;
+    link: string;
+    icon: string;
+    description: string;
+  }> | null;
   sources?: Array<{ url: string; icon: string }> | null;
 }
 
@@ -1213,15 +1580,20 @@ export interface DirectusCollection {
   display_template?: string | null;
   hidden?: boolean;
   singleton?: boolean;
-  translations?: Array<{ language: string; translation: string; singular: string; plural: string }> | null;
+  translations?: Array<{
+    language: string;
+    translation: string;
+    singular: string;
+    plural: string;
+  }> | null;
   archive_field?: string | null;
   archive_app_filter?: boolean;
   archive_value?: string | null;
   unarchive_value?: string | null;
   sort_field?: string | null;
-  accountability?: 'all' | 'activity' | null | null;
+  accountability?: "all" | "activity" | null | null;
   color?: string | null;
-  item_duplication_fields?: 'json' | null;
+  item_duplication_fields?: "json" | null;
   sort?: number | null;
   group?: DirectusCollection | string | null;
   collapse?: string;
@@ -1248,19 +1620,19 @@ export interface DirectusField {
   field?: string;
   special?: string[] | null;
   interface?: string | null;
-  options?: 'json' | null;
+  options?: "json" | null;
   display?: string | null;
-  display_options?: 'json' | null;
+  display_options?: "json" | null;
   readonly?: boolean;
   hidden?: boolean;
   sort?: number | null;
   width?: string | null;
-  translations?: 'json' | null;
+  translations?: "json" | null;
   note?: string | null;
-  conditions?: 'json' | null;
+  conditions?: "json" | null;
   required?: boolean | null;
   group?: DirectusField | string | null;
-  validation?: 'json' | null;
+  validation?: "json" | null;
   validation_message?: string | null;
 }
 
@@ -1286,11 +1658,11 @@ export interface DirectusFile {
   description?: string | null;
   location?: string | null;
   tags?: string[] | null;
-  metadata?: 'json' | null;
+  metadata?: "json" | null;
   focal_point_x?: number | null;
   focal_point_y?: number | null;
   tus_id?: string | null;
-  tus_data?: 'json' | null;
+  tus_data?: "json" | null;
   uploaded_on?: string | null;
 }
 
@@ -1313,9 +1685,9 @@ export interface DirectusPermission {
   id: number;
   collection?: string;
   action?: string;
-  permissions?: 'json' | null;
-  validation?: 'json' | null;
-  presets?: 'json' | null;
+  permissions?: "json" | null;
+  validation?: "json" | null;
+  presets?: "json" | null;
   fields?: string[] | null;
   policy?: DirectusPolicy | string;
 }
@@ -1345,10 +1717,10 @@ export interface DirectusPreset {
   collection?: string | null;
   search?: string | null;
   layout?: string | null;
-  layout_query?: 'json' | null;
-  layout_options?: 'json' | null;
+  layout_query?: "json" | null;
+  layout_options?: "json" | null;
   refresh_interval?: number | null;
-  filter?: 'json' | null;
+  filter?: "json" | null;
   icon?: string | null;
   color?: string | null;
 }
@@ -1373,8 +1745,8 @@ export interface DirectusRevision {
   activity?: DirectusActivity | string;
   collection?: string;
   item?: string;
-  data?: 'json' | null;
-  delta?: 'json' | null;
+  data?: "json" | null;
+  delta?: "json" | null;
   parent?: DirectusRevision | string | null;
   version?: DirectusVersion | string | null;
 }
@@ -1417,30 +1789,49 @@ export interface DirectusSettings {
   public_background?: DirectusFile | string | null;
   public_note?: string | null;
   auth_login_attempts?: number | null;
-  auth_password_policy?: null | `/^.{8,}$/` | `/(?=^.{8,}$)(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+}{';'?>.<,])(?!.*\\s).*$/` | null;
-  storage_asset_transform?: 'all' | 'none' | 'presets' | null;
-  storage_asset_presets?: Array<{ key: string; fit: 'contain' | 'cover' | 'inside' | 'outside'; width: number; height: number; quality: number; withoutEnlargement: boolean; format: 'auto' | 'jpeg' | 'png' | 'webp' | 'tiff' | 'avif'; transforms: 'json' }> | null;
+  auth_password_policy?:
+    | null
+    | `/^.{8,}$/`
+    | `/(?=^.{8,}$)(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+}{';'?>.<,])(?!.*\\s).*$/`
+    | null;
+  storage_asset_transform?: "all" | "none" | "presets" | null;
+  storage_asset_presets?: Array<{
+    key: string;
+    fit: "contain" | "cover" | "inside" | "outside";
+    width: number;
+    height: number;
+    quality: number;
+    withoutEnlargement: boolean;
+    format: "auto" | "jpeg" | "png" | "webp" | "tiff" | "avif";
+    transforms: "json";
+  }> | null;
   custom_css?: string | null;
   storage_default_folder?: DirectusFolder | string | null;
-  basemaps?: Array<{ name: string; type: 'raster' | 'tile' | 'style'; url: string; tileSize: number; attribution: string }> | null;
+  basemaps?: Array<{
+    name: string;
+    type: "raster" | "tile" | "style";
+    url: string;
+    tileSize: number;
+    attribution: string;
+  }> | null;
   mapbox_key?: string | null;
-  module_bar?: 'json' | null;
+  module_bar?: "json" | null;
   project_descriptor?: string | null;
   default_language?: string;
   custom_aspect_ratios?: Array<{ text: string; value: number }> | null;
   public_favicon?: DirectusFile | string | null;
-  default_appearance?: 'auto' | 'light' | 'dark';
+  default_appearance?: "auto" | "light" | "dark";
   default_theme_light?: string | null;
-  theme_light_overrides?: 'json' | null;
+  theme_light_overrides?: "json" | null;
   default_theme_dark?: string | null;
-  theme_dark_overrides?: 'json' | null;
+  theme_dark_overrides?: "json" | null;
   report_error_url?: string | null;
   report_bug_url?: string | null;
   report_feature_url?: string | null;
   public_registration?: boolean;
   public_registration_verify_email?: boolean;
   public_registration_role?: DirectusRole | string | null;
-  public_registration_email_filter?: 'json' | null;
+  public_registration_email_filter?: "json" | null;
   flow_manager_categories?: Record<string, any> | null;
   command_palette_settings?: Record<string, any> | null;
   TTA_KEY?: string | null;
@@ -1462,27 +1853,33 @@ export interface DirectusUser {
   avatar?: DirectusFile | string | null;
   language?: string | null;
   tfa_secret?: string | null;
-  status?: 'draft' | 'invited' | 'unverified' | 'active' | 'suspended' | 'archived';
+  status?:
+    | "draft"
+    | "invited"
+    | "unverified"
+    | "active"
+    | "suspended"
+    | "archived";
   role?: DirectusRole | string | null;
   token?: string | null;
   last_access?: string | null;
   last_page?: string | null;
   provider?: string;
   external_identifier?: string | null;
-  auth_data?: 'json' | null;
+  auth_data?: "json" | null;
   email_notifications?: boolean | null;
-  appearance?: null | 'auto' | 'light' | 'dark' | null;
+  appearance?: null | "auto" | "light" | "dark" | null;
   theme_dark?: string | null;
   theme_light?: string | null;
-  theme_light_overrides?: 'json' | null;
-  theme_dark_overrides?: 'json' | null;
+  theme_light_overrides?: "json" | null;
+  theme_dark_overrides?: "json" | null;
   slug?: string | null;
   temporary_password?: boolean | null;
   rsi_handle?: string | null;
   discord_name?: string | null;
   contact_email?: string | null;
-  roles?: ('recruitment' | 'marketing_and_press' | 'content_writer')[] | null;
-  sex?: 'male' | 'female' | null;
+  roles?: ("recruitment" | "marketing_and_press" | "content_writer")[] | null;
+  sex?: "male" | "female" | null;
   department?: Department | string | null;
   leading_department?: Department | string | null;
   primary_department?: Department | string | null;
@@ -1491,11 +1888,15 @@ export interface DirectusUser {
   birthplace?: LandingZone | string | null;
   current_residence?: LandingZone | string | null;
   citizen?: boolean | null;
-  citizen_reason?: 'military' | 'special_education' | 'social_commitment' | null;
+  citizen_reason?:
+    | "military"
+    | "special_education"
+    | "social_commitment"
+    | null;
   duty_state?: boolean | null;
   duty_period?: string | null;
   duty_division?: string | null;
-  duty_end?: 'honorable' | 'dishonorable' | null;
+  duty_end?: "honorable" | "dishonorable" | null;
   hair_color?: string | null;
   eye_color?: string | null;
   height?: number | null;
@@ -1529,7 +1930,14 @@ export interface DirectusUser {
   date_updated?: string | null;
   social_state?: boolean | null;
   onboarded?: boolean | null;
-  onboardings?: 'hangar' | 'profile' | 'home' | 'fleet' | 'employees' | 'admin' | null;
+  onboardings?:
+    | "hangar"
+    | "profile"
+    | "home"
+    | "fleet"
+    | "employees"
+    | "admin"
+    | null;
   user_preferences?: Array<{ key: string; value: string }> | null;
   api_account?: boolean | null;
   chats?: Chat | string | null;
@@ -1539,33 +1947,33 @@ export interface DirectusUser {
   assigned_tasks?: TasksDirectusUser[] | string[];
   password_reset_tokens?: UserPasswordResetToken[] | string[];
   policies?: DirectusAccess[] | string[];
-  hobbies_list?: string[] | null
-  habits_list?: string[] | null
-  talents_list?: string[] | null
-  tics_list?: string[] | null
-  activities_list?: string[] | null
-  mysterious_list?: string[] | null
-  character_trait_list?: string[] | null
-  fears_list?: string[] | null
-  books_list?: string[] | null
-  music_list?: string[] | null
-  movies_list?: string[] | null
-  clothing_list?: string[] | null
-  food_list?: string[] | null
-  drink_list?: string[] | null
-  alcohol_list?: string[] | null
-  loves_list?: string[] | null
-  hates_list?: string[] | null
-  education_place?: string | null
-  duty_from_month?: number | null
-  duty_from_year?: number | null
-  duty_to_month?: number | null
-  duty_to_year?: number | null
-  education_from_month?: number | null
-  education_from_year?: number | null
-  education_to_month?: number | null
-  education_to_year?: number | null
-  duty_dismissal_reason?: string | null
+  hobbies_list?: string[] | null;
+  habits_list?: string[] | null;
+  talents_list?: string[] | null;
+  tics_list?: string[] | null;
+  activities_list?: string[] | null;
+  mysterious_list?: string[] | null;
+  character_trait_list?: string[] | null;
+  fears_list?: string[] | null;
+  books_list?: string[] | null;
+  music_list?: string[] | null;
+  movies_list?: string[] | null;
+  clothing_list?: string[] | null;
+  food_list?: string[] | null;
+  drink_list?: string[] | null;
+  alcohol_list?: string[] | null;
+  loves_list?: string[] | null;
+  hates_list?: string[] | null;
+  education_place?: string | null;
+  duty_from_month?: number | null;
+  duty_from_year?: number | null;
+  duty_to_month?: number | null;
+  duty_to_year?: number | null;
+  education_from_month?: number | null;
+  education_from_year?: number | null;
+  education_to_month?: number | null;
+  education_to_year?: number | null;
+  duty_dismissal_reason?: string | null;
 }
 
 export interface DirectusWebhook {
@@ -1574,9 +1982,9 @@ export interface DirectusWebhook {
   name?: string;
   method?: null;
   url?: string;
-  status?: 'active' | 'inactive';
+  status?: "active" | "inactive";
   data?: boolean;
-  actions?: 'create' | 'update' | 'delete';
+  actions?: "create" | "update" | "delete";
   collections?: string[];
   headers?: Array<{ header: string; value: string }> | null;
   was_active_before_deprecation?: boolean;
@@ -1609,7 +2017,7 @@ export interface DirectusPanel {
   position_y?: number;
   width?: number;
   height?: number;
-  options?: 'json' | null;
+  options?: "json" | null;
   date_created?: string | null;
   user_created?: DirectusUser | string | null;
 }
@@ -1653,7 +2061,7 @@ export interface DirectusFlow {
   status?: string;
   trigger?: string | null;
   accountability?: string | null;
-  options?: 'json' | null;
+  options?: "json" | null;
   operation?: DirectusOperation | string | null;
   date_created?: string | null;
   user_created?: DirectusUser | string | null;
@@ -1672,7 +2080,7 @@ export interface DirectusOperation {
   type?: string;
   position_x?: number;
   position_y?: number;
-  options?: 'json' | null;
+  options?: "json" | null;
   resolve?: DirectusOperation | string | null;
   reject?: DirectusOperation | string | null;
   flow?: DirectusFlow | string;
@@ -1703,7 +2111,7 @@ export interface DirectusVersion {
   date_updated?: string | null;
   user_created?: DirectusUser | string | null;
   user_updated?: DirectusUser | string | null;
-  delta?: 'json' | null;
+  delta?: "json" | null;
 }
 
 export interface DirectusExtension {
@@ -1837,111 +2245,111 @@ export interface Schema {
 }
 
 export enum CollectionNames {
-  aliens = 'aliens',
-  asteroid_belts = 'asteroid_belts',
-  chats = 'chats',
-  chats_users = 'chats_users',
-  comm_link_channels = 'comm_link_channels',
-  comm_links = 'comm_links',
-  companies = 'companies',
-  companies_headquarter = 'companies_headquarter',
-  company_categories = 'company_categories',
-  credits = 'credits',
-  departments = 'departments',
-  departments_files = 'departments_files',
-  fauna = 'fauna',
-  fauna_files = 'fauna_files',
-  flora = 'flora',
-  flora_index = 'flora_index',
-  footer = 'footer',
-  footer_translations = 'footer_translations',
-  fraction_categories = 'fraction_categories',
-  fractions = 'fractions',
-  global_data = 'global_data',
-  home = 'home',
-  jumppoints = 'jumppoints',
-  jumppoints_systems = 'jumppoints_systems',
-  landing_zones = 'landing_zones',
-  languages = 'languages',
-  literature_books = 'literature_books',
-  literature_categories = 'literature_categories',
-  messages = 'messages',
-  moons = 'moons',
-  moons_orbit = 'moons_orbit',
-  one_day_in_history = 'one_day_in_history',
-  partners = 'partners',
-  personal_weapon_attachments = 'personal_weapon_attachments',
-  personal_weapon_attachments_classifications = 'personal_weapon_attachments_classifications',
-  personal_weapon_attachments_gallery_files = 'personal_weapon_attachments_gallery_files',
-  personal_weapons = 'personal_weapons',
-  planets = 'planets',
-  planets_orbit = 'planets_orbit',
-  projects = 'projects',
-  release_notes = 'release_notes',
-  release_notes_translations = 'release_notes_translations',
-  ams_mission_roles = 'ams_mission_roles',
-  ship_modules = 'ship_modules',
-  ship_modules_gallery = 'ship_modules_gallery',
-  ship_paints = 'ship_paints',
-  ship_ratings = 'ship_ratings',
-  ships = 'ships',
-  ships_commercials = 'ships_commercials',
-  ships_files = 'ships_files',
-  ships_gallery = 'ships_gallery',
-  ships_loaners = 'ships_loaners',
-  ships_variants = 'ships_variants',
-  ship_hulls = 'ship_hulls',
-  ship_variant_mission_roles = 'ship_variant_mission_roles',
-  ship_variant_mission_roles_secondary = 'ship_variant_mission_roles_secondary',
-  ship_variants = 'ship_variants',
-  ship_variant_configurations = 'ship_variant_configurations',
-  ship_hardpoints = 'ship_hardpoints',
-  space_stations = 'space_stations',
-  spectrum_categories = 'spectrum_categories',
-  spectrum_threads = 'spectrum_threads',
-  starmap = 'starmap',
-  stars = 'stars',
-  systems = 'systems',
-  systems_orbit = 'systems_orbit',
-  tasks = 'tasks',
-  tasks_directus_users = 'tasks_directus_users',
-  tasks_files = 'tasks_files',
-  technologies = 'technologies',
-  test = 'test',
-  timeline_items = 'timeline_items',
-  timeline_items_linked_item = 'timeline_items_linked_item',
-  TTA_htmltemplates = 'TTA_htmltemplates',
-  uee = 'uee',
-  user_hangars = 'user_hangars',
-  user_password_reset_tokens = 'user_password_reset_tokens',
-  user_wishlists = 'user_wishlists',
-  verse_exkurs = 'verse_exkurs',
-  directus_access = 'directus_access',
-  directus_activity = 'directus_activity',
-  directus_collections = 'directus_collections',
-  directus_comments = 'directus_comments',
-  directus_fields = 'directus_fields',
-  directus_files = 'directus_files',
-  directus_folders = 'directus_folders',
-  directus_migrations = 'directus_migrations',
-  directus_permissions = 'directus_permissions',
-  directus_policies = 'directus_policies',
-  directus_presets = 'directus_presets',
-  directus_relations = 'directus_relations',
-  directus_revisions = 'directus_revisions',
-  directus_roles = 'directus_roles',
-  directus_sessions = 'directus_sessions',
-  directus_settings = 'directus_settings',
-  directus_users = 'directus_users',
-  directus_webhooks = 'directus_webhooks',
-  directus_dashboards = 'directus_dashboards',
-  directus_panels = 'directus_panels',
-  directus_notifications = 'directus_notifications',
-  directus_shares = 'directus_shares',
-  directus_flows = 'directus_flows',
-  directus_operations = 'directus_operations',
-  directus_translations = 'directus_translations',
-  directus_versions = 'directus_versions',
-  directus_extensions = 'directus_extensions',
-  directus_sync_id_map = 'directus_sync_id_map'
+  aliens = "aliens",
+  asteroid_belts = "asteroid_belts",
+  chats = "chats",
+  chats_users = "chats_users",
+  comm_link_channels = "comm_link_channels",
+  comm_links = "comm_links",
+  companies = "companies",
+  companies_headquarter = "companies_headquarter",
+  company_categories = "company_categories",
+  credits = "credits",
+  departments = "departments",
+  departments_files = "departments_files",
+  fauna = "fauna",
+  fauna_files = "fauna_files",
+  flora = "flora",
+  flora_index = "flora_index",
+  footer = "footer",
+  footer_translations = "footer_translations",
+  fraction_categories = "fraction_categories",
+  fractions = "fractions",
+  global_data = "global_data",
+  home = "home",
+  jumppoints = "jumppoints",
+  jumppoints_systems = "jumppoints_systems",
+  landing_zones = "landing_zones",
+  languages = "languages",
+  literature_books = "literature_books",
+  literature_categories = "literature_categories",
+  messages = "messages",
+  moons = "moons",
+  moons_orbit = "moons_orbit",
+  one_day_in_history = "one_day_in_history",
+  partners = "partners",
+  personal_weapon_attachments = "personal_weapon_attachments",
+  personal_weapon_attachments_classifications = "personal_weapon_attachments_classifications",
+  personal_weapon_attachments_gallery_files = "personal_weapon_attachments_gallery_files",
+  personal_weapons = "personal_weapons",
+  planets = "planets",
+  planets_orbit = "planets_orbit",
+  projects = "projects",
+  release_notes = "release_notes",
+  release_notes_translations = "release_notes_translations",
+  ams_mission_roles = "ams_mission_roles",
+  ship_modules = "ship_modules",
+  ship_modules_gallery = "ship_modules_gallery",
+  ship_paints = "ship_paints",
+  ship_ratings = "ship_ratings",
+  ships = "ships",
+  ships_commercials = "ships_commercials",
+  ships_files = "ships_files",
+  ships_gallery = "ships_gallery",
+  ships_loaners = "ships_loaners",
+  ships_variants = "ships_variants",
+  ship_hulls = "ship_hulls",
+  ship_variant_mission_roles = "ship_variant_mission_roles",
+  ship_variant_mission_roles_secondary = "ship_variant_mission_roles_secondary",
+  ship_variants = "ship_variants",
+  ship_variant_configurations = "ship_variant_configurations",
+  ship_hardpoints = "ship_hardpoints",
+  space_stations = "space_stations",
+  spectrum_categories = "spectrum_categories",
+  spectrum_threads = "spectrum_threads",
+  starmap = "starmap",
+  stars = "stars",
+  systems = "systems",
+  systems_orbit = "systems_orbit",
+  tasks = "tasks",
+  tasks_directus_users = "tasks_directus_users",
+  tasks_files = "tasks_files",
+  technologies = "technologies",
+  test = "test",
+  timeline_items = "timeline_items",
+  timeline_items_linked_item = "timeline_items_linked_item",
+  TTA_htmltemplates = "TTA_htmltemplates",
+  uee = "uee",
+  user_hangars = "user_hangars",
+  user_password_reset_tokens = "user_password_reset_tokens",
+  user_wishlists = "user_wishlists",
+  verse_exkurs = "verse_exkurs",
+  directus_access = "directus_access",
+  directus_activity = "directus_activity",
+  directus_collections = "directus_collections",
+  directus_comments = "directus_comments",
+  directus_fields = "directus_fields",
+  directus_files = "directus_files",
+  directus_folders = "directus_folders",
+  directus_migrations = "directus_migrations",
+  directus_permissions = "directus_permissions",
+  directus_policies = "directus_policies",
+  directus_presets = "directus_presets",
+  directus_relations = "directus_relations",
+  directus_revisions = "directus_revisions",
+  directus_roles = "directus_roles",
+  directus_sessions = "directus_sessions",
+  directus_settings = "directus_settings",
+  directus_users = "directus_users",
+  directus_webhooks = "directus_webhooks",
+  directus_dashboards = "directus_dashboards",
+  directus_panels = "directus_panels",
+  directus_notifications = "directus_notifications",
+  directus_shares = "directus_shares",
+  directus_flows = "directus_flows",
+  directus_operations = "directus_operations",
+  directus_translations = "directus_translations",
+  directus_versions = "directus_versions",
+  directus_extensions = "directus_extensions",
+  directus_sync_id_map = "directus_sync_id_map",
 }

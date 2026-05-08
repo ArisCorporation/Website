@@ -1,42 +1,45 @@
 <script setup lang="ts">
-const { data: missions, refresh } = await useFetchAMSMissions()
+const { data: missions, refresh } = await useFetchAMSMissions();
 
-const authStore = useAuthStore()
-const { currentUser } = storeToRefs(authStore)
+const authStore = useAuthStore();
+const { currentUser } = storeToRefs(authStore);
 
-const searchInput = ref('')
-const filterType = ref('all')
+const searchInput = ref("");
+const filterType = ref("all");
 
-const canCreate = computed(() => ((currentUser.value?.role as any)?.access_level ?? 0) >= 2)
+const canCreate = computed(
+  () => ((currentUser.value?.role as any)?.access_level ?? 0) >= 3,
+);
 
 const TYPE_OPTIONS = [
-  { label: 'Alle Typen', value: 'all' },
-  { label: 'Bergbau', value: 'mining' },
-  { label: 'Kampf', value: 'combat' },
-  { label: 'Fracht', value: 'cargo' },
-  { label: 'Erkundung', value: 'exploration' },
-  { label: 'Rettung', value: 'rescue' },
-  { label: 'Patrouille', value: 'patrol' },
-  { label: 'Event', value: 'event' },
-  { label: 'Sonstiges', value: 'other' },
-]
+  { label: "Alle Typen", value: "all" },
+  { label: "Bergbau", value: "mining" },
+  { label: "Kampf", value: "combat" },
+  { label: "Fracht", value: "cargo" },
+  { label: "Erkundung", value: "exploration" },
+  { label: "Rettung", value: "rescue" },
+  { label: "Patrouille", value: "patrol" },
+  { label: "Event", value: "event" },
+  { label: "Sonstiges", value: "other" },
+];
 
 const filteredMissions = computed(() => {
   return (missions.value ?? []).filter((m: any) => {
-    if (filterType.value !== 'all' && m.mission_type !== filterType.value) return false
+    if (filterType.value !== "all" && m.mission_type !== filterType.value)
+      return false;
     if (
       searchInput.value &&
       !m.title.toLowerCase().includes(searchInput.value.toLowerCase())
     )
-      return false
-    return true
-  })
-})
+      return false;
+    return true;
+  });
+});
 
 definePageMeta({
-  layout: 'ams',
+  layout: "ams",
   auth: true,
-})
+});
 </script>
 
 <template>
@@ -85,11 +88,23 @@ definePageMeta({
       />
     </div>
 
-    <div v-else class="flex flex-col items-center justify-center py-24 text-center">
-      <UIcon name="i-lucide-rocket" class="h-16 w-16 text-(--ui-primary)/20 mb-4" />
-      <h3 class="text-lg font-semibold text-white/50">Keine Missionen gefunden</h3>
+    <div
+      v-else
+      class="flex flex-col items-center justify-center py-24 text-center"
+    >
+      <UIcon
+        name="i-lucide-rocket"
+        class="h-16 w-16 text-(--ui-primary)/20 mb-4"
+      />
+      <h3 class="text-lg font-semibold text-white/50">
+        Keine Missionen gefunden
+      </h3>
       <p class="text-sm text-(--ui-muted-foreground) mt-1">
-        {{ searchInput || filterType !== 'all' ? 'Keine Ergebnisse für deine Filter.' : 'Noch keine Operationen geplant.' }}
+        {{
+          searchInput || filterType !== "all"
+            ? "Keine Ergebnisse für deine Filter."
+            : "Noch keine Operationen geplant."
+        }}
       </p>
       <UButton
         v-if="canCreate && !searchInput && filterType === 'all'"
