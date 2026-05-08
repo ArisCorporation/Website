@@ -118,6 +118,7 @@ async function handleRemove() {
         />
         <NuxtImg
           :src="getAssetId(ship?.thumbnail) ?? ''"
+          :width="600"
           class="h-full not-prose w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <!-- <div class="absolute bottom-3 left-3 flex items-center space-x-2 z-20">
