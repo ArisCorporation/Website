@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { deleteItem, updateItem } from "@directus/sdk";
-import { getMissionRoleLabel } from "~~/app/utils/ams-mission-roles";
+import { createItem, deleteItem, updateItem } from "@directus/sdk";
+import {
+  getMissionRoleLabel,
+  getMissionRoleSort,
+} from "~~/app/utils/ams-mission-roles";
 
 const route = useRoute();
 const { data: mission, refresh } = await useFetchAMSMission(
@@ -126,9 +129,17 @@ const sortedMyActiveRegistrations = computed(() => {
   });
 });
 
+const visibleMyActiveRegistrations = computed(() =>
+  sortedMyActiveRegistrations.value.filter(
+    (registration: any) => !isSecondaryRegistrationHandledByPrimary(registration),
+  ),
+);
+
 const availablePositionTypes = computed(() =>
   POSITION_TYPE_ORDER.filter(
-    (positionType) => !myPositionRegistrationsByType.value.has(positionType),
+    (positionType) =>
+      positionType !== "secondary" &&
+      !myPositionRegistrationsByType.value.has(positionType),
   ),
 );
 
@@ -139,6 +150,194 @@ const signupTarget = ref<{
   ship?: any;
   position?: any;
 } | null>(null);
+
+const assignFlexModalOpen = ref(false);
+const assignFlexTarget = ref<any>(null);
+const assignLoading = ref(false);
+
+const openPositions = computed(() => {
+  const result: Array<{
+    id: string;
+    role: string;
+    position_type: string;
+    teamId: string;
+    teamName: string;
+    shipId: string;
+    shipName: string;
+    roleLabel: string;
+    secondaryRoleLabel: string | null;
+    sortKey: number;
+  }> = [];
+
+  for (const team of mission.value?.teams ?? []) {
+    for (const ship of team.ships ?? []) {
+      const roleSource = ship.hangar_id?.ship ?? null;
+      for (const pos of ship.positions ?? []) {
+        if (pos.status !== "open") continue;
+        if (normalizePositionType(pos.position_type) === "secondary") continue;
+
+        const pairedSecondary = findPairedSecondary(pos.id);
+        const pairSort = getPositionPairSort(pos, ship);
+        result.push({
+          id: pos.id,
+          role: pos.role,
+          position_type: pos.position_type,
+          teamId: team.id,
+          teamName: team.name,
+          shipId: ship.id,
+          shipName:
+            ship.hangar_id?.name || ship.hangar_id?.ship?.name || "Schiff",
+          roleLabel: getMissionRoleLabel(
+            pos.role,
+            roleSource,
+            normalizePositionType(pos.position_type),
+          ),
+          secondaryRoleLabel: pairedSecondary
+            ? getMissionRoleLabel(
+                pairedSecondary.role,
+                roleSource,
+                normalizePositionType(pairedSecondary.position_type),
+              )
+            : null,
+          sortKey:
+            typeof pairSort === "number" ? pairSort : Number.MAX_SAFE_INTEGER,
+        });
+      }
+    }
+  }
+
+  return result;
+});
+
+type OpenPosition = (typeof openPositions.value)[number];
+
+const openPositionsByTypeAndShip = computed(() => {
+  const sections = (
+    [
+      { type: "primary", label: "Primäre Funktionen" },
+      { type: "secondary", label: "Sekundäre Funktionen" },
+    ] as const
+  )
+    .map((section) => {
+      const sectionPositions = openPositions.value.filter(
+        (p) => normalizePositionType(p.position_type) === section.type,
+      );
+
+      const shipMap = new Map<
+        string,
+        {
+          shipId: string;
+          shipName: string;
+          teamName: string;
+          positions: OpenPosition[];
+        }
+      >();
+
+      for (const pos of sectionPositions) {
+        if (!shipMap.has(pos.shipId)) {
+          shipMap.set(pos.shipId, {
+            shipId: pos.shipId,
+            shipName: pos.shipName,
+            teamName: pos.teamName,
+            positions: [],
+          });
+        }
+        shipMap.get(pos.shipId)!.positions.push(pos);
+      }
+
+      for (const shipGroup of shipMap.values()) {
+        shipGroup.positions.sort((a, b) => {
+          const sortDelta = a.sortKey - b.sortKey;
+          if (sortDelta !== 0) return sortDelta;
+
+          return a.roleLabel.localeCompare(b.roleLabel, "de");
+        });
+      }
+
+      return {
+        type: section.type,
+        label: section.label,
+        ships: [...shipMap.values()],
+      };
+    })
+    .filter((s) => s.ships.length > 0);
+
+  return sections;
+});
+
+function openAssignFlexModal(reg: any) {
+  assignFlexTarget.value = reg;
+  assignFlexModalOpen.value = true;
+}
+
+async function assignFlexToPosition(position: any) {
+  const reg = assignFlexTarget.value;
+  if (!reg || !mission.value) return;
+
+  assignLoading.value = true;
+  try {
+    await useDirectus(
+      createItem("ams_mission_registrations" as any, {
+        mission: mission.value.id,
+        user: reg.user?.id,
+        type: "position",
+        team: position.teamId,
+        position: position.id,
+        status: "approved",
+        note: null,
+      }),
+    );
+    await useDirectus(
+      updateItem("ams_mission_positions" as any, position.id, {
+        status: "filled",
+        assigned_user: reg.user?.id,
+      }),
+    );
+
+    const pairedSecondary = findPairedSecondary(position.id);
+    if (pairedSecondary?.status === "open") {
+      await useDirectus(
+        createItem("ams_mission_registrations" as any, {
+          mission: mission.value.id,
+          user: reg.user?.id,
+          type: "position",
+          team: position.teamId,
+          position: pairedSecondary.id,
+          status: "approved",
+          note: null,
+        }),
+      );
+      await useDirectus(
+        updateItem("ams_mission_positions" as any, pairedSecondary.id, {
+          status: "filled",
+          assigned_user: reg.user?.id,
+        }),
+      );
+    }
+
+    await useDirectus(
+      deleteItem("ams_mission_registrations" as any, reg.id),
+    );
+
+    toast.add({
+      title: "Zugewiesen",
+      description: `${getUserLabel(reg.user)} → ${position.roleLabel}`,
+      color: "success",
+      icon: "i-lucide-user-check",
+    });
+    assignFlexModalOpen.value = false;
+    await syncDiscordShare();
+    await refresh();
+  } catch {
+    toast.add({
+      title: "Fehler",
+      color: "error",
+      icon: "i-lucide-alert-triangle",
+    });
+  } finally {
+    assignLoading.value = false;
+  }
+}
 
 async function syncDiscordShare(silent = true) {
   if (!mission.value) return;
@@ -198,6 +397,17 @@ function openSignup(
   }
 
   if (type === "position") {
+    if (normalizePositionType(position?.position_type) === "secondary") {
+      toast.add({
+        title: "Nicht möglich",
+        description:
+          "Sekundäre Positionen werden automatisch beim Anmelden auf eine primäre Position belegt.",
+        color: "warning",
+        icon: "i-lucide-link-2",
+      });
+      return;
+    }
+
     const positionType = normalizePositionType(position?.position_type);
 
     if (myFlexRegistration.value) {
@@ -238,6 +448,12 @@ async function removeRegistration(
   const reg = registration;
   if (!reg) return;
 
+  const pairedSecReg =
+    reg.type === "position" &&
+    normalizePositionType(reg.position?.position_type) === "primary"
+      ? findPairedSecondaryRegistration(reg)
+      : null;
+
   try {
     if (reg.type === "position" && reg.position?.id) {
       await useDirectus(
@@ -248,6 +464,21 @@ async function removeRegistration(
       );
     }
     await useDirectus(deleteItem("ams_mission_registrations" as any, reg.id));
+
+    if (pairedSecReg) {
+      if (pairedSecReg.position?.id) {
+        await useDirectus(
+          updateItem("ams_mission_positions" as any, pairedSecReg.position.id, {
+            status: "open",
+            assigned_user: null,
+          }),
+        );
+      }
+      await useDirectus(
+        deleteItem("ams_mission_registrations" as any, pairedSecReg.id),
+      );
+    }
+
     toast.add({
       title: successTitle,
       color: "success",
@@ -300,6 +531,116 @@ function getMissionRoleSourceForPosition(position?: any, ship?: any) {
   );
 }
 
+function getPositionPairSort(position?: any, ship?: any) {
+  if (typeof position?.sort === "number") {
+    return position.sort;
+  }
+
+  return getMissionRoleSort(
+    position?.role,
+    getMissionRoleSourceForPosition(position, ship),
+    normalizePositionType(position?.position_type),
+  );
+}
+
+function findPairedSecondary(primaryPositionId: string) {
+  const ship =
+    (mission.value?.teams ?? [])
+      .flatMap((team: any) => team.ships ?? [])
+      .find((s: any) =>
+        (s.positions ?? []).some((p: any) => p.id === primaryPositionId),
+      ) ?? null;
+
+  if (!ship) return null;
+
+  const primaryPos = (ship.positions ?? []).find(
+    (p: any) => p.id === primaryPositionId,
+  );
+  if (primaryPos == null) return null;
+
+  const primarySort = getPositionPairSort(primaryPos, ship);
+  if (primarySort == null) return null;
+
+  return (
+    (ship.positions ?? []).find(
+      (p: any) =>
+        normalizePositionType(p.position_type) === "secondary" &&
+        getPositionPairSort(p, ship) === primarySort,
+    ) ?? null
+  );
+}
+
+function findPairedPrimary(secondaryPositionId: string) {
+  const ship =
+    (mission.value?.teams ?? [])
+      .flatMap((team: any) => team.ships ?? [])
+      .find((s: any) =>
+        (s.positions ?? []).some((p: any) => p.id === secondaryPositionId),
+      ) ?? null;
+
+  if (!ship) return null;
+
+  const secondaryPos = (ship.positions ?? []).find(
+    (p: any) => p.id === secondaryPositionId,
+  );
+  if (secondaryPos == null) return null;
+
+  const secondarySort = getPositionPairSort(secondaryPos, ship);
+  if (secondarySort == null) return null;
+
+  return (
+    (ship.positions ?? []).find(
+      (p: any) =>
+        normalizePositionType(p.position_type) === "primary" &&
+        getPositionPairSort(p, ship) === secondarySort,
+    ) ?? null
+  );
+}
+
+function findPairedSecondaryRegistration(primaryReg: any) {
+  if (
+    !primaryReg?.position?.id ||
+    normalizePositionType(primaryReg.position?.position_type) !== "primary"
+  )
+    return null;
+
+  const pairedPos = findPairedSecondary(primaryReg.position.id);
+  if (!pairedPos) return null;
+
+  return (
+    (mission.value?.registrations ?? []).find(
+      (r: any) =>
+        r.position?.id === pairedPos.id && r.user?.id === primaryReg.user?.id,
+    ) ?? null
+  );
+}
+
+function findPairedPrimaryRegistration(secondaryReg: any) {
+  if (
+    !secondaryReg?.position?.id ||
+    normalizePositionType(secondaryReg.position?.position_type) !== "secondary"
+  )
+    return null;
+
+  const pairedPos = findPairedPrimary(secondaryReg.position.id);
+  if (!pairedPos) return null;
+
+  return (
+    (mission.value?.registrations ?? []).find(
+      (r: any) =>
+        r.position?.id === pairedPos.id && r.user?.id === secondaryReg.user?.id,
+    ) ?? null
+  );
+}
+
+function isSecondaryRegistrationHandledByPrimary(registration: any) {
+  if (normalizePositionType(registration?.position?.position_type) !== "secondary") {
+    return false;
+  }
+
+  return !!findPairedPrimaryRegistration(registration);
+}
+
 function getRegistrationTypeLabel(reg: any) {
   if (reg.type === "flex") return "Flex-Anmeldung (gesamte Mission)";
   if (reg.type === "flex_team")
@@ -315,6 +656,25 @@ function getRegistrationTypeLabel(reg: any) {
   const teamSuffix = reg.team?.name ? ` (${reg.team.name})` : "";
 
   return `${positionTypeLabel}: ${roleLabel}${teamSuffix}`;
+}
+
+function getRegistrationDisplayLabel(reg: any) {
+  const baseLabel = getRegistrationTypeLabel(reg);
+
+  if (normalizePositionType(reg?.position?.position_type) !== "primary") {
+    return baseLabel;
+  }
+
+  const pairedSecondary = findPairedSecondaryRegistration(reg);
+  if (!pairedSecondary) return baseLabel;
+
+  const secondaryLabel = getMissionRoleLabel(
+    pairedSecondary.position?.role,
+    getMissionRoleSourceForPosition(pairedSecondary.position),
+    "secondary",
+  );
+
+  return `${baseLabel} (${secondaryLabel})`;
 }
 
 function canResetRejectedRegistration(reg: any) {
@@ -361,6 +721,12 @@ async function updateRegistrationStatus(
     return;
   }
 
+  const pairedSecReg =
+    reg.type === "position" &&
+    normalizePositionType(reg.position?.position_type) === "primary"
+      ? findPairedSecondaryRegistration(reg)
+      : null;
+
   try {
     await useDirectus(
       updateItem("ams_mission_registrations" as any, id, { status }),
@@ -387,6 +753,39 @@ async function updateRegistrationStatus(
           assigned_user: null,
         }),
       );
+    }
+
+    if (pairedSecReg) {
+      await useDirectus(
+        updateItem("ams_mission_registrations" as any, pairedSecReg.id, {
+          status,
+        }),
+      );
+      if (status === "approved" && pairedSecReg.position?.id) {
+        await useDirectus(
+          updateItem(
+            "ams_mission_positions" as any,
+            pairedSecReg.position.id,
+            { status: "filled", assigned_user: reg.user?.id },
+          ),
+        );
+      } else if (status === "rejected" && pairedSecReg.position?.id) {
+        await useDirectus(
+          updateItem(
+            "ams_mission_positions" as any,
+            pairedSecReg.position.id,
+            { status: "open", assigned_user: null },
+          ),
+        );
+      } else if (status === "pending" && pairedSecReg.position?.id) {
+        await useDirectus(
+          updateItem(
+            "ams_mission_positions" as any,
+            pairedSecReg.position.id,
+            { status: "pending", assigned_user: null },
+          ),
+        );
+      }
     }
 
     const statusFeedback = {
@@ -718,6 +1117,18 @@ const sortedRegistrations = computed(() => {
   });
 });
 
+const visibleSortedRegistrations = computed(() =>
+  sortedRegistrations.value.filter(
+    (registration: any) => !isSecondaryRegistrationHandledByPrimary(registration),
+  ),
+);
+
+const visibleRejectedMyRegistrations = computed(() =>
+  rejectedMyRegistrations.value.filter(
+    (registration: any) => !isSecondaryRegistrationHandledByPrimary(registration),
+  ),
+);
+
 const regStatusLabel: Record<string, string> = {
   pending: "Ausstehend",
   approved: "OK",
@@ -1021,7 +1432,7 @@ onBeforeUnmount(() => {
               </p>
               <h3 class="mt-1 text-base font-semibold text-white">
                 {{
-                  sortedMyActiveRegistrations.length
+                  visibleMyActiveRegistrations.length
                     ? "Deine Anmeldungen"
                     : "Eintragen"
                 }}
@@ -1036,9 +1447,9 @@ onBeforeUnmount(() => {
             </UBadge>
           </div>
 
-          <div v-if="sortedMyActiveRegistrations.length" class="mt-4 space-y-3">
+          <div v-if="visibleMyActiveRegistrations.length" class="mt-4 space-y-3">
             <div
-              v-for="registration in sortedMyActiveRegistrations"
+              v-for="registration in visibleMyActiveRegistrations"
               :key="registration.id"
               class="rounded-xl border border-(--ui-primary)/10 bg-(--ui-bg)/60 px-3 py-3"
             >
@@ -1050,7 +1461,7 @@ onBeforeUnmount(() => {
                     Anmeldung
                   </p>
                   <p class="mt-1.5 text-sm font-medium text-white">
-                    {{ getRegistrationTypeLabel(registration) }}
+                    {{ getRegistrationDisplayLabel(registration) }}
                   </p>
                 </div>
                 <UBadge
@@ -1122,21 +1533,21 @@ onBeforeUnmount(() => {
             :icon="signupClosedIcon"
           />
 
-          <div v-if="rejectedMyRegistrations.length" class="mt-4 space-y-2">
+          <div v-if="visibleRejectedMyRegistrations.length" class="mt-4 space-y-2">
             <p
               class="text-[0.6rem] uppercase tracking-[0.22em] text-(--ui-text-muted)"
             >
               Abgelehnte Anfragen
             </p>
             <div
-              v-for="registration in rejectedMyRegistrations"
+              v-for="registration in visibleRejectedMyRegistrations"
               :key="registration.id"
               class="rounded-xl border border-red-500/15 bg-red-500/5 px-3 py-3"
             >
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <p class="text-sm font-medium text-white">
-                    {{ getRegistrationTypeLabel(registration) }}
+                    {{ getRegistrationDisplayLabel(registration) }}
                   </p>
                   <p class="mt-1 text-xs text-red-200/80">
                     Der Mission Planner kann diese Anfrage wieder öffnen.
@@ -1227,7 +1638,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div
-          v-if="canManageMission && mission.registrations?.length"
+          v-if="canManageMission && visibleSortedRegistrations.length"
           class="rounded-2xl border border-(--ui-primary)/10 bg-(--ui-bg-muted)/45 p-4 ring-1 ring-inset ring-white/5"
         >
           <div class="flex flex-wrap items-start justify-between gap-3">
@@ -1263,7 +1674,7 @@ onBeforeUnmount(() => {
 
           <div class="mt-4 space-y-2">
             <div
-              v-for="reg in sortedRegistrations"
+              v-for="reg in visibleSortedRegistrations"
               :key="reg.id"
               class="rounded-xl border border-(--ui-primary)/10 bg-(--ui-bg)/60 px-3 py-3"
             >
@@ -1283,7 +1694,7 @@ onBeforeUnmount(() => {
                         {{ getUserLabel(reg.user) }}
                       </p>
                       <p class="mt-0.5 truncate text-xs text-(--ui-text-muted)">
-                        {{ getRegistrationTypeLabel(reg) }}
+                        {{ getRegistrationDisplayLabel(reg) }}
                       </p>
                     </div>
                     <UBadge
@@ -1317,6 +1728,15 @@ onBeforeUnmount(() => {
                     "
                     class="mt-2 flex flex-wrap gap-2"
                   >
+                    <UButton
+                      v-if="reg.type === 'flex' || reg.type === 'flex_team'"
+                      size="xs"
+                      color="primary"
+                      variant="outline"
+                      icon="i-lucide-user-check"
+                      label="Position zuweisen"
+                      @click="openAssignFlexModal(reg)"
+                    />
                     <UButton
                       size="xs"
                       color="success"
@@ -1369,7 +1789,16 @@ onBeforeUnmount(() => {
                       @click="removeRegistration(reg)"
                     />
                   </div>
-                  <div v-else class="mt-2">
+                  <div v-else class="mt-2 flex flex-wrap gap-2">
+                    <UButton
+                      v-if="reg.type === 'flex' || reg.type === 'flex_team'"
+                      size="xs"
+                      color="primary"
+                      variant="outline"
+                      icon="i-lucide-user-check"
+                      label="Position zuweisen"
+                      @click="openAssignFlexModal(reg)"
+                    />
                     <UButton
                       size="xs"
                       color="error"
@@ -1395,6 +1824,166 @@ onBeforeUnmount(() => {
       :signup-closed-message="signupClosedMessage"
       @registered="handleMissionSignupRegistered"
     />
+
+    <UModal v-model:open="assignFlexModalOpen">
+      <template #content>
+        <div
+          class="rounded-2xl border border-(--ui-primary)/15 bg-(--ui-bg) ring-1 ring-inset ring-white/6 overflow-hidden"
+        >
+          <!-- Header -->
+          <div
+            class="flex items-center justify-between gap-3 border-b border-(--ui-primary)/12 bg-(--ui-primary)/5 px-5 py-4"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--ui-primary)/25 bg-(--ui-primary)/12"
+              >
+                <NuxtImg
+                  v-if="assignFlexTarget?.user?.avatar"
+                  class="h-9 w-9 rounded-full object-cover"
+                  :src="
+                    getAssetId(assignFlexTarget.user.avatar) ??
+                    '88adb941-f746-405d-bcc4-c2804fb48e33'
+                  "
+                  :alt="getUserLabel(assignFlexTarget?.user)"
+                />
+                <UIcon
+                  v-else
+                  name="i-lucide-user"
+                  class="h-4 w-4 text-(--ui-primary)"
+                />
+              </div>
+              <div>
+                <p
+                  class="text-[0.6rem] uppercase tracking-[0.22em] text-(--ui-primary)/70"
+                >
+                  Position zuweisen
+                </p>
+                <p class="text-sm font-semibold text-white">
+                  {{ getUserLabel(assignFlexTarget?.user) }}
+                </p>
+              </div>
+            </div>
+            <UButton
+              size="xs"
+              variant="ghost"
+              color="neutral"
+              icon="i-lucide-x"
+              @click="assignFlexModalOpen = false"
+            />
+          </div>
+
+          <!-- Scrollable list: feste max-height direkt hier -->
+          <div class="overflow-y-auto p-4" style="max-height: 55vh">
+            <div v-if="openPositionsByTypeAndShip.length" class="space-y-5">
+              <div
+                v-for="section in openPositionsByTypeAndShip"
+                :key="section.type"
+              >
+                <!-- Primär / Sekundär Trenner -->
+                <div class="mb-3 flex items-center gap-2">
+                  <UIcon
+                    :name="
+                      section.type === 'primary'
+                        ? 'i-lucide-star'
+                        : 'i-lucide-circle-dot'
+                    "
+                    class="h-3.5 w-3.5 shrink-0"
+                    :class="
+                      section.type === 'primary'
+                        ? 'text-(--ui-primary)'
+                        : 'text-(--ui-text-muted)'
+                    "
+                  />
+                  <p
+                    class="text-xs font-semibold uppercase tracking-[0.2em]"
+                    :class="
+                      section.type === 'primary'
+                        ? 'text-(--ui-primary)'
+                        : 'text-(--ui-text-muted)'
+                    "
+                  >
+                    {{ section.label }}
+                  </p>
+                  <div class="h-px flex-1 bg-(--ui-primary)/10" />
+                </div>
+
+                <!-- Nach Schiff gruppiert -->
+                <div class="space-y-3">
+                  <div
+                    v-for="shipGroup in section.ships"
+                    :key="shipGroup.shipId"
+                  >
+                    <div class="mb-1 flex items-center gap-1.5 px-1">
+                      <UIcon
+                        name="i-lucide-rocket"
+                        class="h-3 w-3 text-(--ui-text-muted)/60"
+                      />
+                      <p class="text-[11px] text-(--ui-text-muted)">
+                        {{ shipGroup.shipName }}
+                        <span v-if="shipGroup.teamName" class="opacity-60">
+                          · {{ shipGroup.teamName }}
+                        </span>
+                      </p>
+                    </div>
+                    <div class="space-y-1">
+                      <button
+                        v-for="pos in shipGroup.positions"
+                        :key="pos.id"
+                        class="group w-full rounded-lg border border-(--ui-primary)/12 bg-(--ui-bg-muted)/40 px-3 py-2.5 text-left transition-all hover:border-(--ui-primary)/35 hover:bg-(--ui-primary)/8 disabled:cursor-not-allowed disabled:opacity-40"
+                        :disabled="assignLoading"
+                        @click="assignFlexToPosition(pos)"
+                      >
+                        <div class="flex items-center gap-2">
+                          <p
+                            class="min-w-0 flex-1 truncate text-sm font-medium text-white"
+                          >
+                            {{ pos.roleLabel }}
+                            <span
+                              v-if="pos.secondaryRoleLabel"
+                              class="text-(--ui-text-muted)"
+                            >
+                              ({{ pos.secondaryRoleLabel }})
+                            </span>
+                          </p>
+                          <UIcon
+                            name="i-lucide-chevron-right"
+                            class="h-3.5 w-3.5 shrink-0 text-(--ui-text-muted)/40 transition-colors group-hover:text-(--ui-primary)"
+                          />
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              v-else
+              class="flex flex-col items-center justify-center rounded-xl border border-dashed border-(--ui-primary)/12 py-10"
+            >
+              <UIcon name="i-lucide-inbox" class="mb-2 h-8 w-8 opacity-25" />
+              <p class="text-sm text-(--ui-text-muted)">
+                Keine offenen Positionen verfügbar.
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div
+            class="flex justify-end border-t border-(--ui-primary)/10 px-5 py-3"
+          >
+            <UButton
+              variant="ghost"
+              color="neutral"
+              @click="assignFlexModalOpen = false"
+            >
+              Abbrechen
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 
   <div v-else class="flex items-center justify-center py-24">
