@@ -855,6 +855,14 @@ export interface ShipVariantMissionRole {
   ams_mission_role_id?: AMSMissionRole | string | null;
 }
 
+export interface ShipVariantMissionRoleSecondary {
+  /** @primaryKey */
+  id: string;
+  sort?: number | null;
+  ship_variant_id?: ShipVariant | string | null;
+  ams_mission_role_id?: AMSMissionRole | string | null;
+}
+
 export interface ShipVariant {
   /** @primaryKey */
   id: string;
@@ -872,6 +880,7 @@ export interface ShipVariant {
     | string
     | null;
   mission_roles?: ShipVariantMissionRole[] | string[];
+  mission_roles_secondary?: ShipVariantMissionRoleSecondary[] | string[];
   stats?: ShipVariantStats | null;
   hull?: ShipHull | string | null;
   rating?: ShipRating | string | null;
@@ -1773,6 +1782,7 @@ export interface Schema {
   ships_variants: ShipsVariant[];
   ship_hulls: ShipHull[];
   ship_variant_mission_roles: ShipVariantMissionRole[];
+  ship_variant_mission_roles_secondary: ShipVariantMissionRoleSecondary[];
   ship_variants: ShipVariant[];
   ship_variant_configurations: ShipVariantConfiguration[];
   ship_hardpoints: ShipHardpoint[];
@@ -1882,6 +1892,7 @@ export enum CollectionNames {
   ships_variants = 'ships_variants',
   ship_hulls = 'ship_hulls',
   ship_variant_mission_roles = 'ship_variant_mission_roles',
+  ship_variant_mission_roles_secondary = 'ship_variant_mission_roles_secondary',
   ship_variants = 'ship_variants',
   ship_variant_configurations = 'ship_variant_configurations',
   ship_hardpoints = 'ship_hardpoints',

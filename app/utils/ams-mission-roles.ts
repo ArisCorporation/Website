@@ -5,9 +5,12 @@ export interface MissionRoleOption {
   isCustom?: boolean;
 }
 
+export type MissionRolePositionType = "primary" | "secondary";
+
 export type MissionRoleSource =
   | {
       mission_roles?: unknown;
+      mission_roles_secondary?: unknown;
       custom_mission_roles?: unknown;
     }
   | null
@@ -28,6 +31,12 @@ export const STANDARD_MISSION_ROLE_OPTIONS: MissionRoleOption[] = [
 
 function normalizeString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeMissionRolePositionType(
+  positionType?: string | null,
+): MissionRolePositionType {
+  return positionType === "secondary" ? "secondary" : "primary";
 }
 
 function parseRoleArray(value: string) {
@@ -107,23 +116,40 @@ function normalizeCustomMissionRoleEntry(entry: unknown): MissionRoleOption | nu
   };
 }
 
-function getMissionRoleEntries(source?: MissionRoleSource) {
-  if (Array.isArray(source?.mission_roles) && source.mission_roles.length) {
-    return [...source.mission_roles].sort((left, right) => {
-      const leftSort =
-        typeof (left as { sort?: unknown })?.sort === "number"
-          ? ((left as { sort?: number }).sort ?? Number.MAX_SAFE_INTEGER)
-          : Number.MAX_SAFE_INTEGER;
-      const rightSort =
-        typeof (right as { sort?: unknown })?.sort === "number"
-          ? ((right as { sort?: number }).sort ?? Number.MAX_SAFE_INTEGER)
-          : Number.MAX_SAFE_INTEGER;
+function getSortedMissionRoleEntries(entries: unknown[]) {
+  return [...entries].sort((left, right) => {
+    const leftSort =
+      typeof (left as { sort?: unknown })?.sort === "number"
+        ? ((left as { sort?: number }).sort ?? Number.MAX_SAFE_INTEGER)
+        : Number.MAX_SAFE_INTEGER;
+    const rightSort =
+      typeof (right as { sort?: unknown })?.sort === "number"
+        ? ((right as { sort?: number }).sort ?? Number.MAX_SAFE_INTEGER)
+        : Number.MAX_SAFE_INTEGER;
 
-      return leftSort - rightSort;
-    });
+    return leftSort - rightSort;
+  });
+}
+
+function getMissionRoleEntries(
+  source?: MissionRoleSource,
+  positionType: MissionRolePositionType = "primary",
+) {
+  const normalizedPositionType = normalizeMissionRolePositionType(positionType);
+  const relationEntries =
+    normalizedPositionType === "secondary"
+      ? source?.mission_roles_secondary
+      : source?.mission_roles;
+
+  if (Array.isArray(relationEntries) && relationEntries.length) {
+    return getSortedMissionRoleEntries(relationEntries);
   }
 
-  return source?.custom_mission_roles;
+  if (normalizedPositionType === "primary") {
+    return source?.custom_mission_roles;
+  }
+
+  return [];
 }
 
 export function normalizeCustomMissionRoles(value: unknown) {
@@ -150,8 +176,13 @@ export function normalizeCustomMissionRoles(value: unknown) {
   return roles;
 }
 
-export function getMissionRoleOptions(source?: MissionRoleSource) {
-  const customRoles = normalizeCustomMissionRoles(getMissionRoleEntries(source));
+export function getMissionRoleOptions(
+  source?: MissionRoleSource,
+  positionType: MissionRolePositionType = "primary",
+) {
+  const customRoles = normalizeCustomMissionRoles(
+    getMissionRoleEntries(source, positionType),
+  );
 
   if (customRoles.length) {
     return customRoles;
@@ -163,6 +194,7 @@ export function getMissionRoleOptions(source?: MissionRoleSource) {
 export function getMissionRoleOption(
   roleValue: unknown,
   source?: MissionRoleSource,
+  positionType: MissionRolePositionType = "primary",
 ) {
   const normalizedRole = normalizeString(roleValue);
 
@@ -170,7 +202,7 @@ export function getMissionRoleOption(
     return null;
   }
 
-  const roleOptions = getMissionRoleOptions(source);
+  const roleOptions = getMissionRoleOptions(source, positionType);
   const matchingRole = roleOptions.find(
     (role) =>
       role.value === normalizedRole || role.label === normalizedRole,
@@ -198,20 +230,27 @@ export function getMissionRoleOption(
 export function getMissionRoleLabel(
   roleValue: unknown,
   source?: MissionRoleSource,
+  positionType: MissionRolePositionType = "primary",
 ) {
-  return getMissionRoleOption(roleValue, source)?.label ?? "Position";
+  return (
+    getMissionRoleOption(roleValue, source, positionType)?.label ?? "Position"
+  );
 }
 
 export function getMissionRoleDescription(
   roleValue: unknown,
   source?: MissionRoleSource,
+  positionType: MissionRolePositionType = "primary",
 ) {
-  return getMissionRoleOption(roleValue, source)?.description ?? null;
+  return (
+    getMissionRoleOption(roleValue, source, positionType)?.description ?? null
+  );
 }
 
 export function getMissionRoleOrder(
   roleValue: unknown,
   source?: MissionRoleSource,
+  positionType: MissionRolePositionType = "primary",
 ) {
   const normalizedRole = normalizeString(roleValue);
 
@@ -219,7 +258,7 @@ export function getMissionRoleOrder(
     return Number.MAX_SAFE_INTEGER;
   }
 
-  const roleOptions = getMissionRoleOptions(source);
+  const roleOptions = getMissionRoleOptions(source, positionType);
   const shipRoleIndex = roleOptions.findIndex(
     (role) =>
       role.value === normalizedRole || role.label === normalizedRole,
@@ -240,8 +279,13 @@ export function getMissionRoleOrder(
   return roleOptions.length + STANDARD_MISSION_ROLE_OPTIONS.length;
 }
 
-export function getMissionRoleSummary(source?: MissionRoleSource) {
-  const customRoles = normalizeCustomMissionRoles(getMissionRoleEntries(source));
+export function getMissionRoleSummary(
+  source?: MissionRoleSource,
+  positionType: MissionRolePositionType = "primary",
+) {
+  const customRoles = normalizeCustomMissionRoles(
+    getMissionRoleEntries(source, positionType),
+  );
 
   if (customRoles.length) {
     return customRoles.map((role) => role.label).join(", ");

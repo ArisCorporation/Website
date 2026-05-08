@@ -520,39 +520,48 @@ function getShipRoleSource(ship: ShipDraft) {
   return (ship.hangar_id as any)?.ship ?? null;
 }
 
-function getShipRoleOptions(ship: ShipDraft) {
-  return getMissionRoleOptions(getShipRoleSource(ship)).map((role) => ({
+function getShipRoleOptions(ship: ShipDraft, positionType: PositionType) {
+  return getMissionRoleOptions(
+    getShipRoleSource(ship),
+    positionType,
+  ).map((role) => ({
     label: role.label,
     value: role.value,
   }));
 }
 
-function getShipRoleOption(ship: ShipDraft, role?: string | null) {
-  return getMissionRoleOption(role, getShipRoleSource(ship));
+function getShipRoleOption(
+  ship: ShipDraft,
+  role: string | null | undefined,
+  positionType: PositionType,
+) {
+  return getMissionRoleOption(role, getShipRoleSource(ship), positionType);
 }
 
-function getShipDefaultRole(ship: ShipDraft) {
+function getShipDefaultRole(ship: ShipDraft, positionType: PositionType) {
   return (
-    getShipRoleOptions(ship)[0]?.value ??
+    getShipRoleOptions(ship, positionType)[0]?.value ??
     STANDARD_MISSION_ROLE_OPTIONS[0]?.value ??
     "pilot"
   );
 }
 
-function getShipRoleSummary(ship: ShipDraft) {
-  return getMissionRoleSummary(getShipRoleSource(ship));
+function getShipRoleSummary(ship: ShipDraft, positionType: PositionType) {
+  return getMissionRoleSummary(getShipRoleSource(ship), positionType);
 }
 
 function normalizeShipPositionRoles(ship: ShipDraft) {
-  const allowedRoleValues = getShipRoleOptions(ship).map((role) => role.value);
-
-  if (!allowedRoleValues.length) {
-    return;
-  }
-
-  const fallbackRole = getShipDefaultRole(ship);
-
   for (const position of ship.positions) {
+    const positionType = normalizePositionType(position.position_type);
+    const allowedRoleValues = getShipRoleOptions(ship, positionType).map(
+      (role) => role.value,
+    );
+
+    if (!allowedRoleValues.length) {
+      continue;
+    }
+
+    const fallbackRole = getShipDefaultRole(ship, positionType);
     if (!allowedRoleValues.includes(position.role)) {
       position.role = fallbackRole;
     }
@@ -635,7 +644,7 @@ function addPosition(ship: ShipDraft, positionType: PositionType) {
 
   ship.positions.push({
     position_type: positionType,
-    role: getShipDefaultRole(ship),
+    role: getShipDefaultRole(ship, positionType),
     assigned_user: null,
     status: "open",
   });
@@ -900,7 +909,11 @@ async function save() {
             position_type: normalizePositionType(pos.position_type),
             role: pos.role,
             role_description:
-              getShipRoleOption(ship, pos.role)?.description ?? null,
+              getShipRoleOption(
+                ship,
+                pos.role,
+                normalizePositionType(pos.position_type),
+              )?.description ?? null,
             assigned_user: assignedUserId,
             status: assignedUserId ? "filled" : "open",
           };
@@ -1193,10 +1206,16 @@ definePageMeta({
                     {{ getShipCrewLimitHint(ship, "secondary") }}
                   </p>
                   <p
-                    v-if="getShipRoleSummary(ship)"
+                    v-if="ship.hangar_id"
                     class="ml-6 text-xs text-(--ui-primary)/75"
                   >
-                    Verfügbare Rollen: {{ getShipRoleSummary(ship) }}
+                    Primäre Rollen:
+                    {{ getShipRoleSummary(ship, "primary") || "Standardrollen" }}
+                    <span class="text-(--ui-text-muted)">•</span>
+                    Sekundäre Rollen:
+                    {{
+                      getShipRoleSummary(ship, "secondary") || "Standardrollen"
+                    }}
                   </p>
 
                   <!-- Positionen -->
@@ -1239,7 +1258,7 @@ definePageMeta({
                         >
                           <USelectMenu
                             v-model="pos.role"
-                            :items="getShipRoleOptions(ship)"
+                            :items="getShipRoleOptions(ship, positionType)"
                             value-key="value"
                             label-key="label"
                             class="w-full min-w-0"

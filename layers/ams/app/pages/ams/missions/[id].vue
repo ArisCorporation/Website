@@ -136,6 +136,7 @@ const signupModalOpen = ref(false);
 const signupTarget = ref<{
   type: "flex" | "flex_team" | "position";
   team?: any;
+  ship?: any;
   position?: any;
 } | null>(null);
 
@@ -170,6 +171,7 @@ async function handleMissionSignupRegistered() {
 function openSignup(
   type: "flex" | "flex_team" | "position",
   team?: any,
+  ship?: any,
   position?: any,
 ) {
   if (!missionCanRegister.value) {
@@ -220,7 +222,7 @@ function openSignup(
     }
   }
 
-  signupTarget.value = { type, team, position };
+  signupTarget.value = { type, team, ship, position };
   signupModalOpen.value = true;
 }
 
@@ -276,14 +278,40 @@ function findMissionPosition(positionId?: string) {
   );
 }
 
+function findMissionShipByPositionId(positionId?: string) {
+  if (!positionId) return null;
+
+  return (
+    (mission.value?.teams ?? [])
+      .flatMap((team: any) => team.ships ?? [])
+      .find((ship: any) =>
+        (ship.positions ?? []).some(
+          (position: any) => position.id === positionId,
+        ),
+      ) ?? null
+  );
+}
+
+function getMissionRoleSourceForPosition(position?: any, ship?: any) {
+  return (
+    ship?.hangar_id?.ship ??
+    findMissionShipByPositionId(position?.id)?.hangar_id?.ship ??
+    null
+  );
+}
+
 function getRegistrationTypeLabel(reg: any) {
   if (reg.type === "flex") return "Flex-Anmeldung (gesamte Mission)";
   if (reg.type === "flex_team")
     return `Team-Flex: ${reg.team?.name || "Unbekanntes Team"}`;
 
-  const roleLabel = getMissionRoleLabel(reg.position?.role);
-  const positionTypeLabel =
-    POSITION_TYPE_BADGE_LABELS[getRegistrationPositionType(reg)];
+  const positionType = getRegistrationPositionType(reg);
+  const roleLabel = getMissionRoleLabel(
+    reg.position?.role,
+    getMissionRoleSourceForPosition(reg.position),
+    positionType,
+  );
+  const positionTypeLabel = POSITION_TYPE_BADGE_LABELS[positionType];
   const teamSuffix = reg.team?.name ? ` (${reg.team.name})` : "";
 
   return `${positionTypeLabel}: ${roleLabel}${teamSuffix}`;
@@ -972,7 +1000,7 @@ onBeforeUnmount(() => {
               :signup-open="missionCanRegister"
               @signup-flex-team="(team) => openSignup('flex_team', team)"
               @signup-position="
-                (team, pos) => openSignup('position', team, pos)
+                (team, ship, pos) => openSignup('position', team, ship, pos)
               "
               @remove-registration="removeRegistration"
             />

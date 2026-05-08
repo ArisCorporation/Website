@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'signupFlexTeam', team: any): void
-  (e: 'signupPosition', team: any, position: any): void
+  (e: 'signupPosition', team: any, ship: any, position: any): void
   (e: 'removeRegistration', registration: any): void
 }>()
 
@@ -244,7 +244,11 @@ function getShipRoleSource(ship: any) {
 }
 
 function getPositionRoleLabel(pos: any, ship: any) {
-  return getMissionRoleLabel(pos?.role, getShipRoleSource(ship))
+  return getMissionRoleLabel(
+    pos?.role,
+    getShipRoleSource(ship),
+    normalizePositionType(pos?.position_type),
+  )
 }
 
 function getPositionRoleDescription(pos: any, ship: any) {
@@ -252,14 +256,18 @@ function getPositionRoleDescription(pos: any, ship: any) {
     return pos.role_description.trim()
   }
 
-  return getMissionRoleDescription(pos?.role, getShipRoleSource(ship))
+  return getMissionRoleDescription(
+    pos?.role,
+    getShipRoleSource(ship),
+    normalizePositionType(pos?.position_type),
+  )
 }
 
 function getSortedPositions(ship: any, positionType: PositionType) {
   return [...getShipPositionsByType(ship, positionType)].sort((a: any, b: any) => {
     const orderDelta =
-      getMissionRoleOrder(a.role, getShipRoleSource(ship)) -
-      getMissionRoleOrder(b.role, getShipRoleSource(ship))
+      getMissionRoleOrder(a.role, getShipRoleSource(ship), positionType) -
+      getMissionRoleOrder(b.role, getShipRoleSource(ship), positionType)
     if (orderDelta !== 0) return orderDelta
 
     return getPositionRoleLabel(a, ship).localeCompare(getPositionRoleLabel(b, ship), 'de')
@@ -425,9 +433,9 @@ function positionClasses(pos: any) {
   return 'border-(--ui-border)/20 bg-(--ui-bg-muted)/30'
 }
 
-function handlePositionClick(team: any, pos: any) {
+function handlePositionClick(team: any, ship: any, pos: any) {
   if (isPositionInteractive(pos)) {
-    emit('signupPosition', team, pos)
+    emit('signupPosition', team, ship, pos)
   }
 }
 
@@ -692,7 +700,7 @@ function removeRegistration(registration: any) {
                   :key="pos.id"
                   class="rounded-lg border px-2.5 py-2 transition-all"
                   :class="positionClasses(pos)"
-                  @click="handlePositionClick(team, pos)"
+                  @click="handlePositionClick(team, ship, pos)"
                 >
                   <div class="flex items-center justify-between gap-2">
                     <p class="truncate text-xs font-semibold leading-5 text-white">

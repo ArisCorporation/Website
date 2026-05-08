@@ -34,6 +34,14 @@ export default function useFetchAMSMission(id: MaybeRef<string>) {
                             },
                           ],
                         },
+                        {
+                          mission_roles_secondary: [
+                            'sort',
+                            {
+                              ams_mission_role_id: ['id', 'name', 'description'],
+                            },
+                          ],
+                        },
                         'stats',
                         { thumbnail: ['id'] },
                         {

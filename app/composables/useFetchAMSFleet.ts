@@ -22,6 +22,12 @@ const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
           { ams_mission_role_id: ["id", "name", "description"] },
         ],
       },
+      {
+        mission_roles_secondary: [
+          "sort",
+          { ams_mission_role_id: ["id", "name", "description"] },
+        ],
+      },
       "stats",
       "production_state",
       { thumbnail: ["id"] },

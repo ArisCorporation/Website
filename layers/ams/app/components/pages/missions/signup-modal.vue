@@ -5,7 +5,7 @@ import { getMissionRoleLabel } from '~~/app/utils/ams-mission-roles'
 const props = defineProps<{
   open: boolean
   missionId: string
-  target: { type: 'flex' | 'flex_team' | 'position'; team?: any; position?: any } | null
+  target: { type: 'flex' | 'flex_team' | 'position'; team?: any; ship?: any; position?: any } | null
   signupAllowed: boolean
   signupClosedMessage: string
 }>()
@@ -41,7 +41,11 @@ const typeLabel = computed(() => {
   if (props.target.type === 'flex') return 'Flex-Anmeldung (gesamte Mission)'
   if (props.target.type === 'flex_team')
     return `Flex-Anmeldung im Team: ${props.target.team?.name}`
-  const roleLabel = getMissionRoleLabel(props.target.position?.role)
+  const roleLabel = getMissionRoleLabel(
+    props.target.position?.role,
+    props.target.ship?.hangar_id?.ship ?? null,
+    normalizePositionType(props.target.position?.position_type),
+  )
   const positionTypeLabel =
     POSITION_TYPE_BADGE_LABELS[normalizePositionType(props.target.position?.position_type)]
   return `${positionTypeLabel}: ${roleLabel}${props.target.team ? ` (${props.target.team.name})` : ''}`
