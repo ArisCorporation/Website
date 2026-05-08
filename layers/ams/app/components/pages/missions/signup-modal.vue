@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { createItem, updateItem } from '@directus/sdk'
-import { getMissionRoleLabel } from '~~/app/utils/ams-mission-roles'
+import { getMissionRoleLabel, getMissionRoleSort } from '~~/app/utils/ams-mission-roles'
 
 const props = defineProps<{
   open: boolean
@@ -29,6 +29,22 @@ const POSITION_TYPE_BADGE_LABELS = {
 
 function normalizePositionType(value?: string | null) {
   return value === 'secondary' ? 'secondary' : 'primary'
+}
+
+function getShipRoleSource() {
+  return props.target?.ship?.hangar_id?.ship ?? null
+}
+
+function getPositionPairSort(position?: any) {
+  if (typeof position?.sort === 'number') {
+    return position.sort
+  }
+
+  return getMissionRoleSort(
+    position?.role,
+    getShipRoleSource(),
+    normalizePositionType(position?.position_type),
+  )
 }
 
 const modalOpen = computed({
@@ -85,6 +101,41 @@ async function submit() {
           status: 'pending',
         }),
       )
+    }
+
+    // Auto-Anmeldung für gekoppelte sekundäre Position (gleicher Rollen-Sort)
+    if (
+      props.target.type === 'position' &&
+      normalizePositionType(props.target.position?.position_type) === 'primary'
+    ) {
+      const primarySort = getPositionPairSort(props.target.position)
+      const openSecondary =
+        primarySort != null
+          ? (props.target.ship?.positions ?? []).find(
+              (p: any) =>
+                normalizePositionType(p.position_type) === 'secondary' &&
+                getPositionPairSort(p) === primarySort &&
+                p.status === 'open',
+            ) ?? null
+          : null
+      if (openSecondary) {
+        await useDirectus(
+          createItem('ams_mission_registrations' as any, {
+            mission: props.missionId,
+            user: currentUser.value.id,
+            type: 'position',
+            team: props.target.team?.id ?? null,
+            position: openSecondary.id,
+            status: 'pending',
+            note: null,
+          }),
+        )
+        await useDirectus(
+          updateItem('ams_mission_positions' as any, openSecondary.id, {
+            status: 'pending',
+          }),
+        )
+      }
     }
 
     toast.add({

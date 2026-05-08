@@ -7,7 +7,10 @@ import {
   STANDARD_MISSION_ROLE_OPTIONS,
   getMissionRoleOption,
   getMissionRoleOptions,
+  getMissionRoleSort,
   getMissionRoleSummary,
+  shipHasMissionRoles,
+  generatePositionsFromShipRoles,
 } from "~~/app/utils/ams-mission-roles";
 import UInputTime from "~/components/UInputTime.vue";
 
@@ -97,8 +100,10 @@ type PositionType = (typeof POSITION_TYPE_ORDER)[number];
 
 interface PositionDraft {
   id?: string;
+  sort?: number | null;
   position_type: PositionType;
   role: string;
+  role_description?: string | null;
   assigned_user: any | null;
   status: string;
 }
@@ -336,8 +341,10 @@ if (editId.value) {
           ) ?? null,
         positions: (s.positions ?? []).map((p: any) => ({
           id: p.id,
+          sort: p.sort ?? null,
           position_type: normalizePositionType(p.position_type),
           role: p.role,
+          role_description: p.role_description ?? null,
           assigned_user: p.assigned_user ?? null,
           status: p.status,
         })),
@@ -550,9 +557,29 @@ function getShipRoleSummary(ship: ShipDraft, positionType: PositionType) {
   return getMissionRoleSummary(getShipRoleSource(ship), positionType);
 }
 
+function isShipPositionTypeLocked(ship: ShipDraft, positionType: PositionType): boolean {
+  return shipHasMissionRoles(getShipRoleSource(ship), positionType);
+}
+
+function onShipHangarChange(ship: ShipDraft) {
+  const source = getShipRoleSource(ship);
+  const generated = generatePositionsFromShipRoles(source);
+  ship.positions = generated.map((p) => ({
+    sort: p.sort ?? null,
+    position_type: p.position_type,
+    role: p.role,
+    role_description: p.description ?? null,
+    assigned_user: null,
+    status: "open",
+  }));
+}
+
 function normalizeShipPositionRoles(ship: ShipDraft) {
   for (const position of ship.positions) {
     const positionType = normalizePositionType(position.position_type);
+
+    if (isShipPositionTypeLocked(ship, positionType)) continue;
+
     const allowedRoleValues = getShipRoleOptions(ship, positionType).map(
       (role) => role.value,
     );
@@ -568,6 +595,18 @@ function normalizeShipPositionRoles(ship: ShipDraft) {
   }
 }
 
+function getShipPositionSort(ship: ShipDraft, position: PositionDraft) {
+  if (typeof position.sort === "number") {
+    return position.sort;
+  }
+
+  return getMissionRoleSort(
+    position.role,
+    getShipRoleSource(ship),
+    normalizePositionType(position.position_type),
+  );
+}
+
 function getShipPositionCount(ship: ShipDraft, positionType?: PositionType) {
   if (!positionType) {
     return ship.positions.length;
@@ -581,13 +620,6 @@ function getShipLabel(ship: ShipDraft) {
     (ship.hangar_id as any)?.name ||
     (ship.hangar_id as any)?.ship?.name ||
     "dieses Schiff"
-  );
-}
-
-function canAddPosition(ship: ShipDraft, positionType: PositionType) {
-  const crewLimit = getShipCrewLimit(ship);
-  return (
-    crewLimit === null || getShipPositionCount(ship, positionType) < crewLimit
   );
 }
 
@@ -630,19 +662,8 @@ function getShipCrewLimitHint(ship: ShipDraft, positionType: PositionType) {
 }
 
 function addPosition(ship: ShipDraft, positionType: PositionType) {
-  const crewLimit = getShipCrewLimit(ship);
-
-  if (crewLimit !== null && !canAddPosition(ship, positionType)) {
-    toast.add({
-      title: "Max-Crew erreicht",
-      description: `${getShipLabel(ship)} erlaubt maximal ${crewLimit} ${POSITION_TYPE_BADGE_LABELS[positionType]}-Positionen.`,
-      color: "warning",
-      icon: "i-lucide-users",
-    });
-    return;
-  }
-
   ship.positions.push({
+    sort: null,
     position_type: positionType,
     role: getShipDefaultRole(ship, positionType),
     assigned_user: null,
@@ -776,20 +797,6 @@ async function save() {
     return;
   }
 
-  if (shipsOverCrewLimit.value.length) {
-    const firstConflict = shipsOverCrewLimit.value[0];
-    if (!firstConflict) return;
-    const crewLimit = getShipCrewLimit(firstConflict.ship);
-
-    toast.add({
-      title: "Zu viele Rollen",
-      description: `${getShipLabel(firstConflict.ship)} überschreitet${crewLimit ? ` die Max-Crew von ${crewLimit}` : ""} bei ${POSITION_TYPE_BADGE_LABELS[firstConflict.positionType]}.`,
-      color: "error",
-      icon: "i-lucide-users",
-    });
-    return;
-  }
-
   if (assignedUserTypeConflict.value) {
     toast.add({
       title: "Doppelte Rollenart",
@@ -906,14 +913,17 @@ async function save() {
               : (pos.assigned_user ?? null);
 
           const posPayload = {
+            sort: getShipPositionSort(ship, pos),
             position_type: normalizePositionType(pos.position_type),
             role: pos.role,
             role_description:
+              pos.role_description ??
               getShipRoleOption(
                 ship,
                 pos.role,
                 normalizePositionType(pos.position_type),
-              )?.description ?? null,
+              )?.description ??
+              null,
             assigned_user: assignedUserId,
             status: assignedUserId ? "filled" : "open",
           };
@@ -1160,6 +1170,7 @@ definePageMeta({
                       :loading="fleetPending"
                       class="flex-1"
                       searchable
+                      @update:model-value="onShipHangarChange(ship)"
                     />
                     <UBadge
                       :color="
@@ -1235,13 +1246,22 @@ definePageMeta({
                           </p>
                         </div>
                         <UButton
+                          v-if="!isShipPositionTypeLocked(ship, positionType)"
                           size="xs"
                           variant="ghost"
                           icon="i-lucide-plus"
                           :label="POSITION_TYPE_BADGE_LABELS[positionType]"
-                          :disabled="!canAddPosition(ship, positionType)"
                           @click="addPosition(ship, positionType)"
                         />
+                        <UBadge
+                          v-else
+                          color="neutral"
+                          variant="subtle"
+                          size="xs"
+                          icon="i-lucide-lock"
+                        >
+                          Fixiert
+                        </UBadge>
                       </div>
 
                       <div
@@ -1249,14 +1269,23 @@ definePageMeta({
                         class="space-y-2"
                       >
                         <div
-                          v-for="(pos, pi) in getShipPositionsByType(
-                            ship,
-                            positionType,
-                          )"
+                          v-for="(pos, pi) in getShipPositionsByType(ship, positionType)"
                           :key="pos.id ?? `${positionType}-${pi}`"
-                          class="grid gap-2 sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_auto] sm:items-center"
+                          :class="[
+                            'grid gap-2 sm:items-center',
+                            isShipPositionTypeLocked(ship, positionType)
+                              ? 'sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'
+                              : 'sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_auto]',
+                          ]"
                         >
+                          <span
+                            v-if="isShipPositionTypeLocked(ship, positionType)"
+                            class="truncate text-sm text-white"
+                          >
+                            {{ pos.role }}
+                          </span>
                           <USelectMenu
+                            v-else
                             v-model="pos.role"
                             :items="getShipRoleOptions(ship, positionType)"
                             value-key="value"
@@ -1273,7 +1302,10 @@ definePageMeta({
                             searchable
                             clearable
                           />
-                          <div class="flex justify-end sm:justify-start">
+                          <div
+                            v-if="!isShipPositionTypeLocked(ship, positionType)"
+                            class="flex justify-end sm:justify-start"
+                          >
                             <UButton
                               size="xs"
                               color="error"

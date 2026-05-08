@@ -15,7 +15,7 @@ const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
       "id",
       "name",
       "variant_code",
-      "custom_mission_roles",
+      "mission_roles",
       {
         mission_roles: [
           "sort",
