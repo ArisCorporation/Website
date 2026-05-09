@@ -41,19 +41,14 @@ useSortable('.crew-tbody', crews.value, {
 </script>
 
 <template>
-  <div class="rounded-md border border-(--ui-primary)/20 overflow-hidden">
+  <div
+    class="overflow-hidden rounded-2xl border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.72)_0%,rgba(4,9,22,0.96)_100%)] shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm"
+  >
     <UTable
       ref="teamsUiTableRef"
       :columns="columns"
       :data="crews"
-      :ui="{
-        thead:
-          'bg-(--ui-primary)/5 hover:bg-(--ui-primary)/15 [&>tr]:after:bg-(--ui-primary)/20',
-        th: ' text-(--ui-primary)',
-        tbody: 'divide-(--ui-primary)/20 crew-tbody',
-        tr: 'hover:bg-(--ui-primary)/5',
-        td: 'text-(--ui-text)',
-      }"
+      :ui="{ tbody: 'crew-tbody' }"
       class="max-h-80"
     >
       <template #name-cell="{ row }">

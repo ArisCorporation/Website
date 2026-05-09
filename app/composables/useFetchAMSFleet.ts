@@ -15,6 +15,19 @@ const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
       "id",
       "name",
       "variant_code",
+      "mission_roles",
+      {
+        mission_roles: [
+          "sort",
+          { ams_mission_role_id: ["id", "name", "description"] },
+        ],
+      },
+      {
+        mission_roles_secondary: [
+          "sort",
+          { ams_mission_role_id: ["id", "name", "description"] },
+        ],
+      },
       "stats",
       "production_state",
       { thumbnail: ["id"] },
@@ -48,12 +61,13 @@ export default function useFetchAMSFleet() {
           },
           fields: USER_HANGAR_FIELDS,
           limit: -1,
-          sort: ["ship.name"],
+          sort: ["ship.name" as any],
         }),
       )) as UserHangar[];
     },
     {
       default: () => [] as UserHangar[],
+      server: false,
     },
   );
 }

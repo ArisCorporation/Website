@@ -38,18 +38,12 @@ function transformWorkers(workers: Worker[]) {
 
 <template>
   <div class="space-y-6">
-    <div class="rounded-md border border-(--ui-primary)/20 overflow-hidden">
+    <div
+      class="overflow-hidden rounded-2xl border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.72)_0%,rgba(4,9,22,0.96)_100%)] shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm"
+    >
       <UTable
         :columns="columns"
         :data="expenses"
-        :ui="{
-          thead:
-            'bg-(--ui-primary)/5 hover:bg-(--ui-primary)/15 [&>tr]:after:bg-(--ui-primary)/20',
-          th: ' text-(--ui-primary)',
-          tbody: 'divide-(--ui-primary)/20',
-          tr: 'hover:bg-(--ui-primary)/5',
-          td: 'text-(--ui-text)',
-        }"
         class="max-h-80"
       >
         <template #name-cell="{ row }">

@@ -13,6 +13,7 @@ export default function useSimpleDepartments () {
       ) as Promise<Department[]>,
     {
       default: () => [],
+      server: false,
     }
   )
 }

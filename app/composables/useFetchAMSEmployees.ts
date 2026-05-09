@@ -31,6 +31,7 @@ export default function useFetchAMSFleet () {
           sort: ['first_name']
         })
       ) as DirectusUser[]
-    }
+    },
+    { default: () => [] as DirectusUser[], server: false },
   )
 }
