@@ -23,6 +23,7 @@ interface linkElement extends baseElement {
   link: string;
   icon: string;
   exact: boolean;
+  exclude?: string[];
 }
 
 interface childLink extends baseElement {
@@ -120,13 +121,6 @@ const sidebarItems = computed<sidebarElement[]>(() => {
     },
     {
       type: "link",
-      label: "Anteilsrechner",
-      link: "/ams/calculator",
-      icon: "i-lucide-calculator",
-      exact: false,
-    },
-    {
-      type: "link",
       label: "Kalender",
       link: "/ams/calendar",
       icon: "i-lucide-calendar-range",
@@ -139,14 +133,30 @@ const sidebarItems = computed<sidebarElement[]>(() => {
       icon: "i-lucide-shield-check",
       exact: false,
     },
-    { type: "separator", label: "Abteilungen" },
+    { type: "separator", label: "Missionsmanager" },
     {
       type: "link",
-      label: "Mission Control",
+      label: "Missions Board",
       link: "/ams/missions",
       icon: "i-lucide-rocket",
       exact: false,
+      exclude: ["/ams/missions/create"],
     },
+    {
+      type: "link",
+      label: "Missionserstellung",
+      link: "/ams/missions/create",
+      icon: "i-lucide-plus-circle",
+      exact: true,
+    },
+    {
+      type: "link",
+      label: "Anteilsrechner",
+      link: "/ams/calculator",
+      icon: "i-lucide-calculator",
+      exact: false,
+    },
+    { type: "separator", label: "Abteilungen" },
     {
       type: "group",
       label: "Logistics",
@@ -166,6 +176,13 @@ const sidebarItems = computed<sidebarElement[]>(() => {
       label: "Toolbox",
       link: "/ams/toolbox",
       icon: "i-lucide-tool-case",
+      exact: false,
+    },
+    {
+      type: "link",
+      label: "Versionsübersicht",
+      link: "/ams/versions",
+      icon: "i-lucide-tag",
       exact: false,
     },
   ];
@@ -293,6 +310,7 @@ watch(
                 :link="item.link"
                 :icon="item.icon"
                 :exact="item.exact"
+                :exclude="item.exclude"
                 @click="mobileOpen = false"
               />
               <template v-else-if="item.type === 'group'">
@@ -425,6 +443,7 @@ watch(
               :link="item.link"
               :icon="item.icon"
               :exact="item.exact"
+              :exclude="item.exclude"
             />
             <template v-else-if="item.type === 'group'">
               <button

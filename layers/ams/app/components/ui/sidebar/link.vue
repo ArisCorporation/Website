@@ -1,16 +1,19 @@
 <script setup lang="ts">
-const route = useRoute()
+const route = useRoute();
 
 const props = defineProps<{
-  label: string
-  link: string
-  icon: string
-  exact?: boolean
-}>()
+  label: string;
+  link: string;
+  icon: string;
+  exact?: boolean;
+  exclude?: string[];
+}>();
 
 const active = computed(() =>
-  props.exact ? route.path == props.link : route.path.startsWith(props.link)
-)
+  props.exact ? route.path == props.link : route.path.startsWith(props.link),
+);
+
+const excluded = computed(() => props.exclude?.includes(route.path));
 </script>
 
 <template>
@@ -18,13 +21,13 @@ const active = computed(() =>
     :to="link"
     class="group relative flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-150 ease-in-out active:scale-95"
     :class="[
-      active
+      active && !excluded
         ? 'bg-(--ui-primary)/10 text-(--ui-primary)'
         : 'text-gray-300 hover:bg-(--ui-primary)/5 hover:text-(--ui-primary)',
     ]"
   >
     <span
-      v-if="active"
+      v-if="active && !excluded"
       class="absolute rounded-l-md left-0 top-0 h-full w-1 bg-(--ui-primary) animate-pulse-glow"
     />
     <UIcon

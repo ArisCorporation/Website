@@ -109,15 +109,31 @@ async function submit() {
       normalizePositionType(props.target.position?.position_type) === 'primary'
     ) {
       const primarySort = getPositionPairSort(props.target.position)
-      const openSecondary =
-        primarySort != null
-          ? (props.target.ship?.positions ?? []).find(
-              (p: any) =>
-                normalizePositionType(p.position_type) === 'secondary' &&
-                getPositionPairSort(p) === primarySort &&
-                p.status === 'open',
-            ) ?? null
-          : null
+      const shipPositions: any[] = props.target.ship?.positions ?? []
+      const secondaryPositions = shipPositions.filter(
+        (p: any) => normalizePositionType(p.position_type) === 'secondary',
+      )
+
+      let openSecondary: any = null
+      if (primarySort != null) {
+        openSecondary =
+          secondaryPositions.find(
+            (p: any) =>
+              getPositionPairSort(p) === primarySort && p.status === 'open',
+          ) ?? null
+      } else {
+        // Fallback for default roles: pair by index
+        const primaryPositions = shipPositions.filter(
+          (p: any) => normalizePositionType(p.position_type) === 'primary',
+        )
+        const primaryIndex = primaryPositions.findIndex(
+          (p: any) => p.id === props.target?.position?.id,
+        )
+        if (primaryIndex !== -1) {
+          const candidate = secondaryPositions[primaryIndex]
+          openSecondary = candidate?.status === 'open' ? candidate : null
+        }
+      }
       if (openSecondary) {
         await useDirectus(
           createItem('ams_mission_registrations' as any, {
