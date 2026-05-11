@@ -8,14 +8,14 @@ import type { DirectusFile } from '@@/types'; // Nuxt 3 auto-importiert Typen, z
  * @param source Die Bildquelle.
  * @returns Die Asset-ID als String oder undefined, wenn keine ID extrahiert werden kann.
  */
-export function getAssetId (source: string | DirectusFile | null | undefined): string {
+export function getAssetId (source: string | DirectusFile | null | undefined): string | undefined {
   if (source == null) {
-    return '';
+    return undefined;
   }
 
-  const ensurePrefixedPath = (value: string) => {
+  const ensurePrefixedPath = (value: string): string | undefined => {
     if (!value) {
-      return '';
+      return undefined;
     }
 
     // Wenn bereits eine vollständige URL übergeben wurde, nutzen wir diese direkt.
@@ -41,5 +41,5 @@ export function getAssetId (source: string | DirectusFile | null | undefined): s
   }
 
   console.warn('Konnte keine Asset-ID aus der Quelle extrahieren:', source);
-  return '';
+  return undefined;
 }

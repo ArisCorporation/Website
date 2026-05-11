@@ -18,7 +18,7 @@ const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const authStore = useAuthStore();
-const { currentUserId, currentUserAL, isAuthLoading } = storeToRefs(authStore);
+const { currentUserId, currentUserAL, isAuthLoading, currentUser } = storeToRefs(authStore);
 
 const editId = computed(() => route.query.edit as string | undefined);
 const isEditing = computed(() => !!editId.value);
@@ -28,8 +28,6 @@ const {
   pending: fleetPending,
   refresh: refreshFleet,
 } = await useFetchAMSFleet();
-const { data: employees, refresh: refreshEmployees } =
-  await useFetchAMSEmployees();
 const {
   data: departments,
   pending: departmentsPending,
@@ -306,6 +304,8 @@ const originalIds = ref<{
   positions: [],
 });
 const editMissionCreatorId = ref<string | null>(null);
+const originalPlannedDate = ref<string | null>(null);
+const originalStatus = ref<string>('');
 const editMissionLoaded = ref(!isEditing.value);
 const unauthorizedEditHandled = ref(false);
 
@@ -313,6 +313,8 @@ if (editId.value) {
   const { data: existing } = await useFetchAMSMission(editId.value);
   if (existing.value) {
     editMissionCreatorId.value = existing.value.user_created?.id ?? null;
+    originalPlannedDate.value = existing.value.planned_date?.slice(0, 16) ?? null;
+    originalStatus.value = existing.value.status;
     form.title = existing.value.title;
     form.mission_type = existing.value.mission_type;
     form.status = existing.value.status;
@@ -391,14 +393,6 @@ const fleetOptions = computed(() =>
     }),
 );
 
-const employeeOptions = computed(() =>
-  (employees.value ?? []).map((u: any) => ({
-    label: getUserLabel(u),
-    value: u,
-    id: u.id,
-  })),
-);
-
 const departmentSelectItems = computed<any[]>(() => departments.value ?? []);
 
 const canManageExistingMission = computed(() => {
@@ -418,7 +412,6 @@ async function refreshMissionPlannerSources() {
   const tasks: Promise<unknown>[] = [];
 
   if (!fleet.value?.length) tasks.push(refreshFleet());
-  if (!employees.value?.length) tasks.push(refreshEmployees());
   if (!departments.value?.length) tasks.push(refreshDepartments());
   if (!teamDepartmentFieldMeta.value)
     tasks.push(refreshTeamDepartmentFieldMeta());
@@ -677,6 +670,124 @@ function removePosition(ship: ShipDraft, position: PositionDraft) {
   ship.positions.splice(index, 1);
 }
 
+function getAssignedUserId(pos: PositionDraft): string | null {
+  if (!pos.assigned_user) return null;
+  return typeof pos.assigned_user === "object"
+    ? (pos.assigned_user as any).id
+    : pos.assigned_user;
+}
+
+function findDraftPairedSecondary(
+  ship: ShipDraft,
+  pos: PositionDraft,
+): PositionDraft | null {
+  if (normalizePositionType(pos.position_type) !== "primary") return null;
+
+  const secondaries = ship.positions.filter(
+    (p) => normalizePositionType(p.position_type) === "secondary",
+  );
+  const primarySort = getShipPositionSort(ship, pos);
+
+  if (primarySort != null) {
+    return (
+      secondaries.find((s) => getShipPositionSort(ship, s) === primarySort) ??
+      null
+    );
+  }
+
+  const primaries = ship.positions.filter(
+    (p) => normalizePositionType(p.position_type) === "primary",
+  );
+  const idx = primaries.indexOf(pos);
+  return idx !== -1 ? (secondaries[idx] ?? null) : null;
+}
+
+function getCurrentUserPositionOnShip(
+  ship: ShipDraft,
+  positionType: PositionType,
+): PositionDraft | null {
+  const userId = currentUserId.value;
+  if (!userId) return null;
+  return (
+    ship.positions.find(
+      (p) =>
+        getAssignedUserId(p) === userId &&
+        normalizePositionType(p.position_type) === positionType,
+    ) ?? null
+  );
+}
+
+const replaceConfirmOpen = ref(false);
+const replaceConfirmTarget = ref<{ ship: ShipDraft; pos: PositionDraft } | null>(
+  null,
+);
+
+function tryAssignSelf(ship: ShipDraft, pos: PositionDraft) {
+  const existingId = getAssignedUserId(pos);
+  if (existingId && existingId !== currentUserId.value) {
+    replaceConfirmTarget.value = { ship, pos };
+    replaceConfirmOpen.value = true;
+    return;
+  }
+  assignSelf(ship, pos);
+}
+
+function assignSelf(ship: ShipDraft, pos: PositionDraft) {
+  const user = currentUser.value;
+  if (!user) return;
+
+  const posType = normalizePositionType(pos.position_type);
+
+  // Unassign self from another position of the same type on this ship
+  const existingOnShip = getCurrentUserPositionOnShip(ship, posType);
+  if (existingOnShip && existingOnShip !== pos) {
+    existingOnShip.assigned_user = null;
+    if (posType === "primary") {
+      const existingPaired = findDraftPairedSecondary(ship, existingOnShip);
+      if (
+        existingPaired &&
+        getAssignedUserId(existingPaired) === currentUserId.value
+      ) {
+        existingPaired.assigned_user = null;
+      }
+    }
+  }
+
+  pos.assigned_user = user;
+
+  // Auto-pair secondary
+  if (posType === "primary") {
+    const paired = findDraftPairedSecondary(ship, pos);
+    if (paired && !getAssignedUserId(paired)) {
+      paired.assigned_user = user;
+    }
+  }
+}
+
+function unassignSelf(ship: ShipDraft, pos: PositionDraft) {
+  pos.assigned_user = null;
+  if (normalizePositionType(pos.position_type) === "primary") {
+    const paired = findDraftPairedSecondary(ship, pos);
+    if (paired && getAssignedUserId(paired) === currentUserId.value) {
+      paired.assigned_user = null;
+    }
+  }
+}
+
+function confirmReplaceSelf() {
+  if (!replaceConfirmTarget.value) return;
+  assignSelf(replaceConfirmTarget.value.ship, replaceConfirmTarget.value.pos);
+  replaceConfirmOpen.value = false;
+  replaceConfirmTarget.value = null;
+}
+
+function getReplaceConfirmName(): string {
+  if (!replaceConfirmTarget.value) return "";
+  const assigned = replaceConfirmTarget.value.pos.assigned_user;
+  if (!assigned) return "";
+  return typeof assigned === "object" ? getUserLabel(assigned) : assigned;
+}
+
 const loading = ref(false);
 
 const allDraftShips = computed(() => teams.value.flatMap((team) => team.ships));
@@ -878,71 +989,78 @@ async function save() {
           }),
         )) as any;
         teamId = t.id;
+        currentTeamIds.push(teamId);
       }
 
-      for (const ship of team.ships) {
-        if (!ship.hangar_id) continue;
-        const hangarId =
-          typeof ship.hangar_id === "object"
-            ? (ship.hangar_id as any).id
-            : ship.hangar_id;
-        let shipId: string;
+      const shipPromises = team.ships
+        .filter((ship) => !!ship.hangar_id)
+        .map(async (ship) => {
+          const hangarId =
+            typeof ship.hangar_id === "object"
+              ? (ship.hangar_id as any).id
+              : ship.hangar_id;
+          let shipId: string;
 
-        if (ship.id) {
-          await useDirectus(
-            updateItem("ams_mission_team_ships" as any, ship.id, {
-              hangar_id: hangarId,
-            }),
-          );
-          shipId = ship.id;
-          currentShipIds.push(shipId);
-        } else {
-          const s = (await useDirectus(
-            createItem("ams_mission_team_ships" as any, {
-              team: teamId,
-              hangar_id: hangarId,
-            }),
-          )) as any;
-          shipId = s.id;
-        }
-
-        for (const pos of ship.positions) {
-          const assignedUserId =
-            pos.assigned_user && typeof pos.assigned_user === "object"
-              ? pos.assigned_user.id
-              : (pos.assigned_user ?? null);
-
-          const posPayload = {
-            sort: getShipPositionSort(ship, pos),
-            position_type: normalizePositionType(pos.position_type),
-            role: pos.role,
-            role_description:
-              pos.role_description ??
-              getShipRoleOption(
-                ship,
-                pos.role,
-                normalizePositionType(pos.position_type),
-              )?.description ??
-              null,
-            assigned_user: assignedUserId,
-            status: assignedUserId ? "filled" : "open",
-          };
-
-          if (pos.id) {
+          if (ship.id) {
             await useDirectus(
-              updateItem("ams_mission_positions" as any, pos.id, posPayload),
-            );
-            currentPositionIds.push(pos.id);
-          } else {
-            await useDirectus(
-              createItem("ams_mission_positions" as any, {
-                team_ship: shipId,
-                ...posPayload,
+              updateItem("ams_mission_team_ships" as any, ship.id, {
+                hangar_id: hangarId,
               }),
             );
+            shipId = ship.id;
+            currentShipIds.push(shipId);
+          } else {
+            const s = (await useDirectus(
+              createItem("ams_mission_team_ships" as any, {
+                team: teamId,
+                hangar_id: hangarId,
+              }),
+            )) as any;
+            shipId = s.id;
+            currentShipIds.push(shipId);
           }
-        }
-      }
+
+          await Promise.all(
+            ship.positions.map(async (pos) => {
+              const assignedUserId =
+                pos.assigned_user && typeof pos.assigned_user === "object"
+                  ? pos.assigned_user.id
+                  : (pos.assigned_user ?? null);
+
+              const posPayload = {
+                sort: getShipPositionSort(ship, pos),
+                position_type: normalizePositionType(pos.position_type),
+                role: pos.role,
+                role_description:
+                  pos.role_description ??
+                  getShipRoleOption(
+                    ship,
+                    pos.role,
+                    normalizePositionType(pos.position_type),
+                  )?.description ??
+                  null,
+                assigned_user: assignedUserId,
+                status: assignedUserId ? "filled" : "open",
+              };
+
+              if (pos.id) {
+                await useDirectus(
+                  updateItem("ams_mission_positions" as any, pos.id, posPayload),
+                );
+                currentPositionIds.push(pos.id);
+              } else {
+                await useDirectus(
+                  createItem("ams_mission_positions" as any, {
+                    team_ship: shipId,
+                    ...posPayload,
+                  }),
+                );
+              }
+            }),
+          );
+        });
+
+      await Promise.all(shipPromises);
     }
 
     if (isEditing.value) {
@@ -956,15 +1074,17 @@ async function save() {
         (id) => !currentTeamIds.includes(id),
       );
 
-      for (const id of removedPositions) {
-        await useDirectus(deleteItem("ams_mission_positions" as any, id));
-      }
-      for (const id of removedShips) {
-        await useDirectus(deleteItem("ams_mission_team_ships" as any, id));
-      }
-      for (const id of removedTeams) {
-        await useDirectus(deleteItem("ams_mission_teams" as any, id));
-      }
+      await Promise.all([
+        ...removedPositions.map((id) =>
+          useDirectus(deleteItem("ams_mission_positions" as any, id)),
+        ),
+        ...removedShips.map((id) =>
+          useDirectus(deleteItem("ams_mission_team_ships" as any, id)),
+        ),
+        ...removedTeams.map((id) =>
+          useDirectus(deleteItem("ams_mission_teams" as any, id)),
+        ),
+      ]);
 
       try {
         await $fetch(`/api/ams/missions/${missionId}/sync-discord`, {
@@ -972,6 +1092,26 @@ async function save() {
         });
       } catch (syncError) {
         console.error("Mission discord sync after save failed", syncError);
+      }
+
+      const newPlannedDate = plannedDateValue.value || null;
+      const wasCancelled = form.status === 'cancelled' && originalStatus.value !== 'cancelled';
+      const dateChanged = originalPlannedDate.value !== null && originalPlannedDate.value !== newPlannedDate;
+
+      if (wasCancelled) {
+        try {
+          await $fetch(`/api/ams/missions/${missionId}/notify-participants`, {
+            method: 'POST',
+            body: { type: 'cancelled' },
+          });
+        } catch (e) { console.error('Notify cancelled failed', e); }
+      } else if (dateChanged) {
+        try {
+          await $fetch(`/api/ams/missions/${missionId}/notify-participants`, {
+            method: 'POST',
+            body: { type: 'reschedule', oldDate: originalPlannedDate.value, newDate: newPlannedDate },
+          });
+        } catch (e) { console.error('Notify reschedule failed', e); }
       }
     } else {
       try {
@@ -989,6 +1129,8 @@ async function save() {
         });
       }
     }
+
+    await refreshNuxtData("ams:missions");
 
     toast.add({
       title: isEditing.value ? "Mission aktualisiert" : "Mission erstellt",
@@ -1028,7 +1170,7 @@ definePageMeta({
       "
     >
       <UButton
-        to="/ams/missions"
+        :to="isEditing && editId ? `/ams/missions/${editId}` : '/ams/missions'"
         variant="ghost"
         icon="i-lucide-arrow-left"
         label="Zurück"
@@ -1280,7 +1422,8 @@ definePageMeta({
                         >
                           <span
                             v-if="isShipPositionTypeLocked(ship, positionType)"
-                            class="truncate text-sm text-white"
+                            class="text-sm text-white break-words"
+                            :title="pos.role"
                           >
                             {{ pos.role }}
                           </span>
@@ -1292,16 +1435,54 @@ definePageMeta({
                             label-key="label"
                             class="w-full min-w-0"
                           />
-                          <USelectMenu
-                            v-model="pos.assigned_user"
-                            :items="employeeOptions"
-                            value-key="value"
-                            label-key="label"
-                            placeholder="Direkt zuweisen"
-                            class="w-full min-w-0"
-                            searchable
-                            clearable
-                          />
+                          <!-- Self-assign -->
+                          <div class="flex items-center gap-1 min-w-0">
+                            <template
+                              v-if="getAssignedUserId(pos) === currentUserId"
+                            >
+                              <span
+                                class="flex-1 truncate text-xs font-medium text-(--ui-primary)"
+                              >
+                                Ich
+                              </span>
+                              <UButton
+                                size="xs"
+                                variant="ghost"
+                                color="error"
+                                icon="i-lucide-user-minus"
+                                @click="unassignSelf(ship, pos)"
+                              />
+                            </template>
+                            <template
+                              v-else-if="getAssignedUserId(pos)"
+                            >
+                              <span
+                                class="flex-1 truncate text-xs text-white"
+                                :title="getUserLabel(pos.assigned_user)"
+                              >
+                                {{ getUserLabel(pos.assigned_user) }}
+                              </span>
+                              <UTooltip text="Durch mich ersetzen">
+                                <UButton
+                                  size="xs"
+                                  variant="ghost"
+                                  color="warning"
+                                  icon="i-lucide-repeat-2"
+                                  @click="tryAssignSelf(ship, pos)"
+                                />
+                              </UTooltip>
+                            </template>
+                            <template v-else>
+                              <UButton
+                                size="xs"
+                                variant="ghost"
+                                icon="i-lucide-user-plus"
+                                label="Mir zuweisen"
+                                class="flex-1 justify-start"
+                                @click="tryAssignSelf(ship, pos)"
+                              />
+                            </template>
+                          </div>
                           <div
                             v-if="!isShipPositionTypeLocked(ship, positionType)"
                             class="flex justify-end sm:justify-start"
@@ -1502,7 +1683,7 @@ definePageMeta({
             @click="save"
           />
           <UButton
-            to="/ams/missions"
+            :to="isEditing && editId ? `/ams/missions/${editId}` : '/ams/missions'"
             variant="ghost"
             label="Abbrechen"
             class="w-full justify-center"
@@ -1510,5 +1691,55 @@ definePageMeta({
         </div>
       </div>
     </div>
+
+    <!-- Confirm replace modal -->
+    <UModal v-model:open="replaceConfirmOpen" title="Position ersetzen">
+      <template #content>
+        <div
+          class="rounded-2xl border border-(--ui-primary)/15 bg-(--ui-bg) overflow-hidden"
+        >
+          <div
+            class="border-b border-(--ui-primary)/12 bg-(--ui-primary)/5 px-5 py-4"
+          >
+            <p
+              class="text-[0.6rem] uppercase tracking-[0.22em] text-(--ui-primary)/70"
+            >
+              Zuweisung ersetzen
+            </p>
+            <p class="text-sm font-semibold text-white">
+              Position bereits belegt
+            </p>
+          </div>
+          <div class="px-5 py-4 space-y-4">
+            <p class="text-sm text-(--ui-text-muted)">
+              Diese Position ist bereits
+              <span class="text-white font-medium">{{
+                getReplaceConfirmName()
+              }}</span>
+              zugewiesen. Trotzdem durch dich ersetzen?
+            </p>
+            <div class="flex justify-end gap-2">
+              <UButton
+                variant="ghost"
+                color="neutral"
+                @click="
+                  replaceConfirmOpen = false;
+                  replaceConfirmTarget = null;
+                "
+              >
+                Abbrechen
+              </UButton>
+              <UButton
+                color="warning"
+                icon="i-lucide-repeat-2"
+                @click="confirmReplaceSelf"
+              >
+                Ersetzen
+              </UButton>
+            </div>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

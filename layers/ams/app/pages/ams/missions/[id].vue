@@ -6,6 +6,7 @@ import {
 } from "~~/app/utils/ams-mission-roles";
 
 const route = useRoute();
+const router = useRouter();
 const { data: mission, refresh } = await useFetchAMSMission(
   route.params.id as string,
 );
@@ -559,15 +560,28 @@ function findPairedSecondary(primaryPositionId: string) {
   if (primaryPos == null) return null;
 
   const primarySort = getPositionPairSort(primaryPos, ship);
-  if (primarySort == null) return null;
 
-  return (
-    (ship.positions ?? []).find(
-      (p: any) =>
-        normalizePositionType(p.position_type) === "secondary" &&
-        getPositionPairSort(p, ship) === primarySort,
-    ) ?? null
+  const secondaryPositions = (ship.positions ?? []).filter(
+    (p: any) => normalizePositionType(p.position_type) === "secondary",
   );
+
+  if (primarySort != null) {
+    return (
+      secondaryPositions.find(
+        (p: any) => getPositionPairSort(p, ship) === primarySort,
+      ) ?? null
+    );
+  }
+
+  // Fallback for default roles without sort: pair by index among primaries
+  const primaryPositions = (ship.positions ?? []).filter(
+    (p: any) => normalizePositionType(p.position_type) === "primary",
+  );
+  const primaryIndex = primaryPositions.findIndex(
+    (p: any) => p.id === primaryPositionId,
+  );
+  if (primaryIndex === -1) return null;
+  return secondaryPositions[primaryIndex] ?? null;
 }
 
 function findPairedPrimary(secondaryPositionId: string) {
@@ -586,15 +600,28 @@ function findPairedPrimary(secondaryPositionId: string) {
   if (secondaryPos == null) return null;
 
   const secondarySort = getPositionPairSort(secondaryPos, ship);
-  if (secondarySort == null) return null;
 
-  return (
-    (ship.positions ?? []).find(
-      (p: any) =>
-        normalizePositionType(p.position_type) === "primary" &&
-        getPositionPairSort(p, ship) === secondarySort,
-    ) ?? null
+  const primaryPositions = (ship.positions ?? []).filter(
+    (p: any) => normalizePositionType(p.position_type) === "primary",
   );
+
+  if (secondarySort != null) {
+    return (
+      primaryPositions.find(
+        (p: any) => getPositionPairSort(p, ship) === secondarySort,
+      ) ?? null
+    );
+  }
+
+  // Fallback for default roles without sort: pair by index among secondaries
+  const secondaryPositions = (ship.positions ?? []).filter(
+    (p: any) => normalizePositionType(p.position_type) === "secondary",
+  );
+  const secondaryIndex = secondaryPositions.findIndex(
+    (p: any) => p.id === secondaryPositionId,
+  );
+  if (secondaryIndex === -1) return null;
+  return primaryPositions[secondaryIndex] ?? null;
 }
 
 function findPairedSecondaryRegistration(primaryReg: any) {
@@ -1141,6 +1168,44 @@ const regStatusColor: Record<string, string> = {
   rejected: "error",
 };
 
+const archiveLoading = ref(false);
+
+async function archiveMission() {
+  if (!mission.value) return;
+
+  archiveLoading.value = true;
+  try {
+    await useDirectus(
+      updateItem("ams_missions" as any, mission.value.id, { status: "archived" }),
+    );
+
+    try {
+      await $fetch(`/api/ams/missions/${mission.value.id}/notify-participants`, {
+        method: "POST",
+        body: { type: "archived" },
+      });
+    } catch (notifyError) {
+      console.error("Notify archived failed", notifyError);
+    }
+
+    toast.add({
+      title: "Mission archiviert",
+      color: "success",
+      icon: "i-lucide-archive",
+    });
+    await refreshNuxtData("ams:missions");
+    router.push("/ams/missions");
+  } catch {
+    toast.add({
+      title: "Fehler beim Archivieren",
+      color: "error",
+      icon: "i-lucide-alert-triangle",
+    });
+  } finally {
+    archiveLoading.value = false;
+  }
+}
+
 definePageMeta({
   layout: "ams",
   auth: true,
@@ -1165,13 +1230,23 @@ onBeforeUnmount(() => {
       :title="mission.title"
       :description="`${typeConf.label} &bull; ${formattedDate}`"
     >
-      <UButton
-        v-if="canManageMission"
-        :to="`/ams/missions/create?edit=${mission.id}`"
-        icon="i-lucide-pencil"
-        variant="outline"
-        label="Bearbeiten"
-      />
+      <template v-if="canManageMission">
+        <UButton
+          :to="`/ams/missions/create?edit=${mission.id}`"
+          icon="i-lucide-pencil"
+          variant="outline"
+          label="Bearbeiten"
+        />
+        <UButton
+          v-if="mission.status !== 'archived'"
+          icon="i-lucide-archive"
+          variant="ghost"
+          color="neutral"
+          label="Archivieren"
+          :loading="archiveLoading"
+          @click="archiveMission"
+        />
+      </template>
     </AMSPageHeader>
 
     <div

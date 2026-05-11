@@ -368,7 +368,7 @@ function canSignupPosition(pos: any) {
 }
 
 function isPositionInteractive(pos: any) {
-  return getEffectivePositionState(pos) !== "filled" && canSignupPosition(pos);
+  return getEffectivePositionState(pos) === "open" && canSignupPosition(pos);
 }
 
 function getPositionStatusLabel(pos: any) {
