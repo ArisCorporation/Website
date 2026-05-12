@@ -1,6 +1,23 @@
 <script setup lang="ts">
 import type { DirectusUser } from '~~/types'
 
+const sorting = ref<{ id: string; desc: boolean }[]>([])
+
+const EMPLOYEE_SORT_MAP: Record<string, string> = {
+  name: 'first_name',
+  status: 'status',
+  role: 'role.name',
+  department: 'primary_department.name',
+  head_of_department: 'head_of_department',
+}
+const employeeSort = computed<string[]>(() =>
+  sorting.value.length
+    ? sorting.value.map(
+        ({ id, desc }) => `${desc ? '-' : ''}${EMPLOYEE_SORT_MAP[id] ?? id}`,
+      )
+    : ['first_name'],
+)
+
 const { data, refresh } = await useAsyncData<DirectusUser[]>(
   'ams:admin-employees',
   async () => {
@@ -20,12 +37,13 @@ const { data, refresh } = await useAsyncData<DirectusUser[]>(
           { primary_department: ['id', 'name', 'logo'] },
         ],
         limit: -1,
+        sort: employeeSort.value as any,
       })
     )) as DirectusUser[]
   }
 )
 
-console.log(data)
+watch(sorting, () => refresh())
 </script>
 
 <template>
@@ -42,6 +60,10 @@ console.log(data)
         </template>
       </AMSPagesAdminAddMemberSlideover>
     </div>
-    <AMSPagesAdminEmployeeTable :data="data" @refresh-data="refresh" />
+    <AMSPagesAdminEmployeeTable
+      :data="data"
+      v-model:sorting="sorting"
+      @refresh-data="refresh"
+    />
   </div>
 </template>

@@ -20,6 +20,23 @@ mode.value = mode.value || 'cards'
 
 const allCardsExpanded = ref(false)
 const searchInput = ref('')
+const sorting = ref<{ id: string; desc: boolean }[]>([])
+
+const HANGAR_SORT_MAP: Record<string, string> = {
+  name: 'name',
+  model: 'ship.name',
+  buy_status: 'buy_status',
+  visibility: 'visibility',
+  group: 'group',
+  department: 'department.name',
+}
+const hangarSort = computed<string[]>(() =>
+  sorting.value.length
+    ? sorting.value.map(
+        ({ id, desc }) => `${desc ? '-' : ''}${HANGAR_SORT_MAP[id] ?? id}`,
+      )
+    : ['ship.name'],
+)
 
 const shortFilterOptions = reactive([
   { key: 'all', label: 'Alle Schiffe' },
@@ -47,8 +64,11 @@ await useSimpleDepartments()
 
 const { data, pending, refresh } = await useFetchAMSHangar(
   targetUserId,
-  routeId.value
+  routeId.value,
+  hangarSort,
 )
+
+watch(sorting, () => refresh())
 
 // Ensure fetch runs once the currentUserId is available when no id param is provided
 watch(
@@ -181,7 +201,11 @@ definePageMeta({
     </div>
 
     <template v-if="data?.length && mode === 'table'">
-      <AMSPagesHangarShips :data="filteredShips" :search="searchInput" />
+      <AMSPagesHangarShips
+        :data="filteredShips"
+        :search="searchInput"
+        v-model:sorting="sorting"
+      />
     </template>
     <template v-else-if="data?.length && mode === 'cards'">
       <div
