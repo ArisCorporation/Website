@@ -149,7 +149,7 @@ const sidebarItems = computed<sidebarElement[]>(() => {
       link: "/ams/missions/create",
       icon: "i-lucide-plus-circle",
       exact: true,
-      min_access_level: 2,
+      min_access_level: 3,
     },
     {
       type: "link",

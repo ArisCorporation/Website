@@ -6,6 +6,7 @@ const { currentUser } = storeToRefs(authStore);
 
 const searchInput = ref("");
 const filterType = ref("all");
+const filterStatus = ref("active");
 
 const canCreate = computed(
   () => ((currentUser.value?.role as any)?.access_level ?? 0) >= 3,
@@ -23,8 +24,25 @@ const TYPE_OPTIONS = [
   { label: "Sonstiges", value: "other" },
 ];
 
+const STATUS_OPTIONS = [
+  { label: "Laufende", value: "active" },
+  { label: "Vergangene", value: "past" },
+  { label: "Abgebrochene", value: "cancelled" },
+  { label: "Alle", value: "all" },
+];
+
+const ACTIVE_STATUSES = new Set(["draft", "active"]);
+const PAST_STATUSES = new Set(["completed"]);
+const CANCELLED_STATUSES = new Set(["cancelled", "archived"]);
+
 const filteredMissions = computed(() => {
   return (missions.value ?? []).filter((m: any) => {
+    if (filterStatus.value === "active" && !ACTIVE_STATUSES.has(m.status))
+      return false;
+    if (filterStatus.value === "past" && !PAST_STATUSES.has(m.status))
+      return false;
+    if (filterStatus.value === "cancelled" && !CANCELLED_STATUSES.has(m.status))
+      return false;
     if (filterType.value !== "all" && m.mission_type !== filterType.value)
       return false;
     if (
@@ -35,6 +53,10 @@ const filteredMissions = computed(() => {
     return true;
   });
 });
+
+const isFiltered = computed(
+  () => searchInput.value || filterType.value !== "all" || filterStatus.value !== "active",
+);
 
 definePageMeta({
   layout: "ams",
@@ -68,12 +90,20 @@ definePageMeta({
         class="flex-1"
       />
       <USelectMenu
+        v-model="filterStatus"
+        :items="STATUS_OPTIONS"
+        value-key="value"
+        label-key="label"
+        size="lg"
+        class="w-full sm:w-44"
+      />
+      <USelectMenu
         v-model="filterType"
         :items="TYPE_OPTIONS"
         value-key="value"
         label-key="label"
         size="lg"
-        class="w-full sm:w-52"
+        class="w-full sm:w-44"
       />
     </div>
 
@@ -101,13 +131,13 @@ definePageMeta({
       </h3>
       <p class="text-sm text-(--ui-muted-foreground) mt-1">
         {{
-          searchInput || filterType !== "all"
+          isFiltered
             ? "Keine Ergebnisse für deine Filter."
             : "Noch keine Operationen geplant."
         }}
       </p>
       <UButton
-        v-if="canCreate && !searchInput && filterType === 'all'"
+        v-if="canCreate && !isFiltered"
         to="/ams/missions/create"
         icon="i-lucide-plus"
         label="Erste Mission erstellen"
