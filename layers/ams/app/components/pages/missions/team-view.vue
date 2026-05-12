@@ -351,7 +351,12 @@ function getPositionPendingCount(pos: any) {
 
 function getEffectivePositionState(pos: any) {
   const registration = getRelevantPositionRegistration(pos);
-  const status = getNormalizedRegistrationStatus(registration?.status);
+
+  if (!registration) {
+    return pos.status === "filled" ? "filled" : "open";
+  }
+
+  const status = getNormalizedRegistrationStatus(registration.status);
 
   if (status === "pending") return "pending";
   if (status === "approved" || pos.status === "filled") return "filled";
