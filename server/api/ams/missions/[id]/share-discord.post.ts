@@ -53,16 +53,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const missionResponse = await $fetch<{ data: { id: string; user_created?: { id: string } | null } }>(`/api/proxy/items/ams_missions/${missionId}`, {
+  const missionResponse = await $fetch<{ data: { id: string; user_created?: string | null } }>(`/api/proxy/items/ams_missions/${missionId}`, {
     headers: requestHeaders,
     query: {
-      fields: 'id,user_created.id',
+      fields: 'id,user_created',
     },
   })
   const mission = missionResponse.data
 
   const currentUserAccessLevel = Number(currentUser.role?.access_level ?? 0)
-  const isPlanner = mission.user_created?.id === currentUser.id || hasMissionPlannerAccess(currentUserAccessLevel)
+  const isPlanner = mission.user_created === currentUser.id || hasMissionPlannerAccess(currentUserAccessLevel)
 
   if (!isPlanner) {
     throw createError({

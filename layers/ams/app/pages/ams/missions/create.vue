@@ -2,7 +2,7 @@
 import type { Department, DirectusField } from "~~/types";
 import type { DateValue } from "@internationalized/date";
 import { parseDate } from "@internationalized/date";
-import { createItem, deleteItem, readItems, updateItem } from "@directus/sdk";
+import { createItem, deleteItem, readField, readItems, updateItem } from "@directus/sdk";
 import {
   STANDARD_MISSION_ROLE_OPTIONS,
   getMissionRoleOption,
@@ -40,18 +40,9 @@ const {
   "ams:mission-team-department-field",
   async () => {
     try {
-      const fields = (await useDirectus(
-        readItems("directus_fields" as any, {
-          filter: {
-            collection: { _eq: "ams_mission_teams" },
-            field: { _eq: "department" },
-          },
-          fields: ["field", "note", "translations"],
-          limit: 1,
-        }),
-      )) as DirectusField[];
-
-      return fields[0] ?? null;
+      return (await useDirectus(
+        readField("ams_mission_teams" as any, "department"),
+      )) as DirectusField ?? null;
     } catch (error) {
       console.warn(
         "Unable to load Directus meta for ams_mission_teams.department",
@@ -1130,7 +1121,10 @@ async function save() {
       }
     }
 
-    await refreshNuxtData("ams:missions");
+    await Promise.all([
+      refreshNuxtData("ams:missions"),
+      refreshNuxtData(`ams:mission:${missionId}`),
+    ]);
 
     toast.add({
       title: isEditing.value ? "Mission aktualisiert" : "Mission erstellt",

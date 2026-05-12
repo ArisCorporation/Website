@@ -425,10 +425,11 @@ function getPositionOccupantLabel(pos: any) {
     return "Automatisch mit Primär";
   }
 
-  if (myFlexRegistration.value) return "Flex bereits eingetragen";
+  if (myFlexRegistration.value)
+    return "Du bist bereits als Flexibel eingetragen";
 
   if (myPositionTypes.value.has(positionType)) {
-    return `${POSITION_TYPE_BADGE_LABELS[positionType]} bereits belegt`;
+    return `Du bist bereits in eine ${POSITION_TYPE_BADGE_LABELS[positionType]}-Position eingetragen`;
   }
 
   return "Noch frei";
