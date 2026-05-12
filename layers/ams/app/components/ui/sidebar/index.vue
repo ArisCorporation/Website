@@ -24,6 +24,7 @@ interface linkElement extends baseElement {
   icon: string;
   exact: boolean;
   exclude?: string[];
+  min_access_level?: number;
 }
 
 interface childLink extends baseElement {
@@ -148,6 +149,7 @@ const sidebarItems = computed<sidebarElement[]>(() => {
       link: "/ams/missions/create",
       icon: "i-lucide-plus-circle",
       exact: true,
+      min_access_level: 2,
     },
     {
       type: "link",
@@ -197,6 +199,15 @@ const sidebarItems = computed<sidebarElement[]>(() => {
     }
 
     // Ab hier ist item.type === 'link'
+
+    // Explizites min_access_level am Item hat Vorrang vor router.resolve meta
+    if (typeof item.min_access_level === "number") {
+      return (
+        typeof userAccessLevel === "number" &&
+        userAccessLevel >= item.min_access_level
+      );
+    }
+
     const resolvedRoute = router.resolve(item.link);
 
     // 1. Die Route muss existieren und auflösbar sein
@@ -215,11 +226,6 @@ const sidebarItems = computed<sidebarElement[]>(() => {
 
     // 3. Die Seite erfordert eine spezifische Zugriffsebene.
     //    Benutzer muss eine Rolle und eine ausreichende Zugriffsebene haben.
-    const userAccessLevel = (
-      currentUser.value?.role as DirectusRole | undefined
-    )?.access_level;
-
-    // Prüfen, ob userAccessLevel eine Zahl ist und größer/gleich der pageAccessLevel
     return (
       typeof userAccessLevel === "number" && userAccessLevel >= pageAccessLevel
     );
