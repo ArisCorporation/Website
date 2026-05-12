@@ -9,12 +9,49 @@ import type {
   UserHangar,
 } from '~~/types'
 
-const props = defineProps<{ data: UserHangar[]; search: string }>()
+const props = defineProps<{
+  data: UserHangar[]
+  search: string
+  sorting: { id: string; desc: boolean }[]
+}>()
+const emit = defineEmits<{
+  (e: 'update:sorting', value: { id: string; desc: boolean }[]): void
+}>()
+
+const sortingModel = computed({
+  get: () => props.sorting,
+  set: (value) => emit('update:sorting', value),
+})
 
 const expanded = ref()
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
+const UIcon = resolveComponent('UIcon')
+
+function sortableHeader(label: string) {
+  return ({ column }: { column: any }) =>
+    h(
+      'button',
+      {
+        class:
+          'flex items-center gap-1 text-(--ui-primary) hover:text-white transition-colors text-xs uppercase tracking-wider font-medium',
+        onClick: () => column.toggleSorting(),
+      },
+      [
+        label,
+        h(UIcon, {
+          name: !column.getIsSorted()
+            ? 'i-lucide-chevrons-up-down'
+            : column.getIsSorted() === 'asc'
+              ? 'i-lucide-chevron-up'
+              : 'i-lucide-chevron-down',
+          class: 'size-3 shrink-0',
+        }),
+      ],
+    )
+}
+
 const columns: TableColumn<UserHangar>[] = [
   {
     id: 'expand',
@@ -45,12 +82,14 @@ const columns: TableColumn<UserHangar>[] = [
   },
   {
     accessorKey: 'name',
-    header: 'Name',
+    header: sortableHeader('Name'),
+    enableSorting: true,
     cell: ({ row }) => `${row.getValue('name')}`,
   },
   {
     accessorKey: 'model',
-    header: 'Modell',
+    header: sortableHeader('Modell'),
+    enableSorting: true,
     cell: ({ row }) => `${(row.original.ship as ShipVariant).name}`,
   },
   {
@@ -61,7 +100,8 @@ const columns: TableColumn<UserHangar>[] = [
   },
   {
     accessorKey: 'buy_status',
-    header: 'Kaufstatus',
+    header: sortableHeader('Kaufstatus'),
+    enableSorting: true,
     cell: ({ row }) => {
       const color = {
         pledged: 'success' as const,
@@ -76,7 +116,8 @@ const columns: TableColumn<UserHangar>[] = [
   },
   {
     accessorKey: 'visibility',
-    header: 'Sichtbarkeit',
+    header: sortableHeader('Sichtbarkeit'),
+    enableSorting: true,
     cell: ({ row }) => {
       const color = {
         public: 'success' as const,
@@ -91,7 +132,8 @@ const columns: TableColumn<UserHangar>[] = [
   },
   {
     accessorKey: 'group',
-    header: 'Zuordnung',
+    header: sortableHeader('Zuordnung'),
+    enableSorting: true,
     cell: ({ row }) => {
       const color = {
         ariscorp: 'primary' as const,
@@ -105,7 +147,8 @@ const columns: TableColumn<UserHangar>[] = [
   },
   {
     accessorKey: 'department',
-    header: 'Abteilung',
+    header: sortableHeader('Abteilung'),
+    enableSorting: true,
     cell: ({ row }) => `${(row.original.department as Department)?.name ?? ''}`,
   },
   {
@@ -124,6 +167,7 @@ watch(props, () => {
     <UTable
       ref="teamsUiTableRef"
       v-model:expanded="expanded"
+      v-model:sorting="sortingModel"
       :columns="columns"
       :data="data"
       class="h-xl"

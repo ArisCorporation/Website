@@ -18,8 +18,20 @@ import {
   useUserProfileEditStore,
 } from '@/stores/ams/profile-edit-store'
 
-const props = defineProps<{ data: DirectusUser[]; search: string }>()
-const emit = defineEmits(['refreshData'])
+const props = defineProps<{
+  data: DirectusUser[]
+  search: string
+  sorting: { id: string; desc: boolean }[]
+}>()
+const emit = defineEmits<{
+  (e: 'refreshData'): void
+  (e: 'update:sorting', value: { id: string; desc: boolean }[]): void
+}>()
+
+const sortingModel = computed({
+  get: () => props.sorting,
+  set: (value) => emit('update:sorting', value),
+})
 
 const expanded = ref({})
 
@@ -321,6 +333,31 @@ function generateSecureTempPassword(length = 8) {
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
 const UCheckbox = resolveComponent('UCheckbox')
+const UIcon = resolveComponent('UIcon')
+
+function sortableHeader(label: string) {
+  return ({ column }: { column: any }) =>
+    h(
+      'button',
+      {
+        class:
+          'flex items-center gap-1 text-(--ui-primary) hover:text-white transition-colors text-xs uppercase tracking-wider font-medium',
+        onClick: () => column.toggleSorting(),
+      },
+      [
+        label,
+        h(UIcon, {
+          name: !column.getIsSorted()
+            ? 'i-lucide-chevrons-up-down'
+            : column.getIsSorted() === 'asc'
+              ? 'i-lucide-chevron-up'
+              : 'i-lucide-chevron-down',
+          class: 'size-3 shrink-0',
+        }),
+      ],
+    )
+}
+
 const columns: TableColumn<DirectusUser>[] = [
   // {
   //   id: 'select',
@@ -352,12 +389,14 @@ const columns: TableColumn<DirectusUser>[] = [
   },
   {
     accessorKey: 'name',
-    header: 'Name',
+    header: sortableHeader('Name'),
+    enableSorting: true,
     cell: ({ row }) => `${getUserLabel(row.original) ?? ''}`,
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: sortableHeader('Status'),
+    enableSorting: true,
     cell: ({ row }) => {
       const color = {
         active: 'success' as const,
@@ -372,7 +411,8 @@ const columns: TableColumn<DirectusUser>[] = [
   },
   {
     accessorKey: 'role',
-    header: 'Position',
+    header: sortableHeader('Position'),
+    enableSorting: true,
     cell: ({ row }) => {
       const color = {
         administrator: 'warning' as const,
@@ -391,13 +431,15 @@ const columns: TableColumn<DirectusUser>[] = [
   },
   {
     accessorKey: 'department',
-    header: 'Abteilung',
+    header: sortableHeader('Abteilung'),
+    enableSorting: true,
     cell: ({ row }) =>
       `${(row.original.primary_department as Department)?.name ?? ''}`,
   },
   {
     accessorKey: 'head_of_department',
-    header: 'Abteilungsleiter',
+    header: sortableHeader('Abteilungsleiter'),
+    enableSorting: true,
     cell: ({ row }) => {
       const color = {
         true: 'primary' as const,
@@ -798,6 +840,7 @@ function getDropdownActions(user: DirectusUser): DropdownMenuItem[][] {
   >
     <UTable
       ref="teamsUiTableRef"
+      v-model:sorting="sortingModel"
       :columns="columns"
       :data="data"
       class="h-xl"

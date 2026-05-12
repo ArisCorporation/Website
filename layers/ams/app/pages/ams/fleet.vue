@@ -6,6 +6,23 @@ const mode = useCookie<"cards" | "table">("ams:fleet-view");
 mode.value = mode.value || "cards";
 
 const searchInput = ref("");
+const sorting = ref<{ id: string; desc: boolean }[]>([]);
+
+const FLEET_SORT_MAP: Record<string, string> = {
+  name: "name",
+  model: "ship.name",
+  buy_status: "buy_status",
+  visibility: "visibility",
+  owner: "user.first_name",
+  department: "department.name",
+};
+const fleetSort = computed<string[]>(() =>
+  sorting.value.length
+    ? sorting.value.map(
+        ({ id, desc }) => `${desc ? "-" : ""}${FLEET_SORT_MAP[id] ?? id}`,
+      )
+    : ["ship.name"],
+);
 
 const viewOptions = reactive([
   {
@@ -25,7 +42,8 @@ const viewOptions = reactive([
   },
 ]);
 
-const { data, refresh } = await useFetchAMSFleet();
+const { data, refresh } = await useFetchAMSFleet(fleetSort);
+watch(sorting, () => refresh());
 
 await useSimpleDepartments();
 
@@ -87,7 +105,11 @@ definePageMeta({
       </URadioGroup>
     </div>
     <template v-if="data?.length && mode === 'table'">
-      <AMSPagesFleetShipsTable :data="filteredShips" :search="searchInput" />
+      <AMSPagesFleetShipsTable
+        :data="filteredShips"
+        :search="searchInput"
+        v-model:sorting="sorting"
+      />
     </template>
     <template v-else-if="data?.length && mode === 'cards'">
       <div

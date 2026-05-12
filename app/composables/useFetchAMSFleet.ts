@@ -1,5 +1,6 @@
 // layers/ams/composables/useUserHangarData.ts
 import type { QueryFields } from "@directus/sdk";
+import type { Ref, ComputedRef } from "vue";
 import type { Schema, UserHangar } from "~~/types";
 
 // Definiere die Felder-Struktur für bessere Lesbarkeit und Wartbarkeit
@@ -44,7 +45,7 @@ const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
   },
 ];
 
-export default function useFetchAMSFleet() {
+export default function useFetchAMSFleet(sort?: Ref<string[]> | ComputedRef<string[]>) {
   // Rufe useAsyncData mit dem reaktiven Key und der fetchData-Funktion auf.
   // Das zurückgegebene Objekt enthält data, pending, error, refresh usw.
   // und ist "awaitable", d.h. `await useUserHangarData(userId)` in der Komponente funktioniert.
@@ -61,7 +62,7 @@ export default function useFetchAMSFleet() {
           },
           fields: USER_HANGAR_FIELDS,
           limit: -1,
-          sort: ["ship.name" as any],
+          sort: (sort?.value ?? ["ship.name"]) as any,
         }),
       )) as UserHangar[];
     },
