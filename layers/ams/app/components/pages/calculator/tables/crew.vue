@@ -4,7 +4,7 @@ import { useSortable } from '@vueuse/integrations/useSortable.mjs'
 import type { Crew } from '~~/types'
 import type { Ship } from '~~/types'
 
-defineProps<{ ships: Ship[] }>()
+const props = defineProps<{ ships: Ship[] }>()
 
 const store = useAMSCalculatorStore()
 const { crews } = storeToRefs(store)
@@ -38,6 +38,13 @@ useSortable('.crew-tbody', crews.value, {
   },
   sort: false,
 })
+
+const shipItems = computed(() =>
+  props.ships.map((ship) => ({
+    label: ship.name ?? 'Unbenanntes Schiff',
+    value: ship.id,
+  }))
+)
 </script>
 
 <template>
@@ -57,10 +64,10 @@ useSortable('.crew-tbody', crews.value, {
       <template #ship-cell="{ row }">
         <USelectMenu
           v-model="crews.find((c) => c.id === row.original.id)!.ship"
-          :items="ships"
+          :items="shipItems"
           variant="ams"
-          value-key="id"
-          label-key="name"
+          value-key="value"
+          label-key="label"
           class="w-48"
         />
       </template>

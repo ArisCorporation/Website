@@ -1,6 +1,15 @@
 <script setup lang="ts">
-import type { Department, DirectusField } from "~~/types";
+import type { DropdownMenuItem } from '@nuxt/ui'
 import type { DateValue } from "@internationalized/date";
+import type {
+  DirectusField,
+  MissionPlannerForm,
+  MissionPlannerPositionDraft as PositionDraft,
+  MissionPlannerPositionType as PositionType,
+  MissionPlannerShipDraft as ShipDraft,
+  MissionPlannerTeamDraft as TeamDraft,
+} from "~~/types";
+import { MISSION_PLANNER_POSITION_TYPE_ORDER } from "~~/types";
 import { parseDate } from "@internationalized/date";
 import { createItem, deleteItem, readField, readItems, updateItem } from "@directus/sdk";
 import {
@@ -12,13 +21,20 @@ import {
   shipHasMissionRoles,
   generatePositionsFromShipRoles,
 } from "~~/app/utils/ams-mission-roles";
-import UInputTime from "~/components/UInputTime.vue";
 
 const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 const authStore = useAuthStore();
 const { currentUserId, currentUserAL, isAuthLoading, currentUser } = storeToRefs(authStore);
+
+const wizardCookie = useCookie<boolean>("ams:mission_planner_wizard");
+const currentStep = ref(0);
+
+function toggleWizard() {
+  wizardCookie.value = wizardCookie.value !== true;
+  currentStep.value = 0;
+}
 
 const editId = computed(() => route.query.edit as string | undefined);
 const isEditing = computed(() => !!editId.value);
@@ -42,7 +58,7 @@ const {
     try {
       return (await useDirectus(
         readField("ams_mission_teams" as any, "department"),
-      )) as DirectusField ?? null;
+      )) as unknown as DirectusField ?? null;
     } catch (error) {
       console.warn(
         "Unable to load Directus meta for ams_mission_teams.department",
@@ -75,7 +91,7 @@ const STATUS_OPTIONS = [
   { label: "Abgeschlossen", value: "completed" },
 ];
 
-const POSITION_TYPE_ORDER = ["primary", "secondary"] as const;
+const POSITION_TYPE_ORDER = [...MISSION_PLANNER_POSITION_TYPE_ORDER];
 const POSITION_TYPE_LABELS: Record<PositionType, string> = {
   primary: "Primäre Funktionen",
   secondary: "Sekundäre Funktionen",
@@ -85,33 +101,28 @@ const POSITION_TYPE_BADGE_LABELS: Record<PositionType, string> = {
   secondary: "Sekundär",
 };
 
-type PositionType = (typeof POSITION_TYPE_ORDER)[number];
+const plannerSteps = [
+  {
+    title: "Basisdaten",
+    icon: "i-lucide-file-text",
+  },
+  {
+    title: "Termin & Details",
+    icon: "i-lucide-calendar-clock",
+  },
+  {
+    title: "Teams & Schiffe",
+    icon: "i-lucide-layers",
+  },
+  {
+    title: "Überblick & Speichern",
+    icon: "i-lucide-save",
+  },
+];
 
-interface PositionDraft {
-  id?: string;
-  sort?: number | null;
-  position_type: PositionType;
-  role: string;
-  role_description?: string | null;
-  assigned_user: any | null;
-  status: string;
-}
+const plannerModeDropdownItems = ref<DropdownMenuItem[]>([]);
 
-interface ShipDraft {
-  id?: string;
-  hangar_id: any | null;
-  positions: PositionDraft[];
-}
-
-interface TeamDraft {
-  id?: string;
-  name: string;
-  description: string;
-  department: Department | string | null;
-  ships: ShipDraft[];
-}
-
-const form = reactive({
+const form = reactive<MissionPlannerForm>({
   title: "",
   mission_type: "mining",
   status: "draft",
@@ -146,17 +157,6 @@ const plannedCalendarUi = {
   cellTrigger:
     "mx-auto my-0.5 flex h-8 w-8 min-h-8 min-w-8 shrink-0 aspect-square items-center justify-center rounded-full border border-(--ui-primary)/10 bg-(--ui-bg-muted)/45 p-0 text-xs leading-none font-semibold tracking-tight text-(--ui-text-muted) transition-all duration-200 sm:h-9 sm:w-9 sm:min-h-9 sm:min-w-9 sm:text-sm hover:border-(--ui-primary)/28 hover:bg-(--ui-primary)/10 hover:text-(--ui-text-highlighted) data-today:border-(--ui-primary)/35 data-today:bg-(--ui-primary)/8 data-today:text-(--ui-text-highlighted) data-[selected]:border-(--ui-primary) data-[selected]:bg-(--ui-primary)/18 data-[selected]:text-(--ui-text-highlighted) data-[selected]:shadow-[0_0_0_1px_rgba(0,255,232,0.14),0_0_14px_rgba(0,255,232,0.12)] data-[outside-view]:opacity-35 focus-visible:outline-none focus-visible:ring-0",
 };
-
-const plannedDateModel = computed<DateValue | undefined>({
-  get: () => plannedCalendarDate.value,
-  set: (value) => {
-    plannedCalendarDate.value = value;
-
-    if (value && !plannedTime.value) {
-      plannedTime.value = plannedTimeDefaultValue;
-    }
-  },
-});
 
 const teamDepartmentFieldTranslations = computed<DirectusFieldTranslation[]>(
   () => {
@@ -245,11 +245,6 @@ function setPlannedDate(value?: string | null) {
   }
 }
 
-function clearPlannedDate() {
-  plannedCalendarDate.value = undefined;
-  plannedTime.value = "";
-}
-
 function normalizePositionType(value?: string | null): PositionType {
   return value === "secondary" ? "secondary" : "primary";
 }
@@ -284,6 +279,9 @@ function parseDurationHours(value?: string | null) {
 }
 
 const teams = ref<TeamDraft[]>([]);
+const cancelTo = computed(() =>
+  isEditing.value && editId.value ? `/ams/missions/${editId.value}` : "/ams/missions",
+);
 
 const originalIds = ref<{
   teams: string[];
@@ -879,6 +877,72 @@ const assignedUserTypeConflict = computed(() => {
   return null;
 });
 
+const missionTypeLabel = computed(
+  () =>
+    TYPE_OPTIONS.find((option) => option.value === form.mission_type)?.label ??
+    "Nicht gesetzt",
+);
+
+const statusLabel = computed(
+  () =>
+    STATUS_OPTIONS.find((option) => option.value === form.status)?.label ??
+    "Nicht gesetzt",
+);
+
+const parsedDurationMinutes = computed(() =>
+  parseDurationHours(form.duration_hours),
+);
+
+const isDetailsStepInvalid = computed(() => !form.title.trim());
+
+const isPlanningStepInvalid = computed(
+  () => parsedDurationMinutes.value === null,
+);
+
+const hasIncompleteTeams = computed(() =>
+  teams.value.some((team) => team.name.trim() === ""),
+);
+
+const hasUnselectedShips = computed(() =>
+  teams.value.some((team) =>
+    team.ships.some((ship) => !ship.hangar_id),
+  ),
+);
+
+const isTeamsStepInvalid = computed(
+  () =>
+    hasIncompleteTeams.value ||
+    hasUnselectedShips.value ||
+    assignedUserTypeConflict.value !== null,
+);
+
+const nextDisabled = computed(() => {
+  switch (currentStep.value) {
+    case 0:
+      return isDetailsStepInvalid.value;
+    case 1:
+      return isPlanningStepInvalid.value;
+    case 2:
+      return isTeamsStepInvalid.value;
+    default:
+      return true;
+  }
+});
+
+function goToPreviousStep() {
+  if (currentStep.value > 0) {
+    currentStep.value -= 1;
+  }
+}
+
+function goToNextStep() {
+  if (currentStep.value >= plannerSteps.length - 1 || nextDisabled.value) {
+    return;
+  }
+
+  currentStep.value += 1;
+}
+
 async function save() {
   if (!form.title.trim()) {
     toast.add({
@@ -909,7 +973,7 @@ async function save() {
     return;
   }
 
-  const durationMinutes = parseDurationHours(form.duration_hours);
+  const durationMinutes = parsedDurationMinutes.value;
 
   if (durationMinutes === null) {
     toast.add({
@@ -952,6 +1016,7 @@ async function save() {
     const currentTeamIds: string[] = [];
     const currentShipIds: string[] = [];
     const currentPositionIds: string[] = [];
+    const positionRegistrationPlan: Array<{ positionId: string; assignedUserId: string; teamId: string }> = [];
 
     for (const team of teams.value) {
       let teamId: string;
@@ -1039,19 +1104,76 @@ async function save() {
                   updateItem("ams_mission_positions" as any, pos.id, posPayload),
                 );
                 currentPositionIds.push(pos.id);
+                if (assignedUserId) {
+                  positionRegistrationPlan.push({ positionId: pos.id, assignedUserId, teamId });
+                }
               } else {
-                await useDirectus(
+                const newPos = (await useDirectus(
                   createItem("ams_mission_positions" as any, {
                     team_ship: shipId,
                     ...posPayload,
                   }),
-                );
+                )) as any;
+                if (assignedUserId) {
+                  positionRegistrationPlan.push({ positionId: newPos.id, assignedUserId, teamId });
+                }
               }
             }),
           );
         });
 
       await Promise.all(shipPromises);
+    }
+
+    // Sync position registrations to match planner-assigned positions
+    try {
+      const existingPositionRegs = (await useDirectus(
+        readItems("ams_mission_registrations" as any, {
+          filter: { mission: { _eq: missionId }, type: { _eq: "position" } } as any,
+          fields: ["id", "position", "user"],
+          limit: -1,
+        }),
+      )) as Array<{ id: string; position: any; user: any }>;
+
+      const getPosId = (v: any): string | null => (typeof v === "object" ? v?.id : v) ?? null;
+      const getUsrId = (v: any): string | null => (typeof v === "object" ? v?.id : v) ?? null;
+      const currentPositionIdSet = new Set(positionRegistrationPlan.map((p) => p.positionId));
+      const assignedMap = new Map(positionRegistrationPlan.map((p) => [p.positionId, p]));
+
+      await Promise.all([
+        // Create missing registrations for assigned positions
+        ...positionRegistrationPlan
+          .filter(
+            (plan) =>
+              !existingPositionRegs.some(
+                (r) => getPosId(r.position) === plan.positionId && getUsrId(r.user) === plan.assignedUserId,
+              ),
+          )
+          .map((plan) =>
+            useDirectus(
+              createItem("ams_mission_registrations" as any, {
+                mission: missionId,
+                user: plan.assignedUserId,
+                type: "position",
+                team: plan.teamId,
+                position: plan.positionId,
+                status: "approved",
+              }),
+            ),
+          ),
+        // Delete orphaned registrations for current positions where user changed or was cleared
+        ...existingPositionRegs
+          .filter((r) => {
+            const posId = getPosId(r.position);
+            if (!posId || !currentPositionIdSet.has(posId)) return false;
+            const userId = getUsrId(r.user);
+            const plan = assignedMap.get(posId);
+            return !plan || plan.assignedUserId !== userId;
+          })
+          .map((r) => useDirectus(deleteItem("ams_mission_registrations" as any, r.id))),
+      ]);
+    } catch (regSyncError) {
+      console.error("Position registration sync failed", regSyncError);
     }
 
     if (isEditing.value) {
@@ -1163,526 +1285,174 @@ definePageMeta({
           : 'Plane eine neue Operation.'
       "
     >
-      <UButton
-        :to="isEditing && editId ? `/ams/missions/${editId}` : '/ams/missions'"
-        variant="ghost"
-        icon="i-lucide-arrow-left"
-        label="Zurück"
-      />
+      <div class="flex flex-wrap items-center gap-2">
+        <UButton
+          :to="cancelTo"
+          variant="ghost"
+          icon="i-lucide-arrow-left"
+          label="Zurück"
+        />
+        <AMSUiAssistantModeDropdown
+          :assistant-active="wizardCookie === true"
+          :extra-items="plannerModeDropdownItems"
+          @toggle-mode="toggleWizard"
+        />
+      </div>
     </AMSPageHeader>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
-      <!-- Teams & Schiffe – Hauptbereich -->
-      <div class="lg:col-span-2 space-y-4">
-        <div
-          class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/50 overflow-hidden"
-        >
-          <div
-            class="flex items-center justify-between px-5 py-4 border-b border-(--ui-primary)/10 bg-(--ui-primary)/5"
-          >
-            <div class="flex items-center gap-2">
-              <UIcon
-                name="i-lucide-layers"
-                class="h-4 w-4 text-(--ui-primary)"
-              />
-              <h2
-                class="text-sm font-semibold text-(--ui-primary) uppercase tracking-wider m-0!"
-              >
-                Teams & Schiffe
-              </h2>
-            </div>
-            <div class="flex items-center gap-2">
-              <UBadge color="neutral" variant="subtle" size="sm">
-                Primär {{ totalDraftPrimarySummary }}
-              </UBadge>
-              <UBadge color="neutral" variant="subtle" size="sm">
-                Sekundär {{ totalDraftSecondarySummary }}
-              </UBadge>
-              <UButton
-                size="sm"
-                variant="outline"
-                icon="i-lucide-plus"
-                label="Team hinzufügen"
-                @click="addTeam"
-              />
-            </div>
-          </div>
+    <AMSUiAssistantFlow
+      v-if="wizardCookie === true"
+      :steps="plannerSteps"
+      :current-step="currentStep"
+      :previous-disabled="currentStep === 0"
+      :next-disabled="nextDisabled"
+      :show-next="currentStep < plannerSteps.length - 1"
+      @previous="goToPreviousStep"
+      @next="goToNextStep"
+    >
+      <AMSPagesMissionsPlannerDetailsForm
+        v-if="currentStep === 0"
+        v-model:form="form"
+        v-model:planned-calendar-date="plannedCalendarDate"
+        v-model:planned-time="plannedTime"
+        section="basics"
+        :type-options="TYPE_OPTIONS"
+        :status-options="STATUS_OPTIONS"
+        :planned-date-summary="plannedDateSummary"
+        :planned-calendar-ui="plannedCalendarUi"
+        :planned-time-default-value="plannedTimeDefaultValue"
+        :total-draft-primary-summary="totalDraftPrimarySummary"
+        :total-draft-secondary-summary="totalDraftSecondarySummary"
+        :total-draft-positions-hint="totalDraftPositionsHint"
+      />
+      <AMSPagesMissionsPlannerDetailsForm
+        v-else-if="currentStep === 1"
+        v-model:form="form"
+        v-model:planned-calendar-date="plannedCalendarDate"
+        v-model:planned-time="plannedTime"
+        section="planning"
+        :type-options="TYPE_OPTIONS"
+        :status-options="STATUS_OPTIONS"
+        :planned-date-summary="plannedDateSummary"
+        :planned-calendar-ui="plannedCalendarUi"
+        :planned-time-default-value="plannedTimeDefaultValue"
+        :total-draft-primary-summary="totalDraftPrimarySummary"
+        :total-draft-secondary-summary="totalDraftSecondarySummary"
+        :total-draft-positions-hint="totalDraftPositionsHint"
+        :split-date-time="true"
+      />
+      <AMSPagesMissionsPlannerTeamsEditor
+        v-else-if="currentStep === 2"
+        :teams="teams"
+        :current-user-id="currentUserId"
+        :total-draft-primary-summary="totalDraftPrimarySummary"
+        :total-draft-secondary-summary="totalDraftSecondarySummary"
+        :total-draft-positions-hint="totalDraftPositionsHint"
+        :show-role-summary="true"
+        :team-department-field-label="teamDepartmentFieldLabel"
+        :team-department-field-hint="teamDepartmentFieldHint"
+        :team-department-field-placeholder="teamDepartmentFieldPlaceholder"
+        :department-select-items="departmentSelectItems"
+        :departments-pending="departmentsPending"
+        :fleet-options="fleetOptions"
+        :fleet-pending="fleetPending"
+        :position-type-order="POSITION_TYPE_ORDER"
+        :position-type-labels="POSITION_TYPE_LABELS"
+        :position-type-badge-labels="POSITION_TYPE_BADGE_LABELS"
+        :add-team="addTeam"
+        :remove-team="removeTeam"
+        :add-ship="addShip"
+        :remove-ship="removeShip"
+        :on-ship-hangar-change="onShipHangarChange"
+        :is-ship-over-crew-limit="isShipOverCrewLimit"
+        :get-ship-position-summary="getShipPositionSummary"
+        :get-ship-crew-limit-hint="getShipCrewLimitHint"
+        :get-ship-role-summary="getShipRoleSummary"
+        :get-ship-positions-by-type="getShipPositionsByType"
+        :is-ship-position-type-locked="isShipPositionTypeLocked"
+        :get-assigned-user-id="getAssignedUserId"
+        :get-user-label="getUserLabel"
+        :try-assign-self="tryAssignSelf"
+        :unassign-self="unassignSelf"
+        :get-ship-role-options="getShipRoleOptions"
+        :add-position="addPosition"
+        :remove-position="removePosition"
+      />
+      <AMSPagesMissionsPlannerReview
+        v-else
+        :form="form"
+        :planned-date-summary="plannedDateSummary"
+        :mission-type-label="missionTypeLabel"
+        :status-label="statusLabel"
+        :teams="teams"
+        :total-draft-primary-summary="totalDraftPrimarySummary"
+        :total-draft-secondary-summary="totalDraftSecondarySummary"
+        :total-draft-positions-hint="totalDraftPositionsHint"
+        :assigned-user-type-conflict="assignedUserTypeConflict"
+        :loading="loading"
+        :is-editing="isEditing"
+        :cancel-to="cancelTo"
+        @save="save"
+      />
+    </AMSUiAssistantFlow>
 
-          <div class="p-5 space-y-4">
-            <div
-              v-if="!teams.length"
-              class="text-center py-10 text-(--ui-muted-foreground) text-sm"
-            >
-              <UIcon
-                name="i-lucide-users"
-                class="h-8 w-8 mx-auto mb-2 opacity-30"
-              />
-              <p>Noch keine Teams. Klicke auf "Team hinzufügen".</p>
-            </div>
-
-            <div
-              v-for="(team, ti) in teams"
-              :key="ti"
-              class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg)/50 overflow-hidden"
-            >
-              <!-- Team Header -->
-              <div
-                class="px-4 py-3 bg-(--ui-primary)/5 border-b border-(--ui-primary)/10 space-y-3"
-              >
-                <div class="flex items-center gap-3">
-                  <span
-                    class="text-xs font-bold text-(--ui-primary)/50 w-5 text-center shrink-0"
-                    >{{ ti + 1 }}</span
-                  >
-                  <UInput
-                    v-model="team.name"
-                    placeholder="Team Name"
-                    variant="ghost"
-                    class="flex-1 font-semibold"
-                  />
-                  <UButton
-                    size="xs"
-                    color="error"
-                    variant="ghost"
-                    icon="i-lucide-trash-2"
-                    @click="removeTeam(ti)"
-                  />
-                </div>
-
-                <div class="grid gap-2 lg:grid-cols-[minmax(0,1fr)_16rem]">
-                  <UInput
-                    v-model="team.description"
-                    placeholder="Beschreibung (optional)"
-                    variant="ghost"
-                    class="text-sm text-(--ui-muted-foreground)"
-                  />
-                  <UFormField
-                    size="sm"
-                    :label="teamDepartmentFieldLabel"
-                    :hint="teamDepartmentFieldHint"
-                    class="min-w-0"
-                  >
-                    <USelectMenu
-                      v-model="team.department"
-                      :items="departmentSelectItems"
-                      value-key="id"
-                      label-key="name"
-                      :placeholder="teamDepartmentFieldPlaceholder"
-                      :loading="departmentsPending"
-                      searchable
-                      clearable
-                      class="w-3/4"
-                    />
-                  </UFormField>
-                </div>
-              </div>
-
-              <!-- Schiffe -->
-              <div class="divide-y divide-(--ui-primary)/5">
-                <div
-                  v-if="!team.ships.length"
-                  class="px-4 py-3 text-sm text-(--ui-muted-foreground) text-center"
-                >
-                  Kein Schiff zugewiesen.
-                </div>
-
-                <div
-                  v-for="(ship, si) in team.ships"
-                  :key="si"
-                  class="px-4 py-3 space-y-3"
-                >
-                  <!-- Schiff auswählen -->
-                  <div class="flex items-center gap-2">
-                    <UIcon
-                      name="i-lucide-rocket"
-                      class="h-4 w-4 text-(--ui-primary)/50 shrink-0"
-                    />
-                    <USelectMenu
-                      v-model="ship.hangar_id"
-                      :items="fleetOptions"
-                      value-key="value"
-                      label-key="label"
-                      placeholder="Schiff aus der Flotte wählen…"
-                      :loading="fleetPending"
-                      class="flex-1"
-                      searchable
-                      @update:model-value="onShipHangarChange(ship)"
-                    />
-                    <UBadge
-                      :color="
-                        isShipOverCrewLimit(ship, 'primary')
-                          ? 'error'
-                          : 'neutral'
-                      "
-                      variant="subtle"
-                      size="sm"
-                    >
-                      Primär {{ getShipPositionSummary(ship, "primary") }}
-                    </UBadge>
-                    <UBadge
-                      :color="
-                        isShipOverCrewLimit(ship, 'secondary')
-                          ? 'error'
-                          : 'neutral'
-                      "
-                      variant="subtle"
-                      size="sm"
-                    >
-                      Sekundär {{ getShipPositionSummary(ship, "secondary") }}
-                    </UBadge>
-                    <UButton
-                      size="xs"
-                      color="error"
-                      variant="ghost"
-                      icon="i-lucide-x"
-                      @click="removeShip(team, si)"
-                    />
-                  </div>
-
-                  <p
-                    class="ml-6 text-xs"
-                    :class="
-                      isShipOverCrewLimit(ship, 'primary') ||
-                      isShipOverCrewLimit(ship, 'secondary')
-                        ? 'text-red-400'
-                        : 'text-(--ui-text-muted)'
-                    "
-                  >
-                    Primär: {{ getShipCrewLimitHint(ship, "primary") }} •
-                    Sekundär:
-                    {{ getShipCrewLimitHint(ship, "secondary") }}
-                  </p>
-                  <p
-                    v-if="ship.hangar_id"
-                    class="ml-6 text-xs text-(--ui-primary)/75"
-                  >
-                    Primäre Rollen:
-                    {{ getShipRoleSummary(ship, "primary") || "Standardrollen" }}
-                    <span class="text-(--ui-text-muted)">•</span>
-                    Sekundäre Rollen:
-                    {{
-                      getShipRoleSummary(ship, "secondary") || "Standardrollen"
-                    }}
-                  </p>
-
-                  <!-- Positionen -->
-                  <div class="ml-6 grid gap-4 md:grid-cols-2">
-                    <div
-                      v-for="positionType in POSITION_TYPE_ORDER"
-                      :key="positionType"
-                      class="space-y-2 rounded-xl border border-(--ui-primary)/8 bg-(--ui-bg-muted)/25 p-3"
-                    >
-                      <div class="flex items-center justify-between gap-3">
-                        <div>
-                          <p class="text-xs font-semibold text-white">
-                            {{ POSITION_TYPE_LABELS[positionType] }}
-                          </p>
-                          <p class="text-[11px] text-(--ui-text-muted)">
-                            {{ getShipPositionSummary(ship, positionType) }}
-                          </p>
-                        </div>
-                        <UButton
-                          v-if="!isShipPositionTypeLocked(ship, positionType)"
-                          size="xs"
-                          variant="ghost"
-                          icon="i-lucide-plus"
-                          :label="POSITION_TYPE_BADGE_LABELS[positionType]"
-                          @click="addPosition(ship, positionType)"
-                        />
-                        <UBadge
-                          v-else
-                          color="neutral"
-                          variant="subtle"
-                          size="xs"
-                          icon="i-lucide-lock"
-                        >
-                          Fixiert
-                        </UBadge>
-                      </div>
-
-                      <div
-                        v-if="getShipPositionsByType(ship, positionType).length"
-                        class="space-y-2"
-                      >
-                        <div
-                          v-for="(pos, pi) in getShipPositionsByType(ship, positionType)"
-                          :key="pos.id ?? `${positionType}-${pi}`"
-                          :class="[
-                            'grid gap-2 sm:items-center',
-                            isShipPositionTypeLocked(ship, positionType)
-                              ? 'sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]'
-                              : 'sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_auto]',
-                          ]"
-                        >
-                          <span
-                            v-if="isShipPositionTypeLocked(ship, positionType)"
-                            class="text-sm text-white break-words"
-                            :title="pos.role"
-                          >
-                            {{ pos.role }}
-                          </span>
-                          <USelectMenu
-                            v-else
-                            v-model="pos.role"
-                            :items="getShipRoleOptions(ship, positionType)"
-                            value-key="value"
-                            label-key="label"
-                            class="w-full min-w-0"
-                          />
-                          <!-- Self-assign -->
-                          <div class="flex items-center gap-1 min-w-0">
-                            <template
-                              v-if="getAssignedUserId(pos) === currentUserId"
-                            >
-                              <span
-                                class="flex-1 truncate text-xs font-medium text-(--ui-primary)"
-                              >
-                                Ich
-                              </span>
-                              <UButton
-                                size="xs"
-                                variant="ghost"
-                                color="error"
-                                icon="i-lucide-user-minus"
-                                @click="unassignSelf(ship, pos)"
-                              />
-                            </template>
-                            <template
-                              v-else-if="getAssignedUserId(pos)"
-                            >
-                              <span
-                                class="flex-1 truncate text-xs text-white"
-                                :title="getUserLabel(pos.assigned_user)"
-                              >
-                                {{ getUserLabel(pos.assigned_user) }}
-                              </span>
-                              <UTooltip text="Durch mich ersetzen">
-                                <UButton
-                                  size="xs"
-                                  variant="ghost"
-                                  color="warning"
-                                  icon="i-lucide-repeat-2"
-                                  @click="tryAssignSelf(ship, pos)"
-                                />
-                              </UTooltip>
-                            </template>
-                            <template v-else>
-                              <UButton
-                                size="xs"
-                                variant="ghost"
-                                icon="i-lucide-user-plus"
-                                label="Mir zuweisen"
-                                class="flex-1 justify-start"
-                                @click="tryAssignSelf(ship, pos)"
-                              />
-                            </template>
-                          </div>
-                          <div
-                            v-if="!isShipPositionTypeLocked(ship, positionType)"
-                            class="flex justify-end sm:justify-start"
-                          >
-                            <UButton
-                              size="xs"
-                              color="error"
-                              variant="ghost"
-                              icon="i-lucide-minus"
-                              @click="removePosition(ship, pos)"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div
-                        v-else
-                        class="rounded-lg border border-dashed border-(--ui-primary)/12 px-3 py-4 text-center text-xs text-(--ui-text-muted)"
-                      >
-                        Noch keine
-                        {{ POSITION_TYPE_LABELS[positionType].toLowerCase() }}.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Schiff hinzufügen -->
-              <div
-                class="px-4 py-2 border-t border-(--ui-primary)/5 bg-(--ui-bg-muted)/20"
-              >
-                <UButton
-                  size="xs"
-                  variant="ghost"
-                  icon="i-lucide-plus"
-                  label="Schiff hinzufügen"
-                  @click="addShip(team)"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+    <div v-else class="grid grid-cols-1 gap-6 pb-10 lg:grid-cols-3">
+      <div class="space-y-4 lg:col-span-2">
+        <AMSPagesMissionsPlannerTeamsEditor
+          :teams="teams"
+          :current-user-id="currentUserId"
+          :total-draft-primary-summary="totalDraftPrimarySummary"
+          :total-draft-secondary-summary="totalDraftSecondarySummary"
+          :team-department-field-label="teamDepartmentFieldLabel"
+          :team-department-field-hint="teamDepartmentFieldHint"
+          :team-department-field-placeholder="teamDepartmentFieldPlaceholder"
+          :department-select-items="departmentSelectItems"
+          :departments-pending="departmentsPending"
+          :fleet-options="fleetOptions"
+          :fleet-pending="fleetPending"
+          :position-type-order="POSITION_TYPE_ORDER"
+          :position-type-labels="POSITION_TYPE_LABELS"
+          :position-type-badge-labels="POSITION_TYPE_BADGE_LABELS"
+          :add-team="addTeam"
+          :remove-team="removeTeam"
+          :add-ship="addShip"
+          :remove-ship="removeShip"
+          :on-ship-hangar-change="onShipHangarChange"
+          :is-ship-over-crew-limit="isShipOverCrewLimit"
+          :get-ship-position-summary="getShipPositionSummary"
+          :get-ship-crew-limit-hint="getShipCrewLimitHint"
+          :get-ship-role-summary="getShipRoleSummary"
+          :get-ship-positions-by-type="getShipPositionsByType"
+          :is-ship-position-type-locked="isShipPositionTypeLocked"
+          :get-assigned-user-id="getAssignedUserId"
+          :get-user-label="getUserLabel"
+          :try-assign-self="tryAssignSelf"
+          :unassign-self="unassignSelf"
+          :get-ship-role-options="getShipRoleOptions"
+          :add-position="addPosition"
+          :remove-position="removePosition"
+        />
       </div>
 
-      <!-- Details Sidebar -->
       <div class="space-y-4 lg:sticky lg:top-4 lg:self-start">
-        <div
-          class="rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/50 p-5 space-y-4"
-        >
-          <h2
-            class="text-xs font-semibold text-(--ui-primary) uppercase tracking-wider mt-0!"
-          >
-            Mission Details
-          </h2>
-
-          <UFormField label="Titel" required>
-            <UInput
-              v-model="form.title"
-              placeholder="z.B. Operation Silberstern"
-              class="w-full"
-            />
-          </UFormField>
-
-          <div class="grid grid-cols-2 gap-3">
-            <UFormField label="Typ">
-              <USelectMenu
-                v-model="form.mission_type"
-                :items="TYPE_OPTIONS"
-                value-key="value"
-                label-key="label"
-                class="w-full"
-              />
-            </UFormField>
-
-            <UFormField label="Status">
-              <USelectMenu
-                v-model="form.status"
-                :items="STATUS_OPTIONS"
-                value-key="value"
-                label-key="label"
-                class="w-full"
-              />
-            </UFormField>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <UFormField label="Treffpunkt">
-              <UInput
-                v-model="form.start_location"
-                placeholder="Port Olisar…"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField label="Missionsort">
-              <UInput
-                v-model="form.location"
-                placeholder="Lorville…"
-                class="w-full"
-              />
-            </UFormField>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <UFormField
-              label="Vorr. Dauer"
-              hint="in Stunden, z.B. 1,5"
-              required
-            >
-              <UInput
-                v-model="form.duration_hours"
-                inputmode="decimal"
-                placeholder="z.B. 2,5"
-                class="w-full"
-              />
-            </UFormField>
-
-            <div
-              class="rounded-xl border border-(--ui-primary)/10 bg-(--ui-bg)/60 px-3 py-2.5"
-            >
-              <p
-                class="text-[0.6rem] uppercase tracking-[0.24em] text-(--ui-text-muted)"
-              >
-                Rollenübersicht
-              </p>
-              <p class="mt-1 text-sm font-medium text-white">
-                Primär {{ totalDraftPrimarySummary }}
-              </p>
-              <p class="mt-1 text-sm font-medium text-white">
-                Sekundär {{ totalDraftSecondarySummary }}
-              </p>
-              <p class="mt-1 text-xs text-(--ui-text-muted)">
-                {{ totalDraftPositionsHint }}
-              </p>
-            </div>
-          </div>
-
-          <UFormField label="Beschreibung">
-            <UTextarea
-              v-model="form.description"
-              placeholder="Ziele, Regeln, Infos…"
-              :rows="4"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField label="Datum & Uhrzeit">
-            <div class="space-y-3">
-              <div class="flex items-center justify-between gap-3">
-                <p class="text-sm text-(--ui-text-muted)">
-                  {{ plannedDateSummary }}
-                </p>
-                <UButton
-                  v-if="plannedCalendarDate"
-                  size="xs"
-                  variant="ghost"
-                  color="neutral"
-                  icon="i-lucide-x"
-                  label="Leeren"
-                  @click="clearPlannedDate"
-                />
-              </div>
-
-              <div
-                class="relative overflow-hidden rounded-2xl border border-(--ui-primary)/12 bg-(--ui-bg-muted)/55 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ring-1 ring-inset ring-white/5 backdrop-blur-sm"
-              >
-                <div
-                  aria-hidden="true"
-                  class="pointer-events-none absolute inset-x-6 top-0 h-20 rounded-full bg-(--ui-primary)/10 blur-3xl not-prose"
-                />
-                <UCalendar
-                  v-model="plannedDateModel"
-                  :week-starts-on="1"
-                  calendar-label="Missionsdatum"
-                  size="xs"
-                  variant="outline"
-                  class="relative w-full not-prose!"
-                  :ui="plannedCalendarUi"
-                />
-              </div>
-
-              <UInputTime
-                v-model="plannedTime"
-                :hour-cycle="24"
-                :default-value="plannedTimeDefaultValue"
-                class="w-full"
-                :disabled="!plannedCalendarDate"
-              />
-            </div>
-          </UFormField>
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <UButton
-            :loading="loading"
-            icon="i-lucide-save"
-            :label="isEditing ? 'Änderungen speichern' : 'Mission erstellen'"
-            class="w-full justify-center"
-            @click="save"
-          />
-          <UButton
-            :to="isEditing && editId ? `/ams/missions/${editId}` : '/ams/missions'"
-            variant="ghost"
-            label="Abbrechen"
-            class="w-full justify-center"
-          />
-        </div>
+        <AMSPagesMissionsPlannerDetailsForm
+          v-model:form="form"
+          v-model:planned-calendar-date="plannedCalendarDate"
+          v-model:planned-time="plannedTime"
+          :type-options="TYPE_OPTIONS"
+          :status-options="STATUS_OPTIONS"
+          :planned-date-summary="plannedDateSummary"
+          :planned-calendar-ui="plannedCalendarUi"
+          :planned-time-default-value="plannedTimeDefaultValue"
+          :total-draft-primary-summary="totalDraftPrimarySummary"
+          :total-draft-secondary-summary="totalDraftSecondarySummary"
+          :total-draft-positions-hint="totalDraftPositionsHint"
+          :show-actions="true"
+          :loading="loading"
+          :submit-label="isEditing ? 'Änderungen speichern' : 'Mission erstellen'"
+          :cancel-to="cancelTo"
+          @save="save"
+        />
       </div>
     </div>
 

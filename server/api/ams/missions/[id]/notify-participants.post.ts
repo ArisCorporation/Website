@@ -1,4 +1,4 @@
-import { DEVELOPMENT_DM_USER_ID, DISCORD_EMBED_COLOR, getDiscordEnvironment } from '../../../../utils/ams-discord-mission-share'
+import { DEVELOPMENT_DM_USER_ID, DISCORD_EMBED_COLOR, PRODUCTION_CHANNEL_ID, getDiscordEnvironment } from '../../../../utils/ams-discord-mission-share'
 
 const DISCORD_API_BASE = 'https://discord.com/api/v10'
 
@@ -17,10 +17,18 @@ type MissionParticipant = {
   last_name?: string | null
 }
 
+type ShareTarget = {
+  channelId: string
+  messageId: string
+}
+
 type MissionRecord = {
   id: string
   title?: string | null
   planned_date?: string | null
+  discord_share_targets?: string | Record<string, ShareTarget> | null
+  discord_share_channel_id?: string | null
+  discord_share_environment?: string | null
   registrations?: Array<{
     id: string
     status?: string | null
@@ -174,6 +182,9 @@ export default defineEventHandler(async (event) => {
           'id',
           'title',
           'planned_date',
+          'discord_share_targets',
+          'discord_share_channel_id',
+          'discord_share_environment',
           'registrations.id',
           'registrations.status',
           'registrations.user.id',
@@ -218,6 +229,36 @@ export default defineEventHandler(async (event) => {
     } catch (error) {
       console.error(`Failed to notify ${getUserLabel(recipient)} (${discordId})`, error)
       results.failed++
+    }
+  }
+
+  // For reschedule: also post an announcement to the Discord channel
+  if (body.type === 'reschedule') {
+    try {
+      let announcementChannelId: string
+
+      if (environment === 'PRODUCTION') {
+        let shareTargets: Record<string, ShareTarget> = {}
+        const raw = mission.discord_share_targets
+        if (raw) {
+          try {
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+            if (parsed && typeof parsed === 'object') shareTargets = parsed as Record<string, ShareTarget>
+          } catch { /* ignore */ }
+        }
+        announcementChannelId =
+          shareTargets['PRODUCTION']?.channelId ??
+          (getDiscordEnvironment(mission.discord_share_environment) === 'PRODUCTION'
+            ? (mission.discord_share_channel_id ?? PRODUCTION_CHANNEL_ID)
+            : PRODUCTION_CHANNEL_ID)
+      } else {
+        const dmChannel = await createDmChannel(DEVELOPMENT_DM_USER_ID, botToken)
+        announcementChannelId = dmChannel
+      }
+
+      await sendDm(announcementChannelId, botToken, embed)
+    } catch (error) {
+      console.error('Failed to post reschedule channel announcement', error)
     }
   }
 

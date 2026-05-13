@@ -35,17 +35,6 @@ const { data: ships } = await useAsyncData('ships', () => {
 
 const dropdownItems = ref<DropdownMenuItem[]>([
   {
-    label: 'Aktionen',
-    type: 'label',
-  },
-  {
-    type: 'separator',
-  },
-  {
-    onSelect: () => toggleWizard(),
-    slot: 'mode',
-  },
-  {
     label: 'Verlauf',
   },
   {
@@ -165,80 +154,43 @@ definePageMeta({
       title="aUEC Anteilsrechner"
       description="Berechne die Verteilung von Einnahmen und Ausgaben für Missionen."
     >
-      <UDropdownMenu
-        :items="dropdownItems"
-        :content="{
-          align: 'start',
-          side: 'bottom',
-          sideOffset: 8,
-        }"
-        :ui="{
-          content: 'w-48 ring-(--ui-primary)/20 bg-(--ui-bg-muted)',
-          separator: 'bg-(--ui-primary)/10',
-        }"
-      >
-        <UButton label="Optionen" icon="i-lucide-menu" variant="outline" />
-        <template #mode-label>
-          {{ wizardCookie ? 'Expertenmodus' : 'Assistenten-Modus' }}
-        </template>
-      </UDropdownMenu>
+      <AMSUiAssistantModeDropdown
+        :assistant-active="wizardCookie === true"
+        :extra-items="dropdownItems"
+        @toggle-mode="toggleWizard"
+      />
     </AMSPageHeader>
     <!-- todo: history -->
-    <UCard v-if="wizardCookie" variant="ams">
-      <template #header>
-        <div class="flex items-center justify-between ams-card-title">
-          <h2>{{ steps[currentStep]?.title }}</h2>
-          <div class="flex items-center space-x-2">
-            <UIcon :name="steps[currentStep]?.icon ?? ''" />
-            <span class="text-sm text-(--ui-text-muted)">
-              Schritt {{ currentStep + 1 }} von {{ steps.length }}
-            </span>
-          </div>
-        </div>
-        <AMSPagesCalculatorStepsIndicator
-          :total-steps="steps.length"
-          :current-step="currentStep"
-        />
-      </template>
-      <template #default>
-        <AMSPagesCalculatorStepsSettings v-if="currentStep == 0" />
-        <AMSPagesCalculatorStepsCrews
-          v-if="currentStep == 1"
-          :users="users ?? []"
-          :ships="ships ?? []"
-        />
-        <AMSPagesCalculatorStepsMoney
-          v-if="currentStep == 2"
-          :users="users ?? []"
-        />
-        <AMSPagesCalculatorStepsDistribution
-          v-if="currentStep == 3"
-          @calculate="calculate"
-          :calculated="calculated"
-          :calculating="calculating"
-          :distribution="distribution"
-          :settings="settings"
-          :users="users ?? []"
-        />
-        <div class="mt-4 flex w-full justify-between">
-          <UButton
-            @click="currentStep--"
-            :disabled="currentStep == 0"
-            variant="outline"
-            size="lg"
-            label="Zurück"
-          />
-          <UButton
-            v-if="currentStep < steps.length - 1"
-            @click="currentStep++"
-            :disabled="nextDisabled"
-            variant="solid"
-            size="lg"
-            label="Weiter"
-          />
-        </div>
-      </template>
-    </UCard>
+    <AMSUiAssistantFlow
+      v-if="wizardCookie"
+      :steps="steps"
+      :current-step="currentStep"
+      :previous-disabled="currentStep == 0"
+      :next-disabled="nextDisabled"
+      :show-next="currentStep < steps.length - 1"
+      @previous="currentStep--"
+      @next="currentStep++"
+    >
+      <AMSPagesCalculatorStepsSettings v-if="currentStep == 0" />
+      <AMSPagesCalculatorStepsCrews
+        v-if="currentStep == 1"
+        :users="users ?? []"
+        :ships="ships ?? []"
+      />
+      <AMSPagesCalculatorStepsMoney
+        v-if="currentStep == 2"
+        :users="users ?? []"
+      />
+      <AMSPagesCalculatorStepsDistribution
+        v-if="currentStep == 3"
+        @calculate="calculate"
+        :calculated="calculated"
+        :calculating="calculating"
+        :distribution="distribution"
+        :settings="settings"
+        :users="users ?? []"
+      />
+    </AMSUiAssistantFlow>
     <UTabs
       v-else
       v-model="activeTab"

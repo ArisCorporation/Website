@@ -27,6 +27,14 @@ export type Transfer = {
   worker: number | null
 }
 
+export interface CalculatorUserOption {
+  id: string
+  label: string
+  avatar?: {
+    src?: any
+  }
+}
+
 export interface CalculatedPayout {
   workerId: number;
   isManager: boolean;

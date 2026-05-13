@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import type { DirectusUser, Ship } from '~~/types'
-import type { CalculatorSettings, OverallDistributionSummary } from '~~/types'
+import type {
+  CalculatorSettings,
+  CalculatorUserOption,
+  OverallDistributionSummary,
+  Ship,
+} from '~~/types'
 
 defineProps<{
   distribution: OverallDistributionSummary | null
   settings: CalculatorSettings
   calculated: boolean
   calculating: boolean
-  users: DirectusUser[]
+  users: CalculatorUserOption[]
   ships: Ship[]
   nextDisabled: boolean
 }>()
