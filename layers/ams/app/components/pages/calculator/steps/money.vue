@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { DirectusUser } from '~~/types'
+import type { CalculatorUserOption } from '~~/types'
 
-defineProps<{ users: DirectusUser[] }>()
+defineProps<{ users: CalculatorUserOption[] }>()
 </script>
 
 <template>

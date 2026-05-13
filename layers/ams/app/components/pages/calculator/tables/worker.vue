@@ -2,10 +2,9 @@
 import type { TableColumn } from '@nuxt/ui'
 import { useSortable } from '@vueuse/integrations/useSortable.mjs'
 import type { MoveEvent, SortableEvent } from 'sortablejs'
-import type { Worker, Crew } from '~~/types'
-import type { DirectusUser } from '~~/types'
+import type { CalculatorUserOption, Worker, Crew } from '~~/types'
 
-const props = defineProps<{ users: DirectusUser[] }>()
+const props = defineProps<{ users: CalculatorUserOption[] }>()
 
 const store = useAMSCalculatorStore()
 const { workers, crews, settings } = storeToRefs(store)

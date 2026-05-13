@@ -1,6 +1,9 @@
-import type { DirectusUser, Worker } from '~~/types'
+import type { CalculatorUserOption, Worker } from '~~/types'
 
-export default function (worker: Worker | undefined, users: DirectusUser[]): string | null {
+export default function (
+  worker: Worker | undefined,
+  users: CalculatorUserOption[]
+): string | null {
   if (!worker) return ''
 
   if (worker.external) {

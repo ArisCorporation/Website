@@ -559,7 +559,7 @@ function removeRegistration(registration: any) {
           class="inline-flex max-w-full items-center gap-2 rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/45 px-2 py-1.5"
         >
           <NuxtImg
-            class="h-4 w-4 shrink-0 rounded-full object-cover"
+            class="h-4 w-4 shrink-0 rounded-full object-cover my-0!"
             :src="
               getAssetId(registration.user?.avatar) ??
               '88adb941-f746-405d-bcc4-c2804fb48e33'
@@ -694,7 +694,7 @@ function removeRegistration(registration: any) {
               class="inline-flex max-w-full items-center gap-2 rounded-lg border border-(--ui-primary)/10 bg-(--ui-bg-muted)/45 px-2 py-1.5"
             >
               <NuxtImg
-                class="h-4 w-4 shrink-0 rounded-full object-cover"
+                class="h-4 w-4 shrink-0 rounded-full object-cover my-0!"
                 :src="
                   getAssetId(registration.user?.avatar) ??
                   '88adb941-f746-405d-bcc4-c2804fb48e33'

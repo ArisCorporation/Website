@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type {
+  CalculatorUserOption,
   CalculatorSettings,
-  DirectusUser,
   OverallDistributionSummary,
 } from '~~/types'
 
 defineProps<{
   distribution: OverallDistributionSummary | null
   settings: CalculatorSettings
-  users: DirectusUser[]
+  users: CalculatorUserOption[]
   calculated: boolean
   calculating: boolean
 }>()
