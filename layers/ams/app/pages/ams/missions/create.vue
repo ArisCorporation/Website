@@ -952,6 +952,7 @@ async function save() {
     const currentTeamIds: string[] = [];
     const currentShipIds: string[] = [];
     const currentPositionIds: string[] = [];
+    const positionRegistrationPlan: Array<{ positionId: string; assignedUserId: string; teamId: string }> = [];
 
     for (const team of teams.value) {
       let teamId: string;
@@ -1039,19 +1040,76 @@ async function save() {
                   updateItem("ams_mission_positions" as any, pos.id, posPayload),
                 );
                 currentPositionIds.push(pos.id);
+                if (assignedUserId) {
+                  positionRegistrationPlan.push({ positionId: pos.id, assignedUserId, teamId });
+                }
               } else {
-                await useDirectus(
+                const newPos = (await useDirectus(
                   createItem("ams_mission_positions" as any, {
                     team_ship: shipId,
                     ...posPayload,
                   }),
-                );
+                )) as any;
+                if (assignedUserId) {
+                  positionRegistrationPlan.push({ positionId: newPos.id, assignedUserId, teamId });
+                }
               }
             }),
           );
         });
 
       await Promise.all(shipPromises);
+    }
+
+    // Sync position registrations to match planner-assigned positions
+    try {
+      const existingPositionRegs = (await useDirectus(
+        readItems("ams_mission_registrations" as any, {
+          filter: { mission: { _eq: missionId }, type: { _eq: "position" } } as any,
+          fields: ["id", "position", "user"],
+          limit: -1,
+        }),
+      )) as Array<{ id: string; position: any; user: any }>;
+
+      const getPosId = (v: any): string | null => (typeof v === "object" ? v?.id : v) ?? null;
+      const getUsrId = (v: any): string | null => (typeof v === "object" ? v?.id : v) ?? null;
+      const currentPositionIdSet = new Set(positionRegistrationPlan.map((p) => p.positionId));
+      const assignedMap = new Map(positionRegistrationPlan.map((p) => [p.positionId, p]));
+
+      await Promise.all([
+        // Create missing registrations for assigned positions
+        ...positionRegistrationPlan
+          .filter(
+            (plan) =>
+              !existingPositionRegs.some(
+                (r) => getPosId(r.position) === plan.positionId && getUsrId(r.user) === plan.assignedUserId,
+              ),
+          )
+          .map((plan) =>
+            useDirectus(
+              createItem("ams_mission_registrations" as any, {
+                mission: missionId,
+                user: plan.assignedUserId,
+                type: "position",
+                team: plan.teamId,
+                position: plan.positionId,
+                status: "approved",
+              }),
+            ),
+          ),
+        // Delete orphaned registrations for current positions where user changed or was cleared
+        ...existingPositionRegs
+          .filter((r) => {
+            const posId = getPosId(r.position);
+            if (!posId || !currentPositionIdSet.has(posId)) return false;
+            const userId = getUsrId(r.user);
+            const plan = assignedMap.get(posId);
+            return !plan || plan.assignedUserId !== userId;
+          })
+          .map((r) => useDirectus(deleteItem("ams_mission_registrations" as any, r.id))),
+      ]);
+    } catch (regSyncError) {
+      console.error("Position registration sync failed", regSyncError);
     }
 
     if (isEditing.value) {
@@ -1217,7 +1275,11 @@ definePageMeta({
                 name="i-lucide-users"
                 class="h-8 w-8 mx-auto mb-2 opacity-30"
               />
-              <p>Noch keine Teams. Klicke auf "Team hinzufügen".</p>
+              <p>Noch keine Teams.</p>
+              <div class="flex items-center justify-center gap-1.5 mt-4 text-(--ui-primary)">
+                <UIcon name="i-lucide-corner-right-up" class="h-4 w-4 animate-bounce shrink-0" />
+                <span class="text-xs font-medium">Klicke auf "Team hinzufügen" oben rechts</span>
+              </div>
             </div>
 
             <div
