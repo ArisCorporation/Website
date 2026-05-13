@@ -4,75 +4,77 @@ import type {
   MissionPlannerPositionType,
   MissionPlannerShipDraft,
   MissionPlannerTeamDraft,
-} from '~~/types'
+} from "~~/types";
 
 defineProps<{
-  teams: MissionPlannerTeamDraft[]
-  currentUserId: string | null | undefined
-  totalDraftPrimarySummary: string
-  totalDraftSecondarySummary: string
-  teamDepartmentFieldLabel: string
-  teamDepartmentFieldHint?: string
-  teamDepartmentFieldPlaceholder: string
-  departmentSelectItems: any[]
-  departmentsPending: boolean
-  fleetOptions: any[]
-  fleetPending: boolean
-  positionTypeOrder: MissionPlannerPositionType[]
-  positionTypeLabels: Record<MissionPlannerPositionType, string>
-  positionTypeBadgeLabels: Record<MissionPlannerPositionType, string>
-  addTeam: () => void
-  removeTeam: (index: number) => void
-  addShip: (team: MissionPlannerTeamDraft) => void
-  removeShip: (team: MissionPlannerTeamDraft, index: number) => void
-  onShipHangarChange: (ship: MissionPlannerShipDraft) => void
+  teams: MissionPlannerTeamDraft[];
+  currentUserId: string | null | undefined;
+  totalDraftPrimarySummary: string;
+  totalDraftSecondarySummary: string;
+  totalDraftPositionsHint?: string;
+  showRoleSummary?: boolean;
+  teamDepartmentFieldLabel: string;
+  teamDepartmentFieldHint?: string;
+  teamDepartmentFieldPlaceholder: string;
+  departmentSelectItems: any[];
+  departmentsPending: boolean;
+  fleetOptions: any[];
+  fleetPending: boolean;
+  positionTypeOrder: MissionPlannerPositionType[];
+  positionTypeLabels: Record<MissionPlannerPositionType, string>;
+  positionTypeBadgeLabels: Record<MissionPlannerPositionType, string>;
+  addTeam: () => void;
+  removeTeam: (index: number) => void;
+  addShip: (team: MissionPlannerTeamDraft) => void;
+  removeShip: (team: MissionPlannerTeamDraft, index: number) => void;
+  onShipHangarChange: (ship: MissionPlannerShipDraft) => void;
   isShipOverCrewLimit: (
     ship: MissionPlannerShipDraft,
-    positionType: MissionPlannerPositionType
-  ) => boolean
+    positionType: MissionPlannerPositionType,
+  ) => boolean;
   getShipPositionSummary: (
     ship: MissionPlannerShipDraft,
-    positionType: MissionPlannerPositionType
-  ) => string
+    positionType: MissionPlannerPositionType,
+  ) => string;
   getShipCrewLimitHint: (
     ship: MissionPlannerShipDraft,
-    positionType: MissionPlannerPositionType
-  ) => string
+    positionType: MissionPlannerPositionType,
+  ) => string;
   getShipRoleSummary: (
     ship: MissionPlannerShipDraft,
-    positionType: MissionPlannerPositionType
-  ) => string | null
+    positionType: MissionPlannerPositionType,
+  ) => string | null;
   getShipPositionsByType: (
     ship: MissionPlannerShipDraft,
-    positionType: MissionPlannerPositionType
-  ) => MissionPlannerPositionDraft[]
+    positionType: MissionPlannerPositionType,
+  ) => MissionPlannerPositionDraft[];
   isShipPositionTypeLocked: (
     ship: MissionPlannerShipDraft,
-    positionType: MissionPlannerPositionType
-  ) => boolean
-  getAssignedUserId: (position: MissionPlannerPositionDraft) => string | null
-  getUserLabel: (user: any) => string
+    positionType: MissionPlannerPositionType,
+  ) => boolean;
+  getAssignedUserId: (position: MissionPlannerPositionDraft) => string | null;
+  getUserLabel: (user: any) => string;
   tryAssignSelf: (
     ship: MissionPlannerShipDraft,
-    position: MissionPlannerPositionDraft
-  ) => void
+    position: MissionPlannerPositionDraft,
+  ) => void;
   unassignSelf: (
     ship: MissionPlannerShipDraft,
-    position: MissionPlannerPositionDraft
-  ) => void
+    position: MissionPlannerPositionDraft,
+  ) => void;
   getShipRoleOptions: (
     ship: MissionPlannerShipDraft,
-    positionType: MissionPlannerPositionType
-  ) => Array<{ label: string; value: string }>
+    positionType: MissionPlannerPositionType,
+  ) => Array<{ label: string; value: string }>;
   addPosition: (
     ship: MissionPlannerShipDraft,
-    positionType: MissionPlannerPositionType
-  ) => void
+    positionType: MissionPlannerPositionType,
+  ) => void;
   removePosition: (
     ship: MissionPlannerShipDraft,
-    position: MissionPlannerPositionDraft
-  ) => void
-}>()
+    position: MissionPlannerPositionDraft,
+  ) => void;
+}>();
 </script>
 
 <template>
@@ -109,24 +111,46 @@ defineProps<{
 
     <div class="space-y-4 p-5">
       <div
+        v-if="showRoleSummary"
+        class="rounded-xl border border-(--ui-primary)/10 bg-(--ui-bg)/60 px-4 py-3"
+      >
+        <p
+          class="text-[0.6rem] uppercase tracking-[0.24em] text-(--ui-text-muted)"
+        >
+          Rollenübersicht
+        </p>
+        <div class="mt-2 grid gap-3 sm:grid-cols-2">
+          <p class="text-sm font-medium text-white">
+            Primär {{ totalDraftPrimarySummary }}
+          </p>
+          <p class="text-sm font-medium text-white">
+            Sekundär {{ totalDraftSecondarySummary }}
+          </p>
+        </div>
+        <p
+          v-if="totalDraftPositionsHint"
+          class="mt-2 text-xs text-(--ui-text-muted)"
+        >
+          {{ totalDraftPositionsHint }}
+        </p>
+      </div>
+
+      <div
         v-if="!teams.length"
         class="py-10 text-center text-sm text-(--ui-muted-foreground)"
       >
-        <UIcon
-          name="i-lucide-users"
-          class="mx-auto mb-2 h-8 w-8 opacity-30"
-        />
+        <UIcon name="i-lucide-users" class="mx-auto mb-2 h-8 w-8 opacity-30" />
         <p>Noch keine Teams.</p>
         <div
           class="mt-4 flex items-center justify-center gap-1.5 text-(--ui-primary)"
         >
+          <span class="text-xs font-medium">
+            Klicke auf "Team hinzufügen" oben rechts
+          </span>
           <UIcon
             name="i-lucide-corner-right-up"
             class="h-4 w-4 shrink-0 animate-bounce"
           />
-          <span class="text-xs font-medium">
-            Klicke auf "Team hinzufügen" oben rechts
-          </span>
         </div>
       </div>
 
@@ -223,7 +247,7 @@ defineProps<{
                 variant="subtle"
                 size="sm"
               >
-                Primär {{ getShipPositionSummary(ship, 'primary') }}
+                Primär {{ getShipPositionSummary(ship, "primary") }}
               </UBadge>
               <UBadge
                 :color="
@@ -232,7 +256,7 @@ defineProps<{
                 variant="subtle"
                 size="sm"
               >
-                Sekundär {{ getShipPositionSummary(ship, 'secondary') }}
+                Sekundär {{ getShipPositionSummary(ship, "secondary") }}
               </UBadge>
               <UButton
                 size="xs"
@@ -252,18 +276,18 @@ defineProps<{
                   : 'text-(--ui-text-muted)'
               "
             >
-              Primär: {{ getShipCrewLimitHint(ship, 'primary') }} • Sekundär:
-              {{ getShipCrewLimitHint(ship, 'secondary') }}
+              Primär: {{ getShipCrewLimitHint(ship, "primary") }} • Sekundär:
+              {{ getShipCrewLimitHint(ship, "secondary") }}
             </p>
             <p
               v-if="ship.hangar_id"
               class="ml-6 text-xs text-(--ui-primary)/75"
             >
               Primäre Rollen:
-              {{ getShipRoleSummary(ship, 'primary') || 'Standardrollen' }}
+              {{ getShipRoleSummary(ship, "primary") || "Standardrollen" }}
               <span class="text-(--ui-text-muted)">•</span>
               Sekundäre Rollen:
-              {{ getShipRoleSummary(ship, 'secondary') || 'Standardrollen' }}
+              {{ getShipRoleSummary(ship, "secondary") || "Standardrollen" }}
             </p>
 
             <div class="ml-6 grid gap-4 md:grid-cols-2">
@@ -305,7 +329,10 @@ defineProps<{
                   class="space-y-2"
                 >
                   <div
-                    v-for="(pos, pi) in getShipPositionsByType(ship, positionType)"
+                    v-for="(pos, pi) in getShipPositionsByType(
+                      ship,
+                      positionType,
+                    )"
                     :key="pos.id ?? `${positionType}-${pi}`"
                     :class="[
                       'grid gap-2 sm:items-center',

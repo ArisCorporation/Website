@@ -103,8 +103,12 @@ const POSITION_TYPE_BADGE_LABELS: Record<PositionType, string> = {
 
 const plannerSteps = [
   {
-    title: "Missionseinstellungen",
+    title: "Basisdaten",
     icon: "i-lucide-file-text",
+  },
+  {
+    title: "Termin & Details",
+    icon: "i-lucide-calendar-clock",
   },
   {
     title: "Teams & Schiffe",
@@ -889,8 +893,10 @@ const parsedDurationMinutes = computed(() =>
   parseDurationHours(form.duration_hours),
 );
 
-const isDetailsStepInvalid = computed(
-  () => !form.title.trim() || parsedDurationMinutes.value === null,
+const isDetailsStepInvalid = computed(() => !form.title.trim());
+
+const isPlanningStepInvalid = computed(
+  () => parsedDurationMinutes.value === null,
 );
 
 const hasIncompleteTeams = computed(() =>
@@ -915,6 +921,8 @@ const nextDisabled = computed(() => {
     case 0:
       return isDetailsStepInvalid.value;
     case 1:
+      return isPlanningStepInvalid.value;
+    case 2:
       return isTeamsStepInvalid.value;
     default:
       return true;
@@ -1307,6 +1315,7 @@ definePageMeta({
         v-model:form="form"
         v-model:planned-calendar-date="plannedCalendarDate"
         v-model:planned-time="plannedTime"
+        section="basics"
         :type-options="TYPE_OPTIONS"
         :status-options="STATUS_OPTIONS"
         :planned-date-summary="plannedDateSummary"
@@ -1316,12 +1325,30 @@ definePageMeta({
         :total-draft-secondary-summary="totalDraftSecondarySummary"
         :total-draft-positions-hint="totalDraftPositionsHint"
       />
-      <AMSPagesMissionsPlannerTeamsEditor
+      <AMSPagesMissionsPlannerDetailsForm
         v-else-if="currentStep === 1"
+        v-model:form="form"
+        v-model:planned-calendar-date="plannedCalendarDate"
+        v-model:planned-time="plannedTime"
+        section="planning"
+        :type-options="TYPE_OPTIONS"
+        :status-options="STATUS_OPTIONS"
+        :planned-date-summary="plannedDateSummary"
+        :planned-calendar-ui="plannedCalendarUi"
+        :planned-time-default-value="plannedTimeDefaultValue"
+        :total-draft-primary-summary="totalDraftPrimarySummary"
+        :total-draft-secondary-summary="totalDraftSecondarySummary"
+        :total-draft-positions-hint="totalDraftPositionsHint"
+        :split-date-time="true"
+      />
+      <AMSPagesMissionsPlannerTeamsEditor
+        v-else-if="currentStep === 2"
         :teams="teams"
         :current-user-id="currentUserId"
         :total-draft-primary-summary="totalDraftPrimarySummary"
         :total-draft-secondary-summary="totalDraftSecondarySummary"
+        :total-draft-positions-hint="totalDraftPositionsHint"
+        :show-role-summary="true"
         :team-department-field-label="teamDepartmentFieldLabel"
         :team-department-field-hint="teamDepartmentFieldHint"
         :team-department-field-placeholder="teamDepartmentFieldPlaceholder"

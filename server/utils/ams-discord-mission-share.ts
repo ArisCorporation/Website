@@ -23,37 +23,6 @@ const TYPE_LABELS: Record<string, string> = {
   other: "Sonstiges",
 };
 
-const ROLE_LABELS: Record<string, string> = {
-  pilot: "Pilot",
-  co_pilot: "Co-Pilot",
-  mining_operator: "Mining Operator",
-  cargo_operator: "Cargo Operator",
-  turret_operator: "Turret Operator",
-  engineer: "Ingenieur",
-  medic: "Medic",
-  scout: "Aufklärer",
-  passenger: "Passagier",
-  other: "Sonstiges",
-};
-
-const ROLE_ORDER = [
-  "pilot",
-  "co_pilot",
-  "mining_operator",
-  "cargo_operator",
-  "turret_operator",
-  "engineer",
-  "medic",
-  "scout",
-  "passenger",
-  "other",
-];
-
-const POSITION_TYPE_LABELS: Record<"primary" | "secondary", string> = {
-  primary: "Primär",
-  secondary: "Sekundär",
-};
-
 type DiscordChannelResponse = {
   id: string;
 };
@@ -78,37 +47,14 @@ type DiscordShareTargets = Partial<
 >;
 
 type MissionPosition = {
-  id: string;
-  role?: string | null;
   status?: string | null;
-  position_type?: "primary" | "secondary" | null;
 };
 
 type MissionShip = {
-  id: string;
-  hangar_id?: {
-    id?: number | null;
-    name?: string | null;
-    ship?: {
-      name?: string | null;
-      hull?: {
-        name?: string | null;
-        manufacturer?: {
-          name?: string | null;
-        } | null;
-      } | null;
-    } | null;
-  } | null;
   positions?: MissionPosition[] | null;
 };
 
 type MissionTeam = {
-  id: string;
-  name?: string | null;
-  department?: {
-    id?: string | null;
-    name?: string | null;
-  } | null;
   ships?: MissionShip[] | null;
 };
 
@@ -220,97 +166,6 @@ function formatDuration(value?: number | null) {
 
 function hasMissionPlannerAccess(accessLevel?: number | null) {
   return Number(accessLevel ?? 0) >= MISSION_PLANNER_ACCESS_LEVEL;
-}
-
-function getPositionStatusLabel(position: MissionPosition) {
-  if (position.status === "filled") return "besetzt";
-  if (position.status === "pending") return "angefragt";
-  return "frei";
-}
-
-function getPositionType(position: MissionPosition): "primary" | "secondary" {
-  return position.position_type === "secondary" ? "secondary" : "primary";
-}
-
-function getRoleOrder(role?: string | null) {
-  const index = ROLE_ORDER.indexOf(role ?? "");
-  return index === -1 ? ROLE_ORDER.length : index;
-}
-
-function getShipLabel(ship: MissionShip) {
-  const shipName = ship.hangar_id?.ship?.name?.trim();
-  const hullName = ship.hangar_id?.ship?.hull?.name?.trim();
-  const manufacturer = ship.hangar_id?.ship?.hull?.manufacturer?.name?.trim();
-  const hullLabel = [manufacturer, hullName].filter(Boolean).join(" ");
-
-  return (
-    ship.hangar_id?.name?.trim() ||
-    hullLabel ||
-    shipName ||
-    "Unbekanntes Schiff"
-  );
-}
-
-function getSortedPositions(ship: MissionShip) {
-  return [...(ship.positions ?? [])].sort((a, b) => {
-    const typeDelta =
-      (getPositionType(a) === "secondary" ? 1 : 0) -
-      (getPositionType(b) === "secondary" ? 1 : 0);
-    if (typeDelta !== 0) return typeDelta;
-
-    const roleDelta = getRoleOrder(a.role) - getRoleOrder(b.role);
-    if (roleDelta !== 0) return roleDelta;
-
-    return (ROLE_LABELS[a.role ?? ""] ?? a.role ?? "").localeCompare(
-      ROLE_LABELS[b.role ?? ""] ?? b.role ?? "",
-      "de",
-    );
-  });
-}
-
-function buildPositionGroup(label: string, positions: MissionPosition[]) {
-  if (!positions.length) return null;
-
-  const lines = positions.map(
-    (position) =>
-      `• ${ROLE_LABELS[position.role ?? ""] ?? position.role ?? "Position"} ${getPositionStatusLabel(position)}`,
-  );
-
-  return `${label}:\n${lines.join("\n")}`;
-}
-
-function buildTeamField(team: MissionTeam) {
-  const shipBlocks = (team.ships ?? []).map((ship) => {
-    const sortedPositions = getSortedPositions(ship);
-    const primaryPositions = sortedPositions.filter(
-      (position) => getPositionType(position) === "primary",
-    );
-    const secondaryPositions = sortedPositions.filter(
-      (position) => getPositionType(position) === "secondary",
-    );
-    const positionGroups = [
-      buildPositionGroup(POSITION_TYPE_LABELS.primary, primaryPositions),
-      buildPositionGroup(POSITION_TYPE_LABELS.secondary, secondaryPositions),
-    ].filter((group): group is string => Boolean(group));
-
-    return [
-      `**${getShipLabel(ship)}**`,
-      positionGroups.join("\n") || "Keine Positionen",
-    ].join("\n");
-  });
-
-  const fallback = shipBlocks.length
-    ? shipBlocks.join("\n")
-    : "Keine Schiffe zugewiesen";
-  const prefix = team.department?.name
-    ? `Fokus: ${team.department.name}\n`
-    : "";
-
-  return {
-    name: team.name?.trim() || "Unbenanntes Team",
-    value: truncate(`${prefix}${fallback}`, 1024),
-    inline: false,
-  };
 }
 
 function parseShareTargets(value: MissionShareRecord["discord_share_targets"]) {
@@ -435,20 +290,7 @@ async function fetchMissionShareRecord(
           "user_created.last_name",
           "registrations.id",
           "registrations.status",
-          "teams.id",
-          "teams.name",
-          "teams.department.id",
-          "teams.department.name",
-          "teams.ships.id",
-          "teams.ships.hangar_id.id",
-          "teams.ships.hangar_id.name",
-          "teams.ships.hangar_id.ship.name",
-          "teams.ships.hangar_id.ship.hull.name",
-          "teams.ships.hangar_id.ship.hull.manufacturer.name",
-          "teams.ships.positions.id",
-          "teams.ships.positions.role",
           "teams.ships.positions.status",
-          "teams.ships.positions.position_type",
         ].join(","),
       },
     },
@@ -569,18 +411,6 @@ function buildMissionEmbed(
     },
   ];
 
-  const teamFields = (mission.teams ?? [])
-    .slice(0, 8)
-    .map((team) => buildTeamField(team));
-
-  if ((mission.teams?.length ?? 0) > 8) {
-    teamFields.push({
-      name: "Weitere Teams",
-      value: `+${(mission.teams?.length ?? 0) - 8} weitere Teams im AMS`,
-      inline: false,
-    });
-  }
-
   return {
     author: {
       name: "ArisCorp Management System",
@@ -596,7 +426,6 @@ function buildMissionEmbed(
     description,
     fields: [
       ...baseFields,
-      ...teamFields,
       {
         name: "Event-Link",
         value: `[Mission im AMS öffnen](${eventUrl})`,
