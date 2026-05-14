@@ -138,19 +138,19 @@ async function handleRemove() {
           <div>
             <p class="text-(--ui-text-muted)">Schiffsname</p>
             <p class="font-normal text-white">
-              {{ hangarItem.name ? hangarItem.name : "N/A" }}
+              {{ hangarItem?.name ? hangarItem.name : "N/A" }}
             </p>
           </div>
           <div>
             <p class="text-(--ui-text-muted)">Kaufstatus</p>
             <p class="font-normal text-white">
-              {{ getBuyStatusLabel(hangarItem.buy_status) ?? "N/A" }}
+              {{ getBuyStatusLabel(hangarItem?.buy_status) ?? "N/A" }}
             </p>
           </div>
-          <div v-if="hangarItem.active_module">
+          <div v-if="hangarItem?.active_module">
             <p class="text-(--ui-text-muted)">Aktives Modul</p>
             <UBadge
-              :label="(hangarItem.active_module as ShipModule)?.name"
+              :label="(hangarItem?.active_module as ShipModule)?.name ?? ''"
               variant="subtle"
               class="mr-2"
             />

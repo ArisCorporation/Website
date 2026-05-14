@@ -1,6 +1,10 @@
 import type { DirectusUser } from '~~/types';
 
-export function getUserLabel (user: DirectusUser): string {
+export function getUserLabel (user: DirectusUser | null | undefined): string {
+  if (!user || typeof user !== 'object') {
+    return '';
+  }
+
   const parts = [];
 
   if (user.first_name) {

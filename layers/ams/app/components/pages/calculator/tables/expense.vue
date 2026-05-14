@@ -38,9 +38,7 @@ function transformWorkers(workers: Worker[]) {
 
 <template>
   <div class="space-y-6">
-    <div
-      class="overflow-hidden rounded-2xl border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.72)_0%,rgba(4,9,22,0.96)_100%)] shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm"
-    >
+    <AMSUiTableShell>
       <UTable
         :columns="columns"
         :data="expenses"
@@ -72,7 +70,7 @@ function transformWorkers(workers: Worker[]) {
           />
         </template>
       </UTable>
-    </div>
+    </AMSUiTableShell>
     <UButton
       @click="store.addExpense"
       variant="outline"

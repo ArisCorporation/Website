@@ -42,50 +42,39 @@ useSortable('.worker-tbody', workers.value, {
   animation: 150,
   group: {
     name: 'worker',
-    pull: 'clone', // Wichtig: Klonen beim Ziehen aus der Tabelle
-    put: false, // Verhindert, dass externe Elemente hier abgelegt werden können (per SortableJS)
+    pull: 'clone',
+    put: false,
   },
   sort: false,
   onMove: (event: MoveEvent) => {
     if (!event.related?.parentElement?.children) return
 
-    // Crew auswählen, wenn ein User über eine Crew-Zeile gezogen wird
     const crewIndex = Array.from(event.related.parentElement.children).indexOf(
       event.related
     )
     const crew = crews.value[crewIndex]
     if (crew) currentCrew.value = crew
 
-    return false // Verhindert DOM-Manipulation in der Crew-Liste
+    return false
   },
   onEnd: (event: SortableEvent) => {
     if (event.oldIndex === undefined) return
 
     const draggedWorker = workers.value[event.oldIndex]
 
-    // Prüfen, ob ein Ziel-Crew durch die CrewTable-Komponente gesetzt wurde
     if (draggedWorker && currentCrew.value) {
-      // Der event.to Check ist schwierig über Komponenten hinweg,
-      // wir verlassen uns darauf, dass potentialDropTargetCrew nur gesetzt wird,
-      // wenn der Drag tatsächlich über der Crew-Tabelle ist.
-
-      // Get Worker refference
       const workerRef = workers.value.find((w) => w.id === draggedWorker.id)
 
-      // Set new Crew for Worker
       if (workerRef) workerRef.crew = currentCrew.value.id
     }
 
-    // Geteilten Zustand immer zurücksetzen
     if (currentCrew) currentCrew.value = null
   },
 })
 </script>
 
 <template>
-  <div
-    class="overflow-hidden rounded-2xl border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.72)_0%,rgba(4,9,22,0.96)_100%)] shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm"
-  >
+  <AMSUiTableShell>
     <UTable
       :columns="columns"
       :data="workers"
@@ -153,7 +142,7 @@ useSortable('.worker-tbody', workers.value, {
         />
       </template>
     </UTable>
-  </div>
+  </AMSUiTableShell>
   <UButton
     @click="store.addWorker"
     variant="outline"
@@ -161,7 +150,6 @@ useSortable('.worker-tbody', workers.value, {
     icon="i-lucide-plus"
     class="w-full justify-center"
   />
-  <!-- todo: drag window -->
   <div
     ref="customDragPreviewElementRef"
     class="absolute top-[-100000px] px-2 py-3 bg-(--ui-bg-muted)/20 border border-(--ui-primary)/10 backdrop-blur-xs z-[999] pointer-events-none shadow"

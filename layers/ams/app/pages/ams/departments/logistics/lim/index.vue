@@ -2,29 +2,11 @@
 import { h, resolveComponent } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 import type { DirectusRole } from "~~/types";
-
-function sortableHeader(label: string) {
-  return ({ column }: { column: any }) =>
-    h(
-      "button",
-      {
-        class:
-          "flex items-center gap-1 text-(--ui-primary) hover:text-white transition-colors text-xs uppercase tracking-wider font-medium",
-        onClick: () => column.toggleSorting(),
-      },
-      [
-        label,
-        h(resolveComponent("UIcon"), {
-          name: !column.getIsSorted()
-            ? "i-lucide-chevrons-up-down"
-            : column.getIsSorted() === "asc"
-              ? "i-lucide-chevron-up"
-              : "i-lucide-chevron-down",
-          class: "size-3 shrink-0",
-        }),
-      ],
-    );
-}
+import {
+  buildActiveTableFilters,
+  buildTableFilterOptions,
+  type TableActiveFilter,
+} from "../../../../../utils/table-filter";
 
 interface LivItem {
   id: string;
@@ -47,6 +29,9 @@ const NEW_ROW_ID = "__new__";
 const authStore = useAuthStore();
 const { currentUser } = storeToRefs(authStore);
 const toast = useToast();
+const AMSUiTableSortFilterHeader = resolveComponent(
+  "AMSUiTableSortFilterHeader",
+);
 
 const canEdit = computed(() => {
   const al = (currentUser.value?.role as DirectusRole | undefined)
@@ -81,6 +66,16 @@ const searchQuery = ref("");
 const categoryFilter = ref<string | undefined>(undefined);
 const locationFilter = ref<string | undefined>(undefined);
 const qualityFilter = ref<string | undefined>(undefined);
+const columnFilters = reactive({
+  material: "",
+  table_category: "",
+  quantity: "",
+  table_quality: "",
+  table_location: "",
+  updated: "",
+});
+type LivColumnFilterKey = keyof typeof columnFilters;
+const livColumnFilterKeys = Object.keys(columnFilters) as LivColumnFilterKey[];
 
 const categoryItems = [
   { label: "Metall", value: "metal" },
@@ -94,6 +89,15 @@ const qualityItems = [
   { label: "≥ 600", value: "600" },
   { label: "≥ 400", value: "400" },
 ];
+
+const columnFilterLabels: Record<LivColumnFilterKey, string> = {
+  material: "Material",
+  table_category: "Kategorie",
+  quantity: "Menge",
+  table_quality: "Qualität",
+  table_location: "Standort",
+  updated: "Geändert",
+};
 
 const uniqueLocationItems = computed(() =>
   [
@@ -119,7 +123,8 @@ const hasActiveFilter = computed(
     !!searchQuery.value ||
     !!categoryFilter.value ||
     !!locationFilter.value ||
-    !!qualityFilter.value,
+    !!qualityFilter.value ||
+    livColumnFilterKeys.some((key) => !!columnFilters[key]),
 );
 
 function clearFilters() {
@@ -127,6 +132,123 @@ function clearFilters() {
   categoryFilter.value = undefined;
   locationFilter.value = undefined;
   qualityFilter.value = undefined;
+
+  for (const key of livColumnFilterKeys) {
+    columnFilters[key] = "";
+  }
+}
+
+function getQuantityFilterLabel(item: LivItem) {
+  const quantity = item.quantity;
+
+  if (quantity == null) return "";
+
+  return `${quantity.toLocaleString("de-DE")} ${item.quantity_unit ?? "SCU"}`;
+}
+
+const columnFilterGetters: Record<LivColumnFilterKey, (item: LivItem) => string> = {
+  material: (item) => item.material?.trim() ?? "",
+  table_category: (item) => item.category ?? "",
+  quantity: (item) => getQuantityFilterLabel(item),
+  table_quality: (item) =>
+    item.quality != null ? `${item.quality}` : "",
+  table_location: (item) => item.location?.trim() ?? "",
+  updated: (item) => formatRelativeDate(item.date_updated),
+};
+
+const columnFilterOptions = computed<
+  Record<LivColumnFilterKey, { label: string; value: string }[]>
+>(() => ({
+  material: buildTableFilterOptions(items.value ?? [], (item: LivItem) => {
+    const value = columnFilterGetters.material(item);
+    return value ? { label: value, value } : null;
+  }),
+  table_category: buildTableFilterOptions(items.value ?? [], (item: LivItem) => {
+    const value = columnFilterGetters.table_category(item);
+    return value
+      ? {
+          label: getCategoryLabel(item.category),
+          value,
+        }
+      : null;
+  }),
+  quantity: buildTableFilterOptions(items.value ?? [], (item: LivItem) => {
+    const value = columnFilterGetters.quantity(item);
+    return value ? { label: value, value } : null;
+  }),
+  table_quality: buildTableFilterOptions(items.value ?? [], (item: LivItem) => {
+    const value = columnFilterGetters.table_quality(item);
+    return value ? { label: value, value } : null;
+  }),
+  table_location: buildTableFilterOptions(items.value ?? [], (item: LivItem) => {
+    const value = columnFilterGetters.table_location(item);
+    return value ? { label: value, value } : null;
+  }),
+  updated: buildTableFilterOptions(items.value ?? [], (item: LivItem) => {
+    const value = columnFilterGetters.updated(item);
+    return value ? { label: value, value } : null;
+  }),
+}));
+
+const activeFilters = computed<TableActiveFilter[]>(() => {
+  const filters: TableActiveFilter[] = [];
+
+  if (searchQuery.value.trim()) {
+    filters.push({
+      key: "search",
+      label: "Suche",
+      value: searchQuery.value,
+      displayValue: searchQuery.value,
+    });
+  }
+
+  if (categoryFilter.value) {
+    filters.push({
+      key: "category",
+      label: "Kategorie",
+      value: categoryFilter.value,
+      displayValue:
+        categoryItems.find((item) => item.value === categoryFilter.value)?.label ??
+        categoryFilter.value,
+    });
+  }
+
+  if (locationFilter.value) {
+    filters.push({
+      key: "location",
+      label: "Standort",
+      value: locationFilter.value,
+      displayValue: locationFilter.value,
+    });
+  }
+
+  if (qualityFilter.value) {
+    filters.push({
+      key: "quality",
+      label: "Qualität",
+      value: qualityFilter.value,
+      displayValue:
+        qualityItems.find((item) => item.value === qualityFilter.value)?.label ??
+        qualityFilter.value,
+    });
+  }
+
+  return [
+    ...filters,
+    ...buildActiveTableFilters({
+      filters: columnFilters,
+      labels: columnFilterLabels,
+      options: columnFilterOptions.value,
+    }),
+  ];
+});
+
+function clearFilter(key: string) {
+  if (key === "search") searchQuery.value = "";
+  if (key === "category") categoryFilter.value = undefined;
+  if (key === "location") locationFilter.value = undefined;
+  if (key === "quality") qualityFilter.value = undefined;
+  if (key in columnFilters) columnFilters[key as LivColumnFilterKey] = "";
 }
 
 const filteredItems = computed(() => {
@@ -148,7 +270,12 @@ const filteredItems = computed(() => {
     result = result.filter(
       (i) => (i.quality ?? 0) >= parseInt(qualityFilter.value!),
     );
-  return result;
+  return result.filter((item) =>
+    livColumnFilterKeys.every((key) => {
+      const selectedValue = columnFilters[key];
+      return !selectedValue || columnFilterGetters[key](item) === selectedValue;
+    }),
+  );
 });
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
@@ -280,6 +407,19 @@ const tableData = computed<LivItem[]>(() => {
 
 const sorting = ref<{ id: string; desc: boolean }[]>([]);
 
+function sortableHeader(key: LivColumnFilterKey, label: string) {
+  return ({ column }: { column: any }) =>
+    h(AMSUiTableSortFilterHeader, {
+      label,
+      column,
+      items: columnFilterOptions.value[key],
+      modelValue: columnFilters[key],
+      "onUpdate:modelValue": (value: string) => {
+        columnFilters[key] = value;
+      },
+    });
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getCategoryIcon(cat?: string | null) {
@@ -357,32 +497,32 @@ function formatRelativeDate(d?: string | null) {
 const columns = computed<TableColumn<LivItem>[]>(() => [
   {
     accessorKey: "material",
-    header: sortableHeader("Material"),
+    header: sortableHeader("material", "Material"),
     enableSorting: true,
   },
   {
     accessorKey: "category",
-    header: sortableHeader("Kategorie"),
+    header: sortableHeader("table_category", "Kategorie"),
     enableSorting: true,
   },
   {
     accessorKey: "quantity",
-    header: sortableHeader("Menge"),
+    header: sortableHeader("quantity", "Menge"),
     enableSorting: true,
   },
   {
     accessorKey: "quality",
-    header: sortableHeader("Qualität"),
+    header: sortableHeader("table_quality", "Qualität"),
     enableSorting: true,
   },
   {
     accessorKey: "location",
-    header: sortableHeader("Standort"),
+    header: sortableHeader("table_location", "Standort"),
     enableSorting: true,
   },
   {
     accessorKey: "date_updated",
-    header: sortableHeader("Geändert"),
+    header: sortableHeader("updated", "Geändert"),
     enableSorting: true,
   },
   ...(canEdit.value
@@ -525,8 +665,12 @@ definePageMeta({
     </div>
 
     <!-- ─── Table ────────────────────────────────────────────────────────────── -->
-    <div
-      class="mb-8 overflow-hidden rounded-[calc(var(--ui-radius)*4.5)] border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.72)_0%,rgba(4,9,22,0.96)_100%)] shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm"
+    <AMSUiTableShell
+      variant="panel"
+      class="mb-8"
+      :filters="activeFilters"
+      @clear="clearFilter"
+      @clear-all="clearFilters"
     >
       <div v-if="pending" class="py-12 flex justify-center">
         <UIcon
@@ -565,13 +709,18 @@ definePageMeta({
         <template #category-cell="{ row }">
           <div v-if="editingId === row.original.id">
             <USelect
-              v-model="editDraft.category"
+              :model-value="editDraft.category ?? undefined"
               :items="categoryItems"
               value-key="value"
               label-key="label"
               placeholder="Kategorie"
               size="sm"
               class="w-36"
+              @update:model-value="
+                (value) => {
+                  editDraft.category = value as LivItem['category'];
+                }
+              "
             />
           </div>
           <UBadge
@@ -595,10 +744,15 @@ definePageMeta({
               placeholder="0"
             />
             <USelect
-              v-model="editDraft.quantity_unit"
+              :model-value="editDraft.quantity_unit ?? undefined"
               :items="['SCU', 'mSCU', 'Units']"
               size="sm"
               class="w-24"
+              @update:model-value="
+                (value) => {
+                  editDraft.quantity_unit = value as LivItem['quantity_unit'];
+                }
+              "
             />
           </div>
           <span v-else class="font-mono text-sm">
@@ -647,7 +801,7 @@ definePageMeta({
         <template #location-cell="{ row }">
           <div v-if="editingId === row.original.id">
             <USelectMenu
-              v-model="editDraft.location"
+              :model-value="editDraft.location ?? undefined"
               :items="uniqueLocationStrings"
               autocomplete
               create-item
@@ -655,6 +809,11 @@ definePageMeta({
               size="sm"
               placeholder="z.B. ARC-L1"
               class="w-36"
+              @update:model-value="
+                (value) => {
+                  editDraft.location = value as LivItem['location'];
+                }
+              "
             />
           </div>
           <span v-else class="text-(--ui-text-muted) text-sm">{{
@@ -728,6 +887,6 @@ definePageMeta({
           }}
         </p>
       </div>
-    </div>
+    </AMSUiTableShell>
   </div>
 </template>
