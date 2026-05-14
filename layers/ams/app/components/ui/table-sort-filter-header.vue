@@ -20,6 +20,8 @@ const emit = defineEmits<{
 }>()
 
 const ALL_VALUE = '__all__'
+const filterOpen = ref(false)
+const filterSearch = ref('')
 
 const hasActiveFilter = computed(() => props.modelValue.trim().length > 0)
 const isSortable = computed(
@@ -38,13 +40,6 @@ const selectItems = computed<TableFilterOption[]>(() => [
   ...props.items,
 ])
 
-const selectModel = computed({
-  get: () => (hasActiveFilter.value ? props.modelValue : ALL_VALUE),
-  set: (value: string) => {
-    emit('update:modelValue', value === ALL_VALUE ? '' : value)
-  },
-})
-
 const sortIcon = computed(() => {
   if (!isSortable.value || !props.column?.getIsSorted?.()) {
     return 'i-lucide-chevrons-up-down'
@@ -56,6 +51,25 @@ const sortIcon = computed(() => {
 })
 
 const filterPlaceholder = computed(() => `${props.label} filtern…`)
+const filteredItems = computed(() => {
+  const query = filterSearch.value.trim().toLowerCase()
+
+  if (!query) return selectItems.value
+
+  return selectItems.value.filter((item) =>
+    item.label.toLowerCase().includes(query)
+  )
+})
+
+function selectFilter(value: string) {
+  emit('update:modelValue', value === ALL_VALUE ? '' : value)
+  filterOpen.value = false
+  filterSearch.value = ''
+}
+
+watch(filterOpen, (open) => {
+  if (!open) filterSearch.value = ''
+})
 </script>
 
 <template>
@@ -75,36 +89,76 @@ const filterPlaceholder = computed(() => `${props.label} filtern…`)
       />
     </button>
 
-    <USelectMenu
-      v-model="selectModel"
-      :items="selectItems"
-      label-key="label"
-      value-key="value"
-      :search-input="{ placeholder: filterPlaceholder, variant: 'outline' }"
-      :trailing="false"
-      :disabled="!items.length"
+    <UPopover
+      v-model:open="filterOpen"
+      :content="{ side: 'bottom', align: 'start', sideOffset: 10 }"
       :title="
         hasActiveFilter
           ? `${label} gefiltert: ${selectedLabel}`
           : `${label} filtern`
       "
-      :class="
-        hasActiveFilter
-          ? 'bg-(--ui-primary)/12 text-(--ui-primary)'
-          : 'bg-(--ui-bg)/35 text-(--ui-text-muted) hover:bg-(--ui-primary)/8 hover:text-white'
-      "
       :ui="{
-        base: 'inline-flex size-6 min-w-6 items-center justify-center rounded-md border border-(--ui-primary)/15 px-0 transition-colors disabled:cursor-not-allowed disabled:opacity-40',
-        content: 'min-w-56',
-        leading: 'hidden',
-        trailing: 'hidden',
+        content: 'w-64 rounded-xl border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.98)_0%,rgba(4,9,22,0.98)_100%)] p-2 shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm',
       }"
     >
-      <template #default>
-        <span class="flex size-full items-center justify-center">
-          <UIcon name="i-lucide-list-filter" class="size-3.5 shrink-0" />
-        </span>
+      <button
+        type="button"
+        :disabled="!items.length"
+        :class="
+          hasActiveFilter
+            ? 'bg-(--ui-primary)/12 text-(--ui-primary)'
+            : 'bg-(--ui-bg)/35 text-(--ui-text-muted) hover:bg-(--ui-primary)/8 hover:text-white'
+        "
+        class="inline-flex size-6 min-w-6 items-center justify-center rounded-md border border-(--ui-primary)/15 px-0 transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <UIcon name="i-lucide-list-filter" class="size-3.5 shrink-0" />
+      </button>
+
+      <template #content>
+        <div class="space-y-2">
+          <UInput
+            v-model="filterSearch"
+            :placeholder="filterPlaceholder"
+            icon="i-lucide-search"
+            size="sm"
+            variant="outline"
+            autofocus
+          />
+
+          <div class="max-h-64 overflow-y-auto">
+            <button
+              v-for="item in filteredItems"
+              :key="item.value"
+              type="button"
+              class="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm text-white transition-colors hover:bg-(--ui-primary)/10"
+              :class="
+                (item.value === ALL_VALUE && !hasActiveFilter) ||
+                item.value === modelValue
+                  ? 'bg-(--ui-primary)/12'
+                  : ''
+              "
+              @click="selectFilter(item.value)"
+            >
+              <span class="truncate">{{ item.label }}</span>
+              <UIcon
+                v-if="
+                  (item.value === ALL_VALUE && !hasActiveFilter) ||
+                  item.value === modelValue
+                "
+                name="i-lucide-check"
+                class="size-3.5 shrink-0 text-(--ui-primary)"
+              />
+            </button>
+
+            <div
+              v-if="!filteredItems.length"
+              class="px-2.5 py-3 text-sm text-(--ui-text-muted)"
+            >
+              Keine Filter gefunden
+            </div>
+          </div>
+        </div>
       </template>
-    </USelectMenu>
+    </UPopover>
   </div>
 </template>
