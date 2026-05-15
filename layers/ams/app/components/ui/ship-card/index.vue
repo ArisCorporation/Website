@@ -86,6 +86,34 @@ const editMode = computed<boolean>(() => {
   return false;
 });
 
+const footerEl = ref<HTMLElement | null>(null);
+const footerElHeight = ref(0);
+let resizeObserver: ResizeObserver | null = null;
+
+watch(footerEl, (el) => {
+  resizeObserver?.disconnect();
+  if (el) {
+    const target = el.parentElement ?? el;
+    resizeObserver = new ResizeObserver(() => {
+      footerElHeight.value = target.offsetHeight;
+    });
+    resizeObserver.observe(target);
+    footerElHeight.value = target.offsetHeight;
+  } else {
+    footerElHeight.value = 0;
+  }
+}, { flush: "post" });
+
+onUnmounted(() => resizeObserver?.disconnect());
+
+const detailsPanelHeight = computed(() => `calc(100% - ${footerElHeight.value}px)`);
+
+const cardUi = computed(() => ({
+  header: expanded.value || props.forceExpanded ? "!p-0" : "!p-0 relative",
+  root: "flex flex-col relative",
+  body: "flex-1 !py-0",
+}));
+
 async function handleRemove() {
   loading.value = true;
   await removeHangarItem(
@@ -103,11 +131,7 @@ async function handleRemove() {
     variant="ams"
     class="overflow-clip hover:scale-[1.02] duration-300 transition-transform ease-out group"
     :class="[expanded || forceExpanded ? 'col-span-2 mr-6' : '']"
-    :ui="{
-      header: '!p-0 relative',
-      root: 'flex flex-col relative',
-      body: 'flex-1 !py-0',
-    }"
+    :ui="cardUi"
   >
     <template #header>
       <div
@@ -144,9 +168,9 @@ async function handleRemove() {
       </div>
       <div
         v-if="expanded || forceExpanded"
-        class="text-xs pl-2 w-1/2 prose-p:m-0 absolute right-0 top-0 h-full"
+        class="text-xs pl-2 w-1/2 prose-p:m-0 absolute right-0 top-0 overflow-y-auto"
+        :style="{ height: detailsPanelHeight }"
       >
-        <div class="h-[289px] overflow-y-auto">
           <h4 class="text-(--ui-primary) font-semibold">Schiffsdetails</h4>
           <div class="grid grid-cols-2 gap-y-2">
             <div>
@@ -247,7 +271,6 @@ async function handleRemove() {
               </p>
             </div>
           </div>
-        </div>
       </div>
     </template>
     <template #default>
@@ -361,7 +384,7 @@ async function handleRemove() {
       </div>
     </template>
     <template v-if="editMode" #footer>
-      <div class="flex w-full gap-x-2">
+      <div ref="footerEl" class="flex w-full gap-x-2">
         <AMSPagesHangarShipEdit
           v-if="hangarItem"
           :item="hangarItem"
