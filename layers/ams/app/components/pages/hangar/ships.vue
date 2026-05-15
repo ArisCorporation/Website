@@ -8,6 +8,10 @@ import type {
   ShipVariant,
   UserHangar,
 } from '~~/types'
+import {
+  buildActiveTableFilters,
+  buildTableFilterOptions,
+} from '../../../utils/table-filter'
 
 const props = defineProps<{
   data: UserHangar[]
@@ -24,32 +28,106 @@ const sortingModel = computed({
 })
 
 const expanded = ref()
+const columnFilters = reactive({
+  name: '',
+  model: '',
+  buy_status: '',
+  visibility: '',
+  group: '',
+  department: '',
+})
+type HangarFilterKey = keyof typeof columnFilters
+const hangarFilterKeys = Object.keys(columnFilters) as HangarFilterKey[]
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
-const UIcon = resolveComponent('UIcon')
+const AMSUiTableSortFilterHeader = resolveComponent('AMSUiTableSortFilterHeader')
 
-function sortableHeader(label: string) {
+const filterLabels: Record<HangarFilterKey, string> = {
+  name: 'Name',
+  model: 'Modell',
+  buy_status: 'Kaufstatus',
+  visibility: 'Sichtbarkeit',
+  group: 'Zuordnung',
+  department: 'Abteilung',
+}
+
+const filterGetters: Record<HangarFilterKey, (item: UserHangar) => string> = {
+  name: (item) => item.name?.trim() ?? '',
+  model: (item) => (item.ship as ShipVariant)?.name?.trim() ?? '',
+  buy_status: (item) => item.buy_status?.trim() ?? '',
+  visibility: (item) => item.visibility?.trim() ?? '',
+  group: (item) => item.group?.trim() ?? '',
+  department: (item) => (item.department as Department)?.name?.trim() ?? '',
+}
+
+const filterOptions = computed<Record<HangarFilterKey, { label: string; value: string }[]>>(() => ({
+  name: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = filterGetters.name(item)
+    return value ? { label: value, value } : null
+  }),
+  model: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = filterGetters.model(item)
+    return value ? { label: value, value } : null
+  }),
+  buy_status: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = item.buy_status?.trim() ?? ''
+    return value
+      ? { label: getBuyStatusLabel(item.buy_status) ?? value, value }
+      : null
+  }),
+  visibility: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = filterGetters.visibility(item)
+    return value ? { label: value, value } : null
+  }),
+  group: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = filterGetters.group(item)
+    return value ? { label: value, value } : null
+  }),
+  department: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = filterGetters.department(item)
+    return value ? { label: value, value } : null
+  }),
+}))
+
+const filteredData = computed(() =>
+  (props.data ?? []).filter((item) =>
+    hangarFilterKeys.every((key) => {
+      const selectedValue = columnFilters[key]
+      return !selectedValue || filterGetters[key](item) === selectedValue
+    })
+  )
+)
+
+const activeFilters = computed(() =>
+  buildActiveTableFilters({
+    filters: columnFilters,
+    labels: filterLabels,
+    options: filterOptions.value,
+  })
+)
+
+function clearFilter(key: HangarFilterKey | string) {
+  columnFilters[key as HangarFilterKey] = ''
+}
+
+function clearAllFilters() {
+  for (const key of hangarFilterKeys) {
+    columnFilters[key] = ''
+  }
+}
+
+function sortableHeader(key: HangarFilterKey, label: string) {
   return ({ column }: { column: any }) =>
-    h(
-      'button',
-      {
-        class:
-          'flex items-center gap-1 text-(--ui-primary) hover:text-white transition-colors text-xs uppercase tracking-wider font-medium',
-        onClick: () => column.toggleSorting(),
+    h(AMSUiTableSortFilterHeader, {
+      label,
+      column,
+      items: filterOptions.value[key],
+      modelValue: columnFilters[key],
+      'onUpdate:modelValue': (value: string) => {
+        columnFilters[key] = value
       },
-      [
-        label,
-        h(UIcon, {
-          name: !column.getIsSorted()
-            ? 'i-lucide-chevrons-up-down'
-            : column.getIsSorted() === 'asc'
-              ? 'i-lucide-chevron-up'
-              : 'i-lucide-chevron-down',
-          class: 'size-3 shrink-0',
-        }),
-      ],
-    )
+    })
 }
 
 const columns: TableColumn<UserHangar>[] = [
@@ -82,13 +160,13 @@ const columns: TableColumn<UserHangar>[] = [
   },
   {
     accessorKey: 'name',
-    header: sortableHeader('Name'),
+    header: sortableHeader('name', 'Name'),
     enableSorting: true,
     cell: ({ row }) => `${row.getValue('name')}`,
   },
   {
     accessorKey: 'model',
-    header: sortableHeader('Modell'),
+    header: sortableHeader('model', 'Modell'),
     enableSorting: true,
     cell: ({ row }) => `${(row.original.ship as ShipVariant).name}`,
   },
@@ -100,7 +178,7 @@ const columns: TableColumn<UserHangar>[] = [
   },
   {
     accessorKey: 'buy_status',
-    header: sortableHeader('Kaufstatus'),
+    header: sortableHeader('buy_status', 'Kaufstatus'),
     enableSorting: true,
     cell: ({ row }) => {
       const color = {
@@ -116,7 +194,7 @@ const columns: TableColumn<UserHangar>[] = [
   },
   {
     accessorKey: 'visibility',
-    header: sortableHeader('Sichtbarkeit'),
+    header: sortableHeader('visibility', 'Sichtbarkeit'),
     enableSorting: true,
     cell: ({ row }) => {
       const color = {
@@ -132,7 +210,7 @@ const columns: TableColumn<UserHangar>[] = [
   },
   {
     accessorKey: 'group',
-    header: sortableHeader('Zuordnung'),
+    header: sortableHeader('group', 'Zuordnung'),
     enableSorting: true,
     cell: ({ row }) => {
       const color = {
@@ -147,7 +225,7 @@ const columns: TableColumn<UserHangar>[] = [
   },
   {
     accessorKey: 'department',
-    header: sortableHeader('Abteilung'),
+    header: sortableHeader('department', 'Abteilung'),
     enableSorting: true,
     cell: ({ row }) => `${(row.original.department as Department)?.name ?? ''}`,
   },
@@ -161,15 +239,17 @@ watch(props, () => {
 </script>
 
 <template>
-  <div
-    class="overflow-hidden rounded-2xl border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.72)_0%,rgba(4,9,22,0.96)_100%)] shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm"
+  <AMSUiTableShell
+    :filters="activeFilters"
+    @clear="clearFilter"
+    @clear-all="clearAllFilters"
   >
     <UTable
       ref="teamsUiTableRef"
       v-model:expanded="expanded"
       v-model:sorting="sortingModel"
       :columns="columns"
-      :data="data"
+      :data="filteredData"
       class="h-xl"
     >
       <template #store-image-cell="{ row }">
@@ -186,7 +266,7 @@ watch(props, () => {
         >
       </template>
       <template #actions-cell="{ row }">
-        <AMSPagesHangarShipEdit :item="row.original">
+        <AMSPagesHangarShipEdit :item="row.original" :fleet-mode="false">
           <template #default="{ open }">
             <UButton
               @click="open"
@@ -197,7 +277,11 @@ watch(props, () => {
           </template>
         </AMSPagesHangarShipEdit>
         <UButton
-          @click="removeHangarItem(row.original.id)"
+          @click="
+            () => {
+              if (row.original.id != null) removeHangarItem(row.original.id, false)
+            }
+          "
           variant="ghost"
           color="error"
           icon="i-lucide-trash-2"
@@ -330,5 +414,5 @@ watch(props, () => {
         </div>
       </template>
     </UTable>
-  </div>
+  </AMSUiTableShell>
 </template>

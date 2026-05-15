@@ -14,7 +14,9 @@ export const hangarItemSchema = z.object({
   visibility: z.enum(['public', 'internal', 'hidden']),
   department: z.string().nullable().optional(),
   buy_status: z.enum(['pledged', 'in_game', 'planned']),
-  active_module: z.string().nullable().optional(),
+  modules: z
+    .array(z.object({ slot: z.string(), module: z.string().nullable().optional() }))
+    .default([]),
   // NOT EDITABLE:
   id: z.string().optional(),
   date_created: z.string().optional(),
@@ -133,8 +135,11 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
         department: resolveToStringOrUndefined(pickedSourceData.department?.id),
         // buy_status: UserHangar.buy_status ist string | null, schema.buy_status ist z.enum() (erforderlich)
         buy_status: pickedSourceData.buy_status ?? 'pledged',
-        // active_module: UserHangar.active_module ist ShipModule | string | null, schema.active_module ist string().optional()
-        active_module: resolveToStringOrUndefined(pickedSourceData.active_module),
+        // modules: aktive Modul-Belegung pro Slot, aus user_hangar_modules o2m
+        modules: ((item.modules as any[]) ?? []).map((m: any) => ({
+          slot: typeof m.slot === 'object' ? m.slot?.id : m.slot,
+          module: m.module ? (typeof m.module === 'object' ? m.module?.id : m.module) : null,
+        })),
         // date_created: UserHangar.date_created ist string | null, schema.date_created ist string().optional()
         date_created: pickedSourceData.date_created ?? undefined,
         // user: UserHangar.user ist DirectusUser | string | null, schema.user ist string().optional()
@@ -163,21 +168,39 @@ export const useHangarItemEditStore = defineStore('hangarItemEdit', {
         // um sicherzustellen, dass alle Transformationen des Schemas (z.B. toLowerCase, trim) angewendet wurden,
         // falls <UForm> dies nicht bereits vollständig tut (normalerweise schon).
         // Für dieses Beispiel vertrauen wir den Daten von <UForm>.
-        const payload = validatedDataFromForm;
+        const { modules, ...basePayload } = validatedDataFromForm;
 
-        // Ermittle die User-ID für den API-Endpunkt. Diese kann aus den Formulardaten
-        // (falls 'id' Teil des `profileSchema` ist und mitgesendet wird) oder direkt
-        // aus dem `authStore` oder dem initialisierten `formData` stammen.
-        const itemId = payload.id || this.formData.id
+        const itemId = basePayload.id || this.formData.id
 
         if (!itemId) {
           this.submitError = "Hangar-Item-ID konnte nicht ermittelt werden. Speichern nicht möglich.";
           this.isSubmitting = false;
-          console.error("SubmitHangarItem Error: Item ID is missing.", { payloadId: payload.id, formDataId: this.formData.id });
+          console.error("SubmitHangarItem Error: Item ID is missing.", { payloadId: basePayload.id, formDataId: this.formData.id });
           return false;
         }
 
-        const updatedItem = await useDirectus(updateItem('user_hangars', itemId, payload))
+        await useDirectus(updateItem('user_hangars', itemId, basePayload))
+
+        // Module-Belegung aktualisieren: alte löschen, neue anlegen
+        const existing = await useDirectus(
+          readItems('user_hangar_modules', {
+            filter: { hangar_entry: { _eq: Number(itemId) } },
+            fields: ['id'],
+          })
+        )
+        if (existing.length > 0) {
+          await useDirectus(deleteItems('user_hangar_modules', existing.map((m: any) => m.id)))
+        }
+        const toCreate = (modules ?? []).filter(m => m.module)
+        if (toCreate.length > 0) {
+          await useDirectus(
+            createItems('user_hangar_modules', toCreate.map(m => ({
+              hangar_entry: Number(itemId),
+              slot: m.slot,
+              module: m.module,
+            })))
+          )
+        }
 
         // TODO Update Logic
 

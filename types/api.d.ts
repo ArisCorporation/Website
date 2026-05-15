@@ -706,6 +706,40 @@ export interface ShipModule {
   production_status?: `flight-ready` | `in-production` | `in-concept` | null;
   description?: string | null;
   gallery?: ShipModulesGallery[] | string[] | null;
+  mission_roles?: ShipModuleMissionRole[] | string[] | null;
+  mission_roles_secondary?: ShipModuleMissionRoleSecondary[] | string[] | null;
+}
+
+export interface ShipModuleSlot {
+  /** @primaryKey */
+  id: string;
+  sort?: number | null;
+  name?: string | null;
+  ship_variant?: ShipVariant | string | null;
+  compatible_modules?: ShipModule[] | string[] | null;
+}
+
+export interface ShipModuleSlotCompatibleModule {
+  /** @primaryKey */
+  id: number;
+  slot?: ShipModuleSlot | string | null;
+  module?: ShipModule | string | null;
+}
+
+export interface ShipModuleMissionRole {
+  /** @primaryKey */
+  id: string;
+  sort?: number | null;
+  ship_module_id?: ShipModule | string | null;
+  ams_mission_role_id?: AMSMissionRole | string | null;
+}
+
+export interface ShipModuleMissionRoleSecondary {
+  /** @primaryKey */
+  id: string;
+  sort?: number | null;
+  ship_module_id?: ShipModule | string | null;
+  ams_mission_role_id?: AMSMissionRole | string | null;
 }
 
 export interface ShipModulesGallery {
@@ -1175,6 +1209,7 @@ export interface ShipVariant {
   production_state?: "flight-ready" | "in-production" | "in-concept" | null;
   configurations?: ShipVariantConfiguration[] | string[];
   modules?: ShipModule[] | string[];
+  module_slots?: ShipModuleSlot[] | string[] | null;
 }
 
 export interface ShipVariantConfiguration {
@@ -1512,8 +1547,17 @@ export interface UserHangar {
   department?: Department | string | null;
   buy_status?: "pledged" | "in_game" | "planned" | null;
   active_module?: ShipModule | string | null;
+  modules?: UserHangarModule[] | number[] | null;
   date_created?: string | null;
   date_updated?: string | null;
+}
+
+export interface UserHangarModule {
+  /** @primaryKey */
+  id?: number;
+  hangar_entry?: UserHangar | number | null;
+  slot?: ShipModuleSlot | string | null;
+  module?: ShipModule | string | null;
 }
 
 export interface UserPasswordResetToken {
@@ -2211,6 +2255,11 @@ export interface Schema {
   TTA_htmltemplates: TTAHtmltemplate[];
   uee: Uee;
   user_hangars: UserHangar[];
+  user_hangar_modules: UserHangarModule[];
+  ship_module_slots: ShipModuleSlot[];
+  ship_module_slot_compatible_modules: ShipModuleSlotCompatibleModule[];
+  ship_module_mission_roles: ShipModuleMissionRole[];
+  ship_module_mission_roles_secondary: ShipModuleMissionRoleSecondary[];
   user_password_reset_tokens: UserPasswordResetToken[];
   user_wishlists: UserWishlist[];
   verse_exkurs: VerseExkurs;

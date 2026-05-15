@@ -3,11 +3,28 @@ import type { QueryFields } from "@directus/sdk";
 import { type Ref, type ComputedRef, computed } from "vue";
 import type { Schema, UserHangar } from "~~/types";
 
-// Definiere die Felder-Struktur für bessere Lesbarkeit und Wartbarkeit
 export const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
-  "*",
+  "id",
+  "name",
+  "buy_status",
+  "visibility",
+  "group",
+  "deleted",
   { department: ["id", "name", "logo"] },
-  { active_module: ["id", "name"] },
+  {
+    modules: [
+      "id",
+      { slot: ["id", "name", "sort"] },
+      {
+        module: [
+          "id",
+          "name",
+          { gallery: ["directus_file_id", "sort"] },
+          { manufacturer: ["name", "code"] },
+        ],
+      },
+    ],
+  },
   {
     user: ["id", "title", "first_name", "middle_name", "last_name", "avatar"],
   },
@@ -28,6 +45,7 @@ export const USER_HANGAR_FIELDS: QueryFields<Schema, UserHangar> = [
           { manufacturer: ["name", "code", "slug"] },
         ],
       },
+      { module_slots: ["id", "name", "sort"] },
     ],
   },
 ];
@@ -37,11 +55,8 @@ export default function useFetchAMSHangar(
   routeId?: string,
   sort?: Ref<string[]> | ComputedRef<string[]>,
 ) {
-  // Rufe useAsyncData mit dem reaktiven Key und der fetchData-Funktion auf.
-  // Das zurückgegebene Objekt enthält data, pending, error, refresh usw.
-  // und ist "awaitable", d.h. `await useUserHangarData(userId)` in der Komponente funktioniert.
   return useAsyncData<UserHangar[]>(
-    computed(() => `ams:user-hangar-${userId.value}`), // Der ComputedRef für den Key
+    computed(() => `ams:user-hangar-${userId.value}`),
     async () => {
       return (await useDirectus(
         readItems("user_hangars", {
@@ -58,6 +73,7 @@ export default function useFetchAMSHangar(
     },
     {
       default: () => [] as UserHangar[],
+      watch: [userId],
     },
   );
 }

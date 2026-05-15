@@ -9,6 +9,10 @@ import type {
   ShipModule,
   UserHangar,
 } from '~~/types'
+import {
+  buildActiveTableFilters,
+  buildTableFilterOptions,
+} from '../../../utils/table-filter'
 
 import { useToast } from '#imports'
 import type { FormSubmitEvent } from '@nuxt/ui'
@@ -34,6 +38,15 @@ const sortingModel = computed({
 })
 
 const expanded = ref({})
+const columnFilters = reactive({
+  name: '',
+  status: '',
+  role: '',
+  department: '',
+  head_of_department: '',
+})
+type EmployeeFilterKey = keyof typeof columnFilters
+const employeeFilterKeys = Object.keys(columnFilters) as EmployeeFilterKey[]
 
 // Admin edit modal state
 const showEditModal = ref(false)
@@ -333,29 +346,104 @@ function generateSecureTempPassword(length = 8) {
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
 const UCheckbox = resolveComponent('UCheckbox')
-const UIcon = resolveComponent('UIcon')
+const AMSUiTableSortFilterHeader = resolveComponent(
+  'AMSUiTableSortFilterHeader'
+)
 
-function sortableHeader(label: string) {
+const filterLabels: Record<EmployeeFilterKey, string> = {
+  name: 'Name',
+  status: 'Status',
+  role: 'Position',
+  department: 'Abteilung',
+  head_of_department: 'Abteilungsleitung',
+}
+
+function getEmployeeRole(item: DirectusUser) {
+  return item.role && typeof item.role === 'object'
+    ? (item.role as DirectusRole)
+    : null
+}
+
+function getEmployeeRoleLabel(item: DirectusUser) {
+  return getEmployeeRole(item)?.label?.trim() ?? ''
+}
+
+function getEmployeeStatusLabel(item: DirectusUser) {
+  return getUserStatusLabel(item.status) ?? item.status ?? ''
+}
+
+const filterGetters: Record<EmployeeFilterKey, (item: DirectusUser) => string> = {
+  name: (item) => getUserLabel(item)?.trim() ?? '',
+  status: (item) => getEmployeeStatusLabel(item).trim(),
+  role: (item) => getEmployeeRoleLabel(item),
+  department: (item) =>
+    ((item.primary_department as Department)?.name ?? '').trim(),
+  head_of_department: (item) => (item.head_of_department ? 'Ja' : 'Nein'),
+}
+
+const filterOptions = computed<
+  Record<EmployeeFilterKey, { label: string; value: string }[]>
+>(() => ({
+  name: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = filterGetters.name(item)
+    return value ? { label: value, value } : null
+  }),
+  status: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = filterGetters.status(item)
+    return value ? { label: value, value } : null
+  }),
+  role: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = filterGetters.role(item)
+    return value ? { label: value, value } : null
+  }),
+  department: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = filterGetters.department(item)
+    return value ? { label: value, value } : null
+  }),
+  head_of_department: buildTableFilterOptions(props.data ?? [], (item) => {
+    const value = filterGetters.head_of_department(item)
+    return value ? { label: value, value } : null
+  }),
+}))
+
+const filteredData = computed(() =>
+  (props.data ?? []).filter((item) =>
+    employeeFilterKeys.every((key) => {
+      const selectedValue = columnFilters[key]
+      return !selectedValue || filterGetters[key](item) === selectedValue
+    })
+  )
+)
+
+const activeFilters = computed(() =>
+  buildActiveTableFilters({
+    filters: columnFilters,
+    labels: filterLabels,
+    options: filterOptions.value,
+  })
+)
+
+function clearFilter(key: EmployeeFilterKey | string) {
+  columnFilters[key as EmployeeFilterKey] = ''
+}
+
+function clearAllFilters() {
+  for (const key of employeeFilterKeys) {
+    columnFilters[key] = ''
+  }
+}
+
+function sortableHeader(key: EmployeeFilterKey, label: string) {
   return ({ column }: { column: any }) =>
-    h(
-      'button',
-      {
-        class:
-          'flex items-center gap-1 text-(--ui-primary) hover:text-white transition-colors text-xs uppercase tracking-wider font-medium',
-        onClick: () => column.toggleSorting(),
+    h(AMSUiTableSortFilterHeader, {
+      label,
+      column,
+      items: filterOptions.value[key],
+      modelValue: columnFilters[key],
+      'onUpdate:modelValue': (value: string) => {
+        columnFilters[key] = value
       },
-      [
-        label,
-        h(UIcon, {
-          name: !column.getIsSorted()
-            ? 'i-lucide-chevrons-up-down'
-            : column.getIsSorted() === 'asc'
-              ? 'i-lucide-chevron-up'
-              : 'i-lucide-chevron-down',
-          class: 'size-3 shrink-0',
-        }),
-      ],
-    )
+    })
 }
 
 const columns: TableColumn<DirectusUser>[] = [
@@ -389,56 +477,59 @@ const columns: TableColumn<DirectusUser>[] = [
   },
   {
     accessorKey: 'name',
-    header: sortableHeader('Name'),
+    header: sortableHeader('name', 'Name'),
     enableSorting: true,
     cell: ({ row }) => `${getUserLabel(row.original) ?? ''}`,
   },
   {
     accessorKey: 'status',
-    header: sortableHeader('Status'),
+    header: sortableHeader('status', 'Status'),
     enableSorting: true,
     cell: ({ row }) => {
+      const status = row.original.status?.toLowerCase() ?? ''
       const color = {
         active: 'success' as const,
         archived: 'error' as const,
         suspended: 'error' as const,
-      }[row.original.status.toLowerCase() as string]
+      }[status] ?? 'neutral'
 
       return h(UBadge, { class: 'capitalize', variant: 'subtle', color }, () =>
-        getUserStatusLabel(row.original.status)
+        getEmployeeStatusLabel(row.original)
       )
     },
   },
   {
     accessorKey: 'role',
-    header: sortableHeader('Position'),
+    header: sortableHeader('role', 'Position'),
     enableSorting: true,
     cell: ({ row }) => {
+      const role = getEmployeeRole(row.original)
+      const roleName = role?.name?.toLowerCase() ?? ''
       const color = {
         administrator: 'warning' as const,
         administration: 'warning' as const,
         employee: 'primary' as const,
         freelancer: 'primary' as const,
         candidate: 'secondary' as const,
-      }[(row.original.role as DirectusRole).name.toLowerCase() as string]
+      }[roleName] ?? 'neutral'
 
       return h(
         UBadge,
         { class: 'capitalize', variant: 'subtle', color },
-        () => (row.original.role as DirectusRole)?.label
+        () => role?.label ?? 'Keine Position'
       )
     },
   },
   {
     accessorKey: 'department',
-    header: sortableHeader('Abteilung'),
+    header: sortableHeader('department', 'Abteilung'),
     enableSorting: true,
     cell: ({ row }) =>
       `${(row.original.primary_department as Department)?.name ?? ''}`,
   },
   {
     accessorKey: 'head_of_department',
-    header: sortableHeader('Abteilungsleiter'),
+    header: sortableHeader('head_of_department', 'Abteilungsleiter'),
     enableSorting: true,
     cell: ({ row }) => {
       const color = {
@@ -835,14 +926,16 @@ function getDropdownActions(user: DirectusUser): DropdownMenuItem[][] {
 </script>
 
 <template>
-  <div
-    class="overflow-hidden rounded-2xl border border-(--ui-primary)/15 bg-[linear-gradient(180deg,rgba(10,16,30,0.72)_0%,rgba(4,9,22,0.96)_100%)] shadow-[0_20px_48px_-32px_rgba(0,255,232,0.35)] backdrop-blur-sm"
+  <AMSUiTableShell
+    :filters="activeFilters"
+    @clear="clearFilter"
+    @clear-all="clearAllFilters"
   >
     <UTable
       ref="teamsUiTableRef"
       v-model:sorting="sortingModel"
       :columns="columns"
-      :data="data"
+      :data="filteredData"
       class="h-xl"
     >
       <template #avatar-cell="{ row }">
@@ -866,7 +959,7 @@ function getDropdownActions(user: DirectusUser): DropdownMenuItem[][] {
         </UDropdownMenu>
       </template>
     </UTable>
-  </div>
+  </AMSUiTableShell>
 
   <!-- Hidden input for admin avatar selection -->
   <UInput

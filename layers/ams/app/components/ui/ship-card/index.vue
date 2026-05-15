@@ -6,6 +6,7 @@ import type {
   ShipModule,
   ShipVariant,
   UserHangar,
+  UserHangarModule,
 } from "~~/types"; // Pfad anpassen, falls nötig
 
 const authStore = useAuthStore();
@@ -59,6 +60,18 @@ const hangarItem = computed<UserHangar | null>(() => {
   return props.mode === "hangar-item" ? props.data : null;
 });
 
+const activeModules = computed<{ slotName: string; module: ShipModule }[]>(
+  () => {
+    if (!hangarItem.value?.modules) return [];
+    return (hangarItem.value.modules as UserHangarModule[])
+      .filter((m) => !!m.module && typeof m.module === "object")
+      .map((m) => ({
+        slotName: typeof m.slot === "object" ? (m.slot?.name ?? "") : "",
+        module: m.module as ShipModule,
+      }));
+  },
+);
+
 const editMode = computed<boolean>(() => {
   if (props.mode === "ship") return false;
 
@@ -72,6 +85,34 @@ const editMode = computed<boolean>(() => {
 
   return false;
 });
+
+const footerEl = ref<HTMLElement | null>(null);
+const footerElHeight = ref(0);
+let resizeObserver: ResizeObserver | null = null;
+
+watch(footerEl, (el) => {
+  resizeObserver?.disconnect();
+  if (el) {
+    const target = el.parentElement ?? el;
+    resizeObserver = new ResizeObserver(() => {
+      footerElHeight.value = target.offsetHeight;
+    });
+    resizeObserver.observe(target);
+    footerElHeight.value = target.offsetHeight;
+  } else {
+    footerElHeight.value = 0;
+  }
+}, { flush: "post" });
+
+onUnmounted(() => resizeObserver?.disconnect());
+
+const detailsPanelHeight = computed(() => `calc(100% - ${footerElHeight.value}px)`);
+
+const cardUi = computed(() => ({
+  header: expanded.value || props.forceExpanded ? "!p-0" : "!p-0 relative",
+  root: "flex flex-col relative",
+  body: "flex-1 !py-0",
+}));
 
 async function handleRemove() {
   loading.value = true;
@@ -90,11 +131,7 @@ async function handleRemove() {
     variant="ams"
     class="overflow-clip hover:scale-[1.02] duration-300 transition-transform ease-out group"
     :class="[expanded || forceExpanded ? 'col-span-2 mr-6' : '']"
-    :ui="{
-      header: '!p-0 relative',
-      root: 'flex flex-col relative',
-      body: 'flex-1 !py-0',
-    }"
+    :ui="cardUi"
   >
     <template #header>
       <div
@@ -132,104 +169,116 @@ async function handleRemove() {
       </div>
       <div
         v-if="expanded || forceExpanded"
-        class="text-xs pl-2 w-1/2 prose-p:m-0 absolute right-0 top-0 h-full"
+        class="text-xs pl-2 w-1/2 prose-p:m-0 absolute right-0 top-0 overflow-y-auto"
+        :style="{ height: detailsPanelHeight }"
       >
-        <h4 class="text-(--ui-primary) font-semibold">Schiffsdetails</h4>
-        <div class="grid grid-cols-2 gap-y-2">
-          <div>
-            <p class="text-(--ui-text-muted)">Schiffsname</p>
-            <p class="font-normal text-white">
-              {{ hangarItem.name ? hangarItem.name : "N/A" }}
-            </p>
+          <h4 class="text-(--ui-primary) font-semibold">Schiffsdetails</h4>
+          <div class="grid grid-cols-2 gap-y-2">
+            <div>
+              <p class="text-(--ui-text-muted)">Schiffsname</p>
+              <p class="font-normal text-white">
+                {{ hangarItem?.name ? hangarItem.name : "N/A" }}
+              </p>
+            </div>
+            <div>
+              <p class="text-(--ui-text-muted)">Kaufstatus</p>
+              <p class="font-normal text-white">
+                {{ getBuyStatusLabel(hangarItem?.buy_status) ?? "N/A" }}
+              </p>
+            </div>
+            <div v-if="activeModules.length" class="col-span-2">
+              <p class="text-(--ui-text-muted)">Aktive Module</p>
+              <div class="flex flex-col gap-0.5 mt-0.5">
+                <span
+                  v-for="{ slotName, module } in activeModules"
+                  :key="module.id"
+                  class="flex items-center gap-1.5"
+                >
+                  <span class="text-(--ui-text-muted) shrink-0">{{
+                    slotName
+                  }}</span>
+                  <UBadge
+                    :label="module.name ?? ''"
+                    variant="subtle"
+                    class="truncate"
+                  />
+                </span>
+              </div>
+            </div>
           </div>
-          <div>
-            <p class="text-(--ui-text-muted)">Kaufstatus</p>
-            <p class="font-normal text-white">
-              {{ getBuyStatusLabel(hangarItem.buy_status) ?? "N/A" }}
-            </p>
-          </div>
-          <div v-if="hangarItem.active_module">
-            <p class="text-(--ui-text-muted)">Aktives Modul</p>
-            <UBadge
-              :label="(hangarItem.active_module as ShipModule)?.name"
-              variant="subtle"
-              class="mr-2"
-            />
-          </div>
-        </div>
-        <h4 class="text-(--ui-primary) font-medium mt-2">Spezifikationen</h4>
-        <div class="grid grid-cols-2 gap-y-2">
-          <div class="w-1/2">
-            <p class="text-(--ui-text-muted)">Hersteller</p>
-            <UButton
-              variant="link"
-              color="neutral"
-              :to="`/verseexkurs/companies/${shipManufacturer?.slug ?? ''}`"
-              class="p-0 font-normal text-white"
-            >
-              <p class="text-xs">
+          <h4 class="text-(--ui-primary) font-medium mt-2">Spezifikationen</h4>
+          <div class="grid grid-cols-2 gap-y-2">
+            <div class="w-1/2">
+              <p class="text-(--ui-text-muted)">Hersteller</p>
+              <UButton
+                variant="link"
+                color="neutral"
+                :to="`/verseexkurs/companies/${shipManufacturer?.slug ?? ''}`"
+                class="p-0 font-normal text-white"
+              >
+                <p class="text-xs">
+                  {{
+                    shipManufacturer?.name
+                      ? getCompanyCode(shipManufacturer)?.split(" ")[0]
+                      : "N/A"
+                  }}
+                </p>
+              </UButton>
+            </div>
+            <div class="w-1/2">
+              <p class="text-(--ui-text-muted)">Crew</p>
+              <p class="p-0 font-normal text-white">
+                {{ ship?.stats?.crew ?? "N/A" }}
+              </p>
+            </div>
+            <div class="w-1/2">
+              <p class="text-(--ui-text-muted)">Länge</p>
+              <p class="p-0 font-normal text-white">
                 {{
-                  shipManufacturer?.name
-                    ? getCompanyCode(shipManufacturer)?.split(" ")[0]
+                  ship?.stats?.dimensions?.length
+                    ? ship.stats.dimensions.length + "m"
                     : "N/A"
                 }}
               </p>
-            </UButton>
+            </div>
+            <div class="w-1/2">
+              <p class="text-(--ui-text-muted)">Breite</p>
+              <p class="p-0 font-normal text-white">
+                {{
+                  ship?.stats?.dimensions?.width
+                    ? ship.stats.dimensions.width + "m"
+                    : "N/A"
+                }}
+              </p>
+            </div>
+            <div class="w-1/2">
+              <p class="text-(--ui-text-muted)">Höhe</p>
+              <p class="p-0 font-normal text-white">
+                {{
+                  ship?.stats?.dimensions?.height
+                    ? ship.stats.dimensions.height + "m"
+                    : "N/A"
+                }}
+              </p>
+            </div>
+            <div class="w-1/2">
+              <p class="text-(--ui-text-muted)">Gewicht</p>
+              <p class="p-0 font-normal text-white">
+                {{
+                  ship?.stats?.mass
+                    ? formatCurrency((ship.stats.mass ?? 0) / 1000) + " Tonnen"
+                    : "N/A"
+                }}
+              </p>
+            </div>
           </div>
-          <div class="w-1/2">
-            <p class="text-(--ui-text-muted)">Crew</p>
-            <p class="p-0 font-normal text-white">
-              {{ ship?.stats?.crew ?? "N/A" }}
-            </p>
-          </div>
-          <div class="w-1/2">
-            <p class="text-(--ui-text-muted)">Länge</p>
-            <p class="p-0 font-normal text-white">
-              {{
-                ship?.stats?.dimensions?.length
-                  ? ship.stats.dimensions.length + "m"
-                  : "N/A"
-              }}
-            </p>
-          </div>
-          <div class="w-1/2">
-            <p class="text-(--ui-text-muted)">Breite</p>
-            <p class="p-0 font-normal text-white">
-              {{
-                ship?.stats?.dimensions?.width
-                  ? ship.stats.dimensions.width + "m"
-                  : "N/A"
-              }}
-            </p>
-          </div>
-          <div class="w-1/2">
-            <p class="text-(--ui-text-muted)">Höhe</p>
-            <p class="p-0 font-normal text-white">
-              {{
-                ship?.stats?.dimensions?.height
-                  ? ship.stats.dimensions.height + "m"
-                  : "N/A"
-              }}
-            </p>
-          </div>
-          <div class="w-1/2">
-            <p class="text-(--ui-text-muted)">Gewicht</p>
-            <p class="p-0 font-normal text-white">
-              {{
-                ship?.stats?.mass
-                  ? formatCurrency((ship.stats.mass ?? 0) / 1000) + " Tonnen"
-                  : "N/A"
-              }}
-            </p>
-          </div>
-        </div>
       </div>
     </template>
     <template #default>
       <div
         :class="[
           expanded || forceExpanded
-            ? 'w-1/2 pr-6 border-r border-r-(--ui-primary)/20'
+            ? 'w-1/2 pr-6 border-r border-r-(--ui-primary)/20 h-full'
             : '',
         ]"
         class="py-4"
@@ -265,6 +314,41 @@ async function handleRemove() {
           </UTooltip>
         </div>
         <USeparator color="ams" class="my-2" />
+        <div v-if="activeModules.length" class="flex flex-wrap gap-1 mb-2">
+          <UTooltip
+            v-for="{ slotName, module } in activeModules.slice(0, 2)"
+            :key="module.id"
+            :text="slotName"
+            :disabled="!slotName"
+          >
+            <UBadge
+              :label="`${slotName ?? ''}: ${module.name ?? ''}`"
+              variant="subtle"
+              color="primary"
+              size="sm"
+              class="text-[.65rem] truncate"
+            />
+          </UTooltip>
+          <UTooltip
+            v-if="activeModules.length > 2"
+            :text="
+              activeModules
+                .slice(2)
+                .map(({ slotName, module }) =>
+                  slotName ? `${slotName}: ${module.name}` : module.name,
+                )
+                .join('\n')
+            "
+          >
+            <UBadge
+              :label="`+${activeModules.length - 2}`"
+              variant="subtle"
+              color="neutral"
+              size="sm"
+              class="text-[.65rem] shrink-0"
+            />
+          </UTooltip>
+        </div>
         <div class="flex justify-between">
           <div>
             <h3
@@ -301,7 +385,7 @@ async function handleRemove() {
       </div>
     </template>
     <template v-if="editMode" #footer>
-      <div class="flex w-full gap-x-2">
+      <div ref="footerEl" class="flex w-full gap-x-2">
         <AMSPagesHangarShipEdit
           v-if="hangarItem"
           :item="hangarItem"

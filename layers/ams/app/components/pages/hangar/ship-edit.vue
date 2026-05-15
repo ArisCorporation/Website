@@ -3,6 +3,7 @@ import type {
   Company,
   ShipHull,
   ShipModule,
+  ShipModuleSlot,
   ShipModulesGallery,
   ShipVariant,
   UserHangar,
@@ -29,9 +30,10 @@ const shipHull = computed<ShipHull | undefined>(() => {
 
 function handleEditOpen() {
   if (props.item) {
-    console.log(props.item)
+    slotsWithModules.value = []
     store.initForm(props.item)
     editSlideoverOpen.value = true
+    fetchCompatibleModules()
   }
 }
 
@@ -107,6 +109,57 @@ watch(
 )
 
 const { data: departments } = useNuxtData('global:simple_departments')
+
+const slotsWithModules = ref<ShipModuleSlot[]>([])
+
+const moduleSlots = computed<ShipModuleSlot[]>(() =>
+  slotsWithModules.value.length
+    ? slotsWithModules.value
+    : ((ship.value.module_slots as ShipModuleSlot[] | undefined)?.slice().sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)) ?? [])
+)
+const hasModuleSlots = computed(() =>
+  ((ship.value.module_slots as ShipModuleSlot[] | undefined)?.length ?? 0) > 0
+)
+
+async function fetchCompatibleModules() {
+  const slotIds = (ship.value.module_slots as ShipModuleSlot[] | undefined)?.map(s => s.id) ?? []
+  if (!slotIds.length) return
+
+  try {
+    const junctionRows = await useDirectus(
+      readItems('ship_module_slot_compatible_modules', {
+        filter: { slot: { _in: slotIds } },
+        fields: [
+          'slot',
+          { module: ['id', 'name', { gallery: ['directus_file_id', 'sort'] }, { manufacturer: ['name', 'code'] }] },
+        ],
+        limit: -1,
+      })
+    )
+
+    const baseSlots = (ship.value.module_slots as ShipModuleSlot[])
+      ?.slice()
+      .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)) ?? []
+
+    slotsWithModules.value = baseSlots.map(slot => ({
+      ...slot,
+      compatible_modules: junctionRows
+        .filter((r: any) => (typeof r.slot === 'object' ? r.slot?.id : r.slot) === slot.id)
+        .map((r: any) => r.module as ShipModule),
+    }))
+  } catch (e) {
+    console.warn('Kompatible Module konnten nicht geladen werden (ggf. fehlende Permissions):', e)
+  }
+}
+
+function getSlotModule(slotId: string): string | null {
+  return formData.value.modules?.find(m => m.slot === slotId)?.module ?? null
+}
+
+function setSlotModule(slotId: string, moduleId: string | null) {
+  const without = (formData.value.modules ?? []).filter(m => m.slot !== slotId)
+  formData.value.modules = moduleId ? [...without, { slot: slotId, module: moduleId }] : without
+}
 </script>
 
 <template>
@@ -327,7 +380,7 @@ const { data: departments } = useNuxtData('global:simple_departments')
           <UCard
             variant="ams"
             class="!shadow-none group"
-            :data-disabled="!ship.modules?.length"
+            :data-disabled="!hasModuleSlots"
             :ui="{ body: '!pt-0' }"
           >
             <template #header>
@@ -337,85 +390,49 @@ const { data: departments } = useNuxtData('global:simple_departments')
                 <h4>Modulare Schiffe</h4>
               </div>
             </template>
-            <template v-if="ship.modules?.length" #default>
-              <div class="grid grid-cols-1 gap-4">
-                <UFormField size="sm" label="Aktives Modul">
-                  <div
-                    v-if="formData.active_module"
-                    class="flex w-full p-3 text-sm rounded-md items-center gap-4 ring ring-(--ui-primary)"
-                  >
-                    <NuxtImg
-                      :src="getAssetId(((ship.modules.find((e) => e?.id === formData.active_module) as ShipModule)?.gallery?.[0] as ShipModulesGallery)?.directus_file_id)"
-                      class="size-12 object-cover rounded-md"
-                    />
-                    <div class="flex-1">
-                      <strong class="pb-1 block">{{
-                        (
-                          ship.modules.find(
-                            (e) => e?.id === formData.active_module
-                          ) as ShipModule
-                        ).name
-                      }}</strong>
-                      <p class="!m-0 text-(--ui-text-muted) text-xs">
-                        <!-- TODO: ADD MULTI MODULE SELECTION -->
-                        <!-- TODO IMPLEMENT MODULE FOCUS -->
-                        <span
-                          >{{
-                            getCompanyCode(
-                              (
-                                ship.modules.find(
-                                  (e) => e?.id === formData.active_module
-                                ) as ShipModule
-                              ).manufacturer as Company
-                            )
-                          }}
-                          &bull; TBD</span
-                        >
-                      </p>
-                    </div>
+            <template v-if="hasModuleSlots" #default>
+              <div class="grid grid-cols-1 gap-6">
+                <div v-for="slot in moduleSlots" :key="slot.id">
+                  <p class="text-sm font-medium mb-2">{{ slot.name }}</p>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button
+                      @click="setSlotModule(slot.id, null)"
+                      class="flex text-left w-full p-3 hover:cursor-pointer text-xs rounded-md items-center gap-3 ring transition-all duration-300"
+                      :class="[
+                        getSlotModule(slot.id) === null
+                          ? 'ring-(--ui-primary)'
+                          : 'ring-(--ui-bg-accented) hover:ring-(--ui-primary)/50',
+                      ]"
+                    >
+                      <div class="size-12 rounded-md bg-(--ui-bg-accented) flex items-center justify-center shrink-0">
+                        <UIcon name="i-lucide-minus" class="size-5 text-(--ui-text-muted)" />
+                      </div>
+                      <span class="text-(--ui-text-muted)">Kein Modul</span>
+                    </button>
+                    <button
+                      v-for="module in (slot.compatible_modules as ShipModule[])"
+                      :key="module.id"
+                      @click="setSlotModule(slot.id, module.id)"
+                      class="flex text-left w-full p-3 hover:cursor-pointer text-xs rounded-md items-center gap-3 ring transition-all duration-300"
+                      :class="[
+                        getSlotModule(slot.id) === module.id
+                          ? 'ring-(--ui-primary)'
+                          : 'ring-(--ui-bg-accented) hover:ring-(--ui-primary)/50',
+                      ]"
+                    >
+                      <NuxtImg
+                        :src="getAssetId((module.gallery?.[0] as ShipModulesGallery)?.directus_file_id)"
+                        class="size-12 object-cover rounded-md shrink-0"
+                      />
+                      <div class="flex-1 min-w-0">
+                        <strong class="pb-0.5 block truncate">{{ module.name }}</strong>
+                        <p class="!m-0 text-(--ui-text-muted) text-[.6rem]">
+                          {{ module.manufacturer ? getCompanyCode(module.manufacturer as Company) : '' }}
+                        </p>
+                      </div>
+                    </button>
                   </div>
-                  <div class="p-px">
-                    <USeparator
-                      variant="ams"
-                      color="ams"
-                      class="my-4"
-                      label="Andere Module"
-                    />
-                    <div class="grid grid-cols-2 gap-2">
-                      <button
-                        v-for="module in (ship.modules as ShipModule[])"
-                        @click="() => (formData.active_module = module.id)"
-                        :key="module.id"
-                        class="flex text-left w-full p-3 hover:cursor-pointer text-xs rounded-md items-center gap-4 ring transition-all duration-300"
-                        :class="[
-                          formData.active_module === module.id
-                            ? 'ring-(--ui-primary)'
-                            : 'ring-(--ui-bg-accented) hover:ring-(--ui-primary)/50',
-                        ]"
-                      >
-                        <NuxtImg
-                          :src="
-                                getAssetId(
-                                  (module.gallery?.[0] as ShipModulesGallery)?.directus_file_id
-                                )
-                              "
-                          class="size-12 object-cover rounded-md"
-                        />
-                        <div class="flex-1">
-                          <strong class="pb-1 block">{{ module.name }}</strong>
-                          <p class="!m-0 text-(--ui-text-muted) text-[.6rem]">
-                            <span>
-                              {{
-                                getCompanyCode(module.manufacturer as Company)
-                              }}
-                              &bull; TBD
-                            </span>
-                          </p>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-                </UFormField>
+                </div>
               </div>
             </template>
           </UCard>

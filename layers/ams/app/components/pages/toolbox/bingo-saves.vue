@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
+import {
+  buildActiveTableFilters,
+  buildTableFilterOptions,
+} from '../../../utils/table-filter'
 
-/**
- * Overview of stored bingo rounds with quick actions.
- *
- * Lists existing saves, provides load/delete controls and allows new entries.
- */
-/** Metadata exposed to the saves table rows. */
 type BingoBoardSaveSummary = {
   id: string
   name: string
@@ -17,12 +15,10 @@ type BingoBoardSaveSummary = {
   playableCells: number
 }
 
-/** Saves to display inside the table. */
 const props = defineProps<{
   saves: BingoBoardSaveSummary[]
 }>()
 
-/** Emits higher-level actions to the page (save, load, delete, clear). */
 const emit = defineEmits<{
   (e: 'save', name?: string): void
   (e: 'load', id: string): void
@@ -30,10 +26,121 @@ const emit = defineEmits<{
   (e: 'clear'): void
 }>()
 
+const sorting = ref<{ id: string; desc: boolean }[]>([])
+const columnFilters = reactive({
+  name: '',
+  collectionName: '',
+  activeCount: '',
+  completedLineCount: '',
+  createdAt: '',
+})
+type BingoFilterKey = keyof typeof columnFilters
+const bingoFilterKeys = Object.keys(columnFilters) as BingoFilterKey[]
+
+const AMSUiTableSortFilterHeader = resolveComponent('AMSUiTableSortFilterHeader')
+
+const filterLabels: Record<BingoFilterKey, string> = {
+  name: 'Spiel',
+  collectionName: 'Kollektion',
+  activeCount: 'Fortschritt',
+  completedLineCount: 'Bingo',
+  createdAt: 'Gespeichert',
+}
+
+const nameInput = ref('')
+
+function submitSave() {
+  emit('save', nameInput.value)
+  nameInput.value = ''
+}
+
+const hasSaves = computed(() => props.saves.length > 0)
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleString('de-DE', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  })
+}
+
+const filterGetters: Record<BingoFilterKey, (item: BingoBoardSaveSummary) => string> = {
+  name: (item) => item.name.trim(),
+  collectionName: (item) => item.collectionName.trim(),
+  activeCount: (item) => `${item.activeCount} / ${item.playableCells}`,
+  completedLineCount: (item) => `${item.completedLineCount}`,
+  createdAt: (item) => formatDate(item.createdAt),
+}
+
+const filterOptions = computed<
+  Record<BingoFilterKey, { label: string; value: string }[]>
+>(() => ({
+  name: buildTableFilterOptions(props.saves, (item) => {
+    const value = filterGetters.name(item)
+    return value ? { label: value, value } : null
+  }),
+  collectionName: buildTableFilterOptions(props.saves, (item) => {
+    const value = filterGetters.collectionName(item)
+    return value ? { label: value, value } : null
+  }),
+  activeCount: buildTableFilterOptions(props.saves, (item) => {
+    const value = filterGetters.activeCount(item)
+    return value ? { label: value, value } : null
+  }),
+  completedLineCount: buildTableFilterOptions(props.saves, (item) => {
+    const value = filterGetters.completedLineCount(item)
+    return value ? { label: value, value } : null
+  }),
+  createdAt: buildTableFilterOptions(props.saves, (item) => {
+    const value = filterGetters.createdAt(item)
+    return value ? { label: value, value } : null
+  }),
+}))
+
+const filteredSaves = computed(() =>
+  props.saves.filter((item) =>
+    bingoFilterKeys.every((key) => {
+      const selectedValue = columnFilters[key]
+      return !selectedValue || filterGetters[key](item) === selectedValue
+    })
+  )
+)
+
+const activeFilters = computed(() =>
+  buildActiveTableFilters({
+    filters: columnFilters,
+    labels: filterLabels,
+    options: filterOptions.value,
+  })
+)
+
+function clearFilter(key: BingoFilterKey | string) {
+  columnFilters[key as BingoFilterKey] = ''
+}
+
+function clearAllFilters() {
+  for (const key of bingoFilterKeys) {
+    columnFilters[key] = ''
+  }
+}
+
+function sortableHeader(key: BingoFilterKey, label: string) {
+  return ({ column }: { column: any }) =>
+    h(AMSUiTableSortFilterHeader, {
+      label,
+      column,
+      items: filterOptions.value[key],
+      modelValue: columnFilters[key],
+      'onUpdate:modelValue': (value: string) => {
+        columnFilters[key] = value
+      },
+    })
+}
+
 const columns: TableColumn<BingoBoardSaveSummary>[] = [
   {
     accessorKey: 'name',
-    header: 'Spiel',
+    header: sortableHeader('name', 'Spiel'),
+    enableSorting: true,
     meta: {
       class: {
         td: 'min-w-[15rem] whitespace-normal',
@@ -42,7 +149,8 @@ const columns: TableColumn<BingoBoardSaveSummary>[] = [
   },
   {
     accessorKey: 'collectionName',
-    header: 'Kollektion',
+    header: sortableHeader('collectionName', 'Kollektion'),
+    enableSorting: true,
     meta: {
       class: {
         td: 'min-w-[10rem] whitespace-normal',
@@ -51,15 +159,18 @@ const columns: TableColumn<BingoBoardSaveSummary>[] = [
   },
   {
     accessorKey: 'activeCount',
-    header: 'Fortschritt',
+    header: sortableHeader('activeCount', 'Fortschritt'),
+    enableSorting: true,
   },
   {
     accessorKey: 'completedLineCount',
-    header: 'Bingo',
+    header: sortableHeader('completedLineCount', 'Bingo'),
+    enableSorting: true,
   },
   {
     accessorKey: 'createdAt',
-    header: 'Gespeichert',
+    header: sortableHeader('createdAt', 'Gespeichert'),
+    enableSorting: true,
   },
   {
     id: 'actions',
@@ -72,26 +183,6 @@ const columns: TableColumn<BingoBoardSaveSummary>[] = [
     },
   },
 ]
-
-/** Holds the optional name entered for a new save. */
-const nameInput = ref('')
-
-/** Submit handler that forwards the chosen name to the parent. */
-function submitSave() {
-  emit('save', nameInput.value)
-  nameInput.value = ''
-}
-
-/** Quick helper used to toggle the table state. */
-const hasSaves = computed(() => props.saves.length > 0)
-
-/** Format the stored timestamp for the table view. */
-function formatDate(value: string) {
-  return new Date(value).toLocaleString('de-DE', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-}
 </script>
 
 <template>
@@ -124,7 +215,17 @@ function formatDate(value: string) {
       <div
         class="overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-[0_18px_40px_-32px_rgba(0,255,232,0.45)]"
       >
-        <UTable :columns="columns" :data="props.saves">
+        <AMSUiTableActiveFilters
+          :items="activeFilters"
+          @clear="clearFilter"
+          @clear-all="clearAllFilters"
+        />
+
+        <UTable
+          v-model:sorting="sorting"
+          :columns="columns"
+          :data="filteredSaves"
+        >
           <template #name-cell="{ row }">
             <div class="flex flex-col gap-1">
               <span class="font-semibold text-white/90">{{ row.original.name }}</span>
@@ -135,9 +236,9 @@ function formatDate(value: string) {
           </template>
 
           <template #collectionName-cell="{ row }">
-            <span class="text-sm text-white/75">{{
-              row.original.collectionName
-            }}</span>
+            <span class="text-sm text-white/75">
+              {{ row.original.collectionName }}
+            </span>
           </template>
 
           <template #activeCount-cell="{ row }">
