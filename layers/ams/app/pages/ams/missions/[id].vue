@@ -3,6 +3,7 @@ import { createItem, deleteItem, updateItem } from "@directus/sdk";
 import {
   getMissionRoleLabel,
   getMissionRoleSort,
+  shipHasMissionRoles,
 } from "~~/app/utils/ams-mission-roles";
 
 const route = useRoute();
@@ -532,7 +533,30 @@ function getMissionRoleSourceForPosition(position?: any, ship?: any) {
   );
 }
 
+function shouldUseShipPositionSort(ship?: any, positionType?: string | null) {
+  return shipHasMissionRoles(
+    ship?.hangar_id?.ship ?? null,
+    normalizePositionType(positionType),
+  );
+}
+
+function shouldPairShipPositionsBySort(ship?: any) {
+  return (
+    shouldUseShipPositionSort(ship, "primary") &&
+    shouldUseShipPositionSort(ship, "secondary")
+  );
+}
+
 function getPositionPairSort(position?: any, ship?: any) {
+  if (
+    !shipHasMissionRoles(
+      getMissionRoleSourceForPosition(position, ship),
+      normalizePositionType(position?.position_type),
+    )
+  ) {
+    return null;
+  }
+
   if (typeof position?.sort === "number") {
     return position.sort;
   }
@@ -541,6 +565,44 @@ function getPositionPairSort(position?: any, ship?: any) {
     position?.role,
     getMissionRoleSourceForPosition(position, ship),
     normalizePositionType(position?.position_type),
+  );
+}
+
+function compareShipPositionsByPairSort(ship: any, left: any, right: any) {
+  const leftSort = getPositionPairSort(left, ship);
+  const rightSort = getPositionPairSort(right, ship);
+
+  if (leftSort !== rightSort) {
+    if (leftSort == null) return 1;
+    if (rightSort == null) return -1;
+    return leftSort - rightSort;
+  }
+
+  const leftLabel = getMissionRoleLabel(
+    left?.role,
+    getMissionRoleSourceForPosition(left, ship),
+    normalizePositionType(left?.position_type),
+  );
+  const rightLabel = getMissionRoleLabel(
+    right?.role,
+    getMissionRoleSourceForPosition(right, ship),
+    normalizePositionType(right?.position_type),
+  );
+
+  return leftLabel.localeCompare(rightLabel, "de");
+}
+
+function getSortedShipPositionsByType(ship: any, positionType: PositionType) {
+  const positions = (ship?.positions ?? []).filter(
+    (position: any) => normalizePositionType(position.position_type) === positionType,
+  );
+
+  if (!shouldUseShipPositionSort(ship, positionType)) {
+    return positions;
+  }
+
+  return [...positions].sort((left: any, right: any) =>
+    compareShipPositionsByPairSort(ship, left, right),
   );
 }
 
@@ -559,11 +621,11 @@ function findPairedSecondary(primaryPositionId: string) {
   );
   if (primaryPos == null) return null;
 
-  const primarySort = getPositionPairSort(primaryPos, ship);
+  const primarySort = shouldPairShipPositionsBySort(ship)
+    ? getPositionPairSort(primaryPos, ship)
+    : null;
 
-  const secondaryPositions = (ship.positions ?? []).filter(
-    (p: any) => normalizePositionType(p.position_type) === "secondary",
-  );
+  const secondaryPositions = getSortedShipPositionsByType(ship, "secondary");
 
   if (primarySort != null) {
     return (
@@ -574,9 +636,7 @@ function findPairedSecondary(primaryPositionId: string) {
   }
 
   // Fallback for default roles without sort: pair by index among primaries
-  const primaryPositions = (ship.positions ?? []).filter(
-    (p: any) => normalizePositionType(p.position_type) === "primary",
-  );
+  const primaryPositions = getSortedShipPositionsByType(ship, "primary");
   const primaryIndex = primaryPositions.findIndex(
     (p: any) => p.id === primaryPositionId,
   );
@@ -599,11 +659,11 @@ function findPairedPrimary(secondaryPositionId: string) {
   );
   if (secondaryPos == null) return null;
 
-  const secondarySort = getPositionPairSort(secondaryPos, ship);
+  const secondarySort = shouldPairShipPositionsBySort(ship)
+    ? getPositionPairSort(secondaryPos, ship)
+    : null;
 
-  const primaryPositions = (ship.positions ?? []).filter(
-    (p: any) => normalizePositionType(p.position_type) === "primary",
-  );
+  const primaryPositions = getSortedShipPositionsByType(ship, "primary");
 
   if (secondarySort != null) {
     return (
@@ -614,9 +674,7 @@ function findPairedPrimary(secondaryPositionId: string) {
   }
 
   // Fallback for default roles without sort: pair by index among secondaries
-  const secondaryPositions = (ship.positions ?? []).filter(
-    (p: any) => normalizePositionType(p.position_type) === "secondary",
-  );
+  const secondaryPositions = getSortedShipPositionsByType(ship, "secondary");
   const secondaryIndex = secondaryPositions.findIndex(
     (p: any) => p.id === secondaryPositionId,
   );
