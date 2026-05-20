@@ -2,7 +2,6 @@ import { defineNuxtConfig } from 'nuxt/config';
 // import { sentryVitePlugin } from '@sentry/vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import { version } from './package.json';
-// https://nuxt.com/docs/api/configuration/nuxt-config
 
 export default defineNuxtConfig({
   devtools: {
