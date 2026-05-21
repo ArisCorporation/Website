@@ -90,15 +90,12 @@ const onRequestSubmit = async (event: FormSubmitEvent<RequestSchema>) => {
 
     const user = transformUser(unref(users)[0]);
 
-    const { data: token } = await useFetch(
-      'https://studio.ariscorp.de/flows/trigger/abb6a172-6898-4bda-a3fd-15fa15adc599',
-      {
-        method: 'POST',
-        body: {
-          user: user.id,
-        },
+    const { data: token } = await useFetch('/api/proxy/flows/trigger/abb6a172-6898-4bda-a3fd-15fa15adc599', {
+      method: 'POST',
+      body: {
+        user: user.id,
       },
-    );
+    });
 
     if (unref(token)?.code) {
       throw new Error(unref(token)?.message);
@@ -119,7 +116,7 @@ const onRequestSubmit = async (event: FormSubmitEvent<RequestSchema>) => {
     expire_date.setHours(expire_date.getHours() + 24);
 
     if (user.discord_id)
-      await useFetch('https://studio.ariscorp.de/flows/trigger/1a4fa52f-f1b5-4077-8af3-82aae18e6f41', {
+      await useFetch('/api/proxy/flows/trigger/1a4fa52f-f1b5-4077-8af3-82aae18e6f41', {
         method: 'POST',
         body: {
           discord_id: user.discord_id,
@@ -143,7 +140,7 @@ const onRequestSubmit = async (event: FormSubmitEvent<RequestSchema>) => {
 const onResetSubmit = async (event: FormSubmitEvent<ResetSchema>) => {
   // TODO: Add complex error handling
   try {
-    const { data: req } = await useFetch('https://studio.ariscorp.de/flows/trigger/2224a8a5-da10-4a7a-9023-8899741fce37', {
+    const { data: req } = await useFetch('/api/proxy/flows/trigger/2224a8a5-da10-4a7a-9023-8899741fce37', {
       method: 'POST',
       body: {
         token: query.token,

@@ -78,7 +78,8 @@ export const useCMS = () => {
   //   return (useCookie('ams:auth_token').value = data);
   // }
 
-  const directus = createDirectus<CMSTypes>('http://ariscorp-backend-directus.ariscorp-backend.svc.cluster.local:80')
+  const config = useRuntimeConfig()
+  const directus = createDirectus<CMSTypes>(config.public.backendUrl)
     .with(rest({ credentials: 'include' }))
     .with(authentication('json', { storage }))
     .with(realtime());
