@@ -79,7 +79,9 @@ export const useCMS = () => {
   // }
 
   const config = useRuntimeConfig()
-  const directus = createDirectus<CMSTypes>(config.public.backendUrl)
+  const { origin } = useRequestURL()
+  const backendUrl = import.meta.server ? config.public.backendUrl : `${origin}/api/proxy`
+  const directus = createDirectus<CMSTypes>(backendUrl)
     .with(rest({ credentials: 'include' }))
     .with(authentication('json', { storage }))
     .with(realtime());
