@@ -74,7 +74,7 @@ async function checkNameConflict(name: string) {
           id: { _neq: props.item.id as any },
         },
         limit: -1,
-        fields: ['id', { ship: ['id', 'name'] }],
+        fields: ['id', 'ship.id', 'ship.hull.id'],
       })
     )) as UserHangar[]
 
@@ -83,11 +83,11 @@ async function checkNameConflict(name: string) {
       return
     }
 
-    const currentShipId = (props.item.ship as any)?.id || props.item.ship
+    const currentHull = (props.item.ship as ShipVariant)?.hull
+    const currentHullId = typeof currentHull === 'object' ? currentHull?.id : currentHull
     const sameModel = results.some((r: any) => {
-      const s = r.ship as any
-      const sid = typeof s === 'string' ? s : s?.id
-      return String(sid) === String(currentShipId)
+      const hullId = r.ship?.hull?.id ?? r.ship?.hull
+      return currentHullId && hullId && String(hullId) === String(currentHullId)
     })
     nameConflictStatus.value = sameModel ? 'same_model' : 'other_model'
   } catch (e) {
