@@ -2,8 +2,9 @@
 import type { Company, ShipHull, ShipVariant, UserHangar } from '~~/types'
 
 interface addItem {
-  ship: string | null
+  ship?: string
   name: string // Custom name for the ship in the hangar
+  buy_status: 'pledged' | 'in_game' | 'planned'
   group: 'ariscorp' | 'private'
   visibility: 'public' | 'internal' | 'hidden'
 }
@@ -21,15 +22,36 @@ const isLoading = ref<boolean>(false)
 const isDisabled = ref<boolean>(false)
 
 const initialShipState = (): addItem => ({
-  ship: null,
+  ship: undefined,
   name: '',
+  buy_status: 'pledged',
   group: 'ariscorp',
   visibility: 'public',
 })
 
-const ships = ref<addItem[]>([
-  { ship: null, name: '', group: 'ariscorp', visibility: 'public' },
-])
+const BUY_STATUS_ITEMS: Array<{
+  label: string
+  value: addItem['buy_status']
+  icon: string
+}> = [
+  {
+    label: 'Gepledged',
+    value: 'pledged',
+    icon: 'i-lucide-dollar-sign',
+  },
+  {
+    label: 'In-Game',
+    value: 'in_game',
+    icon: 'i-lucide-currency',
+  },
+  {
+    label: 'Geplant',
+    value: 'planned',
+    icon: 'i-lucide-notebook-text',
+  },
+]
+
+const ships = ref<addItem[]>([initialShipState()])
 
 // Name conflict checking per item
 type NameConflictStatus = 'none' | 'other_model' | 'same_model'
@@ -184,6 +206,7 @@ async function handleSubmit() {
           ? {
               ship: ship.ship,
               name: ship.name,
+              buy_status: ship.buy_status,
               group: ship.group,
               visibility: ship.visibility,
               user: targetUserId.value,
@@ -258,6 +281,26 @@ async function handleSubmit() {
                 placeholder="Aris ONE"
                 class="w-full"
               />
+            </UFormField>
+            <UFormField label="Kaufstatus">
+              <URadioGroup
+                v-model="item.buy_status"
+                indicator="hidden"
+                variant="table"
+                orientation="horizontal"
+                size="sm"
+                default-value="pledged"
+                :items="BUY_STATUS_ITEMS"
+                class="prose-p:my-0"
+                :ui="{ item: 'p-2' }"
+              >
+                <template #label="{ item: buyStatusItem }">
+                  <span class="flex items-center gap-2">
+                    <UIcon :name="buyStatusItem.icon" class="size-4" />
+                    <span>{{ buyStatusItem.label }}</span>
+                  </span>
+                </template>
+              </URadioGroup>
             </UFormField>
             <UAlert
               v-if="
@@ -349,19 +392,14 @@ async function handleSubmit() {
         <UButton
           highlight
           @click="
-            ships.push({
-              ship: null,
-              name: '',
-              group: 'ariscorp',
-              visibility: 'public',
-            }),
+            ships.push(initialShipState()),
               nameConflictStatuses.push('none')
           "
-          variant="outlinedashed"
+          variant="outline"
           label="Weiteres Schiff hinzufügen"
           icon="i-lucide-plus"
           size="lg"
-          class="w-full justify-center mt-4 !ring-none"
+          class="w-full justify-center mt-4 border-dashed !ring-none"
         />
       </div>
     </template>

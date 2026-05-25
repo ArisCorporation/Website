@@ -1,0 +1,3 @@
+- flex leute als mission planner positionen zuweisen
+- "manuelle" positinen erstellung nru wenn custom roles nicht gesetzt sind / manueller overwrite erlauben
+- schiffsmodule mit anderen positionen, etc.
