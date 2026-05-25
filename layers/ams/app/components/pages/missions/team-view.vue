@@ -2,7 +2,8 @@
 import {
   getMissionRoleDescription,
   getMissionRoleLabel,
-  getMissionRoleOrder,
+  getMissionRoleSort,
+  shipHasMissionRoles,
 } from "~~/app/utils/ams-mission-roles";
 
 const props = defineProps<{
@@ -288,12 +289,32 @@ function getPositionRoleDescription(pos: any, ship: any) {
 }
 
 function getSortedPositions(ship: any, positionType: PositionType) {
+  if (!shipHasMissionRoles(getShipRoleSource(ship), positionType)) {
+    return getShipPositionsByType(ship, positionType);
+  }
+
+  const getPositionSortKey = (position: any) => {
+    if (typeof position?.sort === "number") {
+      return position.sort;
+    }
+
+    return getMissionRoleSort(
+      position?.role,
+      getShipRoleSource(ship),
+      normalizePositionType(position?.position_type),
+    );
+  };
+
   return [...getShipPositionsByType(ship, positionType)].sort(
     (a: any, b: any) => {
-      const orderDelta =
-        getMissionRoleOrder(a.role, getShipRoleSource(ship), positionType) -
-        getMissionRoleOrder(b.role, getShipRoleSource(ship), positionType);
-      if (orderDelta !== 0) return orderDelta;
+      const leftSort = getPositionSortKey(a);
+      const rightSort = getPositionSortKey(b);
+
+      if (leftSort !== rightSort) {
+        if (leftSort == null) return 1;
+        if (rightSort == null) return -1;
+        return leftSort - rightSort;
+      }
 
       return getPositionRoleLabel(a, ship).localeCompare(
         getPositionRoleLabel(b, ship),

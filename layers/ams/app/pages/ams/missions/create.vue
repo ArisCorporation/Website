@@ -499,9 +499,17 @@ function getShipCrewLimit(ship: ShipDraft) {
 }
 
 function getShipPositionsByType(ship: ShipDraft, positionType: PositionType) {
-  return ship.positions.filter(
+  const positions = ship.positions.filter(
     (position) =>
       normalizePositionType(position.position_type) === positionType,
+  );
+
+  if (!shouldUseShipPositionSort(ship, positionType)) {
+    return positions;
+  }
+
+  return [...positions].sort((left, right) =>
+    compareShipPositions(ship, left, right),
   );
 }
 
@@ -543,6 +551,20 @@ function isShipPositionTypeLocked(ship: ShipDraft, positionType: PositionType): 
   return shipHasMissionRoles(getShipRoleSource(ship), positionType);
 }
 
+function shouldUseShipPositionSort(
+  ship: ShipDraft,
+  positionType: PositionType,
+) {
+  return isShipPositionTypeLocked(ship, positionType);
+}
+
+function shouldPairShipPositionsBySort(ship: ShipDraft) {
+  return (
+    shouldUseShipPositionSort(ship, "primary") &&
+    shouldUseShipPositionSort(ship, "secondary")
+  );
+}
+
 function onShipHangarChange(ship: ShipDraft) {
   const source = getShipRoleSource(ship);
   const generated = generatePositionsFromShipRoles(source);
@@ -577,7 +599,47 @@ function normalizeShipPositionRoles(ship: ShipDraft) {
   }
 }
 
+function compareShipPositions(
+  ship: ShipDraft,
+  left: PositionDraft,
+  right: PositionDraft,
+) {
+  const leftSort = getShipPositionSort(ship, left);
+  const rightSort = getShipPositionSort(ship, right);
+
+  if (leftSort !== rightSort) {
+    if (leftSort == null) return 1;
+    if (rightSort == null) return -1;
+    return leftSort - rightSort;
+  }
+
+  const leftLabel =
+    getShipRoleOption(
+      ship,
+      left.role,
+      normalizePositionType(left.position_type),
+    )?.label ??
+    left.role ??
+    "";
+  const rightLabel =
+    getShipRoleOption(
+      ship,
+      right.role,
+      normalizePositionType(right.position_type),
+    )?.label ??
+    right.role ??
+    "";
+
+  return leftLabel.localeCompare(rightLabel, "de");
+}
+
 function getShipPositionSort(ship: ShipDraft, position: PositionDraft) {
+  const positionType = normalizePositionType(position.position_type);
+
+  if (!shouldUseShipPositionSort(ship, positionType)) {
+    return null;
+  }
+
   if (typeof position.sort === "number") {
     return position.sort;
   }
@@ -585,7 +647,7 @@ function getShipPositionSort(ship: ShipDraft, position: PositionDraft) {
   return getMissionRoleSort(
     position.role,
     getShipRoleSource(ship),
-    normalizePositionType(position.position_type),
+    positionType,
   );
 }
 
@@ -672,10 +734,10 @@ function findDraftPairedSecondary(
 ): PositionDraft | null {
   if (normalizePositionType(pos.position_type) !== "primary") return null;
 
-  const secondaries = ship.positions.filter(
-    (p) => normalizePositionType(p.position_type) === "secondary",
-  );
-  const primarySort = getShipPositionSort(ship, pos);
+  const secondaries = getShipPositionsByType(ship, "secondary");
+  const primarySort = shouldPairShipPositionsBySort(ship)
+    ? getShipPositionSort(ship, pos)
+    : null;
 
   if (primarySort != null) {
     return (
@@ -684,9 +746,7 @@ function findDraftPairedSecondary(
     );
   }
 
-  const primaries = ship.positions.filter(
-    (p) => normalizePositionType(p.position_type) === "primary",
-  );
+  const primaries = getShipPositionsByType(ship, "primary");
   const idx = primaries.indexOf(pos);
   return idx !== -1 ? (secondaries[idx] ?? null) : null;
 }
@@ -712,6 +772,10 @@ const replaceConfirmTarget = ref<{ ship: ShipDraft; pos: PositionDraft } | null>
 );
 
 function tryAssignSelf(ship: ShipDraft, pos: PositionDraft) {
+  if (normalizePositionType(pos.position_type) === "secondary") {
+    return;
+  }
+
   const existingId = getAssignedUserId(pos);
   if (existingId && existingId !== currentUserId.value) {
     replaceConfirmTarget.value = { ship, pos };
@@ -726,6 +790,7 @@ function assignSelf(ship: ShipDraft, pos: PositionDraft) {
   if (!user) return;
 
   const posType = normalizePositionType(pos.position_type);
+  if (posType === "secondary") return;
 
   // Unassign self from another position of the same type on this ship
   const existingOnShip = getCurrentUserPositionOnShip(ship, posType);
@@ -754,6 +819,10 @@ function assignSelf(ship: ShipDraft, pos: PositionDraft) {
 }
 
 function unassignSelf(ship: ShipDraft, pos: PositionDraft) {
+  if (normalizePositionType(pos.position_type) === "secondary") {
+    return;
+  }
+
   pos.assigned_user = null;
   if (normalizePositionType(pos.position_type) === "primary") {
     const paired = findDraftPairedSecondary(ship, pos);

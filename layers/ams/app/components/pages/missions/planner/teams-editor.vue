@@ -357,7 +357,30 @@ defineProps<{
                       class="w-full min-w-0"
                     />
                     <div class="flex min-w-0 items-center gap-1">
-                      <template v-if="getAssignedUserId(pos) === currentUserId">
+                      <template v-if="positionType === 'secondary'">
+                        <span
+                          v-if="getAssignedUserId(pos) === currentUserId"
+                          class="flex-1 truncate text-xs font-medium text-(--ui-primary)"
+                        >
+                          Ich
+                        </span>
+                        <span
+                          v-else-if="getAssignedUserId(pos)"
+                          class="flex-1 truncate text-xs text-white"
+                          :title="getUserLabel(pos.assigned_user)"
+                        >
+                          {{ getUserLabel(pos.assigned_user) }}
+                        </span>
+                        <span
+                          v-else
+                          class="flex-1 truncate text-xs text-(--ui-text-muted)"
+                        >
+                          Automatisch mit Primär
+                        </span>
+                      </template>
+                      <template
+                        v-else-if="getAssignedUserId(pos) === currentUserId"
+                      >
                         <span
                           class="flex-1 truncate text-xs font-medium text-(--ui-primary)"
                         >
