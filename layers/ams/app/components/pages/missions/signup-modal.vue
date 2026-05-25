@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { createItem, updateItem } from '@directus/sdk'
-import { getMissionRoleLabel, getMissionRoleSort } from '~~/app/utils/ams-mission-roles'
+import { getMissionRoleLabel, getMissionRoleSort, shipHasMissionRoles } from '~~/app/utils/ams-mission-roles'
 
 const props = defineProps<{
   open: boolean
@@ -35,7 +35,25 @@ function getShipRoleSource() {
   return props.target?.ship?.hangar_id?.ship ?? null
 }
 
+function shouldUseShipPositionSort(positionType?: string | null) {
+  return shipHasMissionRoles(
+    getShipRoleSource(),
+    normalizePositionType(positionType),
+  )
+}
+
+function shouldPairShipPositionsBySort() {
+  return (
+    shouldUseShipPositionSort('primary') &&
+    shouldUseShipPositionSort('secondary')
+  )
+}
+
 function getPositionPairSort(position?: any) {
+  if (!shouldUseShipPositionSort(position?.position_type)) {
+    return null
+  }
+
   if (typeof position?.sort === 'number') {
     return position.sort
   }
@@ -45,6 +63,42 @@ function getPositionPairSort(position?: any) {
     getShipRoleSource(),
     normalizePositionType(position?.position_type),
   )
+}
+
+function compareShipPositionsByPairSort(left: any, right: any) {
+  const leftSort = getPositionPairSort(left)
+  const rightSort = getPositionPairSort(right)
+
+  if (leftSort !== rightSort) {
+    if (leftSort == null) return 1
+    if (rightSort == null) return -1
+    return leftSort - rightSort
+  }
+
+  const leftLabel = getMissionRoleLabel(
+    left?.role,
+    getShipRoleSource(),
+    normalizePositionType(left?.position_type),
+  )
+  const rightLabel = getMissionRoleLabel(
+    right?.role,
+    getShipRoleSource(),
+    normalizePositionType(right?.position_type),
+  )
+
+  return leftLabel.localeCompare(rightLabel, 'de')
+}
+
+function getSortedShipPositionsByType(shipPositions: any[], positionType: 'primary' | 'secondary') {
+  const positions = shipPositions.filter(
+    (position: any) => normalizePositionType(position.position_type) === positionType,
+  )
+
+  if (!shouldUseShipPositionSort(positionType)) {
+    return positions
+  }
+
+  return [...positions].sort(compareShipPositionsByPairSort)
 }
 
 const modalOpen = computed({
@@ -108,11 +162,11 @@ async function submit() {
       props.target.type === 'position' &&
       normalizePositionType(props.target.position?.position_type) === 'primary'
     ) {
-      const primarySort = getPositionPairSort(props.target.position)
+      const primarySort = shouldPairShipPositionsBySort()
+        ? getPositionPairSort(props.target.position)
+        : null
       const shipPositions: any[] = props.target.ship?.positions ?? []
-      const secondaryPositions = shipPositions.filter(
-        (p: any) => normalizePositionType(p.position_type) === 'secondary',
-      )
+      const secondaryPositions = getSortedShipPositionsByType(shipPositions, 'secondary')
 
       let openSecondary: any = null
       if (primarySort != null) {
@@ -123,9 +177,7 @@ async function submit() {
           ) ?? null
       } else {
         // Fallback for default roles: pair by index
-        const primaryPositions = shipPositions.filter(
-          (p: any) => normalizePositionType(p.position_type) === 'primary',
-        )
+        const primaryPositions = getSortedShipPositionsByType(shipPositions, 'primary')
         const primaryIndex = primaryPositions.findIndex(
           (p: any) => p.id === props.target?.position?.id,
         )

@@ -47,10 +47,14 @@ type DiscordShareTargets = Partial<
 >;
 
 type MissionPosition = {
+  id?: string | null;
   status?: string | null;
+  sort?: number | null;
+  position_type?: string | null;
 };
 
 type MissionShip = {
+  id?: string | null;
   positions?: MissionPosition[] | null;
 };
 
@@ -61,6 +65,14 @@ type MissionTeam = {
 type MissionRegistration = {
   id: string;
   status?: string | null;
+  type?: string | null;
+  user?: {
+    id?: string | null;
+  } | null;
+  position?: {
+    id?: string | null;
+    position_type?: string | null;
+  } | null;
 };
 
 type MissionShareRecord = {
@@ -162,6 +174,123 @@ function formatDuration(value?: number | null) {
 
   const hoursValue = durationMinutes / 60;
   return `${Number(hoursValue.toFixed(2)).toString().replace(".", ",")} h`;
+}
+
+function normalizePositionType(value?: string | null) {
+  return value === "secondary" ? "secondary" : "primary";
+}
+
+function getNormalizedRegistrationStatus(status?: string | null) {
+  if (status === "tentative") return "approved";
+  return status ?? "pending";
+}
+
+function getSortedShipPositionsByType(
+  ship: MissionShip | null | undefined,
+  positionType: "primary" | "secondary",
+) {
+  const positions = (ship?.positions ?? []).filter(
+    (position) => normalizePositionType(position.position_type) === positionType,
+  );
+
+  const canPairBySort =
+    positions.length > 0 &&
+    ["primary", "secondary"].every((type) =>
+      ((ship?.positions ?? []).filter(
+        (position) => normalizePositionType(position.position_type) === type,
+      )).every((position) => typeof position.sort === "number"),
+    );
+
+  if (!canPairBySort) {
+    return positions;
+  }
+
+  return [...positions].sort((left, right) => {
+    const leftSort =
+      typeof left.sort === "number" ? left.sort : Number.MAX_SAFE_INTEGER;
+    const rightSort =
+      typeof right.sort === "number" ? right.sort : Number.MAX_SAFE_INTEGER;
+
+    return leftSort - rightSort;
+  });
+}
+
+function findMissionShipByPositionId(
+  mission: MissionShareRecord,
+  positionId?: string | null,
+) {
+  if (!positionId) return null;
+
+  return (
+    (mission.teams ?? [])
+      .flatMap((team) => team.ships ?? [])
+      .find((ship) =>
+        (ship.positions ?? []).some((position) => position.id === positionId),
+      ) ?? null
+  );
+}
+
+function findPairedPrimaryPosition(
+  mission: MissionShareRecord,
+  secondaryPositionId?: string | null,
+) {
+  const ship = findMissionShipByPositionId(mission, secondaryPositionId);
+  if (!ship || !secondaryPositionId) return null;
+
+  const secondaryPosition = (ship.positions ?? []).find(
+    (position) => position.id === secondaryPositionId,
+  );
+  if (!secondaryPosition) return null;
+
+  const primaryPositions = getSortedShipPositionsByType(ship, "primary");
+  const secondaryPositions = getSortedShipPositionsByType(ship, "secondary");
+
+  if (
+    typeof secondaryPosition.sort === "number" &&
+    primaryPositions.every((position) => typeof position.sort === "number") &&
+    secondaryPositions.every((position) => typeof position.sort === "number")
+  ) {
+    return (
+      primaryPositions.find((position) => position.sort === secondaryPosition.sort) ??
+      null
+    );
+  }
+
+  const secondaryIndex = secondaryPositions.findIndex(
+    (position) => position.id === secondaryPositionId,
+  );
+  if (secondaryIndex === -1) return null;
+
+  return primaryPositions[secondaryIndex] ?? null;
+}
+
+function isSecondaryRegistrationHandledByPrimary(
+  mission: MissionShareRecord,
+  registration: MissionRegistration,
+) {
+  if (
+    registration.type !== "position" ||
+    normalizePositionType(registration.position?.position_type) !== "secondary"
+  ) {
+    return false;
+  }
+
+  const pairedPrimary = findPairedPrimaryPosition(mission, registration.position?.id);
+  if (!pairedPrimary?.id || !registration.user?.id) return false;
+
+  return (mission.registrations ?? []).some(
+    (candidate) =>
+      candidate.type === "position" &&
+      candidate.user?.id === registration.user?.id &&
+      candidate.position?.id === pairedPrimary.id,
+  );
+}
+
+function getVisibleMissionRegistrations(mission: MissionShareRecord) {
+  return (mission.registrations ?? []).filter(
+    (registration) =>
+      !isSecondaryRegistrationHandledByPrimary(mission, registration),
+  );
 }
 
 function hasMissionPlannerAccess(accessLevel?: number | null) {
@@ -289,8 +418,16 @@ async function fetchMissionShareRecord(
           "user_created.first_name",
           "user_created.last_name",
           "registrations.id",
+          "registrations.type",
+          "registrations.user.id",
           "registrations.status",
+          "registrations.position.id",
+          "registrations.position.position_type",
+          "teams.ships.id",
+          "teams.ships.positions.id",
           "teams.ships.positions.status",
+          "teams.ships.positions.sort",
+          "teams.ships.positions.position_type",
         ].join(","),
       },
     },
@@ -329,13 +466,16 @@ function buildMissionEmbed(
   mission: MissionShareRecord,
   botIdentity: DiscordBotIdentity,
 ) {
+  const visibleRegistrations = getVisibleMissionRegistrations(mission);
   const approvedRegistrations =
-    mission.registrations?.filter(
-      (registration) => registration.status === "approved",
+    visibleRegistrations.filter(
+      (registration) =>
+        getNormalizedRegistrationStatus(registration.status) === "approved",
     ).length ?? 0;
   const pendingRegistrations =
-    mission.registrations?.filter(
-      (registration) => registration.status === "pending",
+    visibleRegistrations.filter(
+      (registration) =>
+        getNormalizedRegistrationStatus(registration.status) === "pending",
     ).length ?? 0;
   const registrationCount = approvedRegistrations + pendingRegistrations;
   const allPositions = (mission.teams ?? [])
