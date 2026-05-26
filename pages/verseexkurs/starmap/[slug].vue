@@ -8,7 +8,7 @@ const { query } = useRoute();
 
 // DATA
 const { data } = await useAsyncData(
-  'STARMAP:SYSTEMS',
+  `STARMAP:SYSTEMS:${params.slug}`,
   () =>
     directus.request(
       readItems('systems', {
@@ -55,8 +55,19 @@ const { data } = await useAsyncData(
           'orbit.object:planets.orbit.object.slug',
           'orbit.object:planets.orbit.object:planets.astronomical_designation',
           'orbit.object:planets.orbit.object:moons.astronomical_designation',
+          'orbit.object:planets.orbit.object:moons.size',
+          'orbit.object:planets.orbit.object:moons.age',
+          'orbit.object:planets.orbit.object:moons.orbital_period',
+          'orbit.object:planets.orbit.object:moons.distance',
+          'orbit.object:planets.orbit.object:moons.habitable',
+          'orbit.object:planets.orbit.object:moons.fairchanceact',
+          'orbit.object:planets.orbit.object:moons.population',
+          'orbit.object:planets.orbit.object:moons.economy',
+          'orbit.object:planets.orbit.object:moons.danger_level',
+          'orbit.object:planets.orbit.object:moons.content',
           'orbit.object:planets.orbit.object.banner',
           'orbit.object:planets.orbit.object:space_stations.type',
+          'orbit.object:planets.orbit.object:space_stations.content',
           'orbit.object:asteroid_belts.name',
           'orbit.object:asteroid_belts.slug',
           'orbit.object:asteroid_belts.banner',
@@ -374,7 +385,7 @@ definePageMeta({
         no-margin
       >
         <template #tabcontent>
-          <div v-if="selectedMainTab === 0">
+          <div v-if="selectedMainTab === 0 && data">
             <div class="grid gap-4 mb-8 xl:grid-cols-2">
               <DefaultPanel class="mb-auto">
                 <NuxtImg :src="data?.overview_image" :placeholder="[16, 16, 1, 5]" class="object-cover w-full h-full" />
@@ -431,14 +442,10 @@ definePageMeta({
             </div>
             <Editor :model-value="data.content" read-only />
           </div>
-          <div v-else-if="selectedMainTab === 1">
-            <h2 class="">
-              COMING SOON
-              <!-- Orbit-View -->
-              <!-- {{ data.value.orbit }} -->
-            </h2>
+          <div v-else-if="selectedMainTab === 1 && data">
+            <VerseExkursStarmapOrbitView :data="data" />
           </div>
-          <div v-else-if="selectedMainTab === 2">
+          <div v-else-if="selectedMainTab === 2 && data">
             <div>
               <TableHr> Orbital-Objekte </TableHr>
               <UAccordion

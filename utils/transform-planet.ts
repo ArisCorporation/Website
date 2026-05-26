@@ -65,7 +65,10 @@ export default function (obj: any) {
     ...(obj.orbital_period && { orbital_period: obj.orbital_period }),
     ...(obj.distance && { distance: obj.distance }),
     ...(obj.type && { type: getType(), type_value: obj.type }),
-    ...(obj.habitable && { size: obj.habitable }),
-    ...(obj.fairchanceact && { size: obj.fairchanceact }),
+    ...(obj.hasOwnProperty('habitable') && { habitable: obj.habitable }),
+    ...(obj.hasOwnProperty('fairchanceact') && { fairchanceact: obj.fairchanceact }),
+    ...(obj.population && { population: obj.population }),
+    ...(obj.economy && { economy: obj.economy }),
+    ...(obj.hasOwnProperty('danger_level') && { danger_level: obj.danger_level }),
   };
 }
