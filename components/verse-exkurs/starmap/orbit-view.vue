@@ -547,8 +547,8 @@ async function triggerJump(dest: { name: string; slug: string }) {
       <div v-if="jumping" class="jp-overlay" :class="`jp-phase-${jumpPhase}`">
         <div class="jp-bg" />
 
-        <!-- Rings (start in phase 2) -->
-        <div v-if="jumpPhase >= 2" class="jp-rings-wrap">
+        <!-- Rings -->
+        <div class="jp-rings-wrap">
           <div
             v-for="ring in JP_RINGS"
             :key="ring.id"
@@ -557,8 +557,8 @@ async function triggerJump(dest: { name: string; slug: string }) {
           />
         </div>
 
-        <!-- Star streaks (start in phase 2) -->
-        <div v-if="jumpPhase >= 2" class="jp-streaks-wrap">
+        <!-- Star streaks -->
+        <div class="jp-streaks-wrap">
           <div
             v-for="s in JP_STREAKS"
             :key="s.id"
@@ -638,13 +638,6 @@ async function triggerJump(dest: { name: string; slug: string }) {
   position: absolute;
   inset: 0;
   background: radial-gradient(ellipse at center, #04111f 0%, #010810 45%, #000 100%);
-  transition: background 0.8s ease;
-}
-.jp-phase-2 .jp-bg {
-  background: radial-gradient(ellipse at center, #071d35 0%, #020c1a 45%, #000 100%);
-}
-.jp-phase-3 .jp-bg {
-  background: radial-gradient(ellipse at center, #0a2040 0%, #040e20 45%, #000 100%);
 }
 
 /* Expanding tunnel rings */
@@ -664,8 +657,15 @@ async function triggerJump(dest: { name: string; slug: string }) {
   border: 1.5px solid #22d3ee;
   box-shadow: 0 0 8px 1px rgba(34, 211, 238, 0.4), inset 0 0 8px 1px rgba(34, 211, 238, 0.1);
   opacity: 0;
+  will-change: transform, opacity;
   animation: jp-ring-expand 1.5s cubic-bezier(0.15, 0, 0.85, 1) infinite;
   animation-delay: var(--jp-delay, 0s);
+  animation-play-state: paused;
+  animation-fill-mode: backwards;
+}
+.jp-phase-2 .jp-ring,
+.jp-phase-3 .jp-ring {
+  animation-play-state: running;
 }
 @keyframes jp-ring-expand {
   0%   { transform: scale(0.15); opacity: 0; border-color: #22d3ee; box-shadow: 0 0 12px 2px rgba(34,211,238,0.6); }
@@ -692,19 +692,16 @@ async function triggerJump(dest: { name: string; slug: string }) {
   opacity: 0;
   animation: jp-streak-grow 0.35s ease-out forwards;
   animation-delay: var(--jp-delay, 0s);
+  animation-play-state: paused;
+}
+.jp-phase-2 .jp-streak,
+.jp-phase-3 .jp-streak {
+  animation-play-state: running;
 }
 @keyframes jp-streak-grow {
   0%   { width: 0;                    opacity: 0; }
   15%  { opacity: var(--jp-op, 0.5); }
   100% { width: var(--jp-len, 20vw); opacity: var(--jp-op, 0.5); }
-}
-/* Streaks get brighter / longer in phase 3 */
-.jp-phase-3 .jp-streak {
-  animation: jp-streak-flare 0.25s ease-in forwards;
-}
-@keyframes jp-streak-flare {
-  0%   { filter: brightness(1);   opacity: var(--jp-op, 0.5); }
-  100% { filter: brightness(3.5); opacity: 1;                  width: calc(var(--jp-len, 20vw) * 1.4); }
 }
 
 /* Central glowing core */
@@ -714,6 +711,7 @@ async function triggerJump(dest: { name: string; slug: string }) {
   height: 10px;
   border-radius: 50%;
   background: white;
+  will-change: transform, opacity;
   box-shadow:
     0 0 6px 3px rgba(34, 211, 238, 1),
     0 0 24px 10px rgba(34, 211, 238, 0.6),
