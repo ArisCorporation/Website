@@ -11,10 +11,10 @@ export default function (obj: any) {
     ...(obj.age && { age: obj.age }),
     ...(obj.orbital_period && { orbital_period: obj.orbital_period }),
     ...(obj.distance && { distance: obj.distance }),
-    ...(obj.habitable && { habitable: obj.habitable }),
-    ...(obj.fairchanceact && { fairchanceact: obj.fairchanceact }),
+    ...(obj.hasOwnProperty('habitable') && { habitable: obj.habitable }),
+    ...(obj.hasOwnProperty('fairchanceact') && { fairchanceact: obj.fairchanceact }),
     ...(obj.population && { population: obj.population }),
     ...(obj.economy && { economy: obj.economy }),
-    ...(obj.danger_level && { danger_level: obj.danger_level }),
+    ...(obj.hasOwnProperty('danger_level') && { danger_level: obj.danger_level }),
   };
 }
