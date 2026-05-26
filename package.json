@@ -15,7 +15,8 @@
     "lint:js": "eslint --ext \".ts,.vue\" --ignore-path .gitignore .",
     "lint:prettier": "prettier --check .",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "docker:build": "sh scripts/docker-build.sh"
   },
   "dependencies": {
     "@directus/sdk": "^17.0.1",
