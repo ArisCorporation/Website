@@ -75,6 +75,40 @@ function jpDestination(jp: any) {
 function jpSizeLabel(size: string) {
   return ({ small: 'Klein', medium: 'Mittel', large: 'Groß' } as Record<string, string>)[size] || size;
 }
+
+// ─── JUMP ANIMATION ──────────────────────────────────────────────────────────
+const jumping = ref(false);
+const jumpPhase = ref(0); // 0: idle  1: initiating  2: tunnel  3: flash
+const jumpTarget = ref<{ name: string; slug: string } | null>(null);
+
+const JP_STREAKS = Array.from({ length: 80 }, (_, i) => ({
+  id: i,
+  angle: (i / 80) * 360,
+  length: 22 + Math.random() * 48,
+  delay: Math.random() * 0.18,
+  width: 0.7 + Math.random() * 1.5,
+  opacity: 0.3 + Math.random() * 0.55,
+}));
+const JP_RINGS = Array.from({ length: 9 }, (_, i) => ({
+  id: i,
+  delay: (i / 9) * 1.5,
+}));
+
+async function triggerJump(dest: { name: string; slug: string }) {
+  jumpTarget.value = dest;
+  jumping.value = true;
+  jumpPhase.value = 1;
+  await new Promise((r) => setTimeout(r, 700));
+  jumpPhase.value = 2;
+  await new Promise((r) => setTimeout(r, 1900));
+  jumpPhase.value = 3;
+  await new Promise((r) => setTimeout(r, 280));
+  await navigateTo(`/verseexkurs/starmap/${dest.slug}`);
+  await new Promise((r) => setTimeout(r, 350));
+  jumping.value = false;
+  jumpPhase.value = 0;
+  jumpTarget.value = null;
+}
 </script>
 
 <template>
@@ -493,19 +527,74 @@ function jpSizeLabel(size: string) {
             Größenordnung: <span class="text-industrial-400">{{ jpSizeLabel(item.data.size) }}</span>
           </p>
           <div class="mt-2">
-            <NuxtLink
+            <button
               v-if="jpDestination(item.data)?.slug"
-              :to="`/verseexkurs/starmap/${jpDestination(item.data)?.slug}`"
               class="orbit-btn orbit-btn--link"
+              @click="triggerJump({ name: jpDestination(item.data)!.name, slug: jpDestination(item.data)!.slug })"
             >
               <UIcon name="i-heroicons-arrow-right-circle-20-solid" class="size-3.5" />
               Sprung nach {{ jpDestination(item.data)?.name }}
-            </NuxtLink>
+            </button>
           </div>
         </div>
       </div>
     </template>
   </div>
+
+  <!-- ─── JUMP ANIMATION OVERLAY ──────────────────────────────────────────── -->
+  <Teleport to="body">
+    <Transition name="jp-fade">
+      <div v-if="jumping" class="jp-overlay" :class="`jp-phase-${jumpPhase}`">
+        <div class="jp-bg" />
+
+        <!-- Rings (start in phase 2) -->
+        <div v-if="jumpPhase >= 2" class="jp-rings-wrap">
+          <div
+            v-for="ring in JP_RINGS"
+            :key="ring.id"
+            class="jp-ring"
+            :style="{ '--jp-delay': `${ring.delay}s` }"
+          />
+        </div>
+
+        <!-- Star streaks (start in phase 2) -->
+        <div v-if="jumpPhase >= 2" class="jp-streaks-wrap">
+          <div
+            v-for="s in JP_STREAKS"
+            :key="s.id"
+            class="jp-streak"
+            :style="{
+              '--jp-angle': `${s.angle}deg`,
+              '--jp-len': `${s.length}vw`,
+              '--jp-delay': `${s.delay}s`,
+              '--jp-w': `${s.width}px`,
+              '--jp-op': s.opacity,
+            }"
+          />
+        </div>
+
+        <!-- Central glowing core -->
+        <div class="jp-core" />
+
+        <!-- White flash (phase 3) -->
+        <div class="jp-flash" />
+
+        <!-- HUD text -->
+        <Transition name="jp-text-fade">
+          <div v-if="jumpPhase <= 2" class="jp-hud">
+            <div class="jp-hud-inner" :class="{ 'jp-hud--shake': jumpPhase === 2 }">
+              <p class="jp-label">Initiiere Sprung nach</p>
+              <p class="jp-name">{{ jumpTarget?.name }}</p>
+              <div class="jp-bar">
+                <div class="jp-bar-fill" :class="{ 'jp-bar-fill--active': jumpPhase === 2 }" />
+              </div>
+              <p class="jp-status">{{ jumpPhase === 1 ? 'SPINNE SPRUNGANTRIEB HOCH...' : 'SPRUNG AKTIV' }}</p>
+            </div>
+          </div>
+        </Transition>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped lang="postcss">
@@ -521,5 +610,223 @@ function jpSizeLabel(size: string) {
 }
 .orbit-btn--link {
   @apply border-industrial-400/50 text-industrial-400 hover:border-industrial-400 hover:bg-industrial-400/10;
+}
+
+/* ─── JUMP ANIMATION ─────────────────────────────────────────────────────── */
+.jp-fade-enter-active { transition: opacity 0.25s ease; }
+.jp-fade-leave-active { transition: opacity 0.4s ease; }
+.jp-fade-enter-from,
+.jp-fade-leave-to  { opacity: 0; }
+
+.jp-text-fade-enter-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+.jp-text-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.jp-text-fade-enter-from   { opacity: 0; transform: translateY(12px); }
+.jp-text-fade-leave-to     { opacity: 0; transform: scale(1.1); }
+
+.jp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Starfield background */
+.jp-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #04111f 0%, #010810 45%, #000 100%);
+  transition: background 0.8s ease;
+}
+.jp-phase-2 .jp-bg {
+  background: radial-gradient(ellipse at center, #071d35 0%, #020c1a 45%, #000 100%);
+}
+.jp-phase-3 .jp-bg {
+  background: radial-gradient(ellipse at center, #0a2040 0%, #040e20 45%, #000 100%);
+}
+
+/* Expanding tunnel rings */
+.jp-rings-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.jp-ring {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 1.5px solid #22d3ee;
+  box-shadow: 0 0 8px 1px rgba(34, 211, 238, 0.4), inset 0 0 8px 1px rgba(34, 211, 238, 0.1);
+  opacity: 0;
+  animation: jp-ring-expand 1.5s cubic-bezier(0.15, 0, 0.85, 1) infinite;
+  animation-delay: var(--jp-delay, 0s);
+}
+@keyframes jp-ring-expand {
+  0%   { transform: scale(0.15); opacity: 0; border-color: #22d3ee; box-shadow: 0 0 12px 2px rgba(34,211,238,0.6); }
+  12%  { opacity: 0.8; }
+  60%  { border-color: #60a5fa; box-shadow: 0 0 4px 1px rgba(96,165,250,0.3); opacity: 0.4; }
+  100% { transform: scale(28); opacity: 0; }
+}
+
+/* Star streaks */
+.jp-streaks-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.jp-streak {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: var(--jp-w, 1px);
+  width: 0;
+  background: linear-gradient(to right, transparent 0%, rgba(186, 230, 253, 0.95) 100%);
+  transform-origin: 0 50%;
+  transform: rotate(var(--jp-angle, 0deg)) translateY(-50%);
+  opacity: 0;
+  animation: jp-streak-grow 0.35s ease-out forwards;
+  animation-delay: var(--jp-delay, 0s);
+}
+@keyframes jp-streak-grow {
+  0%   { width: 0;                    opacity: 0; }
+  15%  { opacity: var(--jp-op, 0.5); }
+  100% { width: var(--jp-len, 20vw); opacity: var(--jp-op, 0.5); }
+}
+/* Streaks get brighter / longer in phase 3 */
+.jp-phase-3 .jp-streak {
+  animation: jp-streak-flare 0.25s ease-in forwards;
+}
+@keyframes jp-streak-flare {
+  0%   { filter: brightness(1);   opacity: var(--jp-op, 0.5); }
+  100% { filter: brightness(3.5); opacity: 1;                  width: calc(var(--jp-len, 20vw) * 1.4); }
+}
+
+/* Central glowing core */
+.jp-core {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: white;
+  box-shadow:
+    0 0 6px 3px rgba(34, 211, 238, 1),
+    0 0 24px 10px rgba(34, 211, 238, 0.6),
+    0 0 70px 28px rgba(34, 211, 238, 0.2);
+  z-index: 2;
+  animation: jp-core-pulse 0.7s ease-in-out infinite alternate;
+}
+.jp-phase-2 .jp-core,
+.jp-phase-3 .jp-core {
+  animation:
+    jp-core-pulse 0.25s ease-in-out infinite alternate,
+    jp-core-swell 1.9s ease-in forwards;
+}
+@keyframes jp-core-pulse {
+  from { transform: scale(1); }
+  to   { transform: scale(1.4); }
+}
+@keyframes jp-core-swell {
+  0%   { transform: scale(1); }
+  100% { transform: scale(22); opacity: 0.6; }
+}
+
+/* White flash */
+.jp-flash {
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+.jp-phase-3 .jp-flash {
+  animation: jp-flash-in 0.5s ease-in forwards;
+}
+@keyframes jp-flash-in {
+  0%   { opacity: 0; }
+  70%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+/* HUD text */
+.jp-hud {
+  position: absolute;
+  text-align: center;
+  z-index: 4;
+  pointer-events: none;
+  user-select: none;
+}
+.jp-hud-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.jp-hud--shake {
+  animation: jp-shake 0.08s ease-in-out infinite alternate;
+}
+@keyframes jp-shake {
+  from { transform: translate(-0.5px, 0); }
+  to   { transform: translate(0.5px, -0.5px); }
+}
+.jp-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  text-shadow: 0 0 16px rgba(34, 211, 238, 0.7);
+}
+.jp-name {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #22d3ee;
+  text-shadow:
+    0 0 20px rgba(34, 211, 238, 0.9),
+    0 0 60px rgba(34, 211, 238, 0.5),
+    0 0 120px rgba(34, 211, 238, 0.2);
+  letter-spacing: 0.04em;
+}
+.jp-status {
+  font-size: 0.55rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-top: 4px;
+  text-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+  animation: jp-status-blink 0.9s step-end infinite;
+}
+@keyframes jp-status-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+.jp-bar {
+  width: 220px;
+  height: 1px;
+  background: rgba(34, 211, 238, 0.15);
+  margin-top: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.jp-bar-fill {
+  position: absolute;
+  inset-y: 0;
+  left: 0;
+  width: 0;
+  background: #22d3ee;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.9);
+}
+.jp-bar-fill--active {
+  animation: jp-bar-run 1.9s linear forwards;
+}
+@keyframes jp-bar-run {
+  from { width: 0; }
+  to   { width: 100%; }
 }
 </style>
