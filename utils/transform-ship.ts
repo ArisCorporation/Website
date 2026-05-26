@@ -56,7 +56,56 @@ export default function transformShip(obj: any, shipList?: any) {
     // });
     // return loanerData;
   };
-  const getManufacturer = () => (obj.manufacturer ? transformCompany(obj.manufacturer) : null);
+  const getManufacturer = () => {
+    const manufacturer = obj.manufacturer ?? obj.hull?.manufacturer;
+    return manufacturer ? transformCompany(manufacturer) : null;
+  };
+  const getStats = () => {
+    const stats =
+      obj.stats && typeof obj.stats === 'string'
+        ? (() => {
+            try {
+              return JSON.parse(obj.stats);
+            } catch {
+              return {};
+            }
+          })()
+        : obj.stats && typeof obj.stats === 'object'
+          ? obj.stats
+          : {};
+    const dimensions = stats.dimensions && typeof stats.dimensions === 'object' ? stats.dimensions : {};
+    const shipStats = {
+      ...stats,
+      ...(obj.cargo !== undefined && obj.cargo !== null && (stats.cargo === undefined || stats.cargo === null)
+        ? { cargo: obj.cargo }
+        : {}),
+      ...(obj.crew_max !== undefined && obj.crew_max !== null && (stats.crew === undefined || stats.crew === null)
+        ? { crew: obj.crew_max }
+        : {}),
+      dimensions: {
+        ...dimensions,
+        ...(obj.length !== undefined && obj.length !== null && (dimensions.length === undefined || dimensions.length === null)
+          ? { length: obj.length }
+          : {}),
+        ...(obj.beam !== undefined && obj.beam !== null && (dimensions.width === undefined || dimensions.width === null)
+          ? { width: obj.beam }
+          : {}),
+        ...(obj.height !== undefined && obj.height !== null && (dimensions.height === undefined || dimensions.height === null)
+          ? { height: obj.height }
+          : {}),
+      },
+    };
+
+    if (
+      (shipStats.cargo === undefined || shipStats.cargo === null) &&
+      (shipStats.crew === undefined || shipStats.crew === null) &&
+      !Object.keys(shipStats.dimensions).length
+    ) {
+      return null;
+    }
+
+    return shipStats;
+  };
   const getProductionState = () => {
     if (obj.productionStatus === 'in-concept') return 'Im Konzept';
     if (obj.productionStatus === 'in-production') return 'In Produktion';
@@ -292,6 +341,8 @@ export default function transformShip(obj: any, shipList?: any) {
     };
   };
 
+  const stats = getStats();
+
   return {
     ...(obj.id && { id: obj.id }),
     ...(obj.date_created && { date_created: obj.date_created }),
@@ -301,6 +352,7 @@ export default function transformShip(obj: any, shipList?: any) {
     ...(obj.fl_id && { fl_id: obj.fl_id }),
     ...(obj.sm_id && { sm_id: obj.sm_id }),
     ...(obj.name && { name: obj.name }),
+    ...(obj.thumbnail && { thumbnail: obj.thumbnail }),
     ...(obj.p4k_name && { p4k_name: obj.p4k_name }),
     ...(obj.slug && { slug: obj.slug }),
     ...(obj.p4k_mode && { p4k_mode: obj.p4k_mode }),
@@ -313,6 +365,7 @@ export default function transformShip(obj: any, shipList?: any) {
     ...(obj.height && { height: obj.height }),
     ...(obj.mass && { mass: obj.mass }),
     ...(obj.cargo && { cargo: obj.cargo }),
+    ...(stats && { stats }),
     ...(obj.price && {
       price:
         obj.price

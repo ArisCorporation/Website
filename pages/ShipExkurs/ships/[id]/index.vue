@@ -7,13 +7,65 @@ const userSettings = useUserSettingsStore();
 const { se: settings } = storeToRefs(userSettings);
 
 const { directus, readItem } = useCMS();
-const { params } = useRoute();
+const route = useRoute();
 const { copy, isSupported: clipboardIsSupported } = useClipboard();
 const toast = useToast();
 const store_image_view = ref(true);
 const modalStore = useModalStore();
 
 const selectedTab = ref(0);
+const shipId = computed(() => String(route.params.id ?? ''));
+
+type ShipExternalData = {
+  prices: {
+    price: number | null;
+    pledge_price: number | null;
+    warbond_price: number | null;
+    onSale: boolean | null;
+  };
+  stores: Record<string, unknown>[] | null;
+  uexData: Record<string, unknown> | null;
+  rsiData: Record<string, unknown> | null;
+};
+
+type ShipExternalRef = {
+  source?: string | null;
+  id?: string | number | null;
+};
+
+type ShipRatingGrade = 'bad' | 'medium' | 'good' | 'very_good' | string | null | undefined;
+
+type ShipRatingEntry = {
+  category?: string | null;
+  reason?: string | null;
+  grade?: ShipRatingGrade;
+};
+
+const createEmptyExternalShipData = (): ShipExternalData => ({
+  prices: {
+    price: null,
+    pledge_price: null,
+    warbond_price: null,
+    onSale: null,
+  },
+  stores: null,
+  uexData: null,
+  rsiData: null,
+});
+
+const getRatingPoints = (grade: ShipRatingGrade) =>
+  grade === 'bad' ? 5 : grade === 'medium' ? 10 : grade === 'good' ? 15 : grade === 'very_good' ? 20 : 0;
+
+const getRatingLabel = (grade: ShipRatingGrade) =>
+  grade === 'bad'
+    ? 'Schlecht'
+    : grade === 'medium'
+      ? 'Mittel'
+      : grade === 'good'
+        ? 'Gut'
+        : grade === 'very_good'
+          ? 'Sehr Gut'
+          : 'Unbekannt';
 
 // const { data } = await useAsyncData('SHIP:DATA', () =>
 //   directus.request(
@@ -23,120 +75,88 @@ const selectedTab = ref(0);
 //   ),
 // );
 
-const { data } = await useAsyncData(String(params.id), async () => {
-  const arisData = await directus.request(
-    readItem('ship_variants', String(params.id), {
-      fields: [
-        '*.*',
-        'configurations.*.*.*',
-        'configurations.hardpoints.*',
-        'configurations.hardpoints.hardpoint.*',
-        'configurations.hardpoints.hardpoint.item.*',
-        'configurations.hardpoints.hardpoint.item.manufacturer.*',
-        'configurations.hardpoints.item.*',
-        'configurations.hardpoints.item.manufacturer.*',
-        'configurations.hardpoints.hardpoint.DATA.*',
-        'configurations.hardpoints.hardpoint.DATA.manufacturer.*',
-        'ship_variant_configurations.*',
-        'ship_variant_configurations.hardpoints.*',
-        'ship_variant_configurations.hardpoints.item.*',
-        'ship_variant_configurations.hardpoints.item.manufacturer.*',
-        'ship_variant_configurations.hardpoints.hardpoint.*',
-        'ship_variant_configurations.hardpoints.hardpoint.DATA.*',
-        'ship_variant_configurations.hardpoints.hardpoint.DATA.manufacturer.*',
-        'hull.manufacturer.*',
-        'rating.*.*',
-      ],
-      sort: ['name'],
-    }),
-  );
+const { data } = await useAsyncData(
+  'SE:SHIP:DETAIL',
+  async () => {
+    const currentShipId = shipId.value;
 
-  const buildData = await directus.request(
-    readItems('builds', {
-      limit: 1,
-      sort: ['-date_created'],
-    }),
-  );
+    if (!currentShipId) return null;
 
-  const uexId = arisData?.external_refs?.find((ref: any) => ref.source === 'UEX')?.id;
-  const rsiId = arisData?.external_refs?.find((ref: any) => ref.source === 'RSI')?.id;
+    const [arisData, buildData] = await Promise.all([
+      directus.request(
+        readItem('ship_variants', currentShipId, {
+          fields: [
+            '*.*',
+            'configurations.*.*.*',
+            'configurations.hardpoints.*',
+            'configurations.hardpoints.hardpoint.*',
+            'configurations.hardpoints.hardpoint.item.*',
+            'configurations.hardpoints.hardpoint.item.manufacturer.*',
+            'configurations.hardpoints.item.*',
+            'configurations.hardpoints.item.manufacturer.*',
+            'configurations.hardpoints.hardpoint.DATA.*',
+            'configurations.hardpoints.hardpoint.DATA.manufacturer.*',
+            'ship_variant_configurations.*',
+            'ship_variant_configurations.hardpoints.*',
+            'ship_variant_configurations.hardpoints.item.*',
+            'ship_variant_configurations.hardpoints.item.manufacturer.*',
+            'ship_variant_configurations.hardpoints.hardpoint.*',
+            'ship_variant_configurations.hardpoints.hardpoint.DATA.*',
+            'ship_variant_configurations.hardpoints.hardpoint.DATA.manufacturer.*',
+            'hull.manufacturer.*',
+            'rating.*.*',
+          ],
+          sort: ['name'],
+        }),
+      ),
+      directus.request(
+        readItems('builds', {
+          limit: 1,
+          sort: ['-date_created'],
+        }),
+      ),
+    ]);
 
-  const [pledgeRaw, purchasesRaw, vehiclesRaw, rsiRaw] = await Promise.all([
-    $fetch(`https://api.uexcorp.uk/2.0/vehicles_prices?id_vehicle=${uexId}`),
-    $fetch(`https://api.uexcorp.uk/2.0/vehicles_purchases_prices?id_vehicle=${uexId}`),
-    $fetch(`https://api.uexcorp.uk/2.0/vehicles`),
-    $fetch('https://robertsspaceindustries.com/ship-matrix/index'),
-  ]);
+    const externalRefs = Array.isArray(arisData?.external_refs) ? (arisData.external_refs as ShipExternalRef[]) : [];
+    const ratingEntries = Array.isArray(arisData?.rating?.ratings) ? (arisData.rating.ratings as ShipRatingEntry[]) : [];
+    const uexId = externalRefs.find((ref) => ref.source === 'UEX')?.id;
+    const rsiId = externalRefs.find((ref) => ref.source === 'RSI')?.id;
 
-  const pledgeUSD = pledgeRaw?.data?.find((p: any) => p.currency === 'USD') ?? null;
-  const purchases = purchasesRaw?.data?.[0] ?? null;
-  const uexVehicleData = vehiclesRaw?.data?.find((v: any) => String(v.id) === String(uexId)) ?? null;
+    const externalData = await $fetch<ShipExternalData>('/api/shipexkurs/ships/external', {
+      query: {
+        ...(uexId ? { uexId: String(uexId) } : {}),
+        ...(rsiId ? { rsiId: String(rsiId) } : {}),
+      },
+    }).catch(() => createEmptyExternalShipData());
 
-  const rsiData = rsiRaw.data?.find((v: any) => String(v.id) === String(rsiId)) ?? null;
+    const score = ratingEntries.reduce((total: number, rating) => total + getRatingPoints(rating.grade), 0);
 
-  const score = arisData?.rating?.ratings?.reduce(
-    (total: number, rating: any) =>
-      total +
-      (rating.grade === 'bad'
-        ? 5
-        : rating.grade === 'medium'
-          ? 10
-          : rating.grade === 'good'
-            ? 15
-            : rating.grade === 'very_good'
-              ? 20
-              : 0),
-    0,
-  );
-
-  return {
-    ...arisData,
-    build: buildData[0],
-    prices: {
-      price: purchases?.price_buy_avg ?? null,
-      pledge_price: pledgeUSD?.price ?? null,
-      warbond_price: pledgeUSD?.price_warbond ?? null,
-      onSale: pledgeUSD?.on_sale ?? null,
-    },
-    uexData: uexVehicleData,
-    stores: purchasesRaw?.data[0] ? purchasesRaw?.data : null,
-    rsiData: rsiData ?? null,
-    rating: arisData?.rating
-      ? {
-          ...arisData?.rating,
-          ...(arisData?.rating?.user_created && { user_created: transformUser(arisData?.rating?.user_created) }),
-          ...(arisData?.rating?.ratings && {
-            ratings: arisData?.rating?.ratings?.map((rating: any) => ({
-              category: rating?.category,
-              reason: rating?.reason,
-              grade: rating?.grade,
-              grade_points:
-                rating?.grade === 'bad'
-                  ? 5
-                  : rating?.grade === 'medium'
-                    ? 10
-                    : rating?.grade === 'good'
-                      ? 15
-                      : rating?.grade === 'very_good'
-                        ? 20
-                        : 0,
-              grade_label:
-                rating?.grade === 'bad'
-                  ? 'Schlecht'
-                  : rating?.grade === 'medium'
-                    ? 'Mittel'
-                    : rating?.grade === 'good'
-                      ? 'Gut'
-                      : rating?.grade === 'very_good'
-                        ? 'Sehr Gut'
-                        : 'Unbekannt',
-            })),
-            score,
-          }),
-        }
-      : null,
-  };
-});
+    return {
+      ...arisData,
+      build: buildData[0],
+      ...externalData,
+      rating: arisData?.rating
+        ? {
+            ...arisData?.rating,
+            ...(arisData?.rating?.user_created && { user_created: transformUser(arisData?.rating?.user_created) }),
+            ...(ratingEntries.length && {
+              ratings: ratingEntries.map((rating) => ({
+                category: rating?.category,
+                reason: rating?.reason,
+                grade: rating?.grade,
+                grade_points: getRatingPoints(rating?.grade),
+                grade_label: getRatingLabel(rating?.grade),
+              })),
+              score,
+            }),
+          }
+        : null,
+    };
+  },
+  {
+    watch: [shipId],
+  },
+);
 
 // if (!data?.value) {
 //   throw createError({
@@ -1338,13 +1358,13 @@ useHead({
               class="absolute top-0 bottom-0 left-0 right-0 z-10 h-24 m-auto pointer-events-none md:h-40 w-fit"
             />
             <video autoplay loop class="transition-opacity duration-500 opacity-0 size-full group-hover:opacity-100">
-              <source :src="data?.hull?.manufacturer?.logo_background" type="video/webm" />
+              <source :src="data?.hull?.manufacturer?.logo_background" type="video/webm" >
             </video>
           </DefaultPanel>
         </NuxtLink>
       </div>
     </div>
-    <hr class="my-3" />
+    <hr class="my-3" >
     <div class="grid grid-cols-3 gap-4">
       <div class="col-span-3 space-y-4 xl:col-span-2">
         <DefaultPanel bg="bprimary">
@@ -1715,11 +1735,6 @@ useHead({
                 </div>
               </DefaultPanel>
             </Transition>
-            <ClientOnly>
-              <DefaultPanel>
-                <iframe height="500px" width="100%" src="https://sc-cargo.space/#/v1/viewer/c2%20hercules-official" />
-              </DefaultPanel>
-            </ClientOnly>
           </div>
         </template>
         <template v-if="selectedTab === tablist.findIndex((e) => e.id === '2')">
@@ -1880,7 +1895,7 @@ useHead({
         </template>
       </template>
     </TabGroup>
-    <hr />
+    <hr >
     <div class="flex flex-nowrap">
       <div v-if="data?.variants" class="w-full px-2">
         <h3 class="text-industrial-400">Varianten</h3>
