@@ -1,27 +1,20 @@
 # Stage 1: Build the Nuxt application
 #-------------------------------------
-# Wähle ein passendes Node.js Basis-Image. Verwende die Version, die du auch lokal nutzt.
-# Alpine-Versionen sind kleiner. Aktuelle LTS-Versionen wie 18 oder 20 sind empfohlen.
-FROM node:18-alpine AS builder
+# node:20-alpine (>= 20.19.0) ist erforderlich: nuxt 3.21, vite 7, oxc-parser verlangen ^20.19.0
+FROM node:20-alpine AS builder
 
 # Setze das Arbeitsverzeichnis im Container
 WORKDIR /app
 
-# Kopiere package.json und die Lock-Datei (wähle die passende für dein Projekt)
+# Nur package.json kopieren – KEINE package-lock.json.
+# Hintergrund: npm hat einen bekannten Bug (github.com/npm/cli/issues/4828):
+# plattformspezifische optionale Deps (hier @oxc-parser/binding-linux-x64-musl)
+# werden nicht installiert wenn eine auf macOS erzeugte lockfile vorhanden ist.
+# Ohne lockfile löst npm die Deps für linux-x64-musl korrekt neu auf.
 COPY package.json ./
-# Entkommentiere die Zeile für deinen Paketmanager und kommentiere die anderen aus:
-COPY package-lock.json ./
-# COPY yarn.lock ./
-# COPY pnpm-lock.yaml ./
 
 # Installiere die Abhängigkeiten
-# npm install (ohne --frozen-lockfile) damit npm plattformspezifische optionale
-# Dependencies (z.B. oxc-parser musl-Binding für Alpine) korrekt auflöst.
-# npm ci würde hier fehlschlagen, da package-lock.json auf macOS generiert wurde
-# und @oxc-parser/binding-linux-x64-musl nicht enthält.
 RUN npm install --no-audit --no-fund
-# RUN yarn install --frozen-lockfile
-# RUN pnpm install --frozen-lockfile
 
 # Kopiere den Rest des Anwendungscodes
 # (Durch das vorherige Kopieren von package.json/lockfile und npm install wird der Docker-Cache optimal genutzt)
@@ -50,8 +43,7 @@ RUN npm run build
 
 # Stage 2: Production environment
 #---------------------------------
-# Nutze das gleiche Basis-Image wie im Build-Stage für Konsistenz
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Setze das Arbeitsverzeichnis
 WORKDIR /app
