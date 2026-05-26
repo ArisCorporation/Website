@@ -78,7 +78,10 @@ export const useCMS = () => {
   //   return (useCookie('ams:auth_token').value = data);
   // }
 
-  const directus = createDirectus<CMSTypes>('https://studio.ariscorp.de')
+  const config = useRuntimeConfig()
+  const { origin } = useRequestURL()
+  const backendUrl = import.meta.server ? config.public.backendUrl : `${origin}/api/proxy`
+  const directus = createDirectus<CMSTypes>(backendUrl)
     .with(rest({ credentials: 'include' }))
     .with(authentication('json', { storage }))
     .with(realtime());
