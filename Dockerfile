@@ -15,9 +15,11 @@ COPY package-lock.json ./
 # COPY pnpm-lock.yaml ./
 
 # Installiere die Abhängigkeiten
-# Entkommentiere die Zeile für deinen Paketmanager und kommentiere die anderen aus:
-# --frozen-lockfile stellt sicher, dass exakt die Versionen aus der Lock-Datei installiert werden
-RUN npm install --frozen-lockfile
+# npm install (ohne --frozen-lockfile) damit npm plattformspezifische optionale
+# Dependencies (z.B. oxc-parser musl-Binding für Alpine) korrekt auflöst.
+# npm ci würde hier fehlschlagen, da package-lock.json auf macOS generiert wurde
+# und @oxc-parser/binding-linux-x64-musl nicht enthält.
+RUN npm install --no-audit --no-fund
 # RUN yarn install --frozen-lockfile
 # RUN pnpm install --frozen-lockfile
 
