@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRefs, watch, watchEffect } from 'vue';
+import { computed, ref, shallowRef, toRefs, watch, watchEffect } from 'vue';
 import { Spherical, Vector3 } from 'three';
 import { readItems } from '@directus/sdk';
 
@@ -206,72 +206,36 @@ const formatLabel = (key?: string | null) =>
     .trim()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
-const isPlainObject = (value: unknown): value is Record<string, any> =>
-  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-
-const normalizeTextValue = (value: unknown) => {
-  if (value === null || value === undefined) return null;
-  const normalized = String(value).trim();
-  if (!normalized.length) return null;
-  if (normalized.toUpperCase() === 'UNDEFINED') return null;
-  if (/placeholder/i.test(normalized)) return null;
-  if (/^unknown manufacturer$/i.test(normalized)) return null;
-  return normalized;
-};
-
-const hasRenderableValue = (value: unknown): boolean => {
-  if (typeof value === 'number') return Number.isFinite(value) && Math.abs(value) < 1e20;
-  if (typeof value === 'boolean') return true;
-  if (typeof value === 'string') return Boolean(normalizeTextValue(value));
-  if (Array.isArray(value)) return value.some(hasRenderableValue);
-  if (isPlainObject(value)) return Object.values(value).some(hasRenderableValue);
-  return false;
-};
-
-const formatDisplayValue = (value: unknown, maximumFractionDigits = 2): string | null => {
-  if (!hasRenderableValue(value)) return null;
-
-  if (typeof value === 'number') {
-    if (value !== 0 && Math.abs(value) < 0.01) return value.toExponential(2);
+const formatStatValue = (value: any) => {
+  if (value === null || value === undefined) return 'N/A';
+  if (typeof value === 'number')
     return Number.isInteger(value)
       ? value.toLocaleString('de-DE')
-      : value.toLocaleString('de-DE', { maximumFractionDigits });
-  }
-
+      : value.toLocaleString('de-DE', { maximumFractionDigits: 2 });
   if (typeof value === 'boolean') return value ? 'Ja' : 'Nein';
-  if (typeof value === 'string') return normalizeTextValue(value);
-
-  if (Array.isArray(value)) {
-    const entries = value.map((entry) => formatDisplayValue(entry, maximumFractionDigits)).filter(Boolean);
-    return entries.length ? entries.join(', ') : null;
-  }
-
-  if (isPlainObject(value)) {
-    const entries = Object.entries(value)
-      .map(([key, entryValue]) => {
-        const formatted = formatDisplayValue(entryValue, maximumFractionDigits);
-        return formatted ? `${formatLabel(key)}: ${formatted}` : null;
-      })
-      .filter(Boolean);
-    return entries.length ? entries.join(', ') : null;
-  }
-
-  return null;
+  if (Array.isArray(value)) return value.map((v) => formatStatValue(v)).join(', ');
+  if (typeof value === 'object')
+    return Object.entries(value)
+      .map(([k, v]) => `${formatLabel(k)}: ${formatStatValue(v)}`)
+      .join(', ');
+  return String(value);
 };
 
-const formatCategoryValue = (value: unknown) => {
-  const normalized = normalizeTextValue(value);
-  if (!normalized) return null;
-  return formatLabel(/^[A-Z0-9_]+$/.test(normalized) ? normalized.toLowerCase() : normalized);
-};
+const buildStatSections = (stats: Record<string, any> | null | undefined) => {
+  if (!stats || typeof stats !== 'object') return [];
 
-const formatCodeValue = (value: unknown) => {
-  const normalized = normalizeTextValue(value);
-  if (!normalized) return null;
-  return formatLabel(normalized.replace(/^hardpoint_/i, ''));
-};
+  return Object.entries(stats).map(([sectionKey, sectionValue]) => {
+    if (sectionValue && typeof sectionValue === 'object' && !Array.isArray(sectionValue)) {
+      const entries = Object.entries(sectionValue).map(([key, val]) => ({
+        label: formatLabel(key),
+        value: formatStatValue(val),
+      }));
+      return { label: formatLabel(sectionKey), entries };
+    }
 
-const pickFirstValue = (...values: unknown[]) => values.find(hasRenderableValue);
+    return { label: formatLabel(sectionKey), entries: [{ label: null, value: formatStatValue(sectionValue) }] };
+  });
+};
 
 const normalizeCategory = (value: unknown) =>
   String(value ?? '')
@@ -302,29 +266,6 @@ type HardpointComponent = ComponentEntry & {
 
 type HardpointTreeNode = HardpointComponent & { children?: HardpointTreeNode[]; depth?: number };
 
-type DetailRow = {
-  title: string;
-  content: string;
-  suffix?: string | null;
-  prefix?: string | null;
-  fullWidth?: boolean;
-};
-
-type DetailSection = {
-  title: string;
-  rows: DetailRow[];
-};
-
-type DetailRecord = Record<string, unknown>;
-
-type DetailRowOptions = {
-  suffix?: string;
-  prefix?: string;
-  fullWidth?: boolean;
-  formatter?: (value: unknown) => string | null;
-  maximumFractionDigits?: number;
-};
-
 type ManualGroupDefinition = {
   id: string;
   label: string;
@@ -334,7 +275,7 @@ type ManualGroupDefinition = {
 };
 
 const selectedComponentId = ref<string | null>(null);
-const selectedComponent = computed<HardpointComponent | null>(
+const selectedComponent = computed<ComponentEntry | null>(
   () => components.value.find((c) => String(c.id) === selectedComponentId.value) ?? components.value[0] ?? null,
 );
 const filterTerm = ref('');
@@ -429,7 +370,7 @@ const hardpoints = computed<HardpointComponent[]>(() =>
   flattenHardpoints(selectedConfiguration.value?.hardpoints ?? []),
 );
 
-const components = computed<HardpointComponent[]>(() => hardpoints.value);
+const components = computed<ComponentEntry[]>(() => hardpoints.value);
 
 const hardpointMap = computed(() => {
   const map = new Map<string, HardpointComponent>();
@@ -1686,46 +1627,30 @@ useHead({
                     </div>
                   </div>
 
-                  <p v-if="selectedComponentDescription" class="text-sm leading-relaxed text-light-gray">
-                    {{ selectedComponentDescription }}
-                  </p>
-
-                  <TableParent
-                    v-if="selectedComponentOverviewRows.length"
-                    :no-panel="true"
-                    title="Basisdaten"
-                    bg="bsecondary"
-                  >
-                    <TableRow
-                      v-for="row in selectedComponentOverviewRows"
-                      :key="row.title"
-                      :title="row.title"
-                      :content="row.content"
-                      :suffix="row.suffix"
-                      :prefix="row.prefix"
-                      :full-width="row.fullWidth"
-                      :third="!row.fullWidth"
-                    />
+                  <TableParent title="Basisdaten" bg="bsecondary">
+                    <TableRow title="Hersteller" :content="selectedComponent.manufacturer" third />
+                    <TableRow title="Typ" :content="selectedComponent.type ?? 'Komponente'" third />
+                    <TableRow title="Subtyp" :content="selectedComponent.subtype" third />
+                    <TableRow title="Größe" :content="selectedComponent.size" third />
+                    <TableRow title="Klasse" :content="selectedComponent.class" third />
+                    <TableRow title="Grade" :content="selectedComponent.grade" third />
+                    <TableRow title="Menge" :content="selectedComponent.quantity" third />
                   </TableParent>
 
-                  <div v-if="selectedComponentDetailSections.length" class="space-y-3">
+                  <div v-if="buildStatSections(selectedComponent.stats).length" class="space-y-3">
                     <TableParent
-                      v-for="section in selectedComponentDetailSections"
-                      :key="section.title"
-                      :no-panel="true"
-                      :title="section.title"
+                      v-for="section in buildStatSections(selectedComponent.stats)"
+                      :key="section.label"
+                      :title="section.label"
                       bg="bsecondary"
                     >
-                      <template v-if="section.rows.length">
+                      <template v-if="section.entries.length">
                         <TableRow
-                          v-for="row in section.rows"
-                          :key="`${section.title}-${row.title}`"
-                          :title="row.title"
-                          :content="row.content"
-                          :suffix="row.suffix"
-                          :prefix="row.prefix"
-                          :full-width="row.fullWidth"
-                          :third="!row.fullWidth"
+                          v-for="(entry, idx) in section.entries"
+                          :key="idx"
+                          :title="entry.label || 'Wert'"
+                          :content="entry.value"
+                          full-width
                         />
                       </template>
                       <p v-else class="col-span-6 text-sm text-light-gray">Keine Werte vorhanden.</p>
