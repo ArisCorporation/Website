@@ -1,15 +1,17 @@
-<script setup>
-import { Timeline } from 'vue-timeline-chart';
-import 'vue-timeline-chart/style.css';
+<script setup lang="ts">
+import {
+  type VTLItem,
+  type ZoomLevel,
+  ZOOM_LEVELS,
+  ZOOM_LABELS,
+  MS_PER_YEAR,
+  getViewRange,
+  formatVTLRange,
+} from '~/utils/verse-timeline'
 
-const { directus, readItems, readUsers } = useCMS();
-const modalStore = useModalStore();
-const { metaSymbol } = useShortcuts();
-const timeline = ref(null);
-let isDraggingMapViewport = false;
-let previousDragTimePos = 0;
+const { directus, readItems, readUsers } = useCMS()
 
-const { data } = await useAsyncData('TIMELINE:ITEMS', () =>
+const { data: rawItems } = await useAsyncData('TIMELINE:ITEMS', () =>
   directus.request(
     readItems('timeline_items', {
       fields: [
@@ -29,11 +31,11 @@ const { data } = await useAsyncData('TIMELINE:ITEMS', () =>
         'linked_item.item:directus_users.slug',
         'linked_item.item:spectrum_threads.slug',
         'linked_item.item:spectrum_threads.category.slug',
-      ],
+      ] as any,
       limit: -1,
     }),
   ),
-);
+)
 
 const { data: users } = await useAsyncData(
   'TIMELINE:USERS',
@@ -47,488 +49,482 @@ const { data: users } = await useAsyncData(
           'title',
           'slug',
           'avatar',
-          'department.name',
-          'department.logo',
-          'leading_department.name',
-          'leading_department.logo',
-          'head_of_department',
-          'role.id',
-          'role.label',
-          'role.name',
           'birthdate',
           'birthplace.name',
-        ],
-        filter: {
-          birthdate: { _nnull: true },
-          hidden: { _eq: false },
-        },
+        ] as any,
+        filter: { birthdate: { _nnull: true }, hidden: { _eq: false } },
         limit: -1,
       }),
     ),
-  { transform: (data) => data.map((user) => transformUser(user)) },
-);
+  { transform: (data) => data.map((u: any) => transformUser(u)) },
+)
 
-if (!data.value || !users.value) {
+if (!rawItems.value || !users.value) {
   throw createError({
     statusCode: 500,
     statusMessage: 'Die Übertragung konnte nicht vollständig empfangen werden!',
     fatal: true,
-  });
+  })
 }
 
-const groups = [
-  {
-    id: 'epoch',
-    label: 'Epochen',
-  },
-  {
-    id: 'company_founding',
-    label: 'Firmengründungen',
-  },
-  {
-    id: 'verse_timeline',
-    label: 'Verse',
-  },
-  {
-    id: 'ariscorp_timeline',
-    label: 'ArisCorp',
-  },
-  {
-    id: 'one_day_in_history',
-    label: 'Ein Tag in der Geschichte',
-  },
-];
+// ── Category metadata ─────────────────────────────────────────────────────────
+const CAT_COLORS: Record<string, string> = {
+  epoch:              '#eaa75f',
+  company_founding:   '#dc2626',
+  verse_timeline:     '#1d4ed8',
+  ariscorp_timeline:  '#00ffe8',
+  one_day_in_history: '#16a34a',
+}
 
-let items = data.value.map((item) => ({
-  id: item.id,
-  group: item.category,
-  type: item.dates.length === 1 ? 'point' : 'range',
-  start: new Date(
-    item.dates.find((e) => e.type === 'start')?.year,
-    item.dates.find((e) => e.type === 'start')?.month ?? 0,
-    item.dates.find((e) => e.type === 'start')?.day ?? 1,
-  ).getTime(),
-  ...(item.dates.length === 2 && item.dates.find((e) => e.type === 'end').until_now
-    ? {
-        end: new Date(new Date().getFullYear() + 930, new Date().getMonth(), new Date().getDate()).getTime(),
-      }
-    : item.dates.length === 2
-    ? {
-        end: new Date(
-          item.dates.find((e) => e.type === 'end')?.year,
-          item.dates.find((e) => e.type === 'end')?.month ?? 0,
-          item.dates.find((e) => e.type === 'end')?.day ?? 1,
-        ).getTime(),
-      }
-    : {}),
-  start_date: item.dates.find((e) => e.type === 'start'),
-  end_date: item.dates.find((e) => e.type === 'end'),
-  title: item.title,
-  description: item.description,
-  banner: item.banner,
-  linked_item: item.linked_item,
-  cssVariables: {
-    '--item-background':
-      item.category === 'ariscorp_timeline'
-        ? '#00ffe8'
-        : item.category === 'verse_timeline'
-        ? '#1d4ed8'
-        : item.category === 'one_day_in_history'
-        ? '#16a34a'
-        : item.category === 'company_founding'
-        ? '#dc2626'
-        : item.category === 'epoch'
-        ? '#eaa75f'
-        : '',
-  },
-  link: (() => {
-    switch (item.linked_item[0]?.collection) {
-      case 'systems':
-        return `/verseexkurs/starmap/${item.linked_item[0]?.item?.slug}`;
-      case 'companies':
-        return `/verseexkurs/companies/${item.linked_item[0]?.item?.slug}`;
-      case 'literature_categories':
-        return `/verseexkurs/literatures/${item.linked_item[0]?.item?.slug}`;
-      case 'fractions':
-        return `/verseexkurs/fractions/${item.linked_item[0]?.item?.slug}`;
-      case 'spectrum_categories':
-        return `/verseexkurs/spectrum/${item.linked_item[0]?.item?.slug}`;
-      case 'ships':
-        return `/shipexkurs/ships/${item.linked_item[0]?.item?.slug}`;
-      case 'spectrum_threads':
-        return `/verseexkurs/spectrum/${item.linked_item[0]?.item?.category?.slug}/${item.linked_item[0]?.item?.slug}`;
-      default:
-        return null;
+const CAT_LABELS: Record<string, string> = {
+  epoch:              'Epochen',
+  company_founding:   'Firmengründungen',
+  verse_timeline:     'Verse',
+  ariscorp_timeline:  'ArisCorp',
+  one_day_in_history: 'Ein Tag in der Geschichte',
+}
+
+// ── Linked item → URL ─────────────────────────────────────────────────────────
+function resolveLink(item: any): string | null {
+  const li = item.linked_item?.[0]
+  if (!li) return null
+  switch (li.collection) {
+    case 'systems':             return `/verseexkurs/starmap/${li.item?.slug}`
+    case 'companies':           return `/verseexkurs/companies/${li.item?.slug}`
+    case 'literature_categories': return `/verseexkurs/literatures/${li.item?.slug}`
+    case 'fractions':           return `/verseexkurs/fractions/${li.item?.slug}`
+    case 'spectrum_categories': return `/verseexkurs/spectrum/${li.item?.slug}`
+    case 'ships':               return `/shipexkurs/ships/${li.item?.slug}`
+    case 'spectrum_threads':    return `/verseexkurs/spectrum/${li.item?.category?.slug}/${li.item?.slug}`
+    default:                    return null
+  }
+}
+
+// ── Transform raw CMS items → VTLItem[] ──────────────────────────────────────
+const vtlItems = computed<VTLItem[]>(() => {
+  const result: VTLItem[] = []
+
+  for (const item of rawItems.value ?? []) {
+    const startDate = (item.dates as any[]).find((d) => d.type === 'start')
+    const endDate   = (item.dates as any[]).find((d) => d.type === 'end')
+    if (!startDate) continue
+
+    const startMs = new Date(startDate.year, startDate.month ?? 0, startDate.day ?? 1).getTime()
+    let endMs: number | undefined
+    if (endDate) {
+      endMs = endDate.until_now
+        ? Date.now() + 930 * MS_PER_YEAR
+        : new Date(endDate.year, endDate.month ?? 0, endDate.day ?? 1).getTime()
     }
-  })(),
-}));
 
-items.push(
-  ...users.value.map((user) => ({
-    id: user.id,
-    group: 'ariscorp_timeline',
-    type: 'point',
-    start: new Date(user.birthdate).getTime(),
-    title: `${user.full_name}${user.full_name.endsWith('s') ? "'" : "'s"} Geburtstag`,
-    description: `${user.full_name} wurde am ${new Date(user.birthdate).toLocaleDateString()}${
-      user.birthplace ? ` in der Stadt: ${user.birthplace.name}` : ''
-    } geboren.`,
-    banner: user.avatar,
-    cssVariables: { '--item-background': '#00ffe8' },
-    link: `/biography/${user.slug}`,
-    start_date: {
-      day: new Date(user.birthdate).getDate(),
-      month: new Date(user.birthdate).getMonth() + 1,
-      year: new Date(user.birthdate).getFullYear(),
-    },
-  })),
-);
-
-items = items.sort((a, b) => a.start - b.start);
-
-const totalRange = ref({
-  start: new Date(
-    new Date(items[0].start).getFullYear() - 2,
-    new Date(items[0].start).getMonth(),
-    new Date(items[0].start).getDate(),
-  ).getTime(),
-  end:
-    new Date(items[items.length - 1]?.end ? items[items.length - 1]?.end : items[items.length - 1]?.start).getTime() +
-    2 * 365 * 24 * 60 * 60 * 1000,
-});
-const viewport = ref({
-  start: new Date(
-    new Date(items[0].start).getFullYear() - 2,
-    new Date(items[0].start).getMonth(),
-    new Date(items[0].start).getDate(),
-  ).getTime(),
-  end: new Date(items[2]?.end ? items[2]?.end : items[2]?.start).getTime() + 2 * 365 * 24 * 60 * 60 * 1000,
-});
-const selectedEvent = ref(items[0]);
-
-function selectNextItem() {
-  const currentIndex = items.findIndex((item) => item.id === selectedEvent.value.id);
-  const nextIndex = (currentIndex + 1) % items.length;
-  selectedEvent.value = items[nextIndex];
-}
-
-function selectPreviousItem() {
-  const currentIndex = items.findIndex((item) => item.id === selectedEvent.value.id);
-  const nextIndex = (currentIndex - 1 + items.length) % items.length;
-  selectedEvent.value = items[nextIndex];
-}
-
-function zoomIn() {
-  const newStart = viewport.value.start + 1000000000000;
-  const newEnd = viewport.value.end - 1000000000000;
-  if (newStart >= totalRange.value.start && newEnd <= totalRange.value.end) {
-    viewport.value.start = newStart;
-    viewport.value.end = newEnd;
-  } else if (newStart < totalRange.value.start) {
-    viewport.value.start = totalRange.value.start;
-    viewport.value.end = totalRange.value.start + 1000000000000;
-  } else if (newEnd > totalRange.value.end) {
-    viewport.value.start = totalRange.value.end - 1000000000000;
-    viewport.value.end = totalRange.value.end;
+    result.push({
+      id:         String(item.id),
+      title:      item.title,
+      date:       startMs,
+      endDate:    endMs,
+      category:   item.category,
+      color:      CAT_COLORS[item.category] ?? '#888',
+      isRange:    !!endMs,
+      start_date: { year: startDate.year, month: startDate.month, day: startDate.day },
+      end_date:   endDate
+        ? { year: endDate.year, month: endDate.month, day: endDate.day, until_now: endDate.until_now }
+        : undefined,
+      description: item.description,
+      banner:      item.banner,
+      link:        resolveLink(item),
+    })
   }
-}
 
-function zoomOut() {
-  const newStart = viewport.value.start - 1000000000000;
-  const newEnd = viewport.value.end + 1000000000000;
-  if (newStart >= totalRange.value.start) {
-    viewport.value.start = newStart;
-  } else if (newStart <= totalRange.value.start) {
-    viewport.value.start = totalRange.value.start;
+  // Member birthdays
+  for (const user of users.value ?? []) {
+    if (!user.birthdate) continue
+    const d    = new Date(user.birthdate)
+    const name: string = user.full_name ?? `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim()
+    result.push({
+      id:         String(user.id),
+      title:      `${name}${name.endsWith('s') ? "'" : "'s"} Geburtstag`,
+      date:       d.getTime(),
+      category:   'ariscorp_timeline',
+      color:      '#00ffe8',
+      isRange:    false,
+      start_date: { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() },
+      description: `${name} wurde am ${d.toLocaleDateString('de-DE')}${user.birthplace ? ` in ${user.birthplace.name}` : ''} geboren.`,
+      banner:     user.avatar,
+      link:       `/biography/${user.slug}`,
+    })
   }
-  if (newEnd <= totalRange.value.end) {
-    viewport.value.end = newEnd;
-  } else if (newEnd >= totalRange.value.end) {
-    viewport.value.end = totalRange.value.end;
+
+  return result.sort((a, b) => a.date - b.date)
+})
+
+// ── UI state ──────────────────────────────────────────────────────────────────
+const zoom = ref<ZoomLevel>('century')
+const activeFilter = ref<string | null>(null)
+const selectedItem = ref<VTLItem | null>(vtlItems.value[0] ?? null)
+
+// Center on median item
+const centerMs = ref(0)
+watchEffect(() => {
+  if (vtlItems.value.length > 0 && centerMs.value === 0) {
+    const items = vtlItems.value
+    centerMs.value = items[Math.floor(items.length / 2)].date
   }
+})
+
+const categories = computed(() => [...new Set(vtlItems.value.map((i) => i.category))])
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function selectItem(item: VTLItem) {
+  selectedItem.value = item
+  // Pan to selected item
+  centerMs.value = item.date
 }
 
-function moveRight() {
-  const newStart = viewport.value.start + 1000000000000;
-  const newEnd = viewport.value.end + 1000000000000;
-  if (newStart >= totalRange.value.start && newEnd <= totalRange.value.end) {
-    viewport.value.start = newStart;
-    viewport.value.end = newEnd;
-  } else if (viewport.value.end + 1 < totalRange.value.end) {
-    const difference = viewport.value.end - viewport.value.start;
-    viewport.value.start = totalRange.value.end - difference;
-    viewport.value.end = totalRange.value.end;
-  }
+function onPan(ms: number) {
+  centerMs.value = ms
 }
 
-function moveLeft() {
-  const newStart = viewport.value.start - 1000000000000;
-  const newEnd = viewport.value.end - 1000000000000;
-  if (newStart >= totalRange.value.start && newEnd <= totalRange.value.end) {
-    viewport.value.start = newStart;
-    viewport.value.end = newEnd;
-  } else if (viewport.value.start - 1 > totalRange.value.start) {
-    const difference = viewport.value.end - viewport.value.start;
-    viewport.value.start = totalRange.value.start;
-    viewport.value.end = totalRange.value.start + difference;
-  }
+function setZoom(level: ZoomLevel) {
+  zoom.value = level
 }
 
-function handleViewportDrag({ time, event, item }) {
-  switch (event.type) {
-    case 'pointerdown':
-      if (item?.id !== 'selection') {
-        return;
-      }
-
-      isDraggingMapViewport = true;
-      previousDragTimePos = time;
-      break;
-    case 'pointermove': {
-      if (!isDraggingMapViewport) {
-        return;
-      }
-
-      const delta = time - previousDragTimePos;
-      const length = viewport.value.end - viewport.value.start;
-      if (delta < 0) {
-        viewport.value.start = Math.max(viewport.value.start + delta, totalRange.value.start);
-        viewport.value.end = viewport.value.start + length;
-      } else {
-        viewport.value.end = Math.min(viewport.value.end + delta, totalRange.value.end);
-        viewport.value.start = viewport.value.end - length;
-      }
-      previousDragTimePos = time;
-
-      break;
-    }
-  }
+function panLeft() {
+  const { startMs, endMs } = getViewRange(zoom.value, centerMs.value)
+  centerMs.value -= (endMs - startMs) * 0.35
 }
 
-function onMapWheel(event) {
-  timeline.value?.onWheel(event);
+function panRight() {
+  const { startMs, endMs } = getViewRange(zoom.value, centerMs.value)
+  centerMs.value += (endMs - startMs) * 0.35
 }
 
-onMounted(() =>
-  window.addEventListener(
-    'pointerup',
-    () => {
-      isDraggingMapViewport = false;
-    },
-    { capture: true },
-  ),
-);
+function selectPrev() {
+  const filtered = activeFilter.value
+    ? vtlItems.value.filter((i) => i.category === activeFilter.value)
+    : vtlItems.value
+  const idx = filtered.findIndex((i) => i.id === selectedItem.value?.id)
+  if (idx > 0) selectItem(filtered[idx - 1])
+}
 
-definePageMeta({
-  layout: false,
-});
+function selectNext() {
+  const filtered = activeFilter.value
+    ? vtlItems.value.filter((i) => i.category === activeFilter.value)
+    : vtlItems.value
+  const idx = filtered.findIndex((i) => i.id === selectedItem.value?.id)
+  if (idx < filtered.length - 1) selectItem(filtered[idx + 1])
+}
+
+definePageMeta({ layout: false })
 </script>
 
 <template>
   <NuxtLayout name="verse-exkurs">
-    <template #modalContent>
-      <div class="p-4">
-        <p class="text-justify">
-          Hier kannst du die verschiedenen Ereignisse in der Geschichte von der ArisCorp und dem Verse erkunden.
-        </p>
-        <h3>Allgemeine Steuerung:</h3>
-        <ul>
-          <li>
-            <p>Klicke auf die verschiedenen Punkte und Zeiträume, um mehr Informationen zu erhalten.</p>
-          </li>
-          <li>
-            <p>Klicke auf die Pfeile im oberen Bereich, um zwischen den verschiedenen Ereignissen zu wechseln.</p>
-          </li>
-          <li>
-            <p>Du kannst die aktuelle Ansicht in der Map greifen und herumschieben um zu navigieren.</p>
-          </li>
-        </ul>
-        <h3>Spezifische Steuerung:</h3>
-        <h4>Desktop:</h4>
-        <ul>
-          <li>
-            <p>Halte <UKbd>Shift</UKbd> gedrückt und scrolle, um den Zeitraum zu vergrößern.</p>
-          </li>
-          <li>
-            <p>
-              Halte <UKbd>{{ metaSymbol }}</UKbd> gedrückt und scrolle, um den Zeitraum zu zoomen.
-            </p>
-          </li>
-        </ul>
-        <h4>Notebook:</h4>
-        <ul>
-          <li>
-            <p>Mit dem Touchpad kannst du ganz einfach pinch-to-zoom (mit 2 Fingern zoomen) nutzen.</p>
-          </li>
-          <li>
-            <p>
-              Mit dem Touchpad kannst du ganz einfach mit 2 Fingern nach links und rechts scrollen, um den Zeitraum zu
-              verschieben.
-            </p>
-          </li>
-        </ul>
-      </div>
-    </template>
-    <div class="flex flex-col max-h-screen min-h-screen py-1 mb-5 -mt-4">
-      <div class="relative flex-grow h-[calc(100vh_-_580px)]">
-        <div class="absolute top-0 bottom-0 my-auto -left-4 h-fit">
-          <button class="opacity-50 size-10 animate-link hover:opacity-100" @click="selectPreviousItem">
-            <UIcon name="i-heroicons-chevron-left-16-solid" class="size-full" />
+    <div class="tl-page">
+      <!-- ── Detail panel ─────────────────────────────────────────────────── -->
+      <div class="tl-detail">
+        <template v-if="selectedItem">
+          <!-- Navigation arrows -->
+          <button class="tl-detail-prev-btn tl-detail-prev-btn--left" @click="selectPrev">
+            <UIcon name="i-heroicons-chevron-left-16-solid" class="size-6" />
           </button>
-        </div>
-        <div class="absolute top-0 bottom-0 my-auto -right-4 h-fit">
-          <button class="opacity-50 size-10 animate-link hover:opacity-100" @click="selectNextItem">
-            <UIcon name="i-heroicons-chevron-right-16-solid" class="size-full" />
+          <button class="tl-detail-prev-btn tl-detail-prev-btn--right" @click="selectNext">
+            <UIcon name="i-heroicons-chevron-right-16-solid" class="size-6" />
           </button>
-        </div>
-        <div class="grid h-full max-h-full px-8 overflow-clip lg:grid-cols-2 gap-x-2 gap-y-4">
-          <div class="h-full overflow-y-auto">
-            <div class="flex text-industrial-400">
-              <p class="p-0">
-                {{
-                  new Date(selectedEvent.start).toLocaleDateString('de-DE', {
-                    ...(selectedEvent.start_date.year && {
-                      year: 'numeric',
-                    }),
-                    ...(selectedEvent.start_date.month && {
-                      month: 'long',
-                    }),
-                    ...(selectedEvent.start_date.day && {
-                      day: 'numeric',
-                    }),
-                  })
-                }}
-                <template v-if="selectedEvent.end">
-                  <span class="text-tbase"> - </span>
-                  {{
-                    selectedEvent.end_date.until_now
-                      ? 'Bis Heute'
-                      : new Date(selectedEvent.end).toLocaleDateString('de-DE', {
-                          ...(selectedEvent.end_date.year && {
-                            year: 'numeric',
-                          }),
-                          ...(selectedEvent.end_date.month && {
-                            month: 'long',
-                          }),
-                          ...(selectedEvent.end_date.day && {
-                            day: 'numeric',
-                          }),
-                        })
-                  }}
-                </template>
+
+          <div class="tl-detail__inner">
+            <div class="tl-detail__left">
+              <p
+                class="tl-detail__date"
+                :style="{ color: CAT_COLORS[selectedItem.category] ?? '#888' }"
+              >
+                {{ formatVTLRange(selectedItem) }}
+                <span class="tl-detail__cat">
+                  · {{ CAT_LABELS[selectedItem.category] ?? selectedItem.category }}
+                </span>
               </p>
-            </div>
-            <h1 class="text-left text-aris-400">
-              {{ selectedEvent.title }}
-            </h1>
-            <Editor :model-value="selectedEvent.description" read-only class="text-justify" />
-            <div v-if="selectedEvent.link">
-              <hr class="hr-short" >
-              <div class="animate-link w-fit">
-                <NuxtLink :to="selectedEvent.link"> Mehr lesen </NuxtLink>
+              <h1 class="tl-detail__title">{{ selectedItem.title }}</h1>
+              <div class="tl-detail__desc">
+                <Editor
+                  v-if="selectedItem.description"
+                  :model-value="selectedItem.description"
+                  read-only
+                  class="text-justify"
+                />
+                <div v-if="selectedItem.link" class="mt-3 animate-link w-fit">
+                  <NuxtLink :to="selectedItem.link">Mehr lesen</NuxtLink>
+                </div>
               </div>
             </div>
+            <div v-if="selectedItem.banner" class="tl-detail__image">
+              <NuxtImg
+                :src="selectedItem.banner"
+                class="object-cover w-full h-full"
+              />
+            </div>
           </div>
-          <div class="max-h-full m-auto">
-            <NuxtImg
-              :src="selectedEvent.banner ?? '8436448c-0c93-430e-a2bf-34493dc15ca3'"
-              class="object-cover w-full h-full max-h-full"
-            />
+        </template>
+      </div>
+
+      <!-- ── Controls ────────────────────────────────────────────────────── -->
+      <div class="tl-controls">
+        <!-- Category filter -->
+        <div class="tl-filters">
+          <button
+            class="tl-chip"
+            :class="{ active: activeFilter === null }"
+            @click="activeFilter = null"
+          >Alle</button>
+          <button
+            v-for="cat in categories"
+            :key="cat"
+            class="tl-chip"
+            :class="{ active: activeFilter === cat }"
+            :style="activeFilter === cat
+              ? { borderColor: CAT_COLORS[cat] ?? '#888', color: CAT_COLORS[cat] ?? '#888' }
+              : {}"
+            @click="activeFilter = activeFilter === cat ? null : cat"
+          >
+            {{ CAT_LABELS[cat] ?? cat }}
+          </button>
+        </div>
+
+        <!-- Zoom level + pan buttons -->
+        <div class="tl-nav">
+          <div class="tl-zoom-tabs">
+            <button
+              v-for="lvl in ZOOM_LEVELS"
+              :key="lvl"
+              class="tl-zoom-tab"
+              :class="{ active: zoom === lvl }"
+              @click="setZoom(lvl)"
+            >{{ ZOOM_LABELS[lvl] }}</button>
           </div>
+          <div class="tl-nav-sep" />
+          <button class="tl-nav-btn" @click="panLeft">
+            <UIcon name="i-heroicons-chevron-double-left-solid" class="size-4" />
+          </button>
+          <button class="tl-nav-btn" @click="panRight">
+            <UIcon name="i-heroicons-chevron-double-right-solid" class="size-4" />
+          </button>
         </div>
       </div>
-      <div class="flex my-2">
-        <hr >
 
-        <ButtonDefault class="mx-2" @click="modalStore.openModal('Hilfe', { hideCloseButton: true })">
-          <UIcon name="i-heroicons-information-circle" class="flex m-auto size-5" />
-        </ButtonDefault>
-        <ButtonDefault class="mx-2" @click="zoomOut">
-          <UIcon name="i-heroicons-magnifying-glass-minus-solid" class="flex m-auto size-5" />
-        </ButtonDefault>
-        <ButtonDefault class="mx-2" @click="zoomIn">
-          <UIcon name="i-heroicons-magnifying-glass-plus-solid" class="flex m-auto size-5" />
-        </ButtonDefault>
-        <ButtonDefault class="mx-2" @click="moveLeft">
-          <UIcon name="i-heroicons-chevron-double-left-solid" class="flex m-auto size-5" />
-        </ButtonDefault>
-        <ButtonDefault class="mx-2" @click="moveRight">
-          <UIcon name="i-heroicons-chevron-double-right-solid" class="flex m-auto size-5" />
-        </ButtonDefault>
-      </div>
-      <div>
-        <Timeline
-          v-if="items[0]"
-          ref="timeline"
-          :items="items"
-          :groups="groups"
-          :viewport-min="totalRange.start"
-          :viewport-max="totalRange.end"
-          :initial-viewport-start="viewport.start"
-          :initial-viewport-end="viewport.end"
-          :max-zoom-speed="20"
-          :active-items="[selectedEvent.id]"
-          class="ac-timeline"
-          @change-viewport="viewport = $event"
-          @click="(e) => e.item && (selectedEvent = e.item)"
+      <!-- ── Canvas ──────────────────────────────────────────────────────── -->
+      <div class="tl-canvas-area">
+        <VerseExkursTimelineCanvas
+          :items="vtlItems"
+          :zoom="zoom"
+          :center-ms="centerMs"
+          :selected-id="selectedItem?.id ?? null"
+          :active-filter="activeFilter"
+          @select="selectItem"
+          @pan="onPan"
+          @zoom="setZoom"
         />
-        <h5 class="mt-6 mb-2 test-industrial-500">Map:</h5>
-        <Timeline
-          :items="[...items, { id: 'selection', type: 'background', start: viewport.start, end: viewport.end }]"
-          :groups="groups.map((group) => ({ ...group, label: '' }))"
-          :viewport-min="totalRange.start"
-          :viewport-max="totalRange.end"
-          :min-viewport-duration="totalRange.end"
-          :active-items="[selectedEvent.id]"
-          class="map"
-          @pointermove="handleViewportDrag"
-          @pointerdown="handleViewportDrag"
-          @wheel="onMapWheel"
+        <VerseExkursTimelineMinimap
+          :items="vtlItems"
+          :zoom="zoom"
+          :center-ms="centerMs"
+          @pan="onPan"
         />
       </div>
     </div>
   </NuxtLayout>
 </template>
 
-<style lang="scss" scoped>
-.ac-timeline {
-  :deep(.active) {
-    --item-background: #fff !important;
-  }
+<style scoped>
+.tl-page {
+  display: flex;
+  flex-direction: column;
+  /* cancel layout's mt-4 and px-4 container padding */
+  min-height: 100vh;
+  max-height: 100vh;
+  margin-top: -1rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  overflow: hidden;
+  background: #0a0f1a;
 }
-.map {
-  --group-items-height: 0.5em;
-  --group-border-top: 0;
-  --label-padding: 0;
-  --group-padding-top: 0.1em;
-  --group-padding-bottom: 0.1em;
 
-  :deep(.group:first-of-type) {
-    padding-top: 1rem;
-  }
+/* ── Detail panel ───────────────────────────────────────────────────────────── */
+.tl-detail {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 200px;
+  max-height: 38vh;
+  padding: 1.1rem 2.75rem 0.75rem;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(10,15,26,0.95) 0%, rgba(10,15,26,0.85) 100%);
+}
 
-  :deep(.group:nth-of-type(3)) {
-    padding-bottom: 1rem;
-  }
+.tl-detail-prev-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.3;
+  transition: opacity 0.15s;
+  padding: 0.35rem;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(232, 224, 208, 0.8);
+}
+.tl-detail-prev-btn:hover { opacity: 1; background: rgba(255,255,255,0.06); }
+.tl-detail-prev-btn--left  { left: 0.5rem; }
+.tl-detail-prev-btn--right { right: 0.5rem; }
 
-  :deep(.background) {
-    --item-background: color-mix(in srgb, currentcolor, transparent 90%);
+.tl-detail__inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  height: 100%;
+  overflow: hidden;
+}
 
-    cursor: grab;
-    z-index: 1;
+.tl-detail__left {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
 
-    &:active {
-      cursor: grabbing;
-    }
-    @apply border-2 border-aris-400 rounded;
-  }
+.tl-detail__date {
+  font-size: 0.8rem;
+  margin: 0 0 0.2rem;
+}
 
-  :deep(.item) {
-    pointer-events: none;
-  }
+.tl-detail__cat {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.75rem;
+}
 
-  :deep(.active) {
-    --item-background: #fff !important;
-  }
+.tl-detail__title {
+  font-size: 1.4rem;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+  color: rgba(232, 224, 208, 0.95);
+}
+
+.tl-detail__desc {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.tl-detail__image {
+  width: 180px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  max-height: 100%;
+}
+
+/* ── Controls ───────────────────────────────────────────────────────────────── */
+.tl-controls {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+
+.tl-filters {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.tl-chip {
+  font-size: 0.72rem;
+  padding: 0.18rem 0.6rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.45);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.tl-chip:hover,
+.tl-chip.active {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tl-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.tl-nav-sep {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 0.1rem;
+}
+
+.tl-zoom-tabs {
+  display: flex;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.tl-zoom-tab {
+  font-size: 0.68rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.tl-zoom-tab:hover {
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.06);
+}
+.tl-zoom-tab.active {
+  background: rgba(200, 169, 110, 0.15);
+  color: #C8A96E;
+}
+
+.tl-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.tl-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Canvas area ────────────────────────────────────────────────────────────── */
+.tl-canvas-area {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #0F1117;
+  display: flex;
+  flex-direction: column;
 }
 </style>
