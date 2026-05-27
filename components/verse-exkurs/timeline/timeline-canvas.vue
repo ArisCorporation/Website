@@ -58,19 +58,19 @@ const emit = defineEmits<{
 
 // ── Container size ────────────────────────────────────────────────────────────
 const wrapRef = ref<HTMLDivElement | null>(null)
-const svgW = ref(800)
-const svgH = ref(400)
+const svgW = ref(0)
+const svgH = ref(0)
 
 onMounted(() => {
-  const ro = new ResizeObserver(([entry]) => {
-    svgW.value = entry.contentRect.width || 800
-    svgH.value = entry.contentRect.height || 400
-  })
   if (wrapRef.value) {
-    ro.observe(wrapRef.value)
-    svgW.value = wrapRef.value.clientWidth || 800
-    svgH.value = wrapRef.value.clientHeight || 400
+    svgW.value = wrapRef.value.clientWidth
+    svgH.value = wrapRef.value.clientHeight
   }
+  const ro = new ResizeObserver(([entry]) => {
+    svgW.value = entry.contentRect.width
+    svgH.value = entry.contentRect.height
+  })
+  if (wrapRef.value) ro.observe(wrapRef.value)
   onUnmounted(() => ro.disconnect())
 })
 
@@ -125,9 +125,27 @@ const msPerPx = computed(() => {
   return svgW.value > 0 ? (endMs - startMs) / svgW.value : 1
 })
 
+// ── Level of detail: switch to dots when a card spans > 20 years ─────────────
+const renderMode = computed<'cards' | 'dots'>(() =>
+  (msPerPx.value * CARD_W) / MS_PER_YEAR > 20 ? 'dots' : 'cards',
+)
+
+// ── Axis dots (dots mode) ─────────────────────────────────────────────────────
+const axisDots = computed(() => {
+  if (renderMode.value !== 'dots') return []
+  const { startMs, endMs } = viewRange.value
+  const w = svgW.value
+  return visibleItems.value
+    .filter((i) => !i.isRange)
+    .map((i) => ({ id: i.id, item: i, x: dateToX(i.date, startMs, endMs, w), color: cc(i.category) }))
+    .filter((d) => d.x >= -6 && d.x <= w + 6)
+})
+
 // ── Lane assignment ───────────────────────────────────────────────────────────
 const laned = computed(() =>
-  assignLanes(visibleItems.value, maxLane.value, msPerPx.value * CARD_W),
+  renderMode.value === 'cards'
+    ? assignLanes(visibleItems.value, maxLane.value, msPerPx.value * CARD_W)
+    : [],
 )
 
 // ── Rendered epoch bands ──────────────────────────────────────────────────────
@@ -223,7 +241,7 @@ let _dragCenter = 0
 const isDragging = ref(false)
 
 function onPointerDown(e: PointerEvent) {
-  if ((e.target as Element)?.closest('.tl-card')) return
+  if ((e.target as Element)?.closest('.tl-card, .tl-epoch')) return
   isDragging.value = true
   _dragX = e.clientX
   _dragCenter = props.centerMs
@@ -263,6 +281,10 @@ function onWheel(e: WheelEvent) {
 function cc(cat: string) {
   return CAT_COLORS[cat] ?? '#888'
 }
+
+function catLabel(cat: string) {
+  return cat.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
 </script>
 
 <template>
@@ -277,6 +299,7 @@ function cc(cat: string) {
     @wheel.prevent="onWheel"
   >
     <svg
+      v-if="svgW > 0 && svgH > 0"
       :viewBox="`0 0 ${svgW} ${svgH}`"
       font-size="1rem"
       style="display: block; width: 100%; height: 100%; user-select: none; overflow: visible"
@@ -290,6 +313,14 @@ function cc(cat: string) {
           <stop offset="0" stop-color="#0F1117" stop-opacity="0" />
           <stop offset="1" stop-color="#0F1117" stop-opacity="1" />
         </linearGradient>
+        <!-- Soft glow filter for selected cards -->
+        <filter id="tl-card-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="7" />
+        </filter>
+        <!-- Soft glow filter for connector lines -->
+        <filter id="tl-line-glow" x="-800%" y="-50%" width="1700%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+        </filter>
       </defs>
 
       <!-- Tick marks -->
@@ -320,25 +351,28 @@ function cc(cat: string) {
       />
 
       <!-- Chapter band (epoch / range items) -->
-      <g v-if="chapterBandH > 0" pointer-events="none">
+      <g v-if="chapterBandH > 0">
         <rect :x="0" :y="msAxisY" :width="svgW" :height="chapterBandH"
-          fill="rgba(232,224,208,0.016)" />
+          fill="rgba(232,224,208,0.016)" pointer-events="none" />
         <line :x1="0" :y1="msAxisY" :x2="svgW" :y2="msAxisY"
-          stroke="rgba(232,224,208,0.08)" stroke-width="1" />
+          stroke="rgba(232,224,208,0.08)" stroke-width="1" pointer-events="none" />
 
         <template v-for="ep in renderedEpochs" :key="ep.id">
           <rect
             v-if="Math.min(svgW, ep.endX) > Math.max(0, ep.startX)"
+            class="tl-epoch"
             :x="Math.max(0, ep.startX)"
             :y="msAxisY + CH_BAND_PAD + ep._row * (CH_ROW_H + CH_ROW_GAP)"
             :width="Math.min(svgW, ep.endX) - Math.max(0, ep.startX)"
             :height="CH_ROW_H"
             :fill="cc(ep.category)"
-            fill-opacity="0.18"
+            :fill-opacity="ep.id === selectedId ? 0.35 : 0.18"
             :stroke="cc(ep.category)"
-            stroke-opacity="0.32"
+            :stroke-opacity="ep.id === selectedId ? 0.7 : 0.32"
             stroke-width="0.5"
             rx="2"
+            style="cursor:pointer"
+            @click.stop="emit('select', ep)"
           />
           <!-- Left edge accent -->
           <rect
@@ -347,6 +381,7 @@ function cc(cat: string) {
             :y="msAxisY + CH_BAND_PAD + ep._row * (CH_ROW_H + CH_ROW_GAP)"
             width="2" :height="CH_ROW_H"
             :fill="cc(ep.category)" opacity="0.85" rx="1"
+            pointer-events="none"
           />
           <!-- Label -->
           <text
@@ -358,12 +393,29 @@ function cc(cat: string) {
             font-size="0.45em"
             font-family="inherit"
             opacity="0.9"
+            pointer-events="none"
           >{{ ep.title }}</text>
         </template>
       </g>
 
-      <!-- Milestone cards -->
-      <g>
+      <!-- Dots mode (zoomed far out) -->
+      <g v-if="renderMode === 'dots'">
+        <circle
+          v-for="d in axisDots"
+          :key="d.id"
+          :cx="d.x"
+          :cy="axisY"
+          :r="d.id === selectedId ? 6 : 3.5"
+          :fill="d.color"
+          :opacity="d.id === selectedId ? 1 : 0.72"
+          :style="`filter:drop-shadow(0 0 ${d.id === selectedId ? '7px' : '3px'} ${d.color}${d.id === selectedId ? 'cc' : '77'})`"
+          style="cursor:pointer"
+          @click.stop="emit('select', d.item)"
+        />
+      </g>
+
+      <!-- Cards mode (zoomed in) -->
+      <g v-else>
         <g
           v-for="m in renderedCards"
           :key="m.id"
@@ -371,28 +423,37 @@ function cc(cat: string) {
           style="cursor: pointer"
           @click.stop="emit('select', m)"
         >
-          <!-- Axis dot + connector (not in scale group so they stay on axis) -->
+          <!-- Axis dot + connector -->
           <circle
             :cx="m.x" :cy="m.above ? msAxisY : axisY"
             :r="m.id === selectedId ? 5.5 : 3.5"
             :fill="cc(m.category)"
             :opacity="m.id === selectedId ? 1 : 0.85"
           />
+          <!-- Blurred glow behind connector (selected only) -->
+          <line
+            v-if="m.id === selectedId"
+            :x1="m.x" :y1="m.connY1" :x2="m.x" :y2="m.connY2"
+            :stroke="cc(m.category)" stroke-width="2" opacity="0.6"
+            filter="url(#tl-line-glow)"
+          />
           <line
             :x1="m.x" :y1="m.connY1"
             :x2="m.x" :y2="m.connY2"
             :stroke="cc(m.category)"
             :stroke-width="m.id === selectedId ? 1.5 : 1"
-            :opacity="m.id === selectedId ? 0.6 : 0.3"
+            :opacity="m.id === selectedId ? 0.55 : 0.3"
           />
 
-          <!-- Highlight glow behind card -->
+          <!-- Blurred glow behind card (selected only) -->
           <rect
             v-if="m.id === selectedId"
-            :x="m.cardX - 4" :y="m.cardY - 4"
-            :width="CARD_W + 8" :height="m.cardH + 8"
+            :x="m.cardX" :y="m.cardY"
+            :width="CARD_W" :height="m.cardH"
             :fill="cc(m.category)"
-            opacity="0.12"
+            opacity="0.45"
+            rx="2"
+            filter="url(#tl-card-glow)"
           />
 
           <!-- Card body -->
@@ -401,9 +462,9 @@ function cc(cat: string) {
             :width="CARD_W" :height="m.cardH"
             fill="rgba(13,15,22,0.96)"
             :stroke="cc(m.category)"
-            :stroke-opacity="m.id === selectedId ? 0.9 : 0.35"
+            :stroke-opacity="m.id === selectedId ? 0.85 : 0.35"
             :stroke-width="m.id === selectedId ? 1.5 : 1"
-            :style="m.id === selectedId ? `filter: drop-shadow(0 0 7px ${cc(m.category)}99)` : ''"
+            rx="2"
           />
           <!-- Left-edge accent bar -->
           <rect
@@ -438,7 +499,7 @@ function cc(cat: string) {
             :x="m.cardX + 10" :y="m.yCat"
             :fill="cc(m.category)"
             font-size="0.52em" font-family="inherit" opacity="0.75"
-          >{{ m.category.replace(/_/g, ' ') }}</text>
+          >{{ catLabel(m.category) }}</text>
         </g>
       </g>
 

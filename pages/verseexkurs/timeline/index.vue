@@ -158,26 +158,18 @@ const vtlItems = computed<VTLItem[]>(() => {
 })
 
 // ── UI state ──────────────────────────────────────────────────────────────────
-const zoom = ref<ZoomLevel>('century')
+const zoom = ref<ZoomLevel>('decade')
 const activeFilter = ref<string | null>(null)
 const selectedItem = ref<VTLItem | null>(vtlItems.value[0] ?? null)
 
-// Center on median item
-const centerMs = ref(0)
-watchEffect(() => {
-  if (vtlItems.value.length > 0 && centerMs.value === 0) {
-    const items = vtlItems.value
-    centerMs.value = items[Math.floor(items.length / 2)].date
-  }
-})
+const _mid = vtlItems.value[Math.floor(vtlItems.value.length / 2)]
+const centerMs = ref(_mid?.date ?? Date.now())
 
 const categories = computed(() => [...new Set(vtlItems.value.map((i) => i.category))])
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 function selectItem(item: VTLItem) {
   selectedItem.value = item
-  // Pan to selected item
-  centerMs.value = item.date
 }
 
 function onPan(ms: number) {
@@ -325,6 +317,7 @@ definePageMeta({ layout: false })
           :items="vtlItems"
           :zoom="zoom"
           :center-ms="centerMs"
+          :active-filter="activeFilter"
           @pan="onPan"
         />
       </div>

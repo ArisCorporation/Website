@@ -16,31 +16,37 @@ const props = defineProps<{
   items: VTLItem[]
   zoom: ZoomLevel
   centerMs: number
+  activeFilter?: string | null
 }>()
 
 const emit = defineEmits<{ pan: [centerMs: number] }>()
 
 // ── Container sizing ──────────────────────────────────────────────────────────
 const wrapRef = ref<HTMLDivElement | null>(null)
-const svgW = ref(800)
+const svgW = ref(0)
 
 onMounted(() => {
-  const ro = new ResizeObserver(([e]) => { svgW.value = e.contentRect.width || 800 })
-  if (wrapRef.value) {
-    ro.observe(wrapRef.value)
-    svgW.value = wrapRef.value.clientWidth || 800
-  }
+  if (wrapRef.value) svgW.value = wrapRef.value.clientWidth
+  const ro = new ResizeObserver(([e]) => { svgW.value = e.contentRect.width })
+  if (wrapRef.value) ro.observe(wrapRef.value)
   onUnmounted(() => ro.disconnect())
 })
 
+// ── Filtered items ────────────────────────────────────────────────────────────
+const visibleItems = computed(() =>
+  props.activeFilter
+    ? props.items.filter((i) => i.category === props.activeFilter)
+    : props.items,
+)
+
 // ── Full data range ───────────────────────────────────────────────────────────
 const mapRange = computed(() => {
-  if (!props.items.length) {
+  if (!visibleItems.value.length) {
     const now = Date.now()
     return { mapStart: now - 50 * MS_PER_YEAR, mapEnd: now + 50 * MS_PER_YEAR, mapSpan: 100 * MS_PER_YEAR }
   }
-  const starts = props.items.map((i) => i.date)
-  const ends   = props.items.map((i) => i.endDate ?? i.date)
+  const starts = visibleItems.value.map((i) => i.date)
+  const ends   = visibleItems.value.map((i) => i.endDate ?? i.date)
   const dataMin = Math.min(...starts)
   const dataMax = Math.max(...ends)
   const span = Math.max(dataMax - dataMin, MS_PER_YEAR)
@@ -70,7 +76,7 @@ const viewport = computed(() => {
 
 // ── Epoch bands (below axis) ──────────────────────────────────────────────────
 const epochBands = computed(() =>
-  props.items
+  visibleItems.value
     .filter((i) => i.isRange)
     .map((i) => ({
       ...i,
@@ -83,7 +89,7 @@ const epochBands = computed(() =>
 
 // ── Point dots ────────────────────────────────────────────────────────────────
 const dots = computed(() =>
-  props.items
+  visibleItems.value
     .filter((i) => !i.isRange)
     .map((i) => ({ id: i.id, x: msToX(i.date), color: CAT_COLORS[i.category] ?? '#888' }))
     .filter((d) => d.x >= -3 && d.x <= svgW.value + 3),
@@ -134,6 +140,7 @@ function onPointerUp(e: PointerEvent) {
     @pointercancel="onPointerUp"
   >
     <svg
+      v-if="svgW > 0"
       :viewBox="`0 0 ${svgW} ${H}`"
       style="display: block; width: 100%; height: 100%"
     >
