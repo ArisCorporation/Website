@@ -36,7 +36,7 @@ ARG NUXT_SENTRY_AUTH_TOKEN
 
 # Baue die Nuxt-Anwendung für die Produktion
 # Das erzeugt den .output Ordner
-RUN npm run build
+RUN NODE_OPTIONS=--max-old-space-size=4096 npm run build
 # RUN yarn build
 # RUN pnpm build
 
