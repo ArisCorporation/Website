@@ -34,12 +34,7 @@ const { data } = await useAsyncData(
           'headquarter.headquarter:landing_zones.planet.name',
           'headquarter.headquarter:landing_zones.planet.slug',
           'headquarter.headquarter:space_stations.name',
-          'headquarter.headquarter:space_stations.slug',
-          'ships.store_image',
-          'ships.name',
-          'ships.slug',
-          'ships.manufacturer.name',
-          'ships.manufacturer.slug',
+          'headquarter.headquarter:space_stations.slug'
         ],
         filter: {
           slug: { _eq: route.params.slug },
@@ -179,8 +174,6 @@ definePageMeta({
       <Editor :model-value="data?.content" read-only />
       <template
         v-if="
-          (data?.ships && data.ships[0]) ||
-          (data?.ship_modules && data?.ship_modules[0]) ||
           (data?.weapons && data.weapons[0]) ||
           (data?.weapon_mods && data.weapon_mods[0])
         "
@@ -189,24 +182,6 @@ definePageMeta({
         <h3>Waren der Firma {{ data?.name }}</h3>
         <UAccordion
           :items="[
-            ...(data?.ships && data.ships[0]
-              ? [
-                  {
-                    label: 'Schiffe von ',
-                    defaultOpen: false,
-                    slot: 'ships',
-                  },
-                ]
-              : []),
-            ...(data?.ship_modules && data.ship_modules[0]
-              ? [
-                  {
-                    label: 'Schiffsmodule von ',
-                    defaultOpen: false,
-                    slot: 'shipmodules',
-                  },
-                ]
-              : []),
             ...(data?.weapons && data.weapons[0]
               ? [
                   {
@@ -238,11 +213,6 @@ definePageMeta({
                 :class="[open && 'rotate-90']"
               />
             </h4>
-          </template>
-          <template #ships>
-            <div class="flex flex-wrap">
-              <ShipCard v-for="ship in data?.ships" :key="ship.id" :ship-data="ship" preload-images />
-            </div>
           </template>
         </UAccordion>
       </template>

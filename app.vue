@@ -288,7 +288,6 @@ console.log(` CLI  (ascii-image-converter)
   <div>
     <NuxtLoadingIndicator />
     <UNotifications />
-    <CommandPalette />
     <main>
       <NuxtLayout>
         <NuxtPage />
