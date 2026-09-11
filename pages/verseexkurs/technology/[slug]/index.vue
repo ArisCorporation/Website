@@ -13,7 +13,7 @@ const { data } = await useAsyncData(
         },
       }),
     ),
-  { transform: (data) => data[0] },
+  { transform: (data) => data[0], watch: params.slug },
 );
 
 if (!data.value) {
@@ -39,7 +39,7 @@ definePageMeta({
       <span class="text-aris-400">{{ data?.name }}</span>
     </template>
     <template #default>
-      <Editor :model-value="data?.content" read-only />
+      <Editor :model-value="data?.content ?? ''" read-only />
     </template>
   </VerseExkursBaseArticle>
 </template>
