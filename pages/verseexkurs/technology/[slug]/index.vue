@@ -31,6 +31,7 @@ useHead({
 });
 definePageMeta({
   layout: 'verse-exkurs',
+  key: (route) => route.fullPath,
 });
 </script>
 

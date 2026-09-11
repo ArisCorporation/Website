@@ -1077,7 +1077,7 @@ const technologies = [
   },
 ];
 
-const { data } = await useAsyncData('TECHNOLOGY', () =>
+const { data } = await useAsyncData('TECHNOLOGY:INDEX', () =>
   directus.request(
     readItems('technologies', {
       limit: -1,
