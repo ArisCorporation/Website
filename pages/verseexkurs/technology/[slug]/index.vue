@@ -1,19 +1,21 @@
 <script setup lang="ts">
 const { directus, readItems } = useCMS();
-const { params } = useRoute();
+const route = useRoute();
+const slug = computed(() => String(route.params.slug ?? ''));
+const asyncDataKey = computed(() => `TECHNOLOGY:${slug.value}`);
 
 const { data } = await useAsyncData(
-  'TECHNOLOGY',
+  asyncDataKey,
   () =>
     directus.request(
       readItems('technologies', {
         fields: ['name', 'banner', 'content'],
         filter: {
-          slug: { _eq: params.slug },
+          slug: { _eq: slug.value },
         },
       }),
     ),
-  { transform: (data) => data[0], watch: params.slug },
+  { transform: (data) => data[0] },
 );
 
 if (!data.value) {
@@ -25,7 +27,7 @@ if (!data.value) {
 }
 
 useHead({
-  title: 'Technologien - ' + data.value.name,
+  title: computed(() => (data.value ? `Technologien - ${data.value.name}` : 'Technologien')),
 });
 definePageMeta({
   layout: 'verse-exkurs',
