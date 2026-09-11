@@ -50,7 +50,8 @@ const bannerItems = [
   {
     name: 'ShipExkurs',
     icon: 'IconsLogosSeBanner',
-    link: '/shipexkurs/ships',
+    link: '/shipexkurs',
+    external: true
   },
   {
     name: 'VerseExkurs',
@@ -134,6 +135,7 @@ function handleHomeButton(item: any) {
         >
           <li v-for="item in bannerItems" :key="item.name" class="relative w-full my-auto group md:w-fit">
             <NuxtLink
+              v-if="!item.external"
               :to="item.link"
               class="block px-3 py-2 rounded md:p-0 md:border-0 not-active md:animate-link"
               @click="toggleMenu"
@@ -147,6 +149,21 @@ function handleHomeButton(item: any) {
                   :class="[item.icon === 'IconsLogosAmsBanner' ? ' w-20 lg:w-24' : 'w-14 lg:w-20']"
               /></span>
             </NuxtLink>
+            <a
+              v-else
+              :href="item.link"
+              class="block px-3 py-2 rounded md:p-0 md:border-0 not-active md:animate-link"
+              @click="toggleMenu"
+            >
+              <span class="block md:hidden w-fit animate-link">{{ item.name }}</span>
+              <span class="hidden md:block"
+                ><Icon
+                  :name="item.icon"
+                  hover
+                  class="h-auto"
+                  :class="[item.icon === 'IconsLogosAmsBanner' ? ' w-20 lg:w-24' : 'w-14 lg:w-20']"
+              /></span>
+            </a>
             <div class="tooltip">
               {{ item.name }}
             </div>
