@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { isNewAppPath, NEW_APP_PATHS } from '~/utils/new-app-links';
+
 const isOpen = ref(false);
 const router = useRouter();
 const toast = useToast();
@@ -23,9 +25,6 @@ const pages = [
     id: 've',
     label: 'VerseExkurs',
     icon: 'i-heroicons-sun-solid',
-    // avatar: {
-    //   src: 'https://studio.ariscorp.de/assets/2a7389da-7ad6-46bc-ad4d-ce1b02756d3c',
-    // },
     to: '/verseexkurs',
     // shortcuts: [metaSymbol, 'Shift', 'V'],
   },
@@ -33,20 +32,14 @@ const pages = [
     id: 'see',
     label: 'ShipExkurs',
     icon: 'i-heroicons-rocket-launch',
-    // avatar: {
-    //   src: 'https://studio.ariscorp.de/assets/ffe7c93d-6f9e-4335-aae7-8a3db4551b95',
-    // },
-    to: '/shipexkurs/ships',
+    to: `${NEW_APP_PATHS.SHIP_EXKURS}/ships`,
     // shortcuts: [metaSymbol, 'Shift', 'S'],
   },
   {
     id: 'ams',
     label: 'ArisCorp Management System',
     icon: 'i-heroicons-user-circle',
-    // avatar: {
-    //   src: 'https://studio.ariscorp.de/assets/3090187e-6348-4290-a878-af1b2b48c114',
-    // },
-    to: 'https://ams.ariscorp.de',
+    to: NEW_APP_PATHS.AMS,
     // shortcuts: [metaSymbol, 'Shift', 'A'],
   },
 ];
@@ -56,7 +49,7 @@ const ams_commands = [
     id: 'new-ship',
     label: 'Neues Schiff hinzufügen',
     icon: 'i-heroicons-document-plus',
-    to: 'https://ams.ariscorp.de/ams/hangar#add',
+    to: `${NEW_APP_PATHS.AMS}/hangar#add`,
     // shortcuts: [metaSymbol, 'N'],
   },
 ];
@@ -66,7 +59,7 @@ const ams_pages = [
     id: 'ams-hangar',
     label: 'Hangar',
     icon: 'IconsNavigationHangar',
-    to: 'https://ams.ariscorp.de/ams/hangar',
+    to: `${NEW_APP_PATHS.AMS}/hangar`,
   },
   {
     id: 'ams-profile',
@@ -74,19 +67,19 @@ const ams_pages = [
     avatar: {
       src: useRuntimeConfig().public.fileBase + user.value?.avatar,
     },
-    to: 'https://ams.ariscorp.de/ams/profile',
+    to: `${NEW_APP_PATHS.AMS}/profile`,
   },
   {
     id: 'ams-fleet',
     label: 'Flotte',
     icon: 'IconsNavigationFleet',
-    to: 'https://ams.ariscorp.de/ams/fleet',
+    to: `${NEW_APP_PATHS.AMS}/fleet`,
   },
   {
     id: 'ams-employees',
     label: 'Mitarbeiter',
     icon: 'IconsNavigationMembers',
-    to: 'https://ams.ariscorp.de/ams/employees',
+    to: `${NEW_APP_PATHS.AMS}/employees`,
   },
 ];
 
@@ -222,7 +215,7 @@ const groups = computed(() => [
         avatar: {
           src: useRuntimeConfig().public.fileBase + ship.manufacturer.logo,
         },
-        to: '/shipexkurs/ships/' + ship.slug,
+        to: `${NEW_APP_PATHS.SHIP_EXKURS}/ships/${ship.slug}`,
       }));
     },
   },
@@ -476,7 +469,7 @@ function onSelect(option: any) {
   if (option.click) {
     option.click();
   } else if (option.to) {
-    router.push(option.to);
+    isNewAppPath(option.to) ? navigateTo(option.to, { external: true }) : router.push(option.to);
   } else if (option.href) {
     window.open(option.href, '_blank');
   }

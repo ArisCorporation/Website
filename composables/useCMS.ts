@@ -80,7 +80,7 @@ export const useCMS = () => {
 
   const config = useRuntimeConfig()
   const { origin } = useRequestURL()
-  const backendUrl = import.meta.server ? config.public.backendUrl : `${origin}/api/proxy`
+  const backendUrl = import.meta.server ? config.directusUrl : `${origin}/api/legacy-proxy`
   const directus = createDirectus<CMSTypes>(backendUrl)
     .with(rest({ credentials: 'include' }))
     .with(authentication('json', { storage }))

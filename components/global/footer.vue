@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { NEW_APP_PATHS } from '~/utils/new-app-links';
+
 const footerLang = useState('footerLang', () => 'de');
 const { directus, readSingleton } = useCMS();
 
@@ -60,7 +62,7 @@ const en = footer.value?.find((e: any) => e.code === 'en-EN').content;
             <span><NuxtLink to="/credits" class="hover:brightness-85 animate-link">Credits</NuxtLink></span>
             <!-- <span><NuxtLink to="/bug-report" class="hover:brightness-85 animate-link">Bug-Report Tool</NuxtLink></span> -->
             <span
-              ><NuxtLink to="https://ams.ariscorp.de" class="hover:brightness-85 animate-link">A.M.S.</NuxtLink></span
+              ><NuxtLink :to="NEW_APP_PATHS.AMS" external class="hover:brightness-85 animate-link">A.M.S.</NuxtLink></span
             >
             <span class="after:!content-[]">
               <NuxtLink target="_blank" to="https://releases.ariscorp.de" class="hover:brightness-85 animate-link">

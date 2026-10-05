@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isNewAppPath, NEW_APP_PATHS } from '~/utils/new-app-links';
 import {
   type VTLItem,
   type ZoomLevel,
@@ -94,7 +95,7 @@ function resolveLink(item: any): string | null {
     case 'literature_categories': return `/verseexkurs/literatures/${li.item?.slug}`
     case 'fractions':           return `/verseexkurs/fractions/${li.item?.slug}`
     case 'spectrum_categories': return `/verseexkurs/spectrum/${li.item?.slug}`
-    case 'ships':               return `/shipexkurs/ships/${li.item?.slug}`
+    case 'ships':               return `${NEW_APP_PATHS.SHIP_EXKURS}/ships/${li.item?.slug}`
     case 'spectrum_threads':    return `/verseexkurs/spectrum/${li.item?.category?.slug}/${li.item?.slug}`
     default:                    return null
   }
@@ -243,7 +244,7 @@ definePageMeta({ layout: false })
                   class="text-justify"
                 />
                 <div v-if="selectedItem.link" class="mt-3 animate-link w-fit">
-                  <NuxtLink :to="selectedItem.link">Mehr lesen</NuxtLink>
+                  <NuxtLink :to="selectedItem.link" :external="isNewAppPath(selectedItem.link)">Mehr lesen</NuxtLink>
                 </div>
               </div>
             </div>

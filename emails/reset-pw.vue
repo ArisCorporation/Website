@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { NEW_APP_PATHS } from '~/utils/new-app-links';
+
 const props = defineProps({
   username: {
     type: String,
@@ -15,11 +17,16 @@ const props = defineProps({
     required: false,
     default: '2024-05-08T23:35:12+02:00',
   },
+  siteUrl: {
+    type: String,
+    required: true,
+  },
 });
 
 const requestDate = new Date(props.datetime);
 const expireDate = new Date(props.datetime);
 expireDate.setHours(expireDate.getHours() + 24);
+const resetUrl = `${props.siteUrl}${NEW_APP_PATHS.AMS}/reset-password?token=${props.token}`;
 </script>
 
 <template>
@@ -30,7 +37,7 @@ expireDate.setHours(expireDate.getHours() + 24);
           font-family="Orbitron"
           fallback-font-family="sans-serif"
           :web-font="{
-            url: 'https://ariscorp.de/assets/fa84a65e-5f2f-429e-a50f-cd88daac2684.ttf',
+            url: `${siteUrl}/assets/fa84a65e-5f2f-429e-a50f-cd88daac2684.ttf`,
             format: 'truetype',
           }"
           :font-weight="400"
@@ -63,7 +70,7 @@ expireDate.setHours(expireDate.getHours() + 24);
               px="20"
               py="12"
               class="bg-[#00ffe8] rounded-lg text-black text-[12px] font-semibold no-underline text-center"
-              :href="'https://ariscorp.de/ams/reset-password?token=' + token"
+              :href="resetUrl"
             >
               Passwort zurücksetzen
             </EButton>
@@ -73,10 +80,10 @@ expireDate.setHours(expireDate.getHours() + 24);
               Oder kopiere und füge die folgende URL in deinen Browser ein:
               <br >
               <ELink
-                :href="'https://ariscorp.de/ams/reset-password?token=' + token"
+                :href="resetUrl"
                 class="text-[#e48632] no-underline"
               >
-                {{ 'https://ariscorp.de/ams/reset-password?token=' + token }}
+                {{ resetUrl }}
               </ELink>
             </EText>
           </ESection>

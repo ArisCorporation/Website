@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { isNewAppPath, NEW_APP_PATHS } from '~/utils/new-app-links';
+
 // defineProps({
 //   contextMenu: {
 //     type: Boolean,
@@ -10,6 +12,7 @@
 // const contextMenu = defineModel()
 
 const removePopover = ref(false);
+const config = useRuntimeConfig();
 const emit = defineEmits(['edit', 'removeOpen', 'removeConfirm', 'module-open', 'quickViewOpen']);
 
 type ShipCardManufacturer = {
@@ -220,7 +223,7 @@ const detailPath = computed(() => {
       ? '/verseexkurs/technology/attachments/'
       : props.type === 'weapons'
         ? '/verseexkurs/technology/weapons/'
-        : '/shipexkurs/ships/';
+        : `${NEW_APP_PATHS.SHIP_EXKURS}/ships/`;
 
   const identifier =
     props.type === 'attachments' || props.type === 'weapons'
@@ -228,6 +231,11 @@ const detailPath = computed(() => {
       : (props.shipData?.id ?? props.shipData?.slug ?? '');
 
   return `${basePath}${identifier}`;
+});
+
+const ownerPath = computed(() => {
+  const slug = props.hangarData?.userData?.owner?.slug ?? '';
+  return props.internalBio ? `${NEW_APP_PATHS.AMS}/employees/biography/${slug}` : `/biography/${slug}`;
 });
 
 // border-danger text-danger border-success text-success
@@ -239,12 +247,13 @@ const detailPath = computed(() => {
       <div class="relative h-fit">
         <NuxtLink
           :to="detailPath"
+          :external="isNewAppPath(detailPath)"
           :role="!moduleView ? 'link' : 'button'"
           class="block relative transition-all duration-500 ease h-[200px] bg-image group peer"
           @click="quickView ? $emit('quickViewOpen', shipData.id) : moduleView ? $emit('module-open', shipData) : null"
         >
           <NuxtImg
-            :src="thumbnailId ? thumbnailId : 'https://assets.ariscorp.de/3efbbd97-b3b0-46b7-86bf-9d6e32e7fec3'"
+            :src="thumbnailId ? thumbnailId : config.public.fileBase + '3efbbd97-b3b0-46b7-86bf-9d6e32e7fec3'"
             :placeholder="[16, 16, 1, 5]"
             :preload="preloadImages"
             height="200"
@@ -299,6 +308,7 @@ const detailPath = computed(() => {
           </div>
           <NuxtLink
             :to="detailPath"
+            :external="isNewAppPath(detailPath)"
             class="m-0 transition hover:no-underline basis-full opacity-80 text-secondary hover:opacity-100"
           >
             <div class="animate-link w-fit">
@@ -322,7 +332,8 @@ const detailPath = computed(() => {
           </p>
           <NuxtLink
             v-if="displayOwner"
-            :to="(internalBio ? '/ams/employees/' : '/') + 'biography/' + hangarData.userData.owner.slug"
+            :to="ownerPath"
+            :external="isNewAppPath(ownerPath)"
             class="z-20 block mt-auto ml-auto text-xs text-white transition opacity-50 hover:no-underline hover:opacity-100 animate-link"
           >
             <span>

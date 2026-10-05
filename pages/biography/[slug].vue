@@ -111,7 +111,7 @@ const { data } = await useAsyncData(
           hangar_items: {
             _filter: {
               visibility: {
-                ...(path.startsWith('/ams') ? { _neq: 'private' } : { _eq: 'public' }),
+                _eq: 'public',
               },
             },
             _sort: ['ship_id.name'],
@@ -220,10 +220,6 @@ defineShortcuts({
   },
 });
 
-definePageMeta({
-  alias: '/ams/employees/biography/:slug()',
-  middleware: 'biography',
-});
 useHead({
   title: data.value?.full_name + ' - Biografie',
 });

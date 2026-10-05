@@ -2,9 +2,10 @@
 const modalOpen = ref(false);
 const { copy } = useClipboard();
 const toast = useToast();
+const config = useRuntimeConfig();
 
 function handleShare() {
-  copy('https://trailer.ariscorp.de');
+  copy(`${config.public.siteUrl}/trailer`);
   toast.add({ title: 'URL in Zwischenablage kopiert!' });
 }
 </script>

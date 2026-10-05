@@ -1,7 +1,10 @@
 import { defineNuxtConfig } from 'nuxt/config';
 // import { sentryVitePlugin } from '@sentry/vite-plugin';
 import vue from '@vitejs/plugin-vue';
+import { createRequire } from 'node:module';
 import { version } from './package.json';
+
+const nodeRequire = createRequire(import.meta.url);
 
 export default defineNuxtConfig({
   devtools: {
@@ -13,6 +16,7 @@ export default defineNuxtConfig({
   },
 
   app: {
+    buildAssetsDir: '/_legacy/',
     head: {
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
@@ -67,6 +71,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     authSecret: process.env.NUXT_AUTH_SECRET,
+    directusUrl: process.env.NUXT_DIRECTUS_URL,
     // cmsToken: process.env.NUXT_CMS_TOKEN,
     discordBotToken: process.env.NUXT_DISCORD_BOT_TOKEN,
     discordGuildId: process.env.NUXT_DISCORD_GUILD_ID,
@@ -78,8 +83,7 @@ export default defineNuxtConfig({
       appVersion: version,
       buildNumber: process.env.SOURCE_COMMIT,
       environment: process.env.NUXT_PUBLIC_ENV,
-      url: process.env.NUXT_PUBLIC_URL,
-      backendUrl: process.env.NUXT_PUBLIC_DIRECTUS_URL,
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
       fileBase: process.env.NUXT_PUBLIC_FILE_BASE,
       mbutton: { initial: { scale: 1 }, visible: { scale: 1 }, hovered: { scale: 1 }, tapped: { scale: 0.97 } },
       // NUXT_PUBLIC_SENTRY_DSN_PUBLIC: process.env.NUXT_PUBLIC_SENTRY_DSN_PUBLIC,
@@ -131,7 +135,15 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    externals: {
+      external: ['puppeteer', 'puppeteer-core'],
+      traceInclude: [nodeRequire.resolve('puppeteer')],
+    },
+    experimental: {
+      bundleRuntimeDependencies: false,
+    },
     rollupConfig: {
+      external: ['puppeteer', 'puppeteer-core'],
       plugins: [vue()],
     },
   },
@@ -159,20 +171,6 @@ export default defineNuxtConfig({
       },
     },
   },
-
-  // directus: {
-  // 	url: process.env.NUXT_DIRECTUS_URL,
-  // 	authConfig: {
-  // 		refreshTokenCookieName: 'ams_refresh_token',
-  // 	},
-  // 	moduleConfig: {
-  // 		autoRefresh: {
-  // 			enableMiddleware: false,
-  // 			redirectTo: '/ams/login',
-  // 			to: ['/ams'],
-  // 		},
-  // 	},
-  // },
 
   headlessui: {
     prefix: 'Headless',

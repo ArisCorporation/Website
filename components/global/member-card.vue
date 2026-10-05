@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { isNewAppPath } from '~/utils/new-app-links';
+
 defineProps({
   hangarLink: {
     type: Boolean,
@@ -48,10 +50,17 @@ defineProps({
           </template>
           <hr >
           <p class="flex justify-center space-x-4">
-            <NuxtLink :to="ams ? data.biography_ams_link : data.biography_link" class="animate-link hover:brightness-85"
+            <NuxtLink
+              :to="ams ? data.biography_ams_link : data.biography_link"
+              :external="isNewAppPath(ams ? data.biography_ams_link : data.biography_link)"
+              class="animate-link hover:brightness-85"
               >BIOGRAFIE</NuxtLink
             >
-            <NuxtLink v-if="hangarLink" :to="data.hangar_link" class="animate-link hover:brightness-85"
+            <NuxtLink
+              v-if="hangarLink"
+              :to="data.hangar_link"
+              :external="isNewAppPath(data.hangar_link)"
+              class="animate-link hover:brightness-85"
               >HANGAR</NuxtLink
             >
           </p>

@@ -16,7 +16,7 @@ useHead({
     { property: 'og:title', content: videoData.value.title },
     { property: 'og:description', content: videoData.value.description },
     { property: 'og:type', content: 'video.other' },
-    { property: 'og:url', content: config.public.url + '/trailer' },
+    { property: 'og:url', content: config.public.siteUrl + '/trailer' },
     { property: 'og:image', content: config.public.fileBase + '62eb0e48-6a0e-432f-b90d-fbd6aca6eaac' },
     { property: 'og:video:url', content: config.public.fileBase + videoData.value.id },
     { property: 'og:video:secure_url', content: config.public.fileBase + videoData.value.id },
@@ -29,7 +29,7 @@ useHead({
     { name: 'twitter:title', content: videoData.value.title },
     { name: 'twitter:description', content: videoData.value.description },
     { name: 'twitter:image', content: config.public.fileBase + '62eb0e48-6a0e-432f-b90d-fbd6aca6eaac' },
-    { name: 'twitter:player', content: config.public.url + '/trailer' }, // URL zur Seite, die das Video einbettet
+    { name: 'twitter:player', content: config.public.siteUrl + '/trailer' }, // URL zur Seite, die das Video einbettet
     { name: 'twitter:player:width', content: videoData.value.width },
     { name: 'twitter:player:height', content: videoData.value.height },
     { name: 'twitter:player:stream', content: config.public.fileBase + videoData.value.id }, // Direkte Video-URL

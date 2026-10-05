@@ -1,3 +1,5 @@
+import { NEW_APP_PATHS } from '~/utils/new-app-links';
+
 export default function (obj: any) {
   const roles = [
     obj.head_of_department ? 'Abteilungsleiter' : null,
@@ -59,9 +61,7 @@ export default function (obj: any) {
     ...(obj.discord_id && { discord_id: obj.discord_id }),
     ...(obj.rsi_handle && { rsi_handle: obj.rsi_handle }),
     avatar: obj.avatar ? obj.avatar : '88adb941-f746-405d-bcc4-c2804fb48e33',
-    avatar_url: obj.avatar
-      ? 'https://studio.ariscorp.de/assets/' + obj.avatar
-      : 'https://studio.ariscorp.de/assets/' + '88adb941-f746-405d-bcc4-c2804fb48e33',
+    avatar_url: `/api/legacy-proxy/assets/${obj.avatar ?? '88adb941-f746-405d-bcc4-c2804fb48e33'}`,
     ...(obj.sex && {
       sex: obj.sex === 'female' ? 'Weiblich' : 'Männlich',
       sex_value: obj.sex,
@@ -169,9 +169,9 @@ export default function (obj: any) {
     ...(obj.hates && { hates: obj.hates }),
     ...(obj.medical_informations && { medical_informations: obj.medical_informations }),
     ...(obj.biography && { biography: obj.biography }),
-    ...(obj.slug && { hangar_link: `/ams/employees/hangar/${obj.slug}` }),
+    ...(obj.slug && { hangar_link: `${NEW_APP_PATHS.AMS}/employees/hangar/${obj.slug}` }),
     ...(obj.slug && { biography_link: `/biography/${obj.slug}` }),
-    ...(obj.slug && { biography_ams_link: `/ams/employees/biography/${obj.slug}` }),
+    ...(obj.slug && { biography_ams_link: `${NEW_APP_PATHS.AMS}/employees/biography/${obj.slug}` }),
     ...(obj.hangar_items && { hangar: obj.hangar_items.map((item: any) => transformHangarItem(item)) }),
     ...(obj.onboardings && { onboardings: obj.onboardings }),
   };

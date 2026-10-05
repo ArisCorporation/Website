@@ -13,7 +13,7 @@ defineProps({
 
 const handleCopy = () => {
 	if (clipboardIsSupported && location?.href) {
-		copy(config.public.url + '/?our=1&fleet=' + homepageTabsStore.selectedOurFleetTab + '#fleet')
+		copy(config.public.siteUrl + '/?our=1&fleet=' + homepageTabsStore.selectedOurFleetTab + '#fleet')
 		toast.add({ title: 'URL in Zwischenablage kopiert!' })
 	}
 	else {

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { NEW_APP_PATHS } from '~/utils/new-app-links';
+
 const mobileMenu = ref(false);
 const route = useRoute();
 
@@ -50,8 +52,8 @@ const bannerItems = [
   {
     name: 'ShipExkurs',
     icon: 'IconsLogosSeBanner',
-    link: '/shipexkurs',
-    external: true
+    link: NEW_APP_PATHS.SHIP_EXKURS,
+    external: true,
   },
   {
     name: 'VerseExkurs',
@@ -61,7 +63,8 @@ const bannerItems = [
   {
     name: 'ArisCorp Management System',
     icon: 'IconsLogosAmsBanner',
-    link: 'https://ams.ariscorp.de',
+    link: NEW_APP_PATHS.AMS,
+    external: true,
   },
 ];
 

@@ -2,6 +2,7 @@
 import type { Ships } from '~/types/cms-types';
 import { computed, ref, shallowRef, toRefs, watchEffect, watch } from 'vue';
 import { Spherical, Vector3 } from 'three';
+import { NEW_APP_PATHS } from '~/utils/new-app-links';
 
 const { directus, readItems } = useCMS();
 const { params } = useRoute();
@@ -278,7 +279,7 @@ const starsRef = shallowRef();
                 </p>
               </ButtonDefault>
             </NuxtLink>
-            <NuxtLink :to="'/shipexkurs/ships/' + ship?.slug" class="text-tbase">
+            <NuxtLink :to="`${NEW_APP_PATHS.SHIP_EXKURS}/ships/${ship?.slug}`" external class="text-tbase">
               <ButtonDefault @click="handleShare">
                 <UIcon name="i-material-symbols-open-in-new" class="flex m-auto size-5" />
               </ButtonDefault>
